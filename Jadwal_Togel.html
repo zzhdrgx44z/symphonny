@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>SYSTEM: PASARAN v20.0</title>
+<title>SYSTEM: PASARAN v20.0 - LIVE RESULT</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <style>
@@ -12,6 +12,7 @@
   --neon-purple: #b300ff;
   --neon-red: #ff0066;
   --neon-green: #00ff66;
+  --neon-yellow: #ffcc00;
   --dark: #050a18;
   --darker: #030613;
   --card-bg: rgba(10, 25, 40, 0.85);
@@ -116,6 +117,12 @@ body {
   backdrop-filter: blur(5px);
   box-shadow: var(--border-glow);
   margin-bottom: 10px;
+  animation: headerGlow 3s infinite alternate;
+}
+
+@keyframes headerGlow {
+  0% { box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); }
+  100% { box-shadow: 0 0 25px rgba(0, 255, 255, 0.8), 0 0 40px rgba(0, 255, 255, 0.4); }
 }
 
 .status {
@@ -180,7 +187,7 @@ body {
 .countdown {
   font-family: 'Orbitron', monospace;
   font-size: 32px;
-  color: #ffcc00;
+  color: var(--neon-yellow);
   font-weight: bold;
   margin: 15px 0;
   letter-spacing: 2px;
@@ -194,6 +201,41 @@ body {
   max-width: 600px;
   margin: 0 auto;
   line-height: 1.6;
+}
+
+/* Result Indicator */
+.result-indicator {
+  display: inline-block;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 14px;
+  margin-top: 15px;
+  animation: resultPulse 2s infinite;
+}
+
+@keyframes resultPulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.result-waiting {
+  background: rgba(255, 204, 0, 0.2);
+  color: var(--neon-yellow);
+  border: 1px solid var(--neon-yellow);
+}
+
+.result-available {
+  background: rgba(0, 255, 102, 0.2);
+  color: var(--neon-green);
+  border: 1px solid var(--neon-green);
+  animation: resultAvailable 1s infinite;
+}
+
+@keyframes resultAvailable {
+  0% { box-shadow: 0 0 5px var(--neon-green); }
+  50% { box-shadow: 0 0 20px var(--neon-green); }
+  100% { box-shadow: 0 0 5px var(--neon-green); }
 }
 
 /* Main Container */
@@ -408,6 +450,28 @@ select:hover, select:focus {
   accent-color: var(--neon);
 }
 
+/* Live Badge */
+.live-badge {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--neon-red);
+  color: white;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+  animation: livePulse 1.5s infinite;
+  z-index: 100;
+  box-shadow: 0 0 10px var(--neon-red);
+}
+
+@keyframes livePulse {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   body {
@@ -439,6 +503,13 @@ select:hover, select:focus {
   .volume-slider {
     width: 80px;
   }
+  
+  .live-badge {
+    top: 10px;
+    right: 10px;
+    font-size: 12px;
+    padding: 4px 10px;
+  }
 }
 </style>
 </head>
@@ -447,12 +518,17 @@ select:hover, select:focus {
 <!-- Background Partikel -->
 <div id="particles-js"></div>
 
+<!-- Live Badge -->
+<div class="live-badge">
+  <i class="fas fa-broadcast-tower"></i> LIVE
+</div>
+
 <!-- Audio Unlock Overlay -->
 <div id="audioUnlock">
   <div class="pulse"><i class="fas fa-volume-up"></i></div>
   <h3>🔊 AKTIFKAN AUDIO SISTEM</h3>
-  <p>Klik di mana saja untuk mengaktifkan suara dan efek audio</p>
-  <p><small>Diperlukan interaksi pengguna untuk memutar audio</small></p>
+  <p>Klik di mana saja untuk mengaktifkan suara dan notifikasi result</p>
+  <p><small>Diperlukan untuk mendengar suara ketika result keluar</small></p>
 </div>
 
 <!-- Header -->
@@ -470,6 +546,9 @@ select:hover, select:focus {
     <div class="next-name" id="nextName">Loading...</div>
     <div class="next-time" id="nextTime">-</div>
     <div class="countdown" id="countdown">00:00:00</div>
+    <div class="result-indicator result-waiting" id="resultIndicator">
+      <i class="fas fa-clock"></i> MENUNGGU RESULT
+    </div>
     <div class="next-desc" id="nextDesc">Menghitung pasaran berikutnya...</div>
   </div>
 </div>
@@ -548,10 +627,10 @@ select:hover, select:focus {
 <!-- Notification Modal -->
 <div class="notif-modal" id="notifModal">
   <div class="notif-box">
-    <div class="notif-title">🔔 NOTIFIKASI SISTEM</div>
+    <div class="notif-title">🔔 RESULT TELAH KELUAR!</div>
     <div class="notif-content">
-      <span>Hari ini adalah result pasaran</span>
-      <span>Harap periksa jadwal Anda!</span>
+      <span id="notifPasaran">Pasaran</span>
+      <span>Result telah tersedia. Silakan periksa!</span>
     </div>
   </div>
 </div>
@@ -569,7 +648,9 @@ select:hover, select:focus {
 let audioUnlocked = false;
 let globalVolume = 0.7;
 let lastPlayedTime = 0;
+let resultCheckInterval;
 const soundCooldown = 300; // ms
+let lastResultState = {};
 
 // =============== AUDIO UNLOCK SYSTEM ===============
 // Cek apakah sudah pernah unlock
@@ -587,6 +668,8 @@ document.getElementById("audioUnlock").addEventListener("click", function() {
     localStorage.setItem("audioUnlocked", "true");
     this.style.display = "none";
     playSound('select', 0.5);
+    // Mulai pengecekan result setelah audio diunlock
+    startResultChecking();
   }).catch(err => {
     console.warn("Gagal unlock audio:", err);
   });
@@ -598,7 +681,9 @@ const soundLibrary = {
   confirm: "https://assets.mixkit.co/sfx/preview/mixkit-confirmation-tone-2867.mp3",
   alert: "https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3",
   beep: "https://assets.mixkit.co/sfx/preview/mixkit-beep-space-alarm-3084.mp3",
-  click: "https://assets.mixkit.co/sfx/preview/mixkit-mouse-click-close-1113.mp3"
+  click: "https://assets.mixkit.co/sfx/preview/mixkit-mouse-click-close-1113.mp3",
+  result: "https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3",
+  notification: "https://assets.mixkit.co/sfx/preview/mixkit-positive-notification-951.mp3"
 };
 
 // =============== PLAY SOUND FUNCTION ===============
@@ -613,6 +698,7 @@ function playSound(soundName, vol = 1) {
   const audio = new Audio(soundLibrary[soundName]);
   audio.volume = globalVolume * vol;
   audio.play().catch(err => console.warn("Gagal mainkan suara:", err));
+  return audio;
 }
 
 // =============== VOLUME CONTROL ===============
@@ -763,6 +849,57 @@ function copyToClipboard() {
   setTimeout(() => btn.innerHTML = original, 1500);
 }
 
+// =============== FUNGSI PENGECEKAN RESULT ===============
+function checkIfResultAvailable() {
+  const now = new Date();
+  const currentTime = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+  
+  pasaranList.forEach(pasaran => {
+    if (pasaran.result !== "setiap jam") {
+      const [h, m] = pasaran.result.split(':').map(Number);
+      const resultTime = h * 3600 + m * 60;
+      
+      // Jika waktu saat ini 5 menit setelah result time
+      if (currentTime >= resultTime && currentTime <= resultTime + 300) {
+        // Jika result belum pernah diumumkan untuk pasaran ini
+        if (!lastResultState[pasaran.key] || lastResultState[pasaran.key] < now.getDate()) {
+          // Tandai result sudah diumumkan hari ini
+          lastResultState[pasaran.key] = now.getDate();
+          
+          // Tampilkan notifikasi
+          showResultNotification(pasaran.name);
+        }
+      }
+    }
+  });
+}
+
+function showResultNotification(pasaranName) {
+  const notifModal = document.getElementById("notifModal");
+  const notifPasaran = document.getElementById("notifPasaran");
+  
+  notifPasaran.textContent = pasaranName;
+  notifModal.style.display = "flex";
+  
+  // Mainkan suara notifikasi
+  playSound('result', 0.8);
+  
+  // Update UI untuk menunjukkan result tersedia
+  const resultIndicator = document.getElementById("resultIndicator");
+  resultIndicator.className = "result-indicator result-available";
+  resultIndicator.innerHTML = `<i class="fas fa-check-circle"></i> RESULT TERSEDIA`;
+  
+  // Sembunyikan notifikasi setelah 5 detik
+  setTimeout(() => {
+    notifModal.style.display = "none";
+  }, 5000);
+}
+
+function startResultChecking() {
+  // Cek result setiap 10 detik
+  resultCheckInterval = setInterval(checkIfResultAvailable, 10000);
+}
+
 // =============== UPDATE NEXT DRAW ===============
 function updateNextDraw() {
   const now = new Date();
@@ -797,23 +934,23 @@ function updateNextDraw() {
   }
 }
 
-setInterval(updateNextDraw, 1000);
+// =============== INISIALISASI ===============
 window.addEventListener("load", () => {
   updateNextDraw();
   const last = localStorage.getItem("lastPasaran");
   if (last) document.getElementById("pasaran").value = last;
+  
+  // Jika audio sudah diunlock, mulai pengecekan result
+  if (audioUnlocked) {
+    startResultChecking();
+  }
+  
+  // Update countdown setiap detik
+  setInterval(updateNextDraw, 1000);
 });
 
 // =============== NOTIFIKASI OTOMATIS ===============
 const notifModal = document.getElementById("notifModal");
-
-setInterval(() => {
-  const now = new Date();
-  if (now.getHours() === 9 && now.getMinutes() === 0 && now.getSeconds() < 2) {
-    notifModal.style.display = "flex";
-    playSound('alert', 0.8);
-  }
-}, 1000);
 
 notifModal.addEventListener("click", () => {
   notifModal.style.display = "none";
