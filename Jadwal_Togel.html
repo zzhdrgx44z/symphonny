@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>LUXE: PASARAN v4.0</title>
+<title>LUXE: PASARAN v4.0 - ALARM RESULT</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <style>
@@ -303,6 +303,16 @@ select:hover, select:focus {
   margin-right: 10px;
 }
 
+.btn-alarm {
+  background: var(--accent);
+  box-shadow: 0 4px 15px rgba(253, 121, 168, 0.3);
+}
+
+.btn-alarm:hover {
+  background: #e84393;
+  box-shadow: 0 7px 20px rgba(253, 121, 168, 0.4);
+}
+
 /* Audio Control */
 .audio-control {
   position: fixed;
@@ -331,6 +341,48 @@ select:hover, select:focus {
 .audio-control i {
   font-size: 24px;
   color: var(--primary);
+}
+
+/* Alarm Control */
+.alarm-control {
+  position: fixed;
+  bottom: 100px;
+  right: 25px;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.alarm-control:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-3px);
+}
+
+.alarm-control i {
+  font-size: 24px;
+  color: var(--accent);
+}
+
+.alarm-active {
+  background: rgba(253, 121, 168, 0.2);
+  border-color: var(--accent);
+  animation: pulse-alarm 2s infinite;
+}
+
+@keyframes pulse-alarm {
+  0% { box-shadow: 0 0 0 0 rgba(253, 121, 168, 0.3); }
+  70% { box-shadow: 0 0 0 10px rgba(253, 121, 168, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(253, 121, 168, 0); }
 }
 
 /* Notification Modal */
@@ -465,42 +517,13 @@ select:hover, select:focus {
   color: var(--success);
 }
 
-/* Audio Permission Modal */
-.audio-permission {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 9999;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  backdrop-filter: blur(8px);
+/* Alarm Toast */
+.toast-alarm {
+  border-left: 4px solid var(--accent);
 }
 
-.audio-permission-box {
-  background: var(--darker);
-  border-radius: 20px;
-  padding: 35px;
-  text-align: center;
-  max-width: 450px;
-  color: var(--text);
-  font-family: 'Montserrat', sans-serif;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.audio-permission-title {
-  color: var(--primary);
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin-bottom: 15px;
-}
-
-.audio-permission-content {
-  margin: 20px 0;
-  font-size: 1.1rem;
-  line-height: 1.6;
-  color: var(--light);
+.toast-alarm i {
+  color: var(--accent);
 }
 
 /* Responsive */
@@ -526,11 +549,19 @@ select:hover, select:focus {
     font-size: 2rem;
   }
   
-  .audio-control {
+  .audio-control, .alarm-control {
     bottom: 20px;
-    right: 20px;
     width: 50px;
     height: 50px;
+  }
+  
+  .audio-control {
+    right: 20px;
+  }
+  
+  .alarm-control {
+    right: 85px;
+    bottom: 20px;
   }
   
   .live-badge {
@@ -567,7 +598,7 @@ select:hover, select:focus {
 <!-- Header -->
 <div class="header-container">
   <div class="header">LUXE PASARAN</div>
-  <div class="status">STATUS: <span style="color:#00ff00">ONLINE</span> | MODE: REAL-TIME</div>
+  <div class="status">STATUS: <span style="color:#00ff00">ONLINE</span> | MODE: REAL-TIME | ALARM: <span id="alarmStatus">ON</span></div>
 </div>
 
 <!-- Dashboard Grid -->
@@ -583,6 +614,9 @@ select:hover, select:focus {
         <i class="fas fa-clock"></i> MENUNGGU RESULT
       </div>
       <div class="next-desc" id="nextDesc">Menghitung pasaran berikutnya...</div>
+      <button class="btn btn-alarm" id="testAlarmBtn">
+        <i class="fas fa-bell"></i> TEST ALARM
+      </button>
     </div>
   </div>
 
@@ -663,6 +697,11 @@ select:hover, select:focus {
   <i class="fas fa-volume-up"></i>
 </div>
 
+<!-- Alarm Control -->
+<div class="alarm-control alarm-active" id="alarmControl">
+  <i class="fas fa-bell"></i>
+</div>
+
 <!-- Notification Modal -->
 <div class="notif-modal" id="notifModal">
   <div class="notif-box">
@@ -677,28 +716,18 @@ select:hover, select:focus {
   </div>
 </div>
 
-<!-- Audio Permission Modal -->
-<div class="audio-permission" id="audioPermission">
-  <div class="audio-permission-box">
-    <div class="audio-permission-title">🔊 IZIN SUARA</div>
-    <div class="audio-permission-content">
-      Untuk mendengarkan notifikasi suara, mohon berikan izin akses suara dengan menekan tombol di bawah ini.
-    </div>
-    <button class="btn" onclick="enableAudio()">
-      <i class="fas fa-volume-up"></i> IZINKAN SUARA
-    </button>
-  </div>
-</div>
-
 <script>
 // =============== VARIABEL GLOBAL ===============
 let audioUnlocked = false;
+let alarmEnabled = true;
 let globalVolume = 0.7;
 let lastPlayedTime = 0;
 let resultCheckInterval;
 const soundCooldown = 300; // ms
 let lastResultState = {};
 let audioContext = null;
+let alarmInterval = null;
+let currentAlarm = null;
 
 // =============== SOUND EFFECTS ===============
 const soundLibrary = {
@@ -708,7 +737,8 @@ const soundLibrary = {
   beep: "https://assets.mixkit.co/sfx/preview/mixkit-beep-space-alarm-3084.mp3",
   click: "https://assets.mixkit.co/sfx/preview/mixkit-mouse-click-close-1113.mp3",
   result: "https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3",
-  notification: "https://assets.mixkit.co/sfx/preview/mixkit-positive-notification-951.mp3"
+  notification: "https://assets.mixkit.co/sfx/preview/mixkit-positive-notification-951.mp3",
+  alarm: "https://assets.mixkit.co/sfx/preview/mixkit-alarm-tone-996.mp3"
 };
 
 // Cache untuk audio
@@ -741,10 +771,6 @@ function playSound(soundName, vol = 1) {
     if (playPromise !== undefined) {
       playPromise.catch(error => {
         console.warn("Gagal memutar suara:", error);
-        // Jika gagal, coba unlock audio
-        if (error.name === 'NotAllowedError') {
-          showAudioPermissionModal();
-        }
       });
     }
     
@@ -752,11 +778,46 @@ function playSound(soundName, vol = 1) {
   }
 }
 
+// =============== PLAY ALARM FUNCTION ===============
+function playAlarm() {
+  if (!audioUnlocked || !alarmEnabled) return;
+  
+  // Hentikan alarm sebelumnya jika masih berjalan
+  stopAlarm();
+  
+  // Putar suara alarm
+  currentAlarm = playSound('alarm', 0.8);
+  
+  // Jika alarm berhasil diputar, atur interval untuk mengulang
+  if (currentAlarm) {
+    currentAlarm.onended = function() {
+      // Ulang alarm setelah 3 detik
+      setTimeout(playAlarm, 3000);
+    };
+  }
+  
+  showToast("Alarm result berbunyi!", "alarm");
+}
+
+// =============== STOP ALARM FUNCTION ===============
+function stopAlarm() {
+  if (currentAlarm) {
+    currentAlarm.pause();
+    currentAlarm.currentTime = 0;
+    currentAlarm.onended = null;
+    currentAlarm = null;
+  }
+  
+  if (alarmInterval) {
+    clearInterval(alarmInterval);
+    alarmInterval = null;
+  }
+}
+
 // =============== TEST ALL SOUNDS ===============
 function testAllSounds() {
   if (!audioUnlocked) {
     showToast("Aktifkan suara terlebih dahulu", "error");
-    showAudioPermissionModal();
     return;
   }
   
@@ -767,6 +828,22 @@ function testAllSounds() {
   });
   
   showToast("Memutar semua efek suara", "success");
+}
+
+// =============== TEST ALARM ===============
+function testAlarm() {
+  if (!audioUnlocked) {
+    showToast("Aktifkan suara terlebih dahulu", "error");
+    return;
+  }
+  
+  if (!alarmEnabled) {
+    showToast("Aktifkan alarm terlebih dahulu", "error");
+    return;
+  }
+  
+  playAlarm();
+  showToast("Menguji alarm result", "alarm");
 }
 
 // =============== SHOW TOAST NOTIFICATION ===============
@@ -780,9 +857,10 @@ function showToast(message, type = "success") {
   
   // Buat toast baru
   const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
+  toast.className = `toast ${type === "alarm" ? "toast-alarm" : ""}`;
   
-  const icon = type === "success" ? "fa-check-circle" : "fa-exclamation-circle";
+  const icon = type === "success" ? "fa-check-circle" : 
+               type === "error" ? "fa-exclamation-circle" : "fa-bell";
   toast.innerHTML = `
     <i class="fas ${icon}"></i>
     <span>${message}</span>
@@ -795,11 +873,6 @@ function showToast(message, type = "success") {
     toast.classList.add('hide');
     setTimeout(() => toast.remove(), 300);
   }, 3000);
-}
-
-// =============== SHOW AUDIO PERMISSION MODAL ===============
-function showAudioPermissionModal() {
-  document.getElementById("audioPermission").style.display = "flex";
 }
 
 // =============== ENABLE AUDIO FUNCTION ===============
@@ -819,15 +892,32 @@ function enableAudio() {
     document.getElementById("audioControl").querySelector("i").className = "fas fa-volume-up";
     localStorage.setItem("audioUnlocked", "true");
     
-    // Sembunyikan modal izin
-    document.getElementById("audioPermission").style.display = "none";
-    
     // Mainkan suara konfirmasi
     playSound('beep', 0.5);
     showToast("Suara diaktifkan", "success");
   } catch (error) {
     console.error("Gagal mengaktifkan audio:", error);
     showToast("Gagal mengaktifkan suara", "error");
+  }
+}
+
+// =============== TOGGLE ALARM FUNCTION ===============
+function toggleAlarm() {
+  alarmEnabled = !alarmEnabled;
+  
+  if (alarmEnabled) {
+    document.getElementById("alarmControl").classList.add("alarm-active");
+    document.getElementById("alarmControl").querySelector("i").className = "fas fa-bell";
+    document.getElementById("alarmStatus").textContent = "ON";
+    localStorage.setItem("alarmEnabled", "true");
+    showToast("Alarm diaktifkan", "success");
+  } else {
+    document.getElementById("alarmControl").classList.remove("alarm-active");
+    document.getElementById("alarmControl").querySelector("i").className = "fas fa-bell-slash";
+    document.getElementById("alarmStatus").textContent = "OFF";
+    localStorage.setItem("alarmEnabled", "false");
+    stopAlarm();
+    showToast("Alarm dimatikan", "error");
   }
 }
 
@@ -843,11 +933,20 @@ audioControl.addEventListener("click", function() {
     localStorage.setItem("audioUnlocked", "false");
     playSound('click', 0.5);
     showToast("Suara dinonaktifkan", "success");
+    
+    // Matikan alarm juga jika suara dimatikan
+    if (alarmEnabled) {
+      toggleAlarm();
+    }
   } else {
     // Hidupkan suara
     enableAudio();
   }
 });
+
+// =============== ALARM CONTROL ===============
+const alarmControl = document.getElementById("alarmControl");
+alarmControl.addEventListener("click", toggleAlarm);
 
 // =============== DAFTAR PASARAN ===============
 const pasaranList = [
@@ -996,6 +1095,11 @@ function showResultNotification(pasaranName) {
   // Mainkan suara notifikasi
   playSound('result', 0.8);
   
+  // Mainkan alarm jika diaktifkan
+  if (alarmEnabled) {
+    playAlarm();
+  }
+  
   // Update UI untuk menunjukkan result tersedia
   const resultIndicator = document.getElementById("resultIndicator");
   resultIndicator.className = "result-indicator result-available";
@@ -1005,7 +1109,7 @@ function showResultNotification(pasaranName) {
   if ("Notification" in window && Notification.permission === "granted") {
     new Notification("🔔 RESULT TELAH KELUAR!", {
       body: `Result untuk ${pasaranName} telah tersedia. Silakan periksa!`,
-      icon: "https://example.com/icon.png", // Ganti dengan URL ikon Anda
+      icon: "https://example.com/icon.png",
       tag: "pasaran-result"
     });
   }
@@ -1014,6 +1118,7 @@ function showResultNotification(pasaranName) {
 function closeNotif() {
   document.getElementById("notifModal").style.display = "none";
   playSound('click', 0.5);
+  stopAlarm();
 }
 
 // =============== UPDATE NEXT DRAW ===============
@@ -1066,13 +1171,19 @@ window.addEventListener("load", () => {
   } else {
     audioUnlocked = false;
     document.getElementById("audioControl").querySelector("i").className = "fas fa-volume-mute";
-    
-    // Tampilkan modal izin audio setelah delay
-    setTimeout(() => {
-      if (!audioUnlocked) {
-        showAudioPermissionModal();
-      }
-    }, 2000);
+  }
+  
+  // Cek status alarm
+  if (localStorage.getItem("alarmEnabled") !== "false") {
+    alarmEnabled = true;
+    document.getElementById("alarmControl").classList.add("alarm-active");
+    document.getElementById("alarmControl").querySelector("i").className = "fas fa-bell";
+    document.getElementById("alarmStatus").textContent = "ON";
+  } else {
+    alarmEnabled = false;
+    document.getElementById("alarmControl").classList.remove("alarm-active");
+    document.getElementById("alarmControl").querySelector("i").className = "fas fa-bell-slash";
+    document.getElementById("alarmStatus").textContent = "OFF";
   }
   
   // Minta izin notifikasi
@@ -1085,6 +1196,9 @@ window.addEventListener("load", () => {
   
   // Cek result setiap 10 detik
   resultCheckInterval = setInterval(checkIfResultAvailable, 10000);
+  
+  // Event listener untuk test alarm button
+  document.getElementById("testAlarmBtn").addEventListener("click", testAlarm);
 });
 
 // =============== NOTIFIKASI OTOMATIS ===============
@@ -1094,6 +1208,7 @@ notifModal.addEventListener("click", (e) => {
   if (e.target === notifModal) {
     notifModal.style.display = "none";
     playSound('click', 0.5);
+    stopAlarm();
   }
 });
 
