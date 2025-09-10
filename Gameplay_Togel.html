@@ -1,1295 +1,2503 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Togel - Sharingan Notification</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --sharingan-red: #c00000;
-            --sharingan-dark: #400000;
-            --sharingan-pupil: #000000;
-            --sharingan-tomoe: #ffffff;
-            --akatsuki-red: #ed1c24;
-            --akatsuki-black: #2c2c2c;
-            --ninja-blue: #0a2e63;
-            --scroll-bg: #1a1a1a;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, var(--akatsuki-black), var(--ninja-blue));
-            color: #fff;
-            min-height: 100vh;
-            padding: 20px;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%230a2e63"/><path d="M0 0L100 100" stroke="%232c2c2c" stroke-width="1"/><path d="M100 0L0 100" stroke="%232c2c2c" stroke-width="1"/></svg>');
-            background-attachment: fixed;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 16px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(237,28,36,0.1) 0%, transparent 70%);
-            transform: rotate(0deg);
-            animation: swirl 20s linear infinite;
-        }
-
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            background: linear-gradient(90deg, #ffcc00, var(--sharingan-red));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: inline-block;
-            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
-            position: relative;
-            z-index: 2;
-        }
-
-        .current-time {
-            font-size: 1.2rem;
-            color: #ccc;
-            margin-top: 10px;
-            position: relative;
-            z-index: 2;
-        }
-
-        .dashboard {
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 20px;
-        }
-
-        @media (max-width: 992px) {
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 15px;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-
-        .search-box {
-            flex: 1;
-            min-width: 250px;
-            position: relative;
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 12px 15px 12px 45px;
-            border: none;
-            border-radius: 8px;
-            background: rgba(0, 0, 0, 0.6);
-            color: #fff;
-            font-size: 1rem;
-            border: 1px solid var(--sharingan-red);
-        }
-
-        .search-box i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--sharingan-red);
-        }
-
-        .filter-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .filter-buttons button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            background: rgba(0, 0, 0, 0.6);
-            color: #fff;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            border: 1px solid var(--sharingan-red);
-        }
-
-        .filter-buttons button:hover {
-            background: var(--sharingan-red);
-        }
-
-        .filter-buttons button.active {
-            background: var(--sharingan-red);
-        }
-
-        .countdown-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--sharingan-red);
-        }
-
-        .countdown-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .countdown {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            padding: 20px;
-            background: linear-gradient(135deg, var(--sharingan-red), var(--sharingan-dark));
-            border-radius: 12px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .countdown.highlight {
-            animation: pulse 2s infinite;
-            box-shadow: 0 0 20px var(--sharingan-red);
-        }
-
-        .countdown-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            z-index: 2;
-        }
-
-        .countdown-value {
-            font-size: 2.5rem;
-            line-height: 1;
-            color: #fff;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-        }
-
-        .countdown-label {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-
-        .next-event {
-            text-align: center;
-            font-size: 1.1rem;
-            margin-top: 10px;
-            z-index: 2;
-        }
-
-        .table-container {
-            overflow-x: auto;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--sharingan-red);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: transparent;
-        }
-
-        th, td {
-            padding: 16px 20px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        th {
-            background: rgba(192, 0, 0, 0.3);
-            cursor: pointer;
-            position: sticky;
-            top: 0;
-            user-select: none;
-            color: #fff;
-        }
-
-        th:hover {
-            background: rgba(192, 0, 0, 0.5);
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        tr:hover {
-            background: rgba(192, 0, 0, 0.1);
-        }
-
-        .status {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .status-open {
-            background: rgba(0, 200, 0, 0.2);
-            color: #00ff00;
-            border: 1px solid #00ff00;
-        }
-
-        .status-closed {
-            background: rgba(192, 0, 0, 0.2);
-            color: var(--sharingan-red);
-            border: 1px solid var(--sharingan-red);
-        }
-
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .alarm-panel, .notification-area {
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--sharingan-red);
-        }
-
-        .alarm-header, .notification-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .alarm-list, .notification-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        /* Scrollbar styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--scroll-bg);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--sharingan-red);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #ff0000;
-        }
-
-        .alarm-item, .notification-item {
-            padding: 12px 15px;
-            background: rgba(0, 0, 0, 0.6);
-            border-radius: 8px;
-            border-left: 4px solid var(--sharingan-red);
-        }
-
-        .alarm-time {
-            font-weight: bold;
-            color: var(--sharingan-red);
-        }
-
-        .alarm-active {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            color: #00ff00;
-        }
-
-        .alarm-inactive {
-            color: #ccc;
-        }
-
-        .notification-time {
-            font-size: 0.8rem;
-            color: #ccc;
-            margin-bottom: 5px;
-        }
-
-        .notification-message {
-            font-size: 0.95rem;
-        }
-
-        .notification-important {
-            border-left-color: #ffcc00;
-        }
-
-        /* Sharingan Notification */
-        .sharingan-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 80px;
-            height: 80px;
-            z-index: 1000;
-            transform: scale(0);
-            transition: transform 0.5s ease;
-        }
-
-        .sharingan-notification.show {
-            transform: scale(1);
-        }
-
-        .sharingan {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: var(--sharingan-red);
-            box-shadow: 0 0 30px var(--sharingan-red);
-            animation: rotate 10s linear infinite;
-            overflow: hidden;
-        }
-
-        .sharingan::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 30%;
-            height: 30%;
-            background: var(--sharingan-pupil);
-            border-radius: 50%;
-            z-index: 2;
-        }
-
-        .sharingan::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 70%;
-            height: 70%;
-            border: 2px solid var(--sharingan-tomoe);
-            border-radius: 50%;
-            z-index: 1;
-        }
-
-        .tomoe {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 20%;
-            height: 35%;
-            background: var(--sharingan-tomoe);
-            border-radius: 50%;
-            transform-origin: center 140%;
-        }
-
-        .tomoe::before {
-            content: '';
-            position: absolute;
-            top: 60%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 40%;
-            height: 40%;
-            background: var(--sharingan-pupil);
-            border-radius: 50%;
-        }
-
-        .tomoe:nth-child(1) {
-            transform: translateX(-50%) rotate(0deg);
-        }
-
-        .tomoe:nth-child(2) {
-            transform: translateX(-50%) rotate(120deg);
-        }
-
-        .tomoe:nth-child(3) {
-            transform: translateX(-50%) rotate(240deg);
-        }
-
-        .sharingan-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            color: white;
-            z-index: 3;
-            width: 80%;
-            font-weight: bold;
-            text-shadow: 0 0 5px black;
-            font-size: 0.7rem;
-        }
-
-        /* Alarm Modal dengan Tema Naruto */
-        .alarm-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .alarm-modal.show {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .alarm-content {
-            background: rgba(0, 0, 0, 0.9);
-            padding: 30px;
-            border-radius: 16px;
-            text-align: center;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: 0 0 30px var(--sharingan-red);
-            animation: alarmPulse 2s infinite;
-            border: 2px solid var(--sharingan-red);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .alarm-content::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(237,28,36,0.1) 0%, transparent 70%);
-            transform: rotate(0deg);
-            animation: swirl 20s linear infinite;
-        }
-
-        .alarm-content h2 {
-            font-size: 2rem;
-            margin-bottom: 15px;
-            color: var(--sharingan-red);
-            position: relative;
-            z-index: 2;
-        }
-
-        .alarm-content p {
-            font-size: 1.2rem;
-            margin-bottom: 20px;
-            position: relative;
-            z-index: 2;
-        }
-
-        .alarm-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            position: relative;
-            z-index: 2;
-        }
-
-        .alarm-buttons button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .stop-alarm {
-            background: var(--sharingan-red);
-            color: white;
-        }
-
-        .stop-alarm:hover {
-            background: #a00000;
-        }
-
-        .snooze-alarm {
-            background: #ffcc00;
-            color: black;
-        }
-
-        .snooze-alarm:hover {
-            background: #e6b800;
-        }
-
-        /* Animations */
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 var(--sharingan-red); }
-            70% { box-shadow: 0 0 0 15px rgba(192, 0, 0, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(192, 0, 0, 0); }
-        }
-
-        @keyframes alarmPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        @keyframes swirl {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .highlight-text {
-            color: #ffcc00;
-            font-weight: bold;
-        }
-
-        .sharingan-background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-            opacity: 0.1;
-        }
-
-        .sharingan-background .sharingan {
-            position: absolute;
-            top: 10%;
-            left: 10%;
-            width: 200px;
-            height: 200px;
-            opacity: 0.1;
-        }
-
-        .sharingan-background .sharingan:nth-child(2) {
-            top: 70%;
-            left: 80%;
-            width: 150px;
-            height: 150px;
-        }
-
-        .sharingan-background .sharingan:nth-child(3) {
-            top: 40%;
-            left: 70%;
-            width: 100px;
-            height: 100px;
-        }
-
-        .sound-control {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 1000;
-            border: 1px solid var(--sharingan-red);
-        }
-
-        .sound-control i {
-            font-size: 1.5rem;
-            color: var(--sharingan-red);
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎮 Togel GAME PLAY | Panduan Futuristik</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Press+Start+2P&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <script src="https://kit.fontawesome.com/a2c5b9b558.js" crossorigin="anonymous"></script>
+  <!-- Particles.js -->
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  <style>
+    :root {
+      --bg: #0a0f2c;
+      --card-bg: #161f45;
+      --text: #e0e7ff;
+      --text-yellow: #fff176;
+      --accent: #00b3ff;
+      --accent-glow: #00d4ff88;
+      --border: #0088cc;
+      --shadow: 0 4px 16px rgba(0, 100, 255, 0.2);
+      --glow: 0 0 15px rgba(0, 187, 255, 0.6), 0 0 30px rgba(0, 187, 255, 0.3);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 20px;
+      min-height: 100vh;
+      background-image: url('https://i.postimg.cc/9QFndpjM/discord.gif');
+      background-size: cover + media query ;
+      background-attachment: fixed;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Loading Screen */
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #0a0f2c;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      flex-direction: column;
+      animation: fadeOut 1.5s ease-out 2s forwards;
+    }
+    @keyframes fadeOut {
+      to { opacity: 0; visibility: hidden; }
+    }
+    .loader {
+      width: 60px;
+      height: 60px;
+      border: 5px solid var(--border);
+      border-top: 5px solid var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Progress Bar */
+    #progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 4px;
+      background: var(--accent);
+      width: 0%;
+      z-index: 1000;
+      transition: width 0.1s ease;
+      box-shadow: var(--glow);
+    }
+
+    /* Glitch Text */
+    .glitch {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.8rem;
+      color: var(--text-yellow);
+      text-shadow: 0 0 5px var(--text-yellow), 0 0 10px var(--text-yellow);
+      animation: glitch 2s infinite, glow 2s infinite alternate;
+      margin: 10px 0;
+      letter-spacing: 2px;
+    }
+    @keyframes glitch {
+      0%, 100% { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px var(--text-yellow), 0 0 20px var(--text-yellow); }
+      50% { text-shadow: 0 0 5px #fff, 0 0 10px var(--accent), 0 0 15px var(--accent), 0 0 20px var(--accent); }
+    }
+    @keyframes glow {
+      from { text-shadow: 0 0 10px rgba(255, 241, 118, 0.5); }
+      to { text-shadow: 0 0 25px rgba(255, 241, 118, 0.9); }
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 40px;
+      border-radius: 20px;
+      background: rgba(10, 15, 44, 0.6);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0 40px rgba(0, 179, 255, 0.3), 0 0 20px rgba(0, 100, 255, 0.2);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s;
+    }
+    header:hover {
+      transform: translateY(-5px);
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(0, 187, 255, 0.05), transparent);
+      transform: rotate(45deg);
+      pointer-events: none;
+      animation: shine 4s infinite linear;
+    }
+    @keyframes shine {
+      0% { transform: translateY(-100%) rotate(45deg); }
+      100% { transform: translateY(100%) rotate(45deg); }
+    }
+
+    header p {
+      color: var(--accent);
+      font-weight: 500;
+      font-size: 1.2rem;
+    }
+
+    .desc-section {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 28px;
+      background: rgba(22, 35, 75, 0.7);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      font-size: 15px;
+      text-align: center;
+      animation: fadeInUp 0.8s ease;
+      box-shadow: 0 0 15px rgba(0, 179, 255, 0.1);
+    }
+
+    .attention {
+      background: rgba(255, 241, 118, 0.1);
+      border-left: 4px solid var(--text-yellow);
+      padding: 14px 18px;
+      margin: 20px 0;
+      color: var(--text-yellow);
+      font-size: 14px;
+      border-radius: 0 10px 10px 0;
+      font-weight: 500;
+    }
+
+    #searchInput {
+      width: 100%;
+      max-width: 520px;
+      padding: 16px 20px;
+      margin: 25px auto;
+      display: block;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: rgba(22, 35, 75, 0.6);
+      color: white;
+      font-size: 16px;
+      outline: none;
+      box-shadow: 0 0 15px rgba(0, 179, 255, 0.25);
+      transition: all 0.3s;
+    }
+    #searchInput:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(0, 187, 255, 0.4), 0 0 30px rgba(0, 187, 255, 0.2);
+      transform: scale(1.02);
+    }
+
+    .section {
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 24px;
+      background: var(--card-bg);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow), 0 0 10px rgba(0, 179, 255, 0.1);
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 0.7s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .section h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.6rem;
+      color: var(--accent);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-shadow: 0 0 10px var(--accent-glow);
+    }
+    .section h2 i {
+      color: var(--text-yellow);
+    }
+
+    .info {
+      font-size: 15px;
+      color: #a5b4fc;
+      margin-bottom: 18px;
+      line-height: 1.7;
+    }
+
+    .image-container {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .image-container img {
+      width: 100%;
+      max-width: 420px;
+      height: auto;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      transition: all 0.4s ease;
+    }
+    .image-container img:hover {
+      transform: scale(1.06) rotate(1.5deg);
+      box-shadow: 0 0 25px rgba(0, 187, 255, 0.6);
+    }
+
+    /* Modal Zoom */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(10,15,44,0.98));
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      padding: 40px;
+      animation: modalFadeIn 0.5s ease;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .modal img {
+      max-width: 90%;
+      max-height: 85vh;
+      border-radius: 14px;
+      box-shadow: 0 0 50px rgba(0, 187, 255, 0.8);
+      animation: zoomIn 0.5s ease;
+    }
+    @keyframes zoomIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .close {
+      position: absolute;
+      top: 40px;
+      right: 40px;
+      font-size: 42px;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+      text-shadow: 0 0 15px var(--text-yellow);
+      transition: all 0.3s;
+    }
+    .close:hover {
+      color: var(--text-yellow);
+      transform: scale(1.1);
+    }
+
+    @media (max-width: 480px) {
+      .glitch { font-size: 2.2rem; }
+      .image-container img { max-width: 100%; }
+      .close { font-size: 32px; right: 20px; top: 20px; }
+      header { padding: 20px; }
+    }
+
+    /* Particles Background */
+    #particles-js {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+    }
+  </style>
 </head>
 <body>
-    <div class="sharingan-background">
-        <div class="sharingan">
-            <div class="tomoe"></div>
-            <div class="tomoe"></div>
-            <div class="tomoe"></div>
-        </div>
-        <div class="sharingan">
-            <div class="tomoe"></div>
-            <div class="tomoe"></div>
-            <div class="tomoe"></div>
-        </div>
-        <div class="sharingan">
-            <div class="tomoe"></div>
-            <div class="tomoe"></div>
-            <div class="tomoe"></div>
-        </div>
+
+  <!-- Loading Screen -->
+  <div id="loading">
+    <div class="loader"></div>
+    <p style="color: var(--accent); font-family: 'Orbitron';">LOADING GAME...</p>
+  </div>
+
+  <!-- Scroll Progress Bar -->
+  <div id="progress-bar"></div>
+
+  <!-- Particles Background -->
+  <div id="particles-js"></div>
+
+  <!-- Header -->
+  <header>
+    <h1 class="glitch">🎮 TOGEL GAME PLAY</h1>
+    <p>Panduan Futuristik 2025</p>
+  </header>
+
+  <!-- Deskripsi -->
+  <div class="desc-section">
+    <p><strong>🔮 Panduan interaktif dengan cara bermain TOGEL.</strong></p>
+    <div class="attention">
+      ⚠️ Hanya untuk edukasi. Judi berisiko tinggi.
     </div>
+  </div>
 
-    <div class="container">
-        <header>
-            <h1><i class="fas fa-share-alt"></i> Dashboard Result Togel - Sharingan Edition</h1>
-            <p>Pantau jadwal result togel dengan kekuatan Sharingan</p>
-            <div class="current-time" id="currentTime">Loading waktu...</div>
-        </header>
+  <!-- Search -->
+  <input type="text" id="searchInput" placeholder="🔍 Cari jenis betting..." />
 
-        <div class="dashboard">
-            <div class="main-content">
-                <div class="controls">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="searchInput" placeholder="Cari pasaran togel...">
-                    </div>
-                    <div class="filter-buttons">
-                        <button class="active" data-filter="all"><i class="fas fa-list"></i> Semua</button>
-                        <button data-filter="open"><i class="fas fa-door-open"></i> Buka</button>
-                        <button data-filter="closed"><i class="fas fa-door-closed"></i> Tutup</button>
-                    </div>
-                </div>
+  <!-- All Sections (From Your File, Cleaned & Combined) -->
+<!-- Contoh: Bet Full -->
+<div class="section">
+<h2>🕹️ Bet Full</h2>
+<div class="info">
+<strong>♦️ Pengertian Bet Full</strong>
+<p>Sistem bettingan dimana dari angka yang di bet harus tepat dan sesuai dengan hasil result yang keluar.</p>
+<p><strong> Berikut Cara pembelian 4D 3D 2D :</strong></p>
+<li> 1. Pilih pasaran yang ingin anda mainkan.
+<li> 2. Pilih menu 4D 3D 2D
+<li> 3. Lalu pilih Tipe bettingan yang ingin anda gunakan ( FULL )
+<li> 4. Silahkan isi kolom pertama dengan angka yang ingin anda beli.Contoh : "1234"
+<li> 5. Pada kolom berikutnya ( Kolom 4D / 3D / 2D ) diisi dengan nominal .jumlah bettingan anda, angka yang anda isi pada kolom nominal akan otomatis dikalikan dengan Rp.1,000
+<p><strong> CONTOH </strong></p>
+<p><strong> - Pembelian Rp. 100,- untuk 4D maka pada kolom 4D cukup diisi dengan angka "0.1" (tanpa tanda petik) </strong></p>
+<p><strong> - Pembelian Rp.500,- untuk 3D maka pada kolom 3D cukup diisi dengan angka "0.5" ( tanpa tanda petik )</strong></p>
+<p><strong> - Pembelian Rp. 1,000,- untuk 2D pada kolom 2D cukup diisi dengan angka "1" ( tanpa tanda petik )</strong></p>
+<li> 6. Klik SUBMIT
+<li> 7. Periksa kembali seluruh rincian pembelian anda, jika semua sudah benar & sesuai, Tekan KIRIM.
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/FRh4RnM1/GAMBAR-FULL.jpg" alt="Bet Full"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
 
-                <div class="countdown-container">
-                    <div class="countdown-header">
-                        <h2><i class="fas fa-fire"></i> Countdown Result Berikutnya</h2>
-                        <span class="highlight-text" id="nextEventTime">00:00:00</span>
-                    </div>
-                    <div class="countdown" id="countdown">
-                        <div class="countdown-item">
-                            <span class="countdown-value" id="countdownHours">00</span>
-                            <span class="countdown-label">Jam</span>
-                        </div>
-                        <div class="countdown-item">
-                            <span class="countdown-value" id="countdownMinutes">00</span>
-                            <span class="countdown-label">Menit</span>
-                        </div>
-                        <div class="countdown-item">
-                            <span class="countdown-value" id="countdownSeconds">00</span>
-                            <span class="countdown-label">Detik</span>
-                        </div>
-                    </div>
-                    <div class="next-event" id="nextEvent">Menghitung pasaran berikutnya...</div>
-                </div>
+<!-- Bet BB -->
+<div class="section">
+<h2>🏁 Bet BB (Bolak Balik)</h2>
+<div class="info">
+<strong>♦️ Pengertian Bet BB</strong>
+<p>Sistem bettingan dimana dari angka yang di bet, baik urutan tepat maupun bolak-balik, tetap menang dengan pembayaran sesuai aturan.</p>
+<p>CONTOH: Jika kita bet 1234 dan hasil keluar 1234 maka kita akan di bayar x4000 dari bettingan sedangkan jika hasil keluar 2341 maka akan mendapat x200 dari pasangan karena dapat yang sistem BB.
+<p><strong> Berikut Cara pembelian 4D 3D 2D :</strong></p>
+<li> 1. Pilih pasaran yang ingin anda mainkan.
+<li> 2. Pilih menu 4D 3D 2D
+<li> 3. Lalu pilih Tipe bettingan yang ingin anda gunakan ( BB )
+<li> 4. Silahkan isi kolom pertama dengan angka yang ingin anda beli.Contoh : "1234"
+<li> 5. Pada kolom berikutnya ( Kolom 4D / 3D / 2D ) diisi dengan nominal .jumlah bettingan anda, angka yang anda isi pada kolom nominal akan otomatis dikalikan dengan Rp.1,000
+<p><strong> CONTOH </strong></p>
+<p><strong> - Pembelian Rp. 100,- untuk 4D maka pada kolom 4D cukup diisi dengan angka "0.1" (tanpa tanda petik) </strong></p>
+<p><strong> - Pembelian Rp.500,- untuk 3D maka pada kolom 3D cukup diisi dengan angka "0.5" ( tanpa tanda petik )</strong></p>
+<p><strong> - Pembelian Rp. 1,000,- untuk 2D pada kolom 2D cukup diisi dengan angka "1" ( tanpa tanda petik )</strong></p>
+<li> 6. Klik SUBMIT
+<li> 7. Periksa kembali seluruh rincian pembelian anda, jika semua sudah benar & sesuai, Tekan KIRIM.
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/VvYnK131/GAMBAR-BB.jpg" alt="Bet BB"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
 
-                <div class="table-container">
-                    <table id="resultTable">
-                        <thead>
-                            <tr>
-                                <th data-sort="name">Nama Pasaran <i class="fas fa-sort"></i></th>
-                                <th data-sort="closeTime">Tutup <i class="fas fa-sort"></i></th>
-                                <th data-sort="openTime">Buka <i class="fas fa-sort"></i></th>
-                                <th data-sort="status">Status <i class="fas fa-sort"></i></th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                            <!-- Data akan diisi oleh JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+<!-- 4D/3D/2D -->
+<div class="section">
+<h2>📏 Tipe Bettingan 4D/3D/2D</h2>
+<div class="info">
+<p>Termasuk FULL, DISCOUNT, BB, dan pembayaran PRIZE 1, 2, 3.</p>
+<p>Menebak 4 angka, 3 angka dan 2 angka.
+<p> Struktur: ABCD
+<p>Misalnya keluar : 4321
+<p>Berarti pemenang untuk
+<p>4D = 4321
+<p>3D = 321
+<p>2D = 21
+<p> Aturan permainan:
+<p>Jika anda membeli diluar dari nomor yang dikeluarkan, berarti anda kalah dan uang tidak dikembalikan sama sekali.
+<p>Jika anda membeli masing 100rb untuk angka:
+<p>4D = 4321
+<p>3D = 321
+<p>2D = 21
+<p>(Khusus untuk 4D,3D dan 2D diberikan diskon tambahan. Diskon akan makin besar jika nilai akumulasi betting dalam satu periode makin besar).
+<p>Berarti kemenangan anda adalah:
+<p>4D = 100rb x [Indeks kemenangan untuk 4D]
+<p>3D = 100rb x [Indeks kemenangan untuk 3D]
+<p>2D = 100rb x [Indeks kemenangan untuk 2D]
+<p>(Catatan: nilai bet 100rb tidak dikembalikan ke member)
+<p> Struktur: ABCD
+<p> Misalnya keluar nomor = 1234
+<p> berati pemenang untuk 2D Depan adalah = 12
+<p> berati pemenang untuk 2D Tengah adalah = 23
+<p>berati pemenang untuk 2D Belakang adalah = 34</p>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/Nfnbj93H/CARA-BETTING-4-D-2-D-3-D.jpg" alt="4D/3D/2D"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
 
-            <div class="sidebar">
-                <div class="alarm-panel">
-                    <div class="alarm-header">
-                        <h2><i class="fas fa-bell"></i> Alarm Aktif</h2>
-                        <button id="testAlarm" class="highlight-text"><i class="fas fa-volume-up"></i> Test Alarm</button>
-                    </div>
-                    <div class="alarm-list" id="alarmList">
-                        <!-- Daftar alarm akan diisi oleh JavaScript -->
-                    </div>
-                </div>
+<!-- 2D Depan & Tengah -->
+<div class="section">
+<h2>♥️ 2D Depan dan 2D Tengah</h2>
+<div class="info">
+<p>Betting pada posisi tertentu: 2D Depan (AB), 2D Tengah (BC), 2D </p>
+<p><strong> Berikut Cara pembelian 2D DEPAN :</strong></p>
+<li> 1. Pilih pasaran yang ingin anda mainkan.
+<li> 2. Pilih menu 2D depan
+<li> 3. Lalu pilih Tipe bettingan yang ingin anda gunakan (FULL -DISCOUNT - BB - PRIZE123 )
+<li> 4. Silahkan isi kolom pertama dengan angka yang ingin anda beli. Contoh: "12"
+<li> 5. Pada kolom berikutnya (Kolom 2D) diisi dengan nominal /jumlah bettingan anda, angka yang anda isi pada kolom nominal akan otomatis dikalikan dengan Rp. 1,000
+<p><strong> CONTOH </strong></p>
+<p><strong> - Pembelian Rp. 100,- untuk 2D maka pada kolom 2D cukup disi dengan angka "0.1" ( tanpa tanda petik) </strong></p>
+<p><strong> - Pembelian Rp.500,- untuk 2D maka pada kolom 2D cukup diisi dengan angka "0.5" ( tanpa tanda petik)</strong></p>
+<p><strong>- Pembelian Rp. 1,000,- untuk 2D pada kolom 2D cukup diisi dengan angka "1" ( tanpa tanda petik)</strong></p>
+<li> 6. Klik SUBMIT
+<li> 7. Periksa kembali seluruh rincian pembelian anda, jika semua sudah benar & sesuai, Tekan KIRIM.
+</div>
+<p><strong> Berikut Cara pembelian 2D Tengah :</strong></p>
+<li> 1. Pilih pasaran yang ingin anda mainkan.
+<li> 2. Pilih menu 2D Tengah
+<li> 3. Lalu pilih Tipe bettingan yang ingin anda gunakan (FULL -DISCOUNT - BB - PRIZE123 )
+<li> 4. Silahkan isi kolom pertama dengan angka yang ingin anda beli. Contoh: "12"
+<li> 5. Pada kolom berikutnya (Kolom 2D) diisi dengan nominal /jumlah bettingan anda, angka yang anda isi pada kolom nominal akan otomatis dikalikan dengan Rp. 1,000
+<p><strong> CONTOH </strong></p>
+<p><strong> - Pembelian Rp. 100,- untuk 2D maka pada kolom 2D cukup disi dengan angka "0.1" ( tanpa tanda petik) </strong></p>
+<p><strong> - Pembelian Rp.500,- untuk 2D maka pada kolom 2D cukup diisi dengan angka "0.5" ( tanpa tanda petik)</strong></p>
+<p><strong>- Pembelian Rp. 1,000,- untuk 2D pada kolom 2D cukup diisi dengan angka "1" ( tanpa tanda petik)</strong></p>
+<li> 6. Klik SUBMIT
+<li> 7. Periksa kembali seluruh rincian pembelian anda, jika semua sudah benar & sesuai, Tekan KIRIM.
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/Df1KsGQ1/CARA-BETTING-2-D-DEPAN.png" alt="2D Depan"onclick="openModal(this.src)" />
+<div class="caption">2D Depan</div>
+<img src="https://i.postimg.cc/mDx52d5J/CARA-BETTING-2-D-TENGAH.png" alt="2D Tengah"onclick="openModal(this.src)" />
+<div class="caption">2D Tengah</div>
+</div>
+</div>
+</div>
 
-                <div class="notification-area">
-                    <div class="notification-header">
-                        <h2><i class="fas fa-history"></i> Riwayat Notifikasi</h2>
-                        <button id="clearNotifications" class="highlight-text"><i class="fas fa-trash"></i> Hapus</button>
-                    </div>
-                    <div class="notification-list" id="notificationList">
-                        <!-- Notifikasi akan diisi oleh JavaScript -->
-                    </div>
-                </div>
-            </div>
-        </div>
+<!-- Colok Bebas -->
+<div class="section">
+<h2>🎰 Colok Bebas</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Menebak satu angka dari 4D, posisi bebas.</p>
+<p>Struktur: ABCD
+<p><strong>Analisis I:</strong></p>
+<p>Misalnya keluar : 4321
+<p>Misalnya dibeli 3 dengan nilai 100rb.
+<p>Berarti menang:
+<p>100rb + [Indeks kemenangan untuk colok bebas]
+<p><strong>Analisis II:</strong></p>
+<p> Keluar : 4331
+<p>Misalnya dibeli 3 dengan nilai 100rb.
+<p>Jika anda membeli masing 100rb untuk angka:
+<p> Berarti menang:
+<p>100rb + ([Indeks kemenangan untuk colok bebas] x 2)
+<p>Dan seterusnya untuk setiap kembaran yang berhasil ditebak, otomatis mendapat kelipatan [Indeks kemenangan untuk colok bebas]<p>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/t4sz834c/3-NG-Lj-MNTGyj-Jg8-Ccn-AK6-A.png" alt="Colok Bebas"onclick="openModal(this.src)"/>
+</div>
+</div>
+</div>
+
+<!-- Colok Macau -->
+<div class="section">
+<h2>🈴 Colok Bebas 2D (Macau)</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Cara kerja seperti colok bebas tapi mesti yang keluar 2 angka dari 4D.</p>
+<p>Struktur: ABCD
+<p><strong>Analisis I:</strong></p>
+<p> Keluar : 4321
+<p>Misalnya dibeli 4 dan 2 dengan nilai 100rb
+<p>Berarti menang:
+<p>100rb + [Indeks kemenangan untuk colok bebas 2D, kategori: 2 digit]
+<p><strong>Analisis II:</strong></p>
+<p> Keluar : 4321
+<p> Misalnya dibeli 4 dan 6 dengan nilai 100rb.
+<p> Berarti KALAH dan nilai betting tidak dikembalikan
+<p><strong>Analisis III:</strong></p>
+<p> Keluar : 4331
+<p> Misalnya dibeli 4 dan 3 dengan nilai 100rb
+<p> Berarti menang:
+<p> 100rb + [Indeks kemenangan untuk colok bebas 2D, kategori: 3 digit]
+<p><strong>Analisis IV:</strong></p>
+<p> Keluar : 4334
+<p> Misalnya dibeli 4 dan 3 dengan nilai 100rb.
+<p> Berarti menang:
+<p> 100rb + [Indeks kemenangan untuk colok bebas 2D, kategori: 4 digit]<p>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/3wLk65mh/PFb-MCv-XWSoaztg-DH0-Idu-GA.png" alt="Colok Macau"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Colok Jitu -->
+<div class="section">
+<h2>🔮 Colok Jitu</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Menebak 1 angka di posisi tertentu: AS, KOP, Kepala, Ekor.</p>
+<p> Struktur: ABCD
+<p><strong>Analisis I:</strong></p>
+<p> Keluar : 4321
+<p> Misalnya dibeli 4 pada posisi AS dengan nilai 100rb.
+<p> Berarti menang:
+<p> 100rb + [Indeks kemenangan untuk colok jitu]
+<p><strong>Analisis II:</strong></p>
+<p> Keluar : 4331
+<p> Misalnya dibeli 3 pada posisi KOP dengan nilai 100rb.
+<p> Berarti menang:
+<p> 100rb + [Indeks kemenangan untuk colok jitu]. Hasilnya sama dengan analisis I karena hanya memperhatikan posisi yang dipasang.
+<p><strong>Analisis III:</strong></p>
+<p> Keluar : 4331
+<p> Misalnya dibeli 4 pada posisi EKOR dengan nilai 100rb.
+<p> Berarti kalah. Biarpun nilai 4 keluar pada posisi AS tapi tidak akan mepengaruhi pemilihan di posisi EKOR<p>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/bJywq60T/o-Z2divj7-T3a-Wo2nj-YYOieg.png" alt="Colok Jitu"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Tepi Tengah -->
+<div class="section">
+<h2>🏆 Tepi Tengah</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Menebak tengah/tepi dari posisi 2D
+<p>Tengah = Diantara 25 sampai 74
+<p>Tepi = Diantara 00 sampai 24 dan 75 sampai 99.</p>
+<p> Struktur: ABCD
+<p><strong>Analisis I:</strong></p>
+<p> Keluar : 4321
+<p> Permainan ini hanya memperhatikan posisi 2D, berarti yang dipedomani = 21
+<p> 21 = TEPI
+<p> Misalnya dibeli posisi TEPI dengan nilai 100rb.
+<p> Berarti menang:
+<p> 100rb + [Indeks kemenangan untuk tepi-tengah] + Kei
+<p><strong>Analisis II:</strong></p>
+<p> Keluar : 4356.
+<p> Permainan ini hanya memperhatikan posisi 2D, berarti yang dipedomani =5 6
+<p> 56 = TENGAH:
+<p> Misalnya dibeli posisi TENGAH dengan nilai 100rb.
+<p> Berarti menang:
+<p> 100rb + [Indeks kemenangan untuk tepi-tengah] + Kei </p>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/9FYpg08q/CARA-BETTING-TENGAH-TEPI.png" alt="Tepi Tengah"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- SHIO -->
+<div class="section">
+<h2>🃏 SHIO</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Menebak SHIO dari posisi 2D
+<p>SHIO merupakan 12 lambang kelahiran dalam penanggalan China.
+<p>Dalam permainan ini, setiap lambang diwakili dengan satu nomor.</p>
+<p><strong>Analisis I:</strong></p>
+<p> Keluar : 4321
+<p> Permainan ini hanya memperhatikan posisi 2D, berarti yang dipedomani = 21
+<p> Hasil = 21-12 = 9 (shio disesuaikan dengan tabel diatas)
+<p><strong>Analisis II:</strong></p>
+<p> Keluar : 6543
+<p> Permainan ini hanya memperhatikan posisi 2D, berarti yang dipedomanin = 43
+<p> Hasil = 43-36 = 7 (shio disesuaikan dengan tabel diatas)
+<p><strong>Analisis III:</strong></p>
+<p> Keluar : 1389
+<p> Permainan ini hanya memperhatikan posisi 2D, berarti yang dipedomanin = 89
+<p> Hasil = 89-84 = 5 (shio disesuaikan dengan tabel diatas)
+<p> Catatan: nilai yang dikurangi merupakan kelipatan 12.
+<p> Jika dilakukan pembelian dengan 100rb dan menang maka:
+<p> Menang = 100rb + [Indeks kemenangan untuk SHIO]</p>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/jq7wS1yx/LHu-Xa-GUx-RRGx-n-W3-Ozvh-Wg.png" alt="SHIO"onclick="openModal(this.src)"/>
+<div class="caption">Struktur: ABCD → 2D (CD)</div>
+<img src="https://i.postimg.cc/5yyX5xtT/30t-NKiff-Ti-C6-W4k0-BBZNWQ.png" alt="Tabel Shio"onclick="openModal(this.src)"/>
+<div class="caption">TABEL SHIO</div>
+</div>
+</div>
+</div>
+
+<!-- Silang Homo -->
+<div class="section">
+<h2>🗿 Silang Homo</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Permainan ini kadang disebut suami istri. Menebak dari posisi Depan, Tengah, Belakang.</p>
+<p>Contoh no 1234
+<p> Yang dimaksud dengan Posisi Depan adalah 2 no terdepan yaitu 12
+<p> Yang dimaksud dengan Posisi Tengah adalah 2 no ditengah yaitu 23
+<p> Yang dimaksud dengan Posisi Belakang adalah 2 no terbelakang yaitu 34
+<p>SILANG = Terdapat Ganjil dan Genap
+<p> HOMO = Terdapat 1 pasang Ganjil atau 1 pasang Genap
+<p><strong>Analisis I: Beli Posisi Depan:</strong></p>
+<p> Keluar : 1234.
+<p> Yang menjadi pedoman adalah posisi Depan, berarti 12
+<p> 12 => 1=ganjil dan 2=genap , berarti hasil = SILANG
+<p><strong>Analisis II: Beli Posisi Tengah</strong></p>
+<p> Keluar : 4326.
+<p> Yang menjadi pedoman adalah posisi Tengah, berarti 32
+<p> 32 => 3=ganjil dan 2=genap , berarti hasil = SILANG
+<p><strong>Analisis III: Beli Posisi Belakang:</strong></p>
+<p> Keluar : 4533.
+<p> Yang menjadi pedoman adalah posisi Belakang, berarti 33
+<p> 33 => 3=ganjil dan 3=ganjil , berarti hasil = HOMO
+<p> Jika dilakukan pembelian dengan 100rb dan menang maka:
+<p> Menang = 100rb + [Indeks kemenangan untuk Silang-Homo]</p>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/sxddVmhX/Y19s-P83q-QEy1qo-Cf-B1pg-CA.png" alt="Silang Homo"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Kembang Kempis -->
+<div class="section">
+<h2>⌛ Kembang Kempis</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>AB (Depan), BC (Tengah), CD (Belakang). Kembang: A<B, Kempis: A>B, Kembar: A=B.</p>
+<p>Struktur = ABCD
+<p> Jika Menebak posisi Depan maka yang menjadi fokus adalah AB
+<p> Jika Menebak posisi Tengah maka yang menjadi fokus adalah BC
+<p> Jika Menebak posisi Belakang maka yang menjadi fokus adalah CD
+<p> KEMBANG jika A < B ataupun B < C ataupun C < D
+<p> KEMPIS jika A > B ataupun B > C ataupun C > D
+<p> KEMBAR jika A = B ataupun B = C ataupun C = D
+<p><strong>Analisis I: Beli Posisi Depan</strong></p>
+<p> Keluar : 4321
+<p> Yang menjadi pedoman adalah posisi Depan, berarti 43
+<p> 43 => 4 > 3, hasil = KEMPIS
+<p><strong>Analisis II:</strong></p>
+<p> Keluar : 4236 Beli Posisi Tengah
+<p> Yang menjadi pedoman adalah posisi Tengah, berarti 23
+<p> 23 => 2 < 3, hasil = KEMBANG
+<p><strong>Analisis III: Beli Posisi Belakang:</strong></p>
+<p> Keluar : 4099
+<p> Yang menjadi pedoman adalah posisi Belakang, berarti 99
+<p> 99 => Hasil = KEMBAR
+<p> Jika dilakukan pembelian dengan 100rb dan menang maka:
+<p> Menang = 100rb + [Indeks kemenangan untuk KEMBANG-KEMPIS]</p>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/2SQKxN38/CARA-BETTING-KEMBANG.png" alt="Kembang Kempis"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Togel Kombinasi -->
+<div class="section">
+<h2>🧩 Togel Kombinasi</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Tebak Genap/Ganjil dan Besar/Kecil dari dua posisi (AS-KOP, dll).</p>
+<p>Struktur = ABCD
+<p> A = AS
+<p> B = KOP
+<p> C = KEPALA
+<p> D = EKOR
+<p> Besar/Kecil: 0-4=kecil, 5-9=besar
+<p> Ganjil/Genap : 1=ganjil, 2=genap dan seterusnya
+<p> Anda dapat menebak Genap/Ganjil, Besar/Kecil
+<p> dari 2 kombinasi antara AS, KOP, KEPALA, EKOR
+<p><strong>Analisis :</strong></p>
+<p> Keluar : 1845
+<p> Berarti pemenang untuk :
+<p> AS Kecil/Ganjil dan KOP Besar/Genap
+<p> KEPALA Kecil/Genap dan EKOR Besar/Ganjil
+<p> AS Kecil/Ganjil dan KEPALA Kecil/Genap
+<p> AS Kecil/Ganjil dan EKOR Besar/Ganjil
+<p> KOP Besar/Genap dan KEPALA Kecil/Genap
+<p> KOP Besar/Genap dan EKOR Besar/Ganjil
+<p> Misalnya anda membeli AS KECIl dan KOP GENAP seharga 100rb,
+<p> maka menang = 100rb + [indeks kemenangan untuk kombinasi 2]
+<p> atau :
+<p> jika membeli KOP GENAP dan KEPALA GENAP seharga 100rb,
+<p> maka menang = 100rb + [indeks kemenangan untuk kombinasi 2]
+<p> atau :
+<p> jika membeli KEPALA KECIL dan EKOR GENAP seharga 100rb, berarti KALAH
+<p> ( Anda harus menebak keduanya dengan Benar agar Menang )</p>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/SRZJygh8/cvot0-Xq-WRTa-Hg-M1ly-LJg.png" alt="Togel Kombinasi"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Angka Tarung -->
+<div class="section">
+<h2>🎮 Angka Tarung</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Generator acak angka: AS, KOP, Kepala, Ekor.</p>
+<ul>
+<li><b>AS</b> = Angka pertama</li>
+<li><b>KOP</b> = Angka kedua</li>
+<li><b>KEPALA</b> = Angka ketiga</li>
+<li><b>EKOR</b> = Angka keempat</li>
+<p>Besar/Kecil: 0-4=kecil, 5-9=besar
+<p>Ganjil/Genap : 1=ganjil, 2=genap dan seterusnya
+<p><strong>CARA KERJA GENERATOR ANGKA TARUNG</strong></p>
+<p> Jika player isi angka pada posisi "KEPALA" 5 dan 2
+<p> dan player isi angka pada posisi "EKOR" dengan angka 1, 2, 3
+<p> Maka ketika generate hasilnya itu pada 2D : 51,52,53,21,22,23 Kombinasi dari Kepala dan Ekor
+<p> Dan jika player isi angka pada posisi "KOP" juga dengan nilai 7
+<p> Maka ketika generate hasil itu di 2D tetap sama seperti di atas, dan akan muncul angka 3D dikarenakan player memasukan angka pada posisi "KOP" 751,752,753,721,722 ,723 Kombinasi dari Kop, Kepala Dan Ekor
+<p> Dan jika player isi angka pada posisi "AS" juga dengan nilai 9 Maka ketika generate hasil itu di 2D & 3D tetap sama seperti di atas, dan akan muncul angka 4D dikarenakan player memasukan angka pada posisi "AS" 975,197,529,753,972,000,000,000 Kombinasi dari As, Kop, Kepala Dan Ekor
+<p> minimal bettingan pada pola angka tarung adalah (2D) dimana 1 digit pada posisi kepala dan 1 digit pada posisi ekor ya bosku
+<p> Maksimal untuk angka tarung 8 digit di setiap posisi ya bosku (kecuali totomacau 5d untuk maksimal angka tarung 10 digit di setiap posisi)
+<p> Kecuali di pasaran HONGKONG & SYDNEY maksimal adalah 7 digit Terima kasih</p>
+</ul>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/s2MVqBPD/Screenshot-5.png" alt="Angka Tarung"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- BB Campuran -->
+<div class="section">
+<h2>🀄 BB Campuran / BBFS</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Sistem Bettingan dimana angka yang di input dapat di acak secara otomatis, hasil dari angka yang telah di acak tersebut dapat di sortir kembali menjadi kelompok-kelompok angka bettingan yang lebih spesifik seperti menghilangkan seluruh angka yang ganjil,genap,kembar,besar,kecil,ataupun angka kembar.</p>
+<p> # Bolak Balik Full Set (BBFS), anda hanya menbak angka dan fokus untuk cari 5 angka yang betul-betul anda yakini akan berkesempatan besar sekali keluar dalam result 4d, 3d, atau 2d.
+<li> Contoh : Angka BBFS anda ialah 12345, karena itu anda akan menang 4d jika dalam angka 4 digit itu ada 4 angka dari 5 angka BBFS anda itu, tidak jadi masalah seperti apa formasi angkanya,
+<li> selama tidak ada angka yang kembar, karena itu anda akan menang 4d. Itu kurang lebih gambarannya BBFS disebut. Khasnya dalam permainan BBFS ini, jika anda sudah dikatakan menang 4d, karena itu dengan automatis juga, anda akan dikatakan menang juga 3d serta 2d.
+<li>Jika di jabarkan BBFS dengan angka 12345, maka membuahkan 200 titik / live number/ LN angka jadi, yang hasilnya bisa di jabarkan seperti berikut: 1234 akan membuahkan 120 titik nomer untuk 4d, yakni : 1234*1235*1243*1245*1253*1254*1324*1325*1342*1345*1352*1354*1423*1425*1432*1435*1452* 1453*1523*1524*1532*1534*1542*1543*2134*2135*2143*2145*2153*2154*2314*2315*2341*2345*2351* 2354*2413*2415*2431*2435*2451*2453*2513*2514*2531*2534*2541*2543*3124*3125*3142*3145*3152* 3154*3214*3215*3241*3245*3251*3254*3412*3415*3421*3425*3451*3452*3512*3514*3521*3524*3541* 3542*4123*4125*4132*4135*4152*4153*4213*4215*4231*4235*4251*4253*4312*4315*4321*4325*4351* 4352*4512*4513*4521*4523*4531*4532*5123*5124*5132*5134*5142*5143*5213*5214*5231*5234*5241* 5243*5312*5314*5321*5324*5341*5342*5412*5413*5421*5423*5431*5432*
+<li> Untuk 3d akan membuahkan 60 titik nomer, yakni : 123*124*125*132*134*135*142*143*145*152*153*154*213*214*215*231*234*235*241*243*245* 251*253*254*312*314*315*321*324*325*341*342*345*351*352*354*412*413*415*421*423*425*431* 432*435*451*452*453*512*513*514*521*523*524*531*532*534*541*542*543*
+<li> Untuk 2d akan membuahkan 20 titik nomer, yakni : 12*13*14*15*21*23*24*25*31*32*34*35*41*42*43*45*51*52*53*54"
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/3RBBB00n/CARA-BETTING-BBFS-BB-CAMPURAN.jpg" alt="BBFS/BB CAMPURAN"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Togel Dasar -->
+<div class="section">
+<h2>♣️ Togel Dasar</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Menebak ganjil/genap dan besar/kecil dari penjumlah angka-angka 2D. Nilai pembelian ditentukan pasaran (kei) pada saat itu.</p>
+<p> Struktur: CD (2 angka terakhir
+<li> Kecil = angka 0-4
+<li> Besar = angka 5-9
+<li> Ganjil = 1,3,5,7,9
+<li> Genap = 0,2,4,6,8
+<p><strong>Analisis I:</strong></p>
+<p> Keluar : 1234,
+<p> 3+4 = 7
+<p> Berarti keluar : Ganjil dan Besar
+<p><strong>Analisis II:</strong></p>
+<p> Keluar : 5678,
+<p> 7+8 = 15
+<p> Karena angka 15 lebih besar dari 9, kembali dihitung 1+5=6
+<p> Berarti keluar : Genap dan Besar
+<p><strong>Analisis III:</strong></p>
+<p> Keluar : 1204,
+<p> 0+4 = 4
+<p> Berarti keluar : Genap dan Kecil
+<p> Misal anda membeli dengan Rp.100rb untuk Genap, menang = 100rb + [indeks menang untuk Dasar]</p>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/ydSYH0s8/capture-20240725170619.png" alt="togel dasar"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Pola Colok -->
+<div class="section">
+<h2>🀄 Pola Colok</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>POLA COLOK adalah sistem Generator yang membantu anda menyusun seluruh Angka yang ingin di betting pada menu pilihan COLOK.</p>
+<p>SEPUTARAN CARA BERMAIN POLA COLOK dan PENGERTIAN POLA COLOK
+<li>POLA COLOK adalah sistem Generator yang membantu anda menyusun seluruh Angka yang ingin di betting pada menu pilihan COLOK. tersedia 3 kategory COLOK, Yaitu :
+<p><strong>1. COLOK BEBAS ::</strong></p>
+<p> Menebak satu angka dari 4D. Posisi angka bisa dimana saja contoh result 1234, jika anda beli angka 3, maka menang.
+<p><strong>2. COLOK BEBAS 2D : </strong></p>
+<p> Cara kerja seperti colok bebas tapi mesti yang keluar 2 angka dari 4D.contoh result 1234, jika anda beli angka 3 dan 4, maka menang.jika anda beli angka 3 dan 6, maka anda kalah, karena dalam result tidak ada angka 6.
+<p><strong>3. COLOK NAGA :: </strong></p>
+<p> Cara kerja seperti colok bebas 2D tapi mesti yang keluar 3 angka dari 4D.contoh result 1234, jika anda beli angka 2,3 dan 4, maka menang. jika anda beli angka 3,4 dan 8, maka anda kalah, karena dalam result tidak ada angka 8.
+<p><strong>CARA BETTING : </strong></p>
+<li> Pilih pasaran yang anda inginkan
+<li> pilih menu POLA COLOK
+<li> silahkan isi kolom NOMOR dengan ANGKA Contoh : 1234567 ( maksimal adalah 7DIGIT )
+<li> Pada kolom berikutnya ( colok bebas, colok bebas 2D, colok naga ) di isi dengan nominal /jumlah bettingan anda, pada kolom nominal akan automatis di kalikan dengan 1.000 contoh : pembelian Rp. 1.000 hanya cukup di isi dengan angka 1.
+<li> pembelian Rp. 10.000 hanya cukup di isi dengan angka 10 pembelian Rp.100.000 hanya cukup di isi dengan angka 100 SUBMIT : Melihat kembali nomor yang sudah berhasil di acak oleh sistem denan pilihan bettingan yang anda lakukan, Jika semua sudah benar, tekan "KIRIM"
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/K8gvgd18/CARA-BETTING-POLA-COLOK.png" alt="Pola colok"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Taysen -->
+<div class="section">
+<h2>☘️ Taysen</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Taysen merupakan generator nomor yang berfungsi untuk menampilkan juga nomor taysen dari nomor-nomor yang kita beli.
+Setiap nomor memiliki angka taysenya masing-masing sesuai dengan jenis bettinganya 4D, 3D ataupun 2D.
+Angka Taysenan permasing" nomor bisa di lihat di buku mimpi sebagai referensi
+Jenis bettingan 4D terdapat 1 nomor Taysenanya, Untuk 3D terdapat 1 nomor Taysenanya dan Untuk 2D terdapat 4 nomor Taysenanya.</p>
+<p> Jenis bettingan 4D terdapat 1 nomor Taysenanya, Untuk 3D terdapat 1 nomor Taysenanya dan Untuk 2D terdapat 4 nomor Taysenanya
+<p><strong>PANDUAN BETTING :</strong></p>
+<li> Jika anda mengisi 2 angka di kolom nomor hanya taysen 2D dapat di centang
+<li> Jika anda mengisi 3 angka yang di isi maka taysen 3D dan 2D dapat di centang
+<li> Jika anda mengisi 4 angka yang di isi maka taysen 2D, 3D dan 4D dapat di centang
+<p> NB : Dalam taysen anda dapat memilih jenis bettingan apa saja yang ingin di taysen dengan mencentang kolom check box untuk menampilkan taysenanya di hasil generate bettingan
+<li> Di kolom bettingan juga terdapat BB dimana jika anda mencentang kolom BB maka nomor-nomor yang sudah di generate (nomor utama dan nomor taysenanya) akan di BB-in.
+<li> Dalam panel bet juga terdapat kolom untuk mengisi nominal dan bisa di isi dengan nominal yang berbeda untuk jenis bettingan 4D, 3D dan 2D. Jika anda tidak mengisi maka jenis bettingan itu tidak akan tergenerate.
+<li> Nomor utama juga akan ikut terbeli di dalam menu taysen
+<li> Di dalam menu taysen anda tidak memiliki pilihan untuk membuang bettingan dalam artian tidak dapat menghilangkan bettingan yang sama atau duplicate jika terdapat angka yang sama
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/FsyKHHxp/CARA-BETTING-TAYSEN.png" alt="TAYSEN"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Mistik -->
+<div class="section">
+<h2>🎲 Mistik</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Mistik Lama adalah generator untuk pemain lebih di mudahkan dalam melakukan bettingan sehingga nomor yang di beli oleh pemain sudah termasuk perubahan nomor mistik di dalamnya</p>
+<p><strong>Perubahan nomor dalam mistik lama :</strong></p>
+<li> 0 = 1
+<li> 2 = 5
+<li> 3 = 8
+<li> 4 = 7
+<li> 6 = 9
+<p>1. Dalam Generator Mistik Lama kita menyediakan 4 jenis mistik, Berikut Penjelasanya :
+<p>-Mistik 1 maka akan terdapat 1 nomor dalam setiap posisi mengalami perubahan sesuai perubahan nomor yang telah di tentukan.
+<p> Contoh : Anda membeli angka 1234 maka nomor yang akan muncul adalah
+<li> 0234 = Digit I (1-->0)
+<li> 1534 = Digit II (2-->5)
+<li> 1284 = Digit III (3-->8)
+<li> 1237 = Digit IV (4-->7)
+<p> Maka akan terdapat 4 nomor yang muncul dalam panel bettingan (0234, 1534, 1284, 1237)
+<p> -. Mistik 2 maka akan terdapat 2 nomor dalam setiap posisi mengalami perubahan sesuai perubahan nomor yang telah di tentukan.
+<p> Contoh : Anda membeli angka 1234 maka nomor yang akan muncul adalah
+<li> 0534 = Digit I (1-->0), Digit II (2-->5)
+<li> 1584 = Digit II (2-->5), Digit III (3-->8)
+<li> 1287 = Digit III (3-->8), Digit IV (4-->7)
+<li> 0284 = Digit I (1-->0), Digit III (3-->8)
+<li> 1537 = Digit II (2-->5), Digit IV (4-->7)
+<li> 0237 = Digit I (1-->0), Digit IV (4-->7)
+<p> Maka akan terdapat 6 nomor yang muncul dalam panel bettingan (0534, 1584, 1287, 0284, 1537, 0237)
+<p> -. Mistik 3 maka akan terdapat 3 nomor dalam setiap posisi mengalami perubahan sesuai perubahan nomor yang telah di tentukan.
+<p> Contoh : Anda membeli angka 1234 maka nomor yang akan muncul adalah
+<li> 0584 = Digit I (1-->0), Digit II (2-->5), Digit III (3-->8)
+<li> 1587 = Digit II (2-->5), Digit III (3-->8), Digit IV (4-->7)
+<li> 0287 = Digit I (1-->0), Digit III (3-->8), Digit IV (4-->7)
+<li> 0537 = Digit I (1-->0), Digit II (2-->5), Digit IV (4-->7)
+<p> Maka akan terdapat 4 nomor yang muncul dalam panel bettingan (0584, 1587, 0287,0537)
+<p> -. Mistik 4 maka akan terdapat 4 nomor dalam setiap posisi mengalami perubahan sesuai perubahan nomor yang telah di tentukan.
+<li> Contoh : Anda membeli angka 1234 maka nomor yang akan muncul adalah 0587 = Digit I (1-->0), Digit II (2-->5), Digit III (3-->8), Digit IV (4-->7)
+<li> Maka akan terdapat 1 nomor yang muncul dalam panel bettingan (0587)
+<p> 2. Nomor origin (nomor utama) tetap akan terbeli di dalam panel bettingan mistik lama.
+<p> 3. Dalam generator mistik lama anda juga dapat mengisi 3D atau 2D, Jika anda membeli 3D maka mistik 1, 2 dan 3 yang dapat di pilih (centang), Sedangkan jika 2D maka hanya mistik 1 dan 2 yang dapat di pilih (di centang), Perubahan nomor tetap seperti yang ada di penjelasan poin nomor 1.
+<p>4. Di dalam generator juga terdapat pilihan pembelian dimana anda dapat membeli nomor 4D, 3D dan 2D sesuai dengan nominal yang anda inginkan. Untuk 3D dan 2D angka yang di ambil adalah 3 dan 2 digit belakang dari angka origin (yang di beli) dan angka yang sudah terjadi perubahan nomor mistik lama.
+<p>5. Di bagian bawah panel nomor akan terdapat pilihan menu "Nomor Duplicate / Angka yang sama", dengan maksud jika anda memilih "YA" maka semua nomor akan di munculkan sedangkan jika anda memilih "TIDAK" maka semua nomor duplicate akan di hilangkan per nomor BET.
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/Y0RLjNc6/ssss.png" alt="mistik"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Macau Shio -->
+<div class="section">
+<h2>🎯 Macau Shio</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>bettingan dimana membeli kombinasi 2 shio dalam sekali betting (Anda dapat membeli shio yang sama untuk shio pertama dan shio kedua)</p>
+<p> 1. Macau Shio Adalah bettingan dimana membeli kombinasi 2 shio dalam sekali betting (Anda dapat membeli shio yang sama untuk shio pertama dan shio kedua)
+<p> 2. Hasil dari shio pertama berdasarkan hasil dari As (angka pertama) + Kop (angka kedua) sedangkan Hasil dari shio kedua bersadarkan dari hasil dari Kepala (angka ketiga) + Ekor (angka keempat)
+<p><strong>Note : Dalam "Macau Shio" hasil dari keluaran harus tepat berurutan seperti yang beli. JIka anda membeli "HARIMAU & KUDA" dan hasil keluaran adalah "KUDA - HARIMAU" maka anda di nyatakan kalah. :</strong></p>
+<p> 3. Hasil dari keluaran macau shio juga sudah dapat di lihat di menu history nomor dan klik nomor keluaran di periode yang anda ingin lihat untuk memudahkan anda
+<p> 4. Perkalian pembayaran adalah 110x dari nilai bettingan anda. Dengan discount pembelian 10% dan referral untuk atasan adalah 1% dari bettingan.
+<p> Contoh Keluar : 4321
+<p>Permainan ini membeli 2 Kombinasi Shio yang tepat : AS , KOP & KEPALA , EKOR
+<p> -. Shio Pertama
+<li> As = 4
+<li> Kop = 3
+<p> -. Shio Kedua
+<li> Kepala : 2
+<li> Ekor : 1
+<p><strong>Hasil shio Pertama = 43-36 = 7 (shio disesuaikan dengan tabel shio) :</strong></p>
+<p><strong>Hasil shio kedua = 21-12 = 9 (shio disesuaikan dengan tabel shio) :</strong></p>
+<p><strong>*Catatan: nilai yang dikurangi merupakan kelipatan 12. :</strong></p>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/Njt9Rf7J/CARA-BETTING-MACAU-SHIO.png" alt="MACAU"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- BET 50-50 -->
+<div class="section">
+<h2>♠️ BET 50-50</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Menebak ganjil/genap, besar/kecil Permainan ini sangat menarik karena pasarannya naik turun sesuai keinginan market pada waktu tersebut, Dengan demikian, nilai pembelian dipengaruhi kei (pasaran).</p>
+<p><strong> Struktur: ABCD </strong></p>
+<p><strong> Menebak ganjil/genap dan besar/kecil dari posisi: </strong></p>
+<li> A = AS
+<li> B = KOP
+<li> C = KEPALA
+<li> D = EKOR
+<p><strong> Besar/Kecil: 0-4=kecil, 5-9=besar </strong></p>
+<p><strong> Ganjil/Genap : 1=ganjil, 2=genap dan seterusnya </strong></p>
+<p><strong> Analisis I: </strong></p>
+<p> Keluar : 4327
+<p> Berarti pemenang adalah yang memilih:
+<li> AS GENAP/KECIL
+<li> KOP GANJIL/KECIL
+<li> KEPALA GENAP/KECIL
+<li> EKOR GANJIL/BESAR
+<p> Misal anda membeli dengan dana Rp.100rb untuk AS Genap, menang = 100rb + [indeks pasaran AS Genap 50-50]
+<p> Atau :
+<p> Jika membeli dengan dana Rp.100rb untuk Ekor Ganjil, menang = 100rb + [indeks pasaran Ekor Ganjil 50-50]
+<p> Atau :
+<p> Jika membeli dengan dana Rp.100rb untuk AS Ganjil, kalah = 100rb + [indeks pasaran AS Ganjil 50-50]
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/26WZNHQy/QQb0-JXzb-Re-Guuw8-HX0b-Zn-A.png" alt="bet50-50"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Colok Naga -->
+<div class="section">
+<h2>🐉 Colok Naga </h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>menebak 3 angka posisi di mana saja ya bosku untuk colok naga cara bermain seperti colok bebas 2D tapi mesti yang keluar 3 angka dari 4D.
+<p><strong> jika anda melakukan bettingan nomor 1 3 4 dan result yg keluar 1 0 2 4 maka dihitung kalah cara bermain dan diskon colok naga, jika melakukan bettingan dengan nominal Rp 10.000 maka akan - diskon 10% = anda hanya membayar Rp 9.000,- jika menang maka bettingan anda sebesar Rp10.000 akan di X 23 (hadiah colok naga)= Rp 230.000,- ditambah modal awal anda Rp 9.000 yang sudah dikurangkan diskon maka total menang anda adalah Rp 239.000.</strong></p>
+<p><strong> Struktur: ABCD </strong></p>
+<p><strong> Analisis I: </strong></p>
+<p> Keluar : 4321
+<p> Misalnya dibeli 4 ,2 dan 3 dengan nilai 100rb.
+<p> Berarti MENANG:
+<p> Karena keluar 3 digit,angka 4,2 dan 3.
+<p> 100rb + [Indeks kemenangan untuk colok naga , kategori: 3 digit]
+<p><strong> Analisis II:</strong></p>
+<p> Keluar : 4321
+<p> Misalnya dibeli 4,2 dan 6 dengan nilai 100rb.
+<p> Berarti KALAH
+<p> Karena keluar hanya 2 digit,angka 4 dan 2 dan angka 6 tidak muncul
+<p> Nilai betting tidak dikembalikan
+<p><strong> Analisis III:</strong></p>
+<p> Keluar : 4321
+<p> Misalnya dibeli 4,3 dan 1 dengan nilai 100rb.
+<p> Berarti MENANG:
+<p> Karena keluar 3 digit,angka 4,3 dan 1.
+<p> 100rb + [Indeks kemenangan untuk colok naga , kategori: 3 digit]
+<p><strong> Analisis IV:</strong></p>
+<p> Keluar : 4324
+<p> Misalnya dibeli 4,3 dan 2 dengan nilai 100rb.
+<p> Karena keluar 4 digit,angka 4,3 dan 2.
+<p> Berarti MENANG:
+<p> 100rb + [Indeks kemenangan untuk colok naga, kategori: 4 digit]
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/26KFYHXB/6i-GAKL6p-TDucrmcq3xc-FWw.png" alt="COLOK NAGA"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- QUICK 2D -->
+<div class="section">
+<h2>🏃‍♂️‍➡️ QUICK 2D </h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Permainan QUICK 2D menebak 2 angka dari 4D,
+Dalam Bettingan pilihan terbagi dengan 3 kategori
+Yaitu : 2D Depan, 2D Tengah, dan 2D Belakang</p>
+<p><strong> Contoh hasil Result adalah : 1234</strong></p>
+<li> 2D DEPAN : 12
+<li> 2D TENGAH : 23
+<li> 2D BELAKANG : 34
+<p><strong> Menu Betting Quick 2D dengan 4 pilihan betting yaitu : </strong></p>
+<li> KECIL : 00,01,02,03,04,05,06,07, dan seterusnya sampai 49
+<li> BESAR : 50,51,52,53,54,55,56,57, dan seterusnya sampai 99
+<li> GENAP : 00, 02, 04, 06, 08, 10 dan seterusnya sampai angka 98
+<li> GANJIL : 01, 03, 05, 07, 09, 11 dan seterusnya sampai angka 99
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/XJ47J3mR/Xk6-XPDoo-Qz-C5-TIQpnm35-Lw.png" alt="Quick 2 d"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Angka Kepung -->
+<div class="section">
+<h2>🎰 Angka Kepung </h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Memasukan pilihan untuk bettingan Cepat dengan sistem terkepung Hanya tersedia pada pasaran TOTOMACAU 4D</p>
+<p><strong> Contoh : Jika masukan Angka 00 pada kolom nomor 1 dan 10 di kolom nomor 2 maka sistem akan memasukan bettingan yang terkepung antara 00,01,02,03,04,05,06,07,08,09, dan 10
+Jika masukan Angka 11 pada kolom nomor 1 dan 20 di kolom nomor 2 maka sistem akan memasukan bettingan yang terkepung antara 11,12,13,14,15,16,17,18,19, dan 20
+semakin jauh jarak angka terkepung, maka semakin banyak angka yang di betting.</strong></p>
+<li> 1. DISCOUNT : Untuk type bettingan DISKON
+<p>- Ada potongan harga pada setiap angka yang di betting
+<li> 2. S.DISCOUNT: Untuk type bettingan SUPER DISKON
+<p>- Ada potongan harga paling murah dari harga DISKON, Hadiah lebih kecil
+<li> 3. BETFULL: Untuk type bettingan FULL
+<p>- Tanpa ada potongan harga, dan Hadiah yang lebih besar
+<li> 4. BET BB : Untuk type bettingan Bolak - Balek
+<p>- Jika bettingan terbalik akan di bayar, tidak ada potongan harga
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/659jhSxB/61u333h-GSt-CNb-Dp-AQBBfg-Q.png" alt="Angka Kepung"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- INDEX -->
+<div class="section">
+<h2>🚅 INDEX </h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>generator untuk pemain lebih di mudahkan dalam melakukan bettingan sehingga nomor yang di beli oleh pemain sudah termasuk perubahan nomor index kecil dan besar di dalamnya.</p>
+<p><strong> Perubahan nomor dalam INDEX :</strong></p>
+<li> 0 = 5
+<li> 1 = 6
+<li> 2 = 7
+<li> 3 = 8
+<li> 4 = 9
+<p><strong>1. Dalam Generator INDEX kita menyediakan 4 jenis INDEX, Berikut Penjelasanya :</strong></p>
+<p><strong>- INDEX 1 maka akan terdapat 1 nomor dalam setiap posisi mengalami perubahan sesuai perubahan nomor yang telah di tentukan.:</strong></p>
+<p><strong> Contoh : Anda membeli angka 1239 maka nomor yang akan muncul adalah :</strong></p>
+<li> 6239 = Digit I (1-->6)
+<li> 1739 = Digit II (2-->7)
+<li> 1289 = Digit III (3-->8)
+<li> 1234 = Digit IV (9-->4)
+<p>Maka akan terdapat 4 nomor yang muncul dalam panel bettingan (6239, 1739, 1289, 1234)
+<p><strong>-. INDEX 2 maka akan terdapat 2 nomor dalam setiap posisi mengalami perubahan sesuai perubahan nomor yang telah di tentukan. :</strong></p>
+<p><strong> Contoh : Anda membeli angka 1239 maka nomor yang akan muncul adalah :</strong></p>
+<li> 6739 = Digit I (1-->6), Digit II (2-->7)
+<li> 1789 = Digit II (2-->7), Digit III (3-->8)
+<li> 1284 = Digit III (3-->8), Digit IV (9-->4)
+<li> 6289 = Digit I (1-->6), Digit III (3-->8)
+<li> 1734 = Digit II (2-->7), Digit IV (9-->4)
+<li> 6234 = Digit I (1-->6), Digit IV (9-->4)
+<p> Maka akan terdapat 6 nomor yang muncul dalam panel bettingan (6739, 1789, 1284, 6289, 1734, 6234)
+<p><strong>- INDEX 3 maka akan terdapat 3 nomor dalam setiap posisi mengalami perubahan sesuai perubahan nomor yang telah di tentukan. :</strong></p>
+<p><strong> Contoh : Anda membeli angka 1239 maka nomor yang akan muncul adalah:</strong></p>
+<li> 6789 = Digit I (1-->6), Digit II (2-->7), Digit III (3-->8)
+<li> 1784 = Digit II (2-->7), Digit III (3-->8), Digit IV (9-->4)
+<li> 6284 = Digit I (1-->6), Digit III (3-->8), Digit IV (9-->4)
+<li> 6734 = Digit I (1-->6), Digit II (2-->7), Digit IV (9-->4)
+<p> Maka akan terdapat 4 nomor yang muncul dalam panel bettingan (6789, 1784, 6284,6734)
+<p><strong>-. INDEX 4 maka akan terdapat 4 nomor dalam setiap posisi mengalami perubahan sesuai perubahan nomor yang telah di tentukan. :</strong></p>
+<p><strong> Contoh : Anda membeli angka 1239 maka nomor yang akan muncul adalah :</strong></p>
+<li> 6784 = Digit I (1-->6), Digit II (2-->7), Digit III (3-->8), Digit IV (9-->4)
+<p> Maka akan terdapat 1 nomor yang muncul dalam panel bettingan (6784)
+<p><strong> 2. Nomor origin (nomor utama) tetap akan terbeli di dalam panel bettingan INDEX. :</strong></p>
+<p><strong> 3. Dalam generator INDEX anda juga dapat mengisi 3D atau 2D, Jika anda membeli 3D maka INDEX 1, 2 dan 3 yang dapat di pilih (centang), Sedangkan jika 2D maka hanya INDEX 1 dan 2 yang dapat di pilih (di centang), Perubahan nomor tetap seperti yang ada di penjelasan poin nomor 1.:</strong></p>
+<p><strong> 4. Di dalam generator juga terdapat pilihan pembelian dimana anda dapat membeli nomor 4D, 3D dan 2D sesuai dengan nominal yang anda inginkan. Untuk 3D dan 2D angka yang di ambil adalah 3 dan 2 digit belakang dari angka origin (yang di beli) dan angka yang sudah terjadi perubahan nomor INDEX.:</strong></p>
+<p><strong> 5. Di bagian bawah panel nomor akan terdapat pilihan menu "Nomor Duplicate / Angka yang sama", dengan maksud jika anda memilih "YA" maka semua nomor akan di munculkan sedangkan jika anda memilih "TIDAK" maka semua nomor duplicate akan di hilangkan per nomor BET.
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/y6XV0Q2y/0-Qe7ki-Dp-Rw6vv2-Hrb-QAZTA.png" alt="INDEX"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Fast 4D -->
+<div class="section">
+<h2>🚅 Fast 4D </h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Melakukan bettingan cepat, dengan menginput nomor dengan banyak pilihan Angka</p>
+<p><strong> contoh betting :</strong></p>
+<p><strong> 1234*567*89*0123*456*78* :</strong></p>
+<p> Maka Sistem akan melakukan bettingan dengan angka yang anda input sesuai dengan pilihan,
+<li> untuk 4D adalah 1234 dan 0123
+<li> untuk 3D adalah 567 dan 456
+<li> untuk 2D adalah 89 dan 78
+<p><strong> NB : MAXIMAL 400 NOMOR</strong></p>
+<p>Untuk Hadiah bergantung pada Jenis bettingan pada pilihan menu bettingan yang di betting.
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/15HL3b2b/g8o85-DWc-SNqh7h1-Uv-Un-B-A.png" alt="Fast 4D"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+  <!-- Modal Zoom (HANYA 1!) -->
+  <div id="imageModal" class="modal">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <img id="modalImage" src="" alt="Zoomed Image" />
+  </div>
+
+  <script>
+    // Modal
+    function openModal(src) {
+      document.getElementById("modalImage").src = src;
+      document.getElementById("imageModal").style.display = "flex";
+      document.body.style.overflow = "hidden";
+    }
+    function closeModal() {
+      document.getElementById("imageModal").style.display = "none";
+      document.body.style.overflow = "auto";
+    }
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") closeModal();
+    });
+    document.getElementById("imageModal").addEventListener("click", (e) => {
+      if (e.target === document.getElementById("imageModal")) closeModal();
+    });
+
+    // Search
+    document.getElementById("searchInput").addEventListener("input", function(e) {
+      const term = e.target.value.toLowerCase().trim();
+      document.querySelectorAll(".section").forEach(sec => {
+        const title = sec.querySelector("h2").innerText.toLowerCase();
+        const content = sec.innerText.toLowerCase();
+        sec.style.display = (term === "" || title.includes(term) || content.includes(term)) ? "block" : "none";
+      });
+    });
+
+    // Scroll Animation
+    const sections = document.querySelectorAll('.section');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1 });
+    sections.forEach(sec => observer.observe(sec));
+
+    // Scroll Progress Bar
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.body.scrollHeight - window.innerHeight;
+      const progress = (scrollTop / docHeight) * 100;
+      document.getElementById('progress-bar').style.width = progress + '%';
+    });
+
+    // Particles
+    particlesJS("particles-js", {
+      particles: {
+        number: { value: 80, density: { enable: true, area: 800 } },
+        color: { value: "#00b3ff" },
+        shape: { type: "circle" },
+        opacity: { value: 0.5, random: true },
+        size: { value: 3, random: true },
+        move: {
+          enable: true,
+          speed: 2,
+          direction: "none",
+          random: true,
+          straight: false,
+          out_mode: "out"
+        }
+      },
+      interactivity: {
+        detect_on: "canvas",
+        events: { onhover: { enable: true, mode: "repulse" }, onclick: { enable: true, mode: "push" } }
+      },
+      retina_detect: true
+    });
+
+    // Loading fade out
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        document.getElementById('loading').style.display = 'none';
+      }, 2500);
+    });
+  </script>
+</body>
+</html>
+
+
+buat tampilan lain
+The server is busy. Please try again later.
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎮 Togel GAME PLAY | Panduan Futuristik</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Press+Start+2P&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <script src="https://kit.fontawesome.com/a2c5b9b558.js" crossorigin="anonymous"></script>
+  <!-- Particles.js -->
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  <style>
+    :root {
+      --bg: #0a0f2c;
+      --card-bg: #161f45;
+      --text: #e0e7ff;
+      --text-yellow: #fff176;
+      --accent: #00b3ff;
+      --accent-glow: #00d4ff88;
+      --border: #0088cc;
+      --shadow: 0 4px 16px rgba(0, 100, 255, 0.2);
+      --glow: 0 0 15px rgba(0, 187, 255, 0.6), 0 0 30px rgba(0, 187, 255, 0.3);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 20px;
+      min-height: 100vh;
+      background-image: url('https://i.postimg.cc/9QFndpjM/discord.gif');
+      background-size: cover + media query ;
+      background-attachment: fixed;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Loading Screen */
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #0a0f2c;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      flex-direction: column;
+      animation: fadeOut 1.5s ease-out 2s forwards;
+    }
+    @keyframes fadeOut {
+      to { opacity: 0; visibility: hidden; }
+    }
+    .loader {
+      width: 60px;
+      height: 60px;
+      border: 5px solid var(--border);
+      border-top: 5px solid var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Progress Bar */
+    #progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 4px;
+      background: var(--accent);
+      width: 0%;
+      z-index: 1000;
+      transition: width 0.1s ease;
+      box-shadow: var(--glow);
+    }
+
+    /* Glitch Text */
+    .glitch {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.8rem;
+      color: var(--text-yellow);
+      text-shadow: 0 0 5px var(--text-yellow), 0 0 10px var(--text-yellow);
+      animation: glitch 2s infinite, glow 2s infinite alternate;
+      margin: 10px 0;
+      letter-spacing: 2px;
+    }
+    @keyframes glitch {
+      0%, 100% { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px var(--text-yellow), 0 0 20px var(--text-yellow); }
+      50% { text-shadow: 0 0 5px #fff, 0 0 10px var(--accent), 0 0 15px var(--accent), 0 0 20px var(--accent); }
+    }
+    @keyframes glow {
+      from { text-shadow: 0 0 10px rgba(255, 241, 118, 0.5); }
+      to { text-shadow: 0 0 25px rgba(255, 241, 118, 0.9); }
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 40px;
+      border-radius: 20px;
+      background: rgba(10, 15, 44, 0.6);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0 40px rgba(0, 179, 255, 0.3), 0 0 20px rgba(0, 100, 255, 0.2);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s;
+    }
+    header:hover {
+      transform: translateY(-5px);
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(0, 187, 255, 0.05), transparent);
+      transform: rotate(45deg);
+      pointer-events: none;
+      animation: shine 4s infinite linear;
+    }
+    @keyframes shine {
+      0% { transform: translateY(-100%) rotate(45deg); }
+      100% { transform: translateY(100%) rotate(45deg); }
+    }
+
+    header p {
+      color: var(--accent);
+      font-weight: 500;
+      font-size: 1.2rem;
+    }
+
+    .desc-section {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 28px;
+      background: rgba(22, 35, 75, 0.7);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      font-size: 15px;
+      text-align: center;
+      animation: fadeInUp 0.8s ease;
+      box-shadow: 0 0 15px rgba(0, 179, 255, 0.1);
+    }
+
+    .attention {
+      background: rgba(255, 241, 118, 0.1);
+      border-left: 4px solid var(--text-yellow);
+      padding: 14px 18px;
+      margin: 20px 0;
+      color: var(--text-yellow);
+      font-size: 14px;
+      border-radius: 0 10px 10px 0;
+      font-weight: 500;
+    }
+
+    #searchInput {
+      width: 100%;
+      max-width: 520px;
+      padding: 16px 20px;
+      margin: 25px auto;
+      display: block;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: rgba(22, 35, 75, 0.6);
+      color: white;
+      font-size: 16px;
+      outline: none;
+      box-shadow: 0 0 15px rgba(0, 179, 255, 0.25);
+      transition: all 0.3s;
+    }
+    #searchInput:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(0, 187, 255, 0.4), 0 0 30px rgba(0, 187, 255, 0.2);
+      transform: scale(1.02);
+    }
+
+    .section {
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 24px;
+      background: var(--card-bg);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow), 0 0 10px rgba(0, 179, 255, 0.1);
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 0.7s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .section h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.6rem;
+      color: var(--accent);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-shadow: 0 0 10px var(--accent-glow);
+    }
+    .section h2 i {
+      color: var(--text-yellow);
+    }
+
+    .info {
+      font-size: 15px;
+      color: #a5b4fc;
+      margin-bottom: 18px;
+      line-height: 1.7;
+    }
+
+    .image-container {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .image-container img {
+      width: 100%;
+      max-width: 420px;
+      height: auto;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      transition: all 0.4s ease;
+    }
+    .image-container img:hover {
+      transform: scale(1.06) rotate(1.5deg);
+      box-shadow: 0 0 25px rgba(0, 187, 255, 0.6);
+    }
+
+    /* Modal Zoom */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(10,15,44,0.98));
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      padding: 40px;
+      animation: modalFadeIn 0.5s ease;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .modal img {
+      max-width: 90%;
+      max-height: 85vh;
+      border-radius: 14px;
+      box-shadow: 0 0 50px rgba(0, 187, 255, 0.8);
+      animation: zoomIn 0.5s ease;
+    }
+    @keyframes zoomIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .close {
+      position: absolute;
+      top: 40px;
+      right: 40px;
+      font-size: 42px;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+      text-shadow: 0 0 15px var(--text-yellow);
+      transition: all 0.3s;
+    }
+    .close:hover {
+      color: var(--text-yellow);
+      transform: scale(1.1);
+    }
+
+    @media (max-width: 480px) {
+      .glitch { font-size: 2.2rem; }
+      .image-container img { max-width: 100%; }
+      .close { font-size: 32px; right: 20px; top: 20px; }
+      header { padding: 20px; }
+    }
+
+    /* Particles Background */
+    #particles-js {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading Screen -->
+  <div id="loading">
+    <div class="loader"></div>
+    <p style="color: var(--accent); font-family: 'Orbitron';">LOADING GAME...</p>
+  </div>
+
+  <!-- Scroll Progress Bar -->
+  <div id="progress-bar"></div>
+
+  <!-- Particles Background -->
+  <div id="particles-js"></div>
+
+  <!-- Header -->
+  <header>
+    <h1 class="glitch">🎮 TOGEL GAME PLAY</h1>
+    <p>Panduan Futuristik 2025</p>
+  </header>
+
+  <!-- Deskripsi -->
+  <div class="desc-section">
+    <p><strong>🔮 Panduan interaktif dengan cara bermain TOGEL.</strong></p>
+    <div class="attention">
+      ⚠️ Hanya untuk edukasi. Judi berisiko tinggi.
     </div>
+  </div>
 
-    <!-- Sharingan Notification -->
-    <div class="sharingan-notification" id="sharinganNotification">
-        <div class="sharingan">
-            <div class="tomoe"></div>
-            <div class="tomoe"></div>
-            <div class="tomoe"></div>
-            <div class="sharingan-content">
-                <span id="sharinganText">ALARM</span>
-            </div>
-        </div>
-    </div>
+  <!-- Search -->
+  <input type="text" id="searchInput" placeholder="🔍 Cari jenis betting..." />
 
-    <!-- Alarm Modal -->
-    <div class="alarm-modal" id="alarmModal">
-        <div class="alarm-content">
-            <h2><i class="fas fa-bell"></i> Alarm Result Togel</h2>
-            <p id="alarmMessage">Waktu result telah tiba!</p>
-            <div class="alarm-buttons">
-                <button class="stop-alarm" id="stopAlarm"><i class="fas fa-stop"></i> Berhenti</button>
-                <button class="snooze-alarm" id="snoozeAlarm"><i class="fas fa-clock"></i> Tunda 5 Menit</button>
-            </div>
-        </div>
-    </div>
+  <!-- All Sections (From Your File, Cleaned & Combined) -->
+<!-- Contoh: Bet Full -->
+<div class="section">
+<h2>🕹️ Bet Full</h2>
+<div class="info">
+<strong>♦️ Pengertian Bet Full</strong>
+<p>Sistem bettingan dimana dari angka yang di bet harus tepat dan sesuai dengan hasil result yang keluar.</p>
+<p><strong> Berikut Cara pembelian 4D 3D 2D :</strong></p>
+<li> 1. Pilih pasaran yang ingin anda mainkan.
+<li> 2. Pilih menu 4D 3D 2D
+<li> 3. Lalu pilih Tipe bettingan yang ingin anda gunakan ( FULL )
+<li> 4. Silahkan isi kolom pertama dengan angka yang ingin anda beli.Contoh : "1234"
+<li> 5. Pada kolom berikutnya ( Kolom 4D / 3D / 2D ) diisi dengan nominal .jumlah bettingan anda, angka yang anda isi pada kolom nominal akan otomatis dikalikan dengan Rp.1,000
+<p><strong> CONTOH </strong></p>
+<p><strong> - Pembelian Rp. 100,- untuk 4D maka pada kolom 4D cukup diisi dengan angka "0.1" (tanpa tanda petik) </strong></p>
+<p><strong> - Pembelian Rp.500,- untuk 3D maka pada kolom 3D cukup diisi dengan angka "0.5" ( tanpa tanda petik )</strong></p>
+<p><strong> - Pembelian Rp. 1,000,- untuk 2D pada kolom 2D cukup diisi dengan angka "1" ( tanpa tanda petik )</strong></p>
+<li> 6. Klik SUBMIT
+<li> 7. Periksa kembali seluruh rincian pembelian anda, jika semua sudah benar & sesuai, Tekan KIRIM.
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/FRh4RnM1/GAMBAR-FULL.jpg" alt="Bet Full"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
 
-    <div class="sound-control" id="soundControl">
-        <i class="fas fa-volume-up"></i>
-    </div>
+<!-- Bet BB -->
+<div class="section">
+<h2>🏁 Bet BB (Bolak Balik)</h2>
+<div class="info">
+<strong>♦️ Pengertian Bet BB</strong>
+<p>Sistem bettingan dimana dari angka yang di bet, baik urutan tepat maupun bolak-balik, tetap menang dengan pembayaran sesuai aturan.</p>
+<p>CONTOH: Jika kita bet 1234 dan hasil keluar 1234 maka kita akan di bayar x4000 dari bettingan sedangkan jika hasil keluar 2341 maka akan mendapat x200 dari pasangan karena dapat yang sistem BB.
+<p><strong> Berikut Cara pembelian 4D 3D 2D :</strong></p>
+<li> 1. Pilih pasaran yang ingin anda mainkan.
+<li> 2. Pilih menu 4D 3D 2D
+<li> 3. Lalu pilih Tipe bettingan yang ingin anda gunakan ( BB )
+<li> 4. Silahkan isi kolom pertama dengan angka yang ingin anda beli.Contoh : "1234"
+<li> 5. Pada kolom berikutnya ( Kolom 4D / 3D / 2D ) diisi dengan nominal .jumlah bettingan anda, angka yang anda isi pada kolom nominal akan otomatis dikalikan dengan Rp.1,000
+<p><strong> CONTOH </strong></p>
+<p><strong> - Pembelian Rp. 100,- untuk 4D maka pada kolom 4D cukup diisi dengan angka "0.1" (tanpa tanda petik) </strong></p>
+<p><strong> - Pembelian Rp.500,- untuk 3D maka pada kolom 3D cukup diisi dengan angka "0.5" ( tanpa tanda petik )</strong></p>
+<p><strong> - Pembelian Rp. 1,000,- untuk 2D pada kolom 2D cukup diisi dengan angka "1" ( tanpa tanda petik )</strong></p>
+<li> 6. Klik SUBMIT
+<li> 7. Periksa kembali seluruh rincian pembelian anda, jika semua sudah benar & sesuai, Tekan KIRIM.
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/VvYnK131/GAMBAR-BB.jpg" alt="Bet BB"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
 
-    <script>
-        // Data pasaran togel
-        const togelData = [
-            { name: "HOKIDRAW", closeTime: "00:00", openTime: "00:15", frequency: "PER 1 JAM SEKALI" },
-            { name: "TOTO MACAU PAGI", closeTime: "00:00", openTime: "00:15", frequency: "RESULT SETIAP HARI" },
-            { name: "KENTUCKY MIDDAY", closeTime: "00:05", openTime: "00:20", frequency: "RESULT SETIAP HARI" },
-            { name: "FLORIDA MIDDAY", closeTime: "00:20", openTime: "00:30", frequency: "RESULT SETIAP HARI" },
-            { name: "HUAHIN 01", closeTime: "00:45", openTime: "01:00", frequency: "RESULT SETIAP HARI" },
-            { name: "BANGKOK 01", closeTime: "01:15", openTime: "01:30", frequency: "RESULT SETIAP HARI" },
-            { name: "NEW YORK MIDDAY", closeTime: "01:15", openTime: "01:25", frequency: "RESULT SETIAP HARI" },
-            { name: "CAROLINA DAY", closeTime: "01:45", openTime: "02:00", frequency: "RESULT SETIAP HARI" },
-            { name: "BRUNEI 02", closeTime: "02:30", openTime: "02:45", frequency: "RESULT SETIAP HARI" },
-            { name: "OREGON 03", closeTime: "02:50", openTime: "03:00", frequency: "RESULT SETIAP HARI" },
-            { name: "OREGON 06", closeTime: "05:50", openTime: "06:00", frequency: "RESULT SETIAP HARI" },
-            { name: "CALIFORNIA", closeTime: "08:25", openTime: "08:30", frequency: "RESULT SETIAP HARI" },
-            { name: "FLORIDA EVENING", closeTime: "08:35", openTime: "08:45", frequency: "RESULT SETIAP HARI" },
-            { name: "OREGON 09", closeTime: "08:50", openTime: "09:00", frequency: "RESULT SETIAP HARI" },
-            { name: "BANGKOK 09", closeTime: "09:15", openTime: "09:30", frequency: "RESULT SETIAP HARI" },
-            { name: "NEW YORK EVENING", closeTime: "09:25", openTime: "09:35", frequency: "RESULT SETIAP HARI" },
-            { name: "KENTUCKY EVENING", closeTime: "09:45", openTime: "10:00", frequency: "RESULT SETIAP HARI" },
-            { name: "CAROLINA EVENING", closeTime: "10:17", openTime: "10:22", frequency: "RESULT SETIAP HARI" },
-            { name: "TOTO CAMBODIA LIVE", closeTime: "10:45", openTime: "11:00", frequency: "RESULT SETIAP HARI" },
-            { name: "CHELSEA 11", closeTime: "11:00", openTime: "11:15", frequency: "RESULT SETIAP HARI" },
-            { name: "OREGON 12", closeTime: "11:50", openTime: "12:00", frequency: "RESULT SETIAP HARI" },
-            { name: "POIPET 12", closeTime: "12:15", openTime: "12:30", frequency: "RESULT SETIAP HARI" },
-            { name: "BULLSEYE", closeTime: "13:00", openTime: "13:15", frequency: "RESULT SETIAP HARI" },
-            { name: "TOTO MACAU SIANG", closeTime: "13:00", openTime: "13:15", frequency: "RESULT SETIAP HARI" },
-            { name: "SYDNEY", closeTime: "13:49", openTime: "14:05", frequency: "RESULT SETIAP HARI" },
-            { name: "JAKARTA POOLS SIANG", closeTime: "13:55", openTime: "14:10", frequency: "RESULT SETIAP HARI" },
-            { name: "BRUNEI 14", closeTime: "14:30", openTime: "14:45", frequency: "RESULT SETIAP HARI" },
-            { name: "CHELSEA 15", closeTime: "15:00", openTime: "15:15", frequency: "RESULT SETIAP HARI" },
-            { name: "TOTOMACAU 5D SORE", closeTime: "15:15", openTime: "15:30", frequency: "RESULT SETIAP HARI" },
-            { name: "POIPET 15", closeTime: "15:15", openTime: "15:30", frequency: "RESULT SETIAP HARI" },
-            { name: "TOTOMALI SORE", closeTime: "15:15", openTime: "15:30", frequency: "RESULT SETIAP HARI" },
-            { name: "TOTO MACAU SORE", closeTime: "16:00", openTime: "16:15", frequency: "RESULT SETIAP HARI" },
-            { name: "HUAHIN 16", closeTime: "16:15", openTime: "16:30", frequency: "RESULT SETIAP HARI" },
-            { name: "KING KONG4D SORE", closeTime: "17:00", openTime: "17:15", frequency: "RESULT SETIAP HARI" },
-            { name: "SINGAPORE", closeTime: "17:30", openTime: "17:45", frequency: "SELASA & JUMAT(LIBUR)" },
-            { name: "MAGNUM 4D", closeTime: "18:10", openTime: "18:40", frequency: "RESULT SETIAP RABU,SABTU,MINGGU & SELASA" },
-            { name: "CHELSEA 19", closeTime: "19:00", openTime: "19:15", frequency: "RESULT SETIAP HARI" },
-            { name: "TOTO MACAU MALAM I", closeTime: "19:00", openTime: "19:15", frequency: "RESULT SETIAP HARI" },
-            { name: "POIPET 19", closeTime: "19:30", openTime: "19:45", frequency: "RESULT SETIAP HARI" },
-            { name: "PCSO", closeTime: "19:50", openTime: "20:10", frequency: "SENIN s/d SABTU (HARI MINGGU LIBUR)" },
-            { name: "TOTOMALI MALAM I", closeTime: "20:15", openTime: "20:30", frequency: "RESULT SETIAP HARI" },
-            { name: "HUAHIN 21", closeTime: "20:45", openTime: "21:00", frequency: "RESULT SETIAP HARI" },
-            { name: "CHELSEA 21", closeTime: "21:00", openTime: "21:15", frequency: "RESULT SETIAP HARI" },
-            { name: "TOTO MACAU 5D MALAM", closeTime: "21:15", openTime: "21:30", frequency: "RESULT SETIAP HARI" },
-            { name: "NEVADA", closeTime: "21:15", openTime: "21:30", frequency: "RESULT SETIAP HARI" },
-            { name: "BRUNEI 21", closeTime: "21:30", openTime: "21:45", frequency: "RESULT SETIAP HARI" },
-            { name: "TOTO MACAU MALAM II", closeTime: "22:00", openTime: "22:15", frequency: "RESULT SETIAP HARI" },
-            { name: "POIPET 22", closeTime: "22:30", openTime: "22:45", frequency: "RESULT SETIAP HARI" },
-            { name: "HONGKONG", closeTime: "22:59", openTime: "23:15", frequency: "RESULT SETIAP HARI" },
-            { name: "TOTO MACAU MALAM III", closeTime: "23:00", openTime: "23:15", frequency: "RESULT SETIAP HARI" },
-            { name: "TOTOMALI MALAM II", closeTime: "23:15", openTime: "23:30", frequency: "RESULT SETIAP HARI" },
-            { name: "JAKARTA POOLS MALAM", closeTime: "23:25", openTime: "23:40", frequency: "RESULT SETIAP HARI" },
-            { name: "KING KONG4D MALAM", closeTime: "23:30", openTime: "23:45", frequency: "RESULT SETIAP HARI" }
-        ];
+<!-- 4D/3D/2D -->
+<div class="section">
+<h2>📏 Tipe Bettingan 4D/3D/2D</h2>
+<div class="info">
+<p>Termasuk FULL, DISCOUNT, BB, dan pembayaran PRIZE 1, 2, 3.</p>
+<p>Menebak 4 angka, 3 angka dan 2 angka.
+<p> Struktur: ABCD
+<p>Misalnya keluar : 4321
+<p>Berarti pemenang untuk
+<p>4D = 4321
+<p>3D = 321
+<p>2D = 21
+<p> Aturan permainan:
+<p>Jika anda membeli diluar dari nomor yang dikeluarkan, berarti anda kalah dan uang tidak dikembalikan sama sekali.
+<p>Jika anda membeli masing 100rb untuk angka:
+<p>4D = 4321
+<p>3D = 321
+<p>2D = 21
+<p>(Khusus untuk 4D,3D dan 2D diberikan diskon tambahan. Diskon akan makin besar jika nilai akumulasi betting dalam satu periode makin besar).
+<p>Berarti kemenangan anda adalah:
+<p>4D = 100rb x [Indeks kemenangan untuk 4D]
+<p>3D = 100rb x [Indeks kemenangan untuk 3D]
+<p>2D = 100rb x [Indeks kemenangan untuk 2D]
+<p>(Catatan: nilai bet 100rb tidak dikembalikan ke member)
+<p> Struktur: ABCD
+<p> Misalnya keluar nomor = 1234
+<p> berati pemenang untuk 2D Depan adalah = 12
+<p> berati pemenang untuk 2D Tengah adalah = 23
+<p>berati pemenang untuk 2D Belakang adalah = 34</p>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/Nfnbj93H/CARA-BETTING-4-D-2-D-3-D.jpg" alt="4D/3D/2D"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
 
-        // Variabel global
-        let currentSort = { column: null, direction: 'asc' };
-        let currentFilter = 'all';
-        let alarmIntervals = {};
-        let nextEventTimeout = null;
-        let notifications = [];
-        let activeAlarms = [];
-        let soundEnabled = true;
+<!-- 2D Depan & Tengah -->
+<div class="section">
+<h2>♥️ 2D Depan dan 2D Tengah</h2>
+<div class="info">
+<p>Betting pada posisi tertentu: 2D Depan (AB), 2D Tengah (BC), 2D </p>
+<p><strong> Berikut Cara pembelian 2D DEPAN :</strong></p>
+<li> 1. Pilih pasaran yang ingin anda mainkan.
+<li> 2. Pilih menu 2D depan
+<li> 3. Lalu pilih Tipe bettingan yang ingin anda gunakan (FULL -DISCOUNT - BB - PRIZE123 )
+<li> 4. Silahkan isi kolom pertama dengan angka yang ingin anda beli. Contoh: "12"
+<li> 5. Pada kolom berikutnya (Kolom 2D) diisi dengan nominal /jumlah bettingan anda, angka yang anda isi pada kolom nominal akan otomatis dikalikan dengan Rp. 1,000
+<p><strong> CONTOH </strong></p>
+<p><strong> - Pembelian Rp. 100,- untuk 2D maka pada kolom 2D cukup disi dengan angka "0.1" ( tanpa tanda petik) </strong></p>
+<p><strong> - Pembelian Rp.500,- untuk 2D maka pada kolom 2D cukup diisi dengan angka "0.5" ( tanpa tanda petik)</strong></p>
+<p><strong>- Pembelian Rp. 1,000,- untuk 2D pada kolom 2D cukup diisi dengan angka "1" ( tanpa tanda petik)</strong></p>
+<li> 6. Klik SUBMIT
+<li> 7. Periksa kembali seluruh rincian pembelian anda, jika semua sudah benar & sesuai, Tekan KIRIM.
+</div>
+<p><strong> Berikut Cara pembelian 2D Tengah :</strong></p>
+<li> 1. Pilih pasaran yang ingin anda mainkan.
+<li> 2. Pilih menu 2D Tengah
+<li> 3. Lalu pilih Tipe bettingan yang ingin anda gunakan (FULL -DISCOUNT - BB - PRIZE123 )
+<li> 4. Silahkan isi kolom pertama dengan angka yang ingin anda beli. Contoh: "12"
+<li> 5. Pada kolom berikutnya (Kolom 2D) diisi dengan nominal /jumlah bettingan anda, angka yang anda isi pada kolom nominal akan otomatis dikalikan dengan Rp. 1,000
+<p><strong> CONTOH </strong></p>
+<p><strong> - Pembelian Rp. 100,- untuk 2D maka pada kolom 2D cukup disi dengan angka "0.1" ( tanpa tanda petik) </strong></p>
+<p><strong> - Pembelian Rp.500,- untuk 2D maka pada kolom 2D cukup diisi dengan angka "0.5" ( tanpa tanda petik)</strong></p>
+<p><strong>- Pembelian Rp. 1,000,- untuk 2D pada kolom 2D cukup diisi dengan angka "1" ( tanpa tanda petik)</strong></p>
+<li> 6. Klik SUBMIT
+<li> 7. Periksa kembali seluruh rincian pembelian anda, jika semua sudah benar & sesuai, Tekan KIRIM.
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/Df1KsGQ1/CARA-BETTING-2-D-DEPAN.png" alt="2D Depan"onclick="openModal(this.src)" />
+<div class="caption">2D Depan</div>
+<img src="https://i.postimg.cc/mDx52d5J/CARA-BETTING-2-D-TENGAH.png" alt="2D Tengah"onclick="openModal(this.src)" />
+<div class="caption">2D Tengah</div>
+</div>
+</div>
+</div>
 
-        // Fungsi untuk menginisialisasi dashboard
-        function initializeDashboard() {
-            updateCurrentTime();
-            populateTable();
-            updateAlarmList();
-            setupEventListeners();
-            updateAllStatuses();
-            scheduleNextEvent();
-            setupAlarms();
-            
-            // Update waktu setiap detik
-            setInterval(updateCurrentTime, 1000);
+<!-- Colok Bebas -->
+<div class="section">
+<h2>🎰 Colok Bebas</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Menebak satu angka dari 4D, posisi bebas.</p>
+<p>Struktur: ABCD
+<p><strong>Analisis I:</strong></p>
+<p>Misalnya keluar : 4321
+<p>Misalnya dibeli 3 dengan nilai 100rb.
+<p>Berarti menang:
+<p>100rb + [Indeks kemenangan untuk colok bebas]
+<p><strong>Analisis II:</strong></p>
+<p> Keluar : 4331
+<p>Misalnya dibeli 3 dengan nilai 100rb.
+<p>Jika anda membeli masing 100rb untuk angka:
+<p> Berarti menang:
+<p>100rb + ([Indeks kemenangan untuk colok bebas] x 2)
+<p>Dan seterusnya untuk setiap kembaran yang berhasil ditebak, otomatis mendapat kelipatan [Indeks kemenangan untuk colok bebas]<p>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/t4sz834c/3-NG-Lj-MNTGyj-Jg8-Ccn-AK6-A.png" alt="Colok Bebas"onclick="openModal(this.src)"/>
+</div>
+</div>
+</div>
+
+<!-- Colok Macau -->
+<div class="section">
+<h2>🈴 Colok Bebas 2D (Macau)</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Cara kerja seperti colok bebas tapi mesti yang keluar 2 angka dari 4D.</p>
+<p>Struktur: ABCD
+<p><strong>Analisis I:</strong></p>
+<p> Keluar : 4321
+<p>Misalnya dibeli 4 dan 2 dengan nilai 100rb
+<p>Berarti menang:
+<p>100rb + [Indeks kemenangan untuk colok bebas 2D, kategori: 2 digit]
+<p><strong>Analisis II:</strong></p>
+<p> Keluar : 4321
+<p> Misalnya dibeli 4 dan 6 dengan nilai 100rb.
+<p> Berarti KALAH dan nilai betting tidak dikembalikan
+<p><strong>Analisis III:</strong></p>
+<p> Keluar : 4331
+<p> Misalnya dibeli 4 dan 3 dengan nilai 100rb
+<p> Berarti menang:
+<p> 100rb + [Indeks kemenangan untuk colok bebas 2D, kategori: 3 digit]
+<p><strong>Analisis IV:</strong></p>
+<p> Keluar : 4334
+<p> Misalnya dibeli 4 dan 3 dengan nilai 100rb.
+<p> Berarti menang:
+<p> 100rb + [Indeks kemenangan untuk colok bebas 2D, kategori: 4 digit]<p>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/3wLk65mh/PFb-MCv-XWSoaztg-DH0-Idu-GA.png" alt="Colok Macau"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Colok Jitu -->
+<div class="section">
+<h2>🔮 Colok Jitu</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Menebak 1 angka di posisi tertentu: AS, KOP, Kepala, Ekor.</p>
+<p> Struktur: ABCD
+<p><strong>Analisis I:</strong></p>
+<p> Keluar : 4321
+<p> Misalnya dibeli 4 pada posisi AS dengan nilai 100rb.
+<p> Berarti menang:
+<p> 100rb + [Indeks kemenangan untuk colok jitu]
+<p><strong>Analisis II:</strong></p>
+<p> Keluar : 4331
+<p> Misalnya dibeli 3 pada posisi KOP dengan nilai 100rb.
+<p> Berarti menang:
+<p> 100rb + [Indeks kemenangan untuk colok jitu]. Hasilnya sama dengan analisis I karena hanya memperhatikan posisi yang dipasang.
+<p><strong>Analisis III:</strong></p>
+<p> Keluar : 4331
+<p> Misalnya dibeli 4 pada posisi EKOR dengan nilai 100rb.
+<p> Berarti kalah. Biarpun nilai 4 keluar pada posisi AS tapi tidak akan mepengaruhi pemilihan di posisi EKOR<p>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/bJywq60T/o-Z2divj7-T3a-Wo2nj-YYOieg.png" alt="Colok Jitu"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Tepi Tengah -->
+<div class="section">
+<h2>🏆 Tepi Tengah</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Menebak tengah/tepi dari posisi 2D
+<p>Tengah = Diantara 25 sampai 74
+<p>Tepi = Diantara 00 sampai 24 dan 75 sampai 99.</p>
+<p> Struktur: ABCD
+<p><strong>Analisis I:</strong></p>
+<p> Keluar : 4321
+<p> Permainan ini hanya memperhatikan posisi 2D, berarti yang dipedomani = 21
+<p> 21 = TEPI
+<p> Misalnya dibeli posisi TEPI dengan nilai 100rb.
+<p> Berarti menang:
+<p> 100rb + [Indeks kemenangan untuk tepi-tengah] + Kei
+<p><strong>Analisis II:</strong></p>
+<p> Keluar : 4356.
+<p> Permainan ini hanya memperhatikan posisi 2D, berarti yang dipedomani =5 6
+<p> 56 = TENGAH:
+<p> Misalnya dibeli posisi TENGAH dengan nilai 100rb.
+<p> Berarti menang:
+<p> 100rb + [Indeks kemenangan untuk tepi-tengah] + Kei </p>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/9FYpg08q/CARA-BETTING-TENGAH-TEPI.png" alt="Tepi Tengah"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- SHIO -->
+<div class="section">
+<h2>🃏 SHIO</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Menebak SHIO dari posisi 2D
+<p>SHIO merupakan 12 lambang kelahiran dalam penanggalan China.
+<p>Dalam permainan ini, setiap lambang diwakili dengan satu nomor.</p>
+<p><strong>Analisis I:</strong></p>
+<p> Keluar : 4321
+<p> Permainan ini hanya memperhatikan posisi 2D, berarti yang dipedomani = 21
+<p> Hasil = 21-12 = 9 (shio disesuaikan dengan tabel diatas)
+<p><strong>Analisis II:</strong></p>
+<p> Keluar : 6543
+<p> Permainan ini hanya memperhatikan posisi 2D, berarti yang dipedomanin = 43
+<p> Hasil = 43-36 = 7 (shio disesuaikan dengan tabel diatas)
+<p><strong>Analisis III:</strong></p>
+<p> Keluar : 1389
+<p> Permainan ini hanya memperhatikan posisi 2D, berarti yang dipedomanin = 89
+<p> Hasil = 89-84 = 5 (shio disesuaikan dengan tabel diatas)
+<p> Catatan: nilai yang dikurangi merupakan kelipatan 12.
+<p> Jika dilakukan pembelian dengan 100rb dan menang maka:
+<p> Menang = 100rb + [Indeks kemenangan untuk SHIO]</p>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/jq7wS1yx/LHu-Xa-GUx-RRGx-n-W3-Ozvh-Wg.png" alt="SHIO"onclick="openModal(this.src)"/>
+<div class="caption">Struktur: ABCD → 2D (CD)</div>
+<img src="https://i.postimg.cc/5yyX5xtT/30t-NKiff-Ti-C6-W4k0-BBZNWQ.png" alt="Tabel Shio"onclick="openModal(this.src)"/>
+<div class="caption">TABEL SHIO</div>
+</div>
+</div>
+</div>
+
+<!-- Silang Homo -->
+<div class="section">
+<h2>🗿 Silang Homo</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Permainan ini kadang disebut suami istri. Menebak dari posisi Depan, Tengah, Belakang.</p>
+<p>Contoh no 1234
+<p> Yang dimaksud dengan Posisi Depan adalah 2 no terdepan yaitu 12
+<p> Yang dimaksud dengan Posisi Tengah adalah 2 no ditengah yaitu 23
+<p> Yang dimaksud dengan Posisi Belakang adalah 2 no terbelakang yaitu 34
+<p>SILANG = Terdapat Ganjil dan Genap
+<p> HOMO = Terdapat 1 pasang Ganjil atau 1 pasang Genap
+<p><strong>Analisis I: Beli Posisi Depan:</strong></p>
+<p> Keluar : 1234.
+<p> Yang menjadi pedoman adalah posisi Depan, berarti 12
+<p> 12 => 1=ganjil dan 2=genap , berarti hasil = SILANG
+<p><strong>Analisis II: Beli Posisi Tengah</strong></p>
+<p> Keluar : 4326.
+<p> Yang menjadi pedoman adalah posisi Tengah, berarti 32
+<p> 32 => 3=ganjil dan 2=genap , berarti hasil = SILANG
+<p><strong>Analisis III: Beli Posisi Belakang:</strong></p>
+<p> Keluar : 4533.
+<p> Yang menjadi pedoman adalah posisi Belakang, berarti 33
+<p> 33 => 3=ganjil dan 3=ganjil , berarti hasil = HOMO
+<p> Jika dilakukan pembelian dengan 100rb dan menang maka:
+<p> Menang = 100rb + [Indeks kemenangan untuk Silang-Homo]</p>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/sxddVmhX/Y19s-P83q-QEy1qo-Cf-B1pg-CA.png" alt="Silang Homo"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Kembang Kempis -->
+<div class="section">
+<h2>⌛ Kembang Kempis</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>AB (Depan), BC (Tengah), CD (Belakang). Kembang: A<B, Kempis: A>B, Kembar: A=B.</p>
+<p>Struktur = ABCD
+<p> Jika Menebak posisi Depan maka yang menjadi fokus adalah AB
+<p> Jika Menebak posisi Tengah maka yang menjadi fokus adalah BC
+<p> Jika Menebak posisi Belakang maka yang menjadi fokus adalah CD
+<p> KEMBANG jika A < B ataupun B < C ataupun C < D
+<p> KEMPIS jika A > B ataupun B > C ataupun C > D
+<p> KEMBAR jika A = B ataupun B = C ataupun C = D
+<p><strong>Analisis I: Beli Posisi Depan</strong></p>
+<p> Keluar : 4321
+<p> Yang menjadi pedoman adalah posisi Depan, berarti 43
+<p> 43 => 4 > 3, hasil = KEMPIS
+<p><strong>Analisis II:</strong></p>
+<p> Keluar : 4236 Beli Posisi Tengah
+<p> Yang menjadi pedoman adalah posisi Tengah, berarti 23
+<p> 23 => 2 < 3, hasil = KEMBANG
+<p><strong>Analisis III: Beli Posisi Belakang:</strong></p>
+<p> Keluar : 4099
+<p> Yang menjadi pedoman adalah posisi Belakang, berarti 99
+<p> 99 => Hasil = KEMBAR
+<p> Jika dilakukan pembelian dengan 100rb dan menang maka:
+<p> Menang = 100rb + [Indeks kemenangan untuk KEMBANG-KEMPIS]</p>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/2SQKxN38/CARA-BETTING-KEMBANG.png" alt="Kembang Kempis"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Togel Kombinasi -->
+<div class="section">
+<h2>🧩 Togel Kombinasi</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Tebak Genap/Ganjil dan Besar/Kecil dari dua posisi (AS-KOP, dll).</p>
+<p>Struktur = ABCD
+<p> A = AS
+<p> B = KOP
+<p> C = KEPALA
+<p> D = EKOR
+<p> Besar/Kecil: 0-4=kecil, 5-9=besar
+<p> Ganjil/Genap : 1=ganjil, 2=genap dan seterusnya
+<p> Anda dapat menebak Genap/Ganjil, Besar/Kecil
+<p> dari 2 kombinasi antara AS, KOP, KEPALA, EKOR
+<p><strong>Analisis :</strong></p>
+<p> Keluar : 1845
+<p> Berarti pemenang untuk :
+<p> AS Kecil/Ganjil dan KOP Besar/Genap
+<p> KEPALA Kecil/Genap dan EKOR Besar/Ganjil
+<p> AS Kecil/Ganjil dan KEPALA Kecil/Genap
+<p> AS Kecil/Ganjil dan EKOR Besar/Ganjil
+<p> KOP Besar/Genap dan KEPALA Kecil/Genap
+<p> KOP Besar/Genap dan EKOR Besar/Ganjil
+<p> Misalnya anda membeli AS KECIl dan KOP GENAP seharga 100rb,
+<p> maka menang = 100rb + [indeks kemenangan untuk kombinasi 2]
+<p> atau :
+<p> jika membeli KOP GENAP dan KEPALA GENAP seharga 100rb,
+<p> maka menang = 100rb + [indeks kemenangan untuk kombinasi 2]
+<p> atau :
+<p> jika membeli KEPALA KECIL dan EKOR GENAP seharga 100rb, berarti KALAH
+<p> ( Anda harus menebak keduanya dengan Benar agar Menang )</p>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/SRZJygh8/cvot0-Xq-WRTa-Hg-M1ly-LJg.png" alt="Togel Kombinasi"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Angka Tarung -->
+<div class="section">
+<h2>🎮 Angka Tarung</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Generator acak angka: AS, KOP, Kepala, Ekor.</p>
+<ul>
+<li><b>AS</b> = Angka pertama</li>
+<li><b>KOP</b> = Angka kedua</li>
+<li><b>KEPALA</b> = Angka ketiga</li>
+<li><b>EKOR</b> = Angka keempat</li>
+<p>Besar/Kecil: 0-4=kecil, 5-9=besar
+<p>Ganjil/Genap : 1=ganjil, 2=genap dan seterusnya
+<p><strong>CARA KERJA GENERATOR ANGKA TARUNG</strong></p>
+<p> Jika player isi angka pada posisi "KEPALA" 5 dan 2
+<p> dan player isi angka pada posisi "EKOR" dengan angka 1, 2, 3
+<p> Maka ketika generate hasilnya itu pada 2D : 51,52,53,21,22,23 Kombinasi dari Kepala dan Ekor
+<p> Dan jika player isi angka pada posisi "KOP" juga dengan nilai 7
+<p> Maka ketika generate hasil itu di 2D tetap sama seperti di atas, dan akan muncul angka 3D dikarenakan player memasukan angka pada posisi "KOP" 751,752,753,721,722 ,723 Kombinasi dari Kop, Kepala Dan Ekor
+<p> Dan jika player isi angka pada posisi "AS" juga dengan nilai 9 Maka ketika generate hasil itu di 2D & 3D tetap sama seperti di atas, dan akan muncul angka 4D dikarenakan player memasukan angka pada posisi "AS" 975,197,529,753,972,000,000,000 Kombinasi dari As, Kop, Kepala Dan Ekor
+<p> minimal bettingan pada pola angka tarung adalah (2D) dimana 1 digit pada posisi kepala dan 1 digit pada posisi ekor ya bosku
+<p> Maksimal untuk angka tarung 8 digit di setiap posisi ya bosku (kecuali totomacau 5d untuk maksimal angka tarung 10 digit di setiap posisi)
+<p> Kecuali di pasaran HONGKONG & SYDNEY maksimal adalah 7 digit Terima kasih</p>
+</ul>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/s2MVqBPD/Screenshot-5.png" alt="Angka Tarung"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- BB Campuran -->
+<div class="section">
+<h2>🀄 BB Campuran / BBFS</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Sistem Bettingan dimana angka yang di input dapat di acak secara otomatis, hasil dari angka yang telah di acak tersebut dapat di sortir kembali menjadi kelompok-kelompok angka bettingan yang lebih spesifik seperti menghilangkan seluruh angka yang ganjil,genap,kembar,besar,kecil,ataupun angka kembar.</p>
+<p> # Bolak Balik Full Set (BBFS), anda hanya menbak angka dan fokus untuk cari 5 angka yang betul-betul anda yakini akan berkesempatan besar sekali keluar dalam result 4d, 3d, atau 2d.
+<li> Contoh : Angka BBFS anda ialah 12345, karena itu anda akan menang 4d jika dalam angka 4 digit itu ada 4 angka dari 5 angka BBFS anda itu, tidak jadi masalah seperti apa formasi angkanya,
+<li> selama tidak ada angka yang kembar, karena itu anda akan menang 4d. Itu kurang lebih gambarannya BBFS disebut. Khasnya dalam permainan BBFS ini, jika anda sudah dikatakan menang 4d, karena itu dengan automatis juga, anda akan dikatakan menang juga 3d serta 2d.
+<li>Jika di jabarkan BBFS dengan angka 12345, maka membuahkan 200 titik / live number/ LN angka jadi, yang hasilnya bisa di jabarkan seperti berikut: 1234 akan membuahkan 120 titik nomer untuk 4d, yakni : 1234*1235*1243*1245*1253*1254*1324*1325*1342*1345*1352*1354*1423*1425*1432*1435*1452* 1453*1523*1524*1532*1534*1542*1543*2134*2135*2143*2145*2153*2154*2314*2315*2341*2345*2351* 2354*2413*2415*2431*2435*2451*2453*2513*2514*2531*2534*2541*2543*3124*3125*3142*3145*3152* 3154*3214*3215*3241*3245*3251*3254*3412*3415*3421*3425*3451*3452*3512*3514*3521*3524*3541* 3542*4123*4125*4132*4135*4152*4153*4213*4215*4231*4235*4251*4253*4312*4315*4321*4325*4351* 4352*4512*4513*4521*4523*4531*4532*5123*5124*5132*5134*5142*5143*5213*5214*5231*5234*5241* 5243*5312*5314*5321*5324*5341*5342*5412*5413*5421*5423*5431*5432*
+<li> Untuk 3d akan membuahkan 60 titik nomer, yakni : 123*124*125*132*134*135*142*143*145*152*153*154*213*214*215*231*234*235*241*243*245* 251*253*254*312*314*315*321*324*325*341*342*345*351*352*354*412*413*415*421*423*425*431* 432*435*451*452*453*512*513*514*521*523*524*531*532*534*541*542*543*
+<li> Untuk 2d akan membuahkan 20 titik nomer, yakni : 12*13*14*15*21*23*24*25*31*32*34*35*41*42*43*45*51*52*53*54"
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/3RBBB00n/CARA-BETTING-BBFS-BB-CAMPURAN.jpg" alt="BBFS/BB CAMPURAN"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Togel Dasar -->
+<div class="section">
+<h2>♣️ Togel Dasar</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Menebak ganjil/genap dan besar/kecil dari penjumlah angka-angka 2D. Nilai pembelian ditentukan pasaran (kei) pada saat itu.</p>
+<p> Struktur: CD (2 angka terakhir
+<li> Kecil = angka 0-4
+<li> Besar = angka 5-9
+<li> Ganjil = 1,3,5,7,9
+<li> Genap = 0,2,4,6,8
+<p><strong>Analisis I:</strong></p>
+<p> Keluar : 1234,
+<p> 3+4 = 7
+<p> Berarti keluar : Ganjil dan Besar
+<p><strong>Analisis II:</strong></p>
+<p> Keluar : 5678,
+<p> 7+8 = 15
+<p> Karena angka 15 lebih besar dari 9, kembali dihitung 1+5=6
+<p> Berarti keluar : Genap dan Besar
+<p><strong>Analisis III:</strong></p>
+<p> Keluar : 1204,
+<p> 0+4 = 4
+<p> Berarti keluar : Genap dan Kecil
+<p> Misal anda membeli dengan Rp.100rb untuk Genap, menang = 100rb + [indeks menang untuk Dasar]</p>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/ydSYH0s8/capture-20240725170619.png" alt="togel dasar"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Pola Colok -->
+<div class="section">
+<h2>🀄 Pola Colok</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>POLA COLOK adalah sistem Generator yang membantu anda menyusun seluruh Angka yang ingin di betting pada menu pilihan COLOK.</p>
+<p>SEPUTARAN CARA BERMAIN POLA COLOK dan PENGERTIAN POLA COLOK
+<li>POLA COLOK adalah sistem Generator yang membantu anda menyusun seluruh Angka yang ingin di betting pada menu pilihan COLOK. tersedia 3 kategory COLOK, Yaitu :
+<p><strong>1. COLOK BEBAS ::</strong></p>
+<p> Menebak satu angka dari 4D. Posisi angka bisa dimana saja contoh result 1234, jika anda beli angka 3, maka menang.
+<p><strong>2. COLOK BEBAS 2D : </strong></p>
+<p> Cara kerja seperti colok bebas tapi mesti yang keluar 2 angka dari 4D.contoh result 1234, jika anda beli angka 3 dan 4, maka menang.jika anda beli angka 3 dan 6, maka anda kalah, karena dalam result tidak ada angka 6.
+<p><strong>3. COLOK NAGA :: </strong></p>
+<p> Cara kerja seperti colok bebas 2D tapi mesti yang keluar 3 angka dari 4D.contoh result 1234, jika anda beli angka 2,3 dan 4, maka menang. jika anda beli angka 3,4 dan 8, maka anda kalah, karena dalam result tidak ada angka 8.
+<p><strong>CARA BETTING : </strong></p>
+<li> Pilih pasaran yang anda inginkan
+<li> pilih menu POLA COLOK
+<li> silahkan isi kolom NOMOR dengan ANGKA Contoh : 1234567 ( maksimal adalah 7DIGIT )
+<li> Pada kolom berikutnya ( colok bebas, colok bebas 2D, colok naga ) di isi dengan nominal /jumlah bettingan anda, pada kolom nominal akan automatis di kalikan dengan 1.000 contoh : pembelian Rp. 1.000 hanya cukup di isi dengan angka 1.
+<li> pembelian Rp. 10.000 hanya cukup di isi dengan angka 10 pembelian Rp.100.000 hanya cukup di isi dengan angka 100 SUBMIT : Melihat kembali nomor yang sudah berhasil di acak oleh sistem denan pilihan bettingan yang anda lakukan, Jika semua sudah benar, tekan "KIRIM"
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/K8gvgd18/CARA-BETTING-POLA-COLOK.png" alt="Pola colok"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Taysen -->
+<div class="section">
+<h2>☘️ Taysen</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Taysen merupakan generator nomor yang berfungsi untuk menampilkan juga nomor taysen dari nomor-nomor yang kita beli.
+Setiap nomor memiliki angka taysenya masing-masing sesuai dengan jenis bettinganya 4D, 3D ataupun 2D.
+Angka Taysenan permasing" nomor bisa di lihat di buku mimpi sebagai referensi
+Jenis bettingan 4D terdapat 1 nomor Taysenanya, Untuk 3D terdapat 1 nomor Taysenanya dan Untuk 2D terdapat 4 nomor Taysenanya.</p>
+<p> Jenis bettingan 4D terdapat 1 nomor Taysenanya, Untuk 3D terdapat 1 nomor Taysenanya dan Untuk 2D terdapat 4 nomor Taysenanya
+<p><strong>PANDUAN BETTING :</strong></p>
+<li> Jika anda mengisi 2 angka di kolom nomor hanya taysen 2D dapat di centang
+<li> Jika anda mengisi 3 angka yang di isi maka taysen 3D dan 2D dapat di centang
+<li> Jika anda mengisi 4 angka yang di isi maka taysen 2D, 3D dan 4D dapat di centang
+<p> NB : Dalam taysen anda dapat memilih jenis bettingan apa saja yang ingin di taysen dengan mencentang kolom check box untuk menampilkan taysenanya di hasil generate bettingan
+<li> Di kolom bettingan juga terdapat BB dimana jika anda mencentang kolom BB maka nomor-nomor yang sudah di generate (nomor utama dan nomor taysenanya) akan di BB-in.
+<li> Dalam panel bet juga terdapat kolom untuk mengisi nominal dan bisa di isi dengan nominal yang berbeda untuk jenis bettingan 4D, 3D dan 2D. Jika anda tidak mengisi maka jenis bettingan itu tidak akan tergenerate.
+<li> Nomor utama juga akan ikut terbeli di dalam menu taysen
+<li> Di dalam menu taysen anda tidak memiliki pilihan untuk membuang bettingan dalam artian tidak dapat menghilangkan bettingan yang sama atau duplicate jika terdapat angka yang sama
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/FsyKHHxp/CARA-BETTING-TAYSEN.png" alt="TAYSEN"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Mistik -->
+<div class="section">
+<h2>🎲 Mistik</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Mistik Lama adalah generator untuk pemain lebih di mudahkan dalam melakukan bettingan sehingga nomor yang di beli oleh pemain sudah termasuk perubahan nomor mistik di dalamnya</p>
+<p><strong>Perubahan nomor dalam mistik lama :</strong></p>
+<li> 0 = 1
+<li> 2 = 5
+<li> 3 = 8
+<li> 4 = 7
+<li> 6 = 9
+<p>1. Dalam Generator Mistik Lama kita menyediakan 4 jenis mistik, Berikut Penjelasanya :
+<p>-Mistik 1 maka akan terdapat 1 nomor dalam setiap posisi mengalami perubahan sesuai perubahan nomor yang telah di tentukan.
+<p> Contoh : Anda membeli angka 1234 maka nomor yang akan muncul adalah
+<li> 0234 = Digit I (1-->0)
+<li> 1534 = Digit II (2-->5)
+<li> 1284 = Digit III (3-->8)
+<li> 1237 = Digit IV (4-->7)
+<p> Maka akan terdapat 4 nomor yang muncul dalam panel bettingan (0234, 1534, 1284, 1237)
+<p> -. Mistik 2 maka akan terdapat 2 nomor dalam setiap posisi mengalami perubahan sesuai perubahan nomor yang telah di tentukan.
+<p> Contoh : Anda membeli angka 1234 maka nomor yang akan muncul adalah
+<li> 0534 = Digit I (1-->0), Digit II (2-->5)
+<li> 1584 = Digit II (2-->5), Digit III (3-->8)
+<li> 1287 = Digit III (3-->8), Digit IV (4-->7)
+<li> 0284 = Digit I (1-->0), Digit III (3-->8)
+<li> 1537 = Digit II (2-->5), Digit IV (4-->7)
+<li> 0237 = Digit I (1-->0), Digit IV (4-->7)
+<p> Maka akan terdapat 6 nomor yang muncul dalam panel bettingan (0534, 1584, 1287, 0284, 1537, 0237)
+<p> -. Mistik 3 maka akan terdapat 3 nomor dalam setiap posisi mengalami perubahan sesuai perubahan nomor yang telah di tentukan.
+<p> Contoh : Anda membeli angka 1234 maka nomor yang akan muncul adalah
+<li> 0584 = Digit I (1-->0), Digit II (2-->5), Digit III (3-->8)
+<li> 1587 = Digit II (2-->5), Digit III (3-->8), Digit IV (4-->7)
+<li> 0287 = Digit I (1-->0), Digit III (3-->8), Digit IV (4-->7)
+<li> 0537 = Digit I (1-->0), Digit II (2-->5), Digit IV (4-->7)
+<p> Maka akan terdapat 4 nomor yang muncul dalam panel bettingan (0584, 1587, 0287,0537)
+<p> -. Mistik 4 maka akan terdapat 4 nomor dalam setiap posisi mengalami perubahan sesuai perubahan nomor yang telah di tentukan.
+<li> Contoh : Anda membeli angka 1234 maka nomor yang akan muncul adalah 0587 = Digit I (1-->0), Digit II (2-->5), Digit III (3-->8), Digit IV (4-->7)
+<li> Maka akan terdapat 1 nomor yang muncul dalam panel bettingan (0587)
+<p> 2. Nomor origin (nomor utama) tetap akan terbeli di dalam panel bettingan mistik lama.
+<p> 3. Dalam generator mistik lama anda juga dapat mengisi 3D atau 2D, Jika anda membeli 3D maka mistik 1, 2 dan 3 yang dapat di pilih (centang), Sedangkan jika 2D maka hanya mistik 1 dan 2 yang dapat di pilih (di centang), Perubahan nomor tetap seperti yang ada di penjelasan poin nomor 1.
+<p>4. Di dalam generator juga terdapat pilihan pembelian dimana anda dapat membeli nomor 4D, 3D dan 2D sesuai dengan nominal yang anda inginkan. Untuk 3D dan 2D angka yang di ambil adalah 3 dan 2 digit belakang dari angka origin (yang di beli) dan angka yang sudah terjadi perubahan nomor mistik lama.
+<p>5. Di bagian bawah panel nomor akan terdapat pilihan menu "Nomor Duplicate / Angka yang sama", dengan maksud jika anda memilih "YA" maka semua nomor akan di munculkan sedangkan jika anda memilih "TIDAK" maka semua nomor duplicate akan di hilangkan per nomor BET.
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/Y0RLjNc6/ssss.png" alt="mistik"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Macau Shio -->
+<div class="section">
+<h2>🎯 Macau Shio</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>bettingan dimana membeli kombinasi 2 shio dalam sekali betting (Anda dapat membeli shio yang sama untuk shio pertama dan shio kedua)</p>
+<p> 1. Macau Shio Adalah bettingan dimana membeli kombinasi 2 shio dalam sekali betting (Anda dapat membeli shio yang sama untuk shio pertama dan shio kedua)
+<p> 2. Hasil dari shio pertama berdasarkan hasil dari As (angka pertama) + Kop (angka kedua) sedangkan Hasil dari shio kedua bersadarkan dari hasil dari Kepala (angka ketiga) + Ekor (angka keempat)
+<p><strong>Note : Dalam "Macau Shio" hasil dari keluaran harus tepat berurutan seperti yang beli. JIka anda membeli "HARIMAU & KUDA" dan hasil keluaran adalah "KUDA - HARIMAU" maka anda di nyatakan kalah. :</strong></p>
+<p> 3. Hasil dari keluaran macau shio juga sudah dapat di lihat di menu history nomor dan klik nomor keluaran di periode yang anda ingin lihat untuk memudahkan anda
+<p> 4. Perkalian pembayaran adalah 110x dari nilai bettingan anda. Dengan discount pembelian 10% dan referral untuk atasan adalah 1% dari bettingan.
+<p> Contoh Keluar : 4321
+<p>Permainan ini membeli 2 Kombinasi Shio yang tepat : AS , KOP & KEPALA , EKOR
+<p> -. Shio Pertama
+<li> As = 4
+<li> Kop = 3
+<p> -. Shio Kedua
+<li> Kepala : 2
+<li> Ekor : 1
+<p><strong>Hasil shio Pertama = 43-36 = 7 (shio disesuaikan dengan tabel shio) :</strong></p>
+<p><strong>Hasil shio kedua = 21-12 = 9 (shio disesuaikan dengan tabel shio) :</strong></p>
+<p><strong>*Catatan: nilai yang dikurangi merupakan kelipatan 12. :</strong></p>
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/Njt9Rf7J/CARA-BETTING-MACAU-SHIO.png" alt="MACAU"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- BET 50-50 -->
+<div class="section">
+<h2>♠️ BET 50-50</h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Menebak ganjil/genap, besar/kecil Permainan ini sangat menarik karena pasarannya naik turun sesuai keinginan market pada waktu tersebut, Dengan demikian, nilai pembelian dipengaruhi kei (pasaran).</p>
+<p><strong> Struktur: ABCD </strong></p>
+<p><strong> Menebak ganjil/genap dan besar/kecil dari posisi: </strong></p>
+<li> A = AS
+<li> B = KOP
+<li> C = KEPALA
+<li> D = EKOR
+<p><strong> Besar/Kecil: 0-4=kecil, 5-9=besar </strong></p>
+<p><strong> Ganjil/Genap : 1=ganjil, 2=genap dan seterusnya </strong></p>
+<p><strong> Analisis I: </strong></p>
+<p> Keluar : 4327
+<p> Berarti pemenang adalah yang memilih:
+<li> AS GENAP/KECIL
+<li> KOP GANJIL/KECIL
+<li> KEPALA GENAP/KECIL
+<li> EKOR GANJIL/BESAR
+<p> Misal anda membeli dengan dana Rp.100rb untuk AS Genap, menang = 100rb + [indeks pasaran AS Genap 50-50]
+<p> Atau :
+<p> Jika membeli dengan dana Rp.100rb untuk Ekor Ganjil, menang = 100rb + [indeks pasaran Ekor Ganjil 50-50]
+<p> Atau :
+<p> Jika membeli dengan dana Rp.100rb untuk AS Ganjil, kalah = 100rb + [indeks pasaran AS Ganjil 50-50]
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/26WZNHQy/QQb0-JXzb-Re-Guuw8-HX0b-Zn-A.png" alt="bet50-50"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Colok Naga -->
+<div class="section">
+<h2>🐉 Colok Naga </h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>menebak 3 angka posisi di mana saja ya bosku untuk colok naga cara bermain seperti colok bebas 2D tapi mesti yang keluar 3 angka dari 4D.
+<p><strong> jika anda melakukan bettingan nomor 1 3 4 dan result yg keluar 1 0 2 4 maka dihitung kalah cara bermain dan diskon colok naga, jika melakukan bettingan dengan nominal Rp 10.000 maka akan - diskon 10% = anda hanya membayar Rp 9.000,- jika menang maka bettingan anda sebesar Rp10.000 akan di X 23 (hadiah colok naga)= Rp 230.000,- ditambah modal awal anda Rp 9.000 yang sudah dikurangkan diskon maka total menang anda adalah Rp 239.000.</strong></p>
+<p><strong> Struktur: ABCD </strong></p>
+<p><strong> Analisis I: </strong></p>
+<p> Keluar : 4321
+<p> Misalnya dibeli 4 ,2 dan 3 dengan nilai 100rb.
+<p> Berarti MENANG:
+<p> Karena keluar 3 digit,angka 4,2 dan 3.
+<p> 100rb + [Indeks kemenangan untuk colok naga , kategori: 3 digit]
+<p><strong> Analisis II:</strong></p>
+<p> Keluar : 4321
+<p> Misalnya dibeli 4,2 dan 6 dengan nilai 100rb.
+<p> Berarti KALAH
+<p> Karena keluar hanya 2 digit,angka 4 dan 2 dan angka 6 tidak muncul
+<p> Nilai betting tidak dikembalikan
+<p><strong> Analisis III:</strong></p>
+<p> Keluar : 4321
+<p> Misalnya dibeli 4,3 dan 1 dengan nilai 100rb.
+<p> Berarti MENANG:
+<p> Karena keluar 3 digit,angka 4,3 dan 1.
+<p> 100rb + [Indeks kemenangan untuk colok naga , kategori: 3 digit]
+<p><strong> Analisis IV:</strong></p>
+<p> Keluar : 4324
+<p> Misalnya dibeli 4,3 dan 2 dengan nilai 100rb.
+<p> Karena keluar 4 digit,angka 4,3 dan 2.
+<p> Berarti MENANG:
+<p> 100rb + [Indeks kemenangan untuk colok naga, kategori: 4 digit]
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/26KFYHXB/6i-GAKL6p-TDucrmcq3xc-FWw.png" alt="COLOK NAGA"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- QUICK 2D -->
+<div class="section">
+<h2>🏃‍♂️‍➡️ QUICK 2D </h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Permainan QUICK 2D menebak 2 angka dari 4D,
+Dalam Bettingan pilihan terbagi dengan 3 kategori
+Yaitu : 2D Depan, 2D Tengah, dan 2D Belakang</p>
+<p><strong> Contoh hasil Result adalah : 1234</strong></p>
+<li> 2D DEPAN : 12
+<li> 2D TENGAH : 23
+<li> 2D BELAKANG : 34
+<p><strong> Menu Betting Quick 2D dengan 4 pilihan betting yaitu : </strong></p>
+<li> KECIL : 00,01,02,03,04,05,06,07, dan seterusnya sampai 49
+<li> BESAR : 50,51,52,53,54,55,56,57, dan seterusnya sampai 99
+<li> GENAP : 00, 02, 04, 06, 08, 10 dan seterusnya sampai angka 98
+<li> GANJIL : 01, 03, 05, 07, 09, 11 dan seterusnya sampai angka 99
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/XJ47J3mR/Xk6-XPDoo-Qz-C5-TIQpnm35-Lw.png" alt="Quick 2 d"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Angka Kepung -->
+<div class="section">
+<h2>🎰 Angka Kepung </h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Memasukan pilihan untuk bettingan Cepat dengan sistem terkepung Hanya tersedia pada pasaran TOTOMACAU 4D</p>
+<p><strong> Contoh : Jika masukan Angka 00 pada kolom nomor 1 dan 10 di kolom nomor 2 maka sistem akan memasukan bettingan yang terkepung antara 00,01,02,03,04,05,06,07,08,09, dan 10
+Jika masukan Angka 11 pada kolom nomor 1 dan 20 di kolom nomor 2 maka sistem akan memasukan bettingan yang terkepung antara 11,12,13,14,15,16,17,18,19, dan 20
+semakin jauh jarak angka terkepung, maka semakin banyak angka yang di betting.</strong></p>
+<li> 1. DISCOUNT : Untuk type bettingan DISKON
+<p>- Ada potongan harga pada setiap angka yang di betting
+<li> 2. S.DISCOUNT: Untuk type bettingan SUPER DISKON
+<p>- Ada potongan harga paling murah dari harga DISKON, Hadiah lebih kecil
+<li> 3. BETFULL: Untuk type bettingan FULL
+<p>- Tanpa ada potongan harga, dan Hadiah yang lebih besar
+<li> 4. BET BB : Untuk type bettingan Bolak - Balek
+<p>- Jika bettingan terbalik akan di bayar, tidak ada potongan harga
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/659jhSxB/61u333h-GSt-CNb-Dp-AQBBfg-Q.png" alt="Angka Kepung"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- INDEX -->
+<div class="section">
+<h2>🚅 INDEX </h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>generator untuk pemain lebih di mudahkan dalam melakukan bettingan sehingga nomor yang di beli oleh pemain sudah termasuk perubahan nomor index kecil dan besar di dalamnya.</p>
+<p><strong> Perubahan nomor dalam INDEX :</strong></p>
+<li> 0 = 5
+<li> 1 = 6
+<li> 2 = 7
+<li> 3 = 8
+<li> 4 = 9
+<p><strong>1. Dalam Generator INDEX kita menyediakan 4 jenis INDEX, Berikut Penjelasanya :</strong></p>
+<p><strong>- INDEX 1 maka akan terdapat 1 nomor dalam setiap posisi mengalami perubahan sesuai perubahan nomor yang telah di tentukan.:</strong></p>
+<p><strong> Contoh : Anda membeli angka 1239 maka nomor yang akan muncul adalah :</strong></p>
+<li> 6239 = Digit I (1-->6)
+<li> 1739 = Digit II (2-->7)
+<li> 1289 = Digit III (3-->8)
+<li> 1234 = Digit IV (9-->4)
+<p>Maka akan terdapat 4 nomor yang muncul dalam panel bettingan (6239, 1739, 1289, 1234)
+<p><strong>-. INDEX 2 maka akan terdapat 2 nomor dalam setiap posisi mengalami perubahan sesuai perubahan nomor yang telah di tentukan. :</strong></p>
+<p><strong> Contoh : Anda membeli angka 1239 maka nomor yang akan muncul adalah :</strong></p>
+<li> 6739 = Digit I (1-->6), Digit II (2-->7)
+<li> 1789 = Digit II (2-->7), Digit III (3-->8)
+<li> 1284 = Digit III (3-->8), Digit IV (9-->4)
+<li> 6289 = Digit I (1-->6), Digit III (3-->8)
+<li> 1734 = Digit II (2-->7), Digit IV (9-->4)
+<li> 6234 = Digit I (1-->6), Digit IV (9-->4)
+<p> Maka akan terdapat 6 nomor yang muncul dalam panel bettingan (6739, 1789, 1284, 6289, 1734, 6234)
+<p><strong>- INDEX 3 maka akan terdapat 3 nomor dalam setiap posisi mengalami perubahan sesuai perubahan nomor yang telah di tentukan. :</strong></p>
+<p><strong> Contoh : Anda membeli angka 1239 maka nomor yang akan muncul adalah:</strong></p>
+<li> 6789 = Digit I (1-->6), Digit II (2-->7), Digit III (3-->8)
+<li> 1784 = Digit II (2-->7), Digit III (3-->8), Digit IV (9-->4)
+<li> 6284 = Digit I (1-->6), Digit III (3-->8), Digit IV (9-->4)
+<li> 6734 = Digit I (1-->6), Digit II (2-->7), Digit IV (9-->4)
+<p> Maka akan terdapat 4 nomor yang muncul dalam panel bettingan (6789, 1784, 6284,6734)
+<p><strong>-. INDEX 4 maka akan terdapat 4 nomor dalam setiap posisi mengalami perubahan sesuai perubahan nomor yang telah di tentukan. :</strong></p>
+<p><strong> Contoh : Anda membeli angka 1239 maka nomor yang akan muncul adalah :</strong></p>
+<li> 6784 = Digit I (1-->6), Digit II (2-->7), Digit III (3-->8), Digit IV (9-->4)
+<p> Maka akan terdapat 1 nomor yang muncul dalam panel bettingan (6784)
+<p><strong> 2. Nomor origin (nomor utama) tetap akan terbeli di dalam panel bettingan INDEX. :</strong></p>
+<p><strong> 3. Dalam generator INDEX anda juga dapat mengisi 3D atau 2D, Jika anda membeli 3D maka INDEX 1, 2 dan 3 yang dapat di pilih (centang), Sedangkan jika 2D maka hanya INDEX 1 dan 2 yang dapat di pilih (di centang), Perubahan nomor tetap seperti yang ada di penjelasan poin nomor 1.:</strong></p>
+<p><strong> 4. Di dalam generator juga terdapat pilihan pembelian dimana anda dapat membeli nomor 4D, 3D dan 2D sesuai dengan nominal yang anda inginkan. Untuk 3D dan 2D angka yang di ambil adalah 3 dan 2 digit belakang dari angka origin (yang di beli) dan angka yang sudah terjadi perubahan nomor INDEX.:</strong></p>
+<p><strong> 5. Di bagian bawah panel nomor akan terdapat pilihan menu "Nomor Duplicate / Angka yang sama", dengan maksud jika anda memilih "YA" maka semua nomor akan di munculkan sedangkan jika anda memilih "TIDAK" maka semua nomor duplicate akan di hilangkan per nomor BET.
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/y6XV0Q2y/0-Qe7ki-Dp-Rw6vv2-Hrb-QAZTA.png" alt="INDEX"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+<!-- Fast 4D -->
+<div class="section">
+<h2>🚅 Fast 4D </h2>
+<div class="info">
+<strong>♦️ Pengertian</strong>
+<p>Melakukan bettingan cepat, dengan menginput nomor dengan banyak pilihan Angka</p>
+<p><strong> contoh betting :</strong></p>
+<p><strong> 1234*567*89*0123*456*78* :</strong></p>
+<p> Maka Sistem akan melakukan bettingan dengan angka yang anda input sesuai dengan pilihan,
+<li> untuk 4D adalah 1234 dan 0123
+<li> untuk 3D adalah 567 dan 456
+<li> untuk 2D adalah 89 dan 78
+<p><strong> NB : MAXIMAL 400 NOMOR</strong></p>
+<p>Untuk Hadiah bergantung pada Jenis bettingan pada pilihan menu bettingan yang di betting.
+</div>
+<div class="image-container">
+<div class="card">
+<img src="https://i.postimg.cc/15HL3b2b/g8o85-DWc-SNqh7h1-Uv-Un-B-A.png" alt="Fast 4D"onclick="openModal(this.src)" />
+</div>
+</div>
+</div>
+
+  <!-- Modal Zoom (HANYA 1!) -->
+  <div id="imageModal" class="modal">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <img id="modalImage" src="" alt="Zoomed Image" />
+  </div>
+
+  <script>
+    // Modal
+    function openModal(src) {
+      document.getElementById("modalImage").src = src;
+      document.getElementById("imageModal").style.display = "flex";
+      document.body.style.overflow = "hidden";
+    }
+    function closeModal() {
+      document.getElementById("imageModal").style.display = "none";
+      document.body.style.overflow = "auto";
+    }
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") closeModal();
+    });
+    document.getElementById("imageModal").addEventListener("click", (e) => {
+      if (e.target === document.getElementById("imageModal")) closeModal();
+    });
+
+    // Search
+    document.getElementById("searchInput").addEventListener("input", function(e) {
+      const term = e.target.value.toLowerCase().trim();
+      document.querySelectorAll(".section").forEach(sec => {
+        const title = sec.querySelector("h2").innerText.toLowerCase();
+        const content = sec.innerText.toLowerCase();
+        sec.style.display = (term === "" || title.includes(term) || content.includes(term)) ? "block" : "none";
+      });
+    });
+
+    // Scroll Animation
+    const sections = document.querySelectorAll('.section');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
         }
+      });
+    }, { threshold: 0.1 });
+    sections.forEach(sec => observer.observe(sec));
 
-        // Memperbarui waktu saat ini
-        function updateCurrentTime() {
-            const now = new Date();
-            const options = { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            };
-            document.getElementById('currentTime').textContent = now.toLocaleDateString('id-ID', options);
+    // Scroll Progress Bar
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.body.scrollHeight - window.innerHeight;
+      const progress = (scrollTop / docHeight) * 100;
+      document.getElementById('progress-bar').style.width = progress + '%';
+    });
+
+    // Particles
+    particlesJS("particles-js", {
+      particles: {
+        number: { value: 80, density: { enable: true, area: 800 } },
+        color: { value: "#00b3ff" },
+        shape: { type: "circle" },
+        opacity: { value: 0.5, random: true },
+        size: { value: 3, random: true },
+        move: {
+          enable: true,
+          speed: 2,
+          direction: "none",
+          random: true,
+          straight: false,
+          out_mode: "out"
         }
+      },
+      interactivity: {
+        detect_on: "canvas",
+        events: { onhover: { enable: true, mode: "repulse" }, onclick: { enable: true, mode: "push" } }
+      },
+      retina_detect: true
+    });
 
-        // Mengisi tabel dengan data
-        function populateTable() {
-            const tableBody = document.getElementById('tableBody');
-            tableBody.innerHTML = '';
-            
-            const searchText = document.getElementById('searchInput').value.toLowerCase();
-            
-            togelData
-                .filter(item => {
-                    const matchesSearch = item.name.toLowerCase().includes(searchText);
-                    const matchesFilter = currentFilter === 'all' || 
-                                        (currentFilter === 'open' && isMarketOpen(item)) || 
-                                        (currentFilter === 'closed' && !isMarketOpen(item));
-                    return matchesSearch && matchesFilter;
-                })
-                .forEach(item => {
-                    const row = document.createElement('tr');
-                    const status = isMarketOpen(item) ? 'BUKA' : 'TUTUP';
-                    const statusClass = isMarketOpen(item) ? 'status-open' : 'status-closed';
-                    const statusIcon = isMarketOpen(item) ? 'fa-door-open' : 'fa-door-closed';
-                    
-                    row.innerHTML = `
-                        <td>${item.name}</td>
-                        <td>${item.closeTime}</td>
-                        <td>${item.openTime}</td>
-                        <td><span class="status ${statusClass}"><i class="fas ${statusIcon}"></i> ${status}</span></td>
-                    `;
-                    
-                    tableBody.appendChild(row);
-                });
-        }
-
-        // Memperbarui daftar alarm
-        function updateAlarmList() {
-            const alarmList = document.getElementById('alarmList');
-            alarmList.innerHTML = '';
-            
-            togelData.forEach(market => {
-                const alarmItem = document.createElement('div');
-                alarmItem.className = 'alarm-item';
-                
-                const isActive = isAlarmActive(market.name);
-                const statusClass = isActive ? 'alarm-active' : 'alarm-inactive';
-                const statusIcon = isActive ? 'fa-bell' : 'fa-bell-slash';
-                
-                alarmItem.innerHTML = `
-                    <div>${market.name}</div>
-                    <div class="alarm-time">${market.openTime}</div>
-                    <div class="${statusClass}"><i class="fas ${statusIcon}"></i> ${isActive ? 'Aktif' : 'Nonaktif'}</div>
-                `;
-                
-                alarmList.appendChild(alarmItem);
-            });
-        }
-
-        // Memeriksa apakah alarm aktif untuk pasaran tertentu
-        function isAlarmActive(marketName) {
-            return activeAlarms.includes(marketName);
-        }
-
-        // Memeriksa apakah pasaran sedang buka
-        function isMarketOpen(market) {
-            const now = new Date();
-            const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-            
-            // Jika waktu saat ini melewati waktu buka dan belum mencapai waktu tutup berikutnya
-            return currentTime >= market.openTime && currentTime < market.closeTime;
-        }
-
-        // Mengatur event listeners
-        function setupEventListeners() {
-            // Pencarian
-            document.getElementById('searchInput').addEventListener('input', populateTable);
-            
-            // Filter
-            document.querySelectorAll('.filter-buttons button').forEach(button => {
-                button.addEventListener('click', function() {
-                    document.querySelectorAll('.filter-buttons button').forEach(btn => btn.classList.remove('active'));
-                    this.classList.add('active');
-                    currentFilter = this.getAttribute('data-filter');
-                    populateTable();
-                });
-            });
-            
-            // Sorting
-            document.querySelectorAll('th[data-sort]').forEach(header => {
-                header.addEventListener('click', function() {
-                    const column = this.getAttribute('data-sort');
-                    
-                    if (currentSort.column === column) {
-                        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-                    } else {
-                        currentSort.column = column;
-                        currentSort.direction = 'asc';
-                    }
-                    
-                    sortTable(column, currentSort.direction);
-                    updateSortIndicators();
-                });
-            });
-            
-            // Test alarm
-            document.getElementById('testAlarm').addEventListener('click', function() {
-                playAlarmSound();
-                showAlarmModal("Test Alarm", "Ini adalah test alarm untuk memeriksa fungsi notifikasi Sharingan");
-            });
-            
-            // Hapus notifikasi
-            document.getElementById('clearNotifications').addEventListener('click', function() {
-                notifications = [];
-                updateNotificationList();
-            });
-            
-            // Tombol alarm modal
-            document.getElementById('stopAlarm').addEventListener('click', function() {
-                document.getElementById('alarmModal').classList.remove('show');
-                document.getElementById('sharinganNotification').classList.remove('show');
-                stopAlarmSound();
-            });
-            
-            document.getElementById('snoozeAlarm').addEventListener('click', function() {
-                document.getElementById('alarmModal').classList.remove('show');
-                document.getElementById('sharinganNotification').classList.remove('show');
-                stopAlarmSound();
-                
-                // Tampilkan notifikasi snooze
-                addNotification("Alarm Ditunda", "Alarm akan kembali berbunyi dalam 5 menit", "info");
-                
-                // Set timeout untuk membunyikan alarm lagi setelah 5 menit
-                setTimeout(() => {
-                    playAlarmSound();
-                    showAlarmModal("Alarm Result", "Waktu result telah tiba! (Alarm yang ditunda)");
-                }, 5 * 60 * 1000);
-            });
-            
-            // Kontrol suara
-            document.getElementById('soundControl').addEventListener('click', function() {
-                soundEnabled = !soundEnabled;
-                const icon = this.querySelector('i');
-                if (soundEnabled) {
-                    icon.className = 'fas fa-volume-up';
-                    this.title = 'Suara diaktifkan';
-                } else {
-                    icon.className = 'fas fa-volume-mute';
-                    this.title = 'Suara dimatikan';
-                }
-            });
-        }
-
-        // Memutar suara alarm
-        function playAlarmSound() {
-            if (!soundEnabled) return;
-            
-            try {
-                // Buat elemen audio secara dinamis
-                const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3');
-                audio.volume = 0.7;
-                audio.play().catch(e => console.log("Autoplay prevented: ", e));
-                
-                // Simpan referensi audio untuk dihentikan nanti
-                window.alarmAudio = audio;
-            } catch (error) {
-                console.error("Error playing alarm sound:", error);
-            }
-        }
-
-        // Menghentikan suara alarm
-        function stopAlarmSound() {
-            if (window.alarmAudio) {
-                window.alarmAudio.pause();
-                window.alarmAudio.currentTime = 0;
-            }
-        }
-
-        // Mengurutkan tabel
-        function sortTable(column, direction) {
-            togelData.sort((a, b) => {
-                let valueA, valueB;
-                
-                switch(column) {
-                    case 'name':
-                        valueA = a.name;
-                        valueB = b.name;
-                        break;
-                    case 'closeTime':
-                        valueA = convertTimeToMinutes(a.closeTime);
-                        valueB = convertTimeToMinutes(b.closeTime);
-                        break;
-                    case 'openTime':
-                        valueA = convertTimeToMinutes(a.openTime);
-                        valueB = convertTimeToMinutes(b.openTime);
-                        break;
-                    case 'status':
-                        valueA = isMarketOpen(a) ? 1 : 0;
-                        valueB = isMarketOpen(b) ? 1 : 0;
-                        break;
-                    default:
-                        valueA = a[column];
-                        valueB = b[column];
-                }
-                
-                if (valueA < valueB) return direction === 'asc' ? -1 : 1;
-                if (valueA > valueB) return direction === 'asc' ? 1 : -1;
-                return 0;
-            });
-            
-            populateTable();
-        }
-
-        // Mengonversi waktu ke menit untuk sorting
-        function convertTimeToMinutes(timeStr) {
-            const [hours, minutes] = timeStr.split(':').map(Number);
-            return hours * 60 + minutes;
-        }
-
-        // Memperbarui indikator sorting
-        function updateSortIndicators() {
-            document.querySelectorAll('th[data-sort]').forEach(header => {
-                // Hapus semua indikator
-                header.querySelector('i').className = 'fas fa-sort';
-                
-                if (header.getAttribute('data-sort') === currentSort.column) {
-                    header.querySelector('i').className = currentSort.direction === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
-                }
-            });
-        }
-
-        // Memperbarui semua status
-        function updateAllStatuses() {
-            populateTable();
-            
-            // Perbarui setiap menit
-            setTimeout(updateAllStatuses, 60000);
-        }
-
-        // Menjadwalkan event berikutnya
-        function scheduleNextEvent() {
-            const now = new Date();
-            const currentTime = now.getHours() * 60 + now.getMinutes();
-            
-            let nextEvent = null;
-            let minDiff = Infinity;
-            
-            // Cari event terdekat
-            togelData.forEach(market => {
-                const openTimeMinutes = convertTimeToMinutes(market.openTime);
-                let diff = openTimeMinutes - currentTime;
-                
-                // Jika sudah lewat, tambahkan 24 jam (1440 menit)
-                if (diff < 0) diff += 1440;
-                
-                if (diff < minDiff) {
-                    minDiff = diff;
-                    nextEvent = market;
-                }
-            });
-            
-            if (nextEvent) {
-                const eventTime = new Date(now);
-                eventTime.setHours(Math.floor(convertTimeToMinutes(nextEvent.openTime) / 60));
-                eventTime.setMinutes(convertTimeToMinutes(nextEvent.openTime) % 60);
-                eventTime.setSeconds(0);
-                
-                // Jika waktu event sudah lewat hari ini, atur untuk besok
-                if (eventTime < now) {
-                    eventTime.setDate(eventTime.getDate() + 1);
-                }
-                
-                const timeDiff = eventTime - now;
-                const hours = Math.floor(timeDiff / (1000 * 60 * 60));
-                const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
-                
-                // Update countdown display
-                document.getElementById('countdownHours').textContent = hours.toString().padStart(2, '0');
-                document.getElementById('countdownMinutes').textContent = minutes.toString().padStart(2, '0');
-                document.getElementById('countdownSeconds').textContent = seconds.toString().padStart(2, '0');
-                
-                document.getElementById('nextEvent').innerHTML = 
-                    `Pasaran berikutnya: <span class="highlight-text">${nextEvent.name}</span> pada <span class="highlight-text">${nextEvent.openTime}</span>`;
-                
-                document.getElementById('nextEventTime').textContent = `${nextEvent.openTime}`;
-                
-                // Jika kurang dari 10 menit, highlight countdown
-                const countdownElement = document.getElementById('countdown');
-                if (minDiff <= 10) {
-                    countdownElement.classList.add('highlight');
-                } else {
-                    countdownElement.classList.remove('highlight');
-                }
-                
-                // Atur timeout untuk event berikutnya
-                if (nextEventTimeout) clearTimeout(nextEventTimeout);
-                nextEventTimeout = setTimeout(() => {
-                    playAlarmSound();
-                    showAlarmModal(`Pasaran ${nextEvent.name} Dibuka`, `Waktu result untuk ${nextEvent.name} telah tiba pada ${nextEvent.openTime}`);
-                    scheduleNextEvent();
-                }, timeDiff);
-                
-                // Perbarui countdown setiap detik
-                setTimeout(scheduleNextEvent, 1000);
-            }
-        }
-
-        // Mengatur alarm untuk semua pasaran
-        function setupAlarms() {
-            togelData.forEach(market => {
-                // Hapus interval lama jika ada
-                if (alarmIntervals[market.name]) {
-                    clearInterval(alarmIntervals[market.name]);
-                }
-                
-                // Atur interval untuk memeriksa waktu result
-                alarmIntervals[market.name] = setInterval(() => {
-                    const now = new Date();
-                    const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-                    
-                    if (currentTime === market.openTime) {
-                        playAlarmSound();
-                        showAlarmModal(`Pasaran ${market.name} Dibuka`, `Waktu result untuk ${market.name} telah tiba pada ${market.openTime}`);
-                        
-                        // Tambahkan ke daftar alarm aktif
-                        if (!activeAlarms.includes(market.name)) {
-                            activeAlarms.push(market.name);
-                        }
-                        
-                        updateAlarmList();
-                    }
-                }, 60000); // Periksa setiap menit
-            });
-        }
-
-        // Menampilkan modal alarm
-        function showAlarmModal(title, message) {
-            const alarmModal = document.getElementById('alarmModal');
-            const alarmMessage = document.getElementById('alarmMessage');
-            const sharinganNotification = document.getElementById('sharinganNotification');
-            const sharinganText = document.getElementById('sharinganText');
-            
-            alarmMessage.textContent = message;
-            alarmModal.classList.add('show');
-            sharinganNotification.classList.add('show');
-            sharinganText.textContent = title;
-            
-            // Tambahkan notifikasi
-            addNotification(title, message, "important");
-        }
-
-        // Menambahkan notifikasi
-        function addNotification(title, message, type = "info") {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('id-ID');
-            
-            notifications.unshift({
-                title,
-                message,
-                time: timeString,
-                type
-            });
-            
-            // Batasi jumlah notifikasi
-            if (notifications.length > 20) {
-                notifications.pop();
-            }
-            
-            updateNotificationList();
-        }
-
-        // Memperbarui daftar notifikasi
-        function updateNotificationList() {
-            const notificationList = document.getElementById('notificationList');
-            notificationList.innerHTML = '';
-            
-            notifications.forEach(notification => {
-                const notificationItem = document.createElement('div');
-                notificationItem.className = `notification-item ${notification.type === 'important' ? 'notification-important' : ''}`;
-                
-                notificationItem.innerHTML = `
-                    <div class="notification-time">${notification.time}</div>
-                    <div class="notification-message">
-                        <strong>${notification.title}</strong><br>
-                        ${notification.message}
-                    </div>
-                `;
-                
-                notificationList.appendChild(notificationItem);
-            });
-        }
-
-        // Inisialisasi dashboard saat halaman dimuat
-        window.onload = initializeDashboard;
-    </script>
+    // Loading fade out
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        document.getElementById('loading').style.display = 'none';
+      }, 2500);
+    });
+  </script>
 </body>
 </html>
