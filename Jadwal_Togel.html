@@ -1,1234 +1,516 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>LUXE: PASARAN v4.0 - ALARM RESULT</title>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-<style>
-:root {
-  --primary: #6c5ce7;
-  --secondary: #a29bfe;
-  --accent: #fd79a8;
-  --success: #00b894;
-  --warning: #fdcb6e;
-  --dark: #2d3436;
-  --darker: #1e272e;
-  --light: #dfe6e9;
-  --card-bg: rgba(255, 255, 255, 0.1);
-  --text: #ffffff;
-  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Montserrat', sans-serif;
-  background: linear-gradient(135deg, #1e272e 0%, #2d3436 100%);
-  color: var(--text);
-  line-height: 1.7;
-  padding: 20px;
-  min-height: 100vh;
-  overflow-x: hidden;
-  position: relative;
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: url('https://images.unsplash.com/photo-1531297484001-80022131f5a1?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80');
-  opacity: 0.1;
-  z-index: -1;
-}
-
-/* Header */
-.header-container {
-  text-align: center;
-  margin: 30px auto 40px;
-  max-width: 900px;
-  position: relative;
-}
-
-.header {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 3.2rem;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: 2px;
-  position: relative;
-  display: inline-block;
-  margin-bottom: 15px;
-}
-
-.header::after {
-  content: '';
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100px;
-  height: 4px;
-  background: linear-gradient(to right, var(--primary), var(--accent));
-  border-radius: 2px;
-}
-
-.status {
-  font-size: 1rem;
-  color: var(--success);
-  margin-top: 15px;
-  letter-spacing: 1px;
-  background: rgba(0, 184, 148, 0.1);
-  padding: 8px 20px;
-  border-radius: 20px;
-  display: inline-block;
-  border: 1px solid rgba(0, 184, 148, 0.3);
-}
-
-/* Dashboard Grid */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-@media (max-width: 968px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-    gap: 25px;
-  }
-}
-
-/* Card Styles */
-.card {
-  background: var(--card-bg);
-  backdrop-filter: blur(12px);
-  border-radius: 20px;
-  padding: 30px;
-  position: relative;
-  overflow: hidden;
-  transition: var(--transition);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-}
-
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, rgba(108, 92, 231, 0.1) 0%, rgba(253, 121, 168, 0.1) 100%);
-  z-index: -1;
-}
-
-.card-title {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 25px;
-  display: flex;
-  align-items: center;
-  color: var(--light);
-}
-
-.card-title i {
-  margin-right: 15px;
-  font-size: 1.8rem;
-  color: var(--primary);
-}
-
-/* Next Draw Card */
-.next-draw-content {
-  text-align: center;
-}
-
-.next-name {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 2rem;
-  font-weight: 700;
-  margin: 15px 0;
-  color: var(--light);
-}
-
-.next-time {
-  font-size: 1.1rem;
-  margin-bottom: 10px;
-  color: var(--secondary);
-  font-family: 'Roboto Mono', monospace;
-}
-
-.countdown {
-  font-family: 'Roboto Mono', monospace;
-  font-size: 2.5rem;
-  font-weight: 500;
-  margin: 20px 0;
-  letter-spacing: 2px;
-  color: var(--warning);
-  text-shadow: 0 0 10px rgba(253, 203, 110, 0.3);
-}
-
-.next-desc {
-  font-size: 0.95rem;
-  opacity: 0.9;
-  line-height: 1.6;
-  color: var(--secondary);
-}
-
-/* Result Indicator */
-.result-indicator {
-  display: inline-block;
-  padding: 10px 25px;
-  border-radius: 25px;
-  font-size: 0.9rem;
-  margin-top: 20px;
-  font-weight: 500;
-}
-
-.result-waiting {
-  background: rgba(253, 203, 110, 0.15);
-  color: var(--warning);
-  border: 1px solid rgba(253, 203, 110, 0.3);
-}
-
-.result-available {
-  background: rgba(0, 184, 148, 0.15);
-  color: var(--success);
-  border: 1px solid rgba(0, 184, 148, 0.3);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(0, 184, 148, 0.3); }
-  70% { box-shadow: 0 0 0 10px rgba(0, 184, 148, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(0, 184, 148, 0); }
-}
-
-/* Pasaran Selection */
-.select-wrapper {
-  position: relative;
-  margin: 20px 0;
-}
-
-.select-wrapper::after {
-  content: "▼";
-  font-size: 12px;
-  color: var(--primary);
-  position: absolute;
-  right: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-}
-
-select {
-  width: 100%;
-  padding: 16px 20px;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1rem;
-  outline: none;
-  cursor: pointer;
-  appearance: none;
-  transition: var(--transition);
-}
-
-select:hover, select:focus {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: var(--primary);
-}
-
-/* Output Box */
-#output {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text);
-  padding: 25px;
-  border-left: 4px solid var(--primary);
-  border-radius: 12px;
-  font-size: 1rem;
-  white-space: pre-line;
-  min-height: 120px;
-  display: none;
-  margin: 25px 0;
-  transition: var(--transition);
-  line-height: 1.6;
-  font-family: 'Roboto Mono', monospace;
-}
-
-/* Buttons */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 15px 30px;
-  background: var(--primary);
-  color: white;
-  text-decoration: none;
-  border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  transition: var(--transition);
-  cursor: pointer;
-  margin-top: 15px;
-  font-family: 'Montserrat', sans-serif;
-  box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
-}
-
-.btn:hover {
-  background: #5d4ae0;
-  transform: translateY(-2px);
-  box-shadow: 0 7px 20px rgba(108, 92, 231, 0.4);
-}
-
-.btn i {
-  margin-right: 10px;
-}
-
-.btn-alarm {
-  background: var(--accent);
-  box-shadow: 0 4px极速赛车开奖结果
-}
-
-.btn-alarm:hover {
-  background: #e84393;
-  box-shadow: 0 7px 20px rgba(253, 121, 168, 0.4);
-}
-
-/* Audio Control */
-.audio-control {
-  position: fixed;
-  bottom: 25px;
-  right: 25px;
-  z-index: 100;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  cursor: pointer;
-  transition: var(--transition);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-.audio-control:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-3px);
-}
-
-.audio-control i {
-  font-size: 24px;
-  color: var(--primary);
-}
-
-/* Alarm Control */
-.alarm-control {
-  position: fixed;
-  bottom: 100px;
-  right: 25px;
-  z-index: 100;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(10px);
-  border: 1px极速赛车开奖结果
-  cursor: pointer;
-  transition: var(--transition);
-  box-shadow: 0极速赛车开奖结果
-}
-
-.alarm-control:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-3px);
-}
-
-.alarm-control i {
-  font-size: 24px;
-  color: var(--accent);
-}
-
-.alarm-active {
-  background: rgba(253, 121, 168, 0.2);
-  border-color: var(--accent);
-  animation: pulse-alarm 2s infinite;
-}
-
-@keyframes pulse-alarm {
-  0% { box-shadow: 0 0 0 0 rgba(253, 121, 168, 0.3); }
-  70% { box-shadow:极速赛车开奖结果
-  100% { box-shadow: 0 0 0 0 rgba(253, 121, 168, 0); }
-}
-
-/* Notification Modal */
-.notif-modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 9998;
-  display: none;
-  justify-content: center;
-  align-items: center;
-  backdrop-filter: blur(8px);
-}
-
-.notif-box {
-  background: var(--darker);
-  border-radius: 20px;
-  padding: 35px;
-  text-align: center;
-  max-width: 450px;
-  color: var(--text);
-  font-family: 'Montserrat', sans-serif;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.notif-title {
-  color: var(--primary);
-  font-size: 1.8rem;
- 极速赛车开奖结果
-  margin-bottom: 15px;
-}
-
-.notif-content {
-  margin-top: 15px;
-  font-size: 1.1rem;
-  line-height: 1.6;
-  color: var(--light);
-}
-
-.notif-content span {
-  display: block;
-  margin-bottom: 8px;
-}
-
-/* Live Badge */
-.live-badge {
-  position: fixed;
-  top: 25px;
-  right: 25px;
-  background: var(--success);
-  color: white;
-  padding: 8px 20px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  box-shadow: 0 5px 15px rgba(0, 184, 148, 极速赛车开奖结果
-}
-
-.live-badge i {
-  margin-right: 8px;
-}
-
-/* Floating Elements */
-.floating-element {
-  position: fixed;
-  width: 200极速赛车开奖结果
-  height: 200px;
-  border-radius: 50%;
-  opacity: 0.05;
-  z-index: -1;
-  filter: blur(40px);
-}
-
-.floating-1 {
-  background: var(--primary);
-  top: 15%;
-  left: 10%;
-  animation: float 15s infinite ease-in-out;
-}
-
-.floating-2 {
-  background: var(--accent);
-  bottom: 15%;
-  right: 10%;
-  animation: float 18s infinite ease-in-out reverse;
-}
-
-@keyframes float {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  25% { transform: translate(20px, -20px) rotate(5deg); }
-  50% { transform: translate(-15px, 15px) rotate(-5deg); }
-  75% { transform: translate(-20px, -15极速赛车开奖结果
-}
-
-/* Toast Notification */
-.toast {
-  position: fixed;
-  bottom: 100px;
-  right: 25px;
-  background: var(--darker);
-  color: var(--text);
-  padding: 15px 25px;
-  border-radius: 12px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  animation: slideInRight 0.3s ease-out;
-  border-left: 4px solid var(--success);
-}
-
-@keyframes slideIn极速赛车开奖结果
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-
-.toast.hide {
-  animation: slideOutRight 0.3s ease-out forwards;
-}
-
-@keyframes slideOutRight {
-  from { transform: translateX(0); opacity: 1; }
-  to { transform: translateX(100%); opacity: 0; }
-}
-
-.toast i {
-  margin-right: 10px;
-  color: var(--success);
-}
-
-/* Alarm Toast */
-.toast-alarm {
-  border-left: 4px solid var(--accent);
-}
-
-.toast-alarm i {
-  color: var(--accent);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .header {
-    font-size: 2.5rem;
-  }
-  
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-    gap: 25px;
-  }
-  
-  .card {
-    padding: 25px;
-  }
-  
-  .next-name {
-    font-size: 1.8rem;
-  }
-  
-  .countdown {
-    font-size: 2rem;
-  }
-  
-  .audio-control, .alarm-control {
-    bottom: 20px;
-    width: 50px;
-    height: 50px;
-  }
-  
-  .audio-control {
-    right: 20px;
-  }
-  
-  .alarm-control {
-    right: 85px;
-    bottom: 20px;
-  }
-  
-  .live-badge {
-    top: 20px;
-    right: 20px;
-    font-size: 0.8rem;
-    padding: 6px 15px;
-  }
-  
-  .floating-element {
-    width: 150px;
-    height: 150px;
-  }
-  
-  .toast {
-    bottom: 90px;
-    right: 15px;
-    left: 15px;
-  }
-}
-
-/* Status Panel */
-.status-panel {
-  position: fixed;
-  bottom: 10px;
-  left: 10px;
-  background: rgba(0,0,0,0.7);
-  color: white;
-  padding: 10px 15px;
-  border-radius: 8px;
-  font-size: 12px;
-  z-index: 1000;
-  font-family: 'Roboto Mono', monospace;
-}
-
-.status-panel div {
-  margin: 3px 0;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Result Togel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .search-box {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 300px;
+        }
+        
+        .filter-buttons button {
+            padding: 10px 15px;
+            margin-left: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #f0f0f0;
+        }
+        
+        .filter-buttons button.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .countdown {
+            text-align: center;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 1.2em;
+        }
+        
+        .countdown.highlight {
+            background-color: #ffeb3b;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { background-color: #ffeb3b; }
+            50% { background-color: #ffc107; }
+            100% { background-color: #ffeb3b; }
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            position: sticky;
+            top: 0;
+            cursor: pointer;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .status-open {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .status-closed {
+            color: #f44336;
+            font-weight: bold;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: none;
+            z-index: 1000;
+        }
+        
+        .audio-notification {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            .search-box {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .filter-buttons {
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+            }
+            
+            .filter-buttons button {
+                flex: 1;
+                margin: 0 2px;
+            }
+        }
+    </style>
 </head>
 <body>
-
-<!-- Floating Elements -->
-<div class="floating-element floating-1"></div>
-<div class="floating-element floating-2"></div>
-
-<!-- Live Badge -->
-<div class="live-badge">
-  <i class="fas fa-broadcast-tower"></i> LIVE
-</div>
-
-<!-- Header -->
-<div class="header-container">
-  <div class="header">LUXE PASARAN</div>
-  <div class="status">STATUS: <span style="color:#00ff00">ONLINE</span> | MODE: REAL-TIME | ALARM: <span id="alarmStatus">ON</span></div>
-</div>
-
-<!-- Dashboard Grid -->
-<div class="dashboard-grid">
-  <!-- Next Draw Card -->
-  <div class="card">
-    <div class="card-title"><i class="fas fa-clock"></i> NEXT DRAW</div>
-    <div class="next极速赛车开奖结果
-      <div class="next-name" id="nextName">Loading...</div>
-      <div class="next-time" id="nextTime">-</div>
-      <div class="countdown" id="countdown">00:00:00</div>
-      <div class="result-indicator result-waiting" id="resultIndicator">
-        <i class="fas fa-clock"></i> MENUNGGU RESULT
-      </div>
-      <div class="next-desc" id="nextDesc">Menghitung pasaran berikutnya...</div>
-      <button class="btn btn-alarm" id="testAlarmBtn">
-        <i class="fas fa-bell"></i> TEST ALARM
-      </button>
-      <button class="btn" id="simulateResultBtn" style="background: var(--warning); color: var(--dark); margin-top: 10px;">
-        <i class="fas fa-wand-magic-sparkles"></i> SIMULASI RESULT
-      </button>
+    <div class="container">
+        <header>
+            <h1>Dashboard Result Togel</h1>
+            <p>Pantau jadwal result togel dan dapatkan notifikasi ketika waktu result tiba</p>
+        </header>
+        
+        <div class="controls">
+            <input type="text" class="search-box" placeholder="Cari pasaran togel..." id="searchInput">
+            <div class="filter-buttons">
+                <button class="active" data-filter="all">Semua</button>
+                <button data-filter="open">Buka</button>
+                <button data-filter="closed">Tutup</button>
+            </div>
+        </div>
+        
+        <div class="countdown" id="countdown">
+            <span id="nextEvent">Menghitung pasaran berikutnya...</span>
+        </div>
+        
+        <div class="table-container">
+            <table id="resultTable">
+                <thead>
+                    <tr>
+                        <th data-sort="name">Nama Pasaran ⬍</th>
+                        <th data-sort="closeTime">Tutup ⬍</th>
+                        <th data-sort="openTime">Buka ⬍</th>
+                        <th data-sort="status">Status ⬍</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Data akan diisi oleh JavaScript -->
+                </tbody>
+            </table>
+        </div>
     </div>
-  </div>
-
-  <!-- Selection Card -->
-  <div class="card">
-    <div class="card-title"><i极速赛车开奖结果
-    <div class="select-wrapper">
-      <select id="pasaran" onchange="runRobot()">
-        <option value="">-- PILIH PASARAN --</option>
-        <option value="HOKIDRAW">HOKIDRAW</option>
-        <option value="toto_macau_pagi">TOTO_MACAU_PAGI</option>
-        <option value="hua_hin_0100">HUAHIN_0100</option>
-        <option value="kentucky_midday">KENTUCKY_MIDDAY</option>
-        <option value="florida_midday">FLORIDA_MIDDAY</option>
-        <option value="bangkok_0130">BANGKOK_0130</option>
-        <option value="new_york_midday">NEW_YORK_M极速赛车开奖结果
-        <option value="carolina_day">CAROLINA_DAY</option>
-        <option value="brunei_02">BRUNEI_02</option>
-        <option value="oregon_03">OREGON_03</option>
-        <option value="oregon极速赛车开奖结果
-        <option value="california">CALIFORNIA</option>
-        <option value="florida_evening">FLORIDA_EVENING</option>
-        <option value="oregon_09">OREGON_09</option>
-        <option value="bangkok_0930">BANGKOK_0930</option>
-        <option value="new_york_evening">NEW_YORK_EVENING</option>
-        <option value="kentucky_evening">KENTUCKY_EVENING</option>
-        <option value="carolina_evening">CAROLINA_EVENING</option>
-        <option value="toto_cambodia">TOTO_CAMBODIA</option>
-        <option value="chelsea_11">CHELSEA_11</option>
-        <option value="oregon_12">OREGON_12</option>
-        <option value="bullseye">BULLSEYE</option>
-        <option value="poipet_12">POIPET_12</option>
-        <option value="toto_macau_siang">TOTO_MACAU_SIANG</极速赛车开奖结果
-        <option value="sydney">SYDNEY</option>
-        <option value="jakarta_1400">JAKARTA_1400</option>
-        <option value="brunei_极速赛车开奖结果
-        <option value="chelsea_15">CHELSEA_15</option>
-        <option value="toto_macau_5d_sore">TOTO_MACAU_5D_SORE</option>
-        <option value="poipet_15">POIPET_15</option>
-        <option value="toto_mali_1530">TOTO_MALI_1530</option>
-        <option value="极速赛车开奖结果
-        <option value="hua_hin_1630">HUAHIN_1630</option>
-        <option value="kingkong_4d_sore">KINGKONG_4D_SORE</option>
-        <option value="singapore_pools">SINGAPORE_POOLS</option>
-        <option value="magnum4d_pools">MAGNUM4D_POOLS</option>
-        <option value="chelsea_19">CHELSEA_19</option>
-        <option value="toto_macau_malam_I">TOTO_MACAU_MALAM_I</option>
-        <option value="poipet_19">POIPET_19</option>
-        <option value="pcso">极速赛车开奖结果
-        <option value="toto_mali_2030">TOTO_MALI_2030</option>
-        <option value="hua_hin_2100">HUAHIN_2100</option>
-        <option value="chelsea_21">CHELSEA_21</option>
-        <option value="toto_macau_5d_malam">TOTO_M极速赛车开奖结果
-        <option value="nevada">NEVADA</option>
-        <极速赛车开奖结果
-        <option value="toto_macau_malam_II">TOTO_MACAU_MALAM_II</option>
-        <option value="poipet_22">POIPET_22</option>
-        <option value="hongkong">HONGKONG</option>
-        <option value="toto_macau_malam_III">TOTO_MACAU_MALAM_III</option>
-        <option value="toto_mali_2330">TOTO_MALI_2330</option>
-        <option value="jakarta_2330">JAKARTA_2330</option>
-        <option value="kingkong_4d_malam">KINGKONG_4D_MALAM</option>
-      </select>
+    
+    <div class="notification" id="notification">
+        <span id="notificationText"></span>
     </div>
-
-    <div id="output"></div>
-    <button class="btn" id="copyBtn" onclick="copyToClipboard()">
-      <i class="fas fa-copy"></i> COPY TO CLIPBOARD
-    </button>
-    <button class="btn" id="testSoundBtn" onclick="testAllSounds()" style="background: var(--accent); margin-left: 10px;">
-      <i class="fas fa-volume-up"></i> TEST SOUND
-    </button>
-  </div>
-</div>
-
-<!-- Audio Control -->
-<div class="audio-control" id="audioControl">
-  <i class="fas fa-volume-up"></i>
-</div>
-
-<!-- Alarm Control -->
-<div class="alarm-control alarm-active" id="alarmControl">
-  <i class="fas fa-bell"></i>
-</div>
-
-<!-- Notification Modal -->
-<div class="notif-modal" id="notifModal">
-  <div class="notif-box">
-    <div class="notif-title">🔔 RESULT TELAH KELUAR!</div>
-    <div class="notif-content">
-      <span id="notifPasaran">Pasaran</span>
-      <span>Result telah tersedia. Silakan periksa!</span>
-    </div>
-    <button class="btn" style="margin-top: 20px;" onclick="closeNotif()">
-      <i class="fas fa-check"></i> MENGERTI
-    </button>
-  </div>
-</div>
-
-<!-- Status Panel -->
-<div class="status-panel">
-  <div>Waktu: <span id="currentTime">00:00:00</span></div>
-  <div>Result: <span id="nextResultTime">00:00</span></div>
-  <div>Status: <span id="debugStatus">Menunggu</span></div>
-</div>
-
-<script>
-// =============== VARIABEL GLOBAL ===============
-let audioUnlocked = false;
-let alarmEnabled = true;
-let globalVolume = 0.7;
-let lastPlayedTime = 0;
-let resultCheckInterval;
-const soundCooldown = 300; // ms
-let lastResultState = {};
-let currentAlarm = null;
-let simulatedMode = false; // Mode simulasi untuk testing
-
-// =============== SOUND EFFECTS ===============
-// Base64 encoded audio untuk menghindari masalah CORS
-const alarmSoundBase64 = "data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tAwAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAADwADw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PD///////////////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAYFAAAAAAAAA8DStLg4AAAAAAAAAAAAAAAAAAAAAP/7UMQMg4Q8Xj9GMAACGErk/zDQAQBYCwNgeBgBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GBgYAYGAH/4GB极速赛车开奖结果
-
-// =============== PLAY SOUND FUNCTION ===============
-function playSound(soundName, vol = 1) {
-  if (!audioUnlocked) {
-    console.log("Audio tidak di-unlock, tidak dapat memutar suara");
-    return null;
-  }
-  
-  // Cooldown untuk mencegah spam suara
-  const now = Date.now();
-  if (now - lastPlayedTime < soundCooldown) return null;
-  lastPlayedTime = now;
-  
-  try {
-    // Buat audio element
-    const audio = new Audio();
     
-    // Set sumber audio berdasarkan jenis suara
-    if (soundName === 'alarm') {
-      audio.src = alarmSoundBase64;
-    } else {
-      // Untuk suara lain, gunakan base64 encoded fallback
-      audio.src = "data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tAwAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAADwADw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PD///////////////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJA";
-    }
+    <audio id="alarmSound" class="audio-notification">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" type="audio/mpeg">
+    </audio>
     
-    audio.volume = globalVolume * vol;
-    
-    // Coba putar suara
-    const playPromise = audio.play();
-    
-    if (playPromise !== undefined) {
-      playPromise.catch(error => {
-        console.warn("Gagal memutar suara:", error);
-      });
-    }
-    
-    return audio;
-  } catch (error) {
-    console.error("Error memutar suara:", error);
-    return null;
-  }
-}
+    <script>
+        // Data pasaran togel
+        const togelData = [
+            { name: "HOKIDRAW", closeTime: "00:00", openTime: "00:15", frequency: "PER 1 JAM SEKALI" },
+            { name: "TOTO MACAU PAGI", closeTime: "00:00", openTime: "00:15", frequency: "RESULT SETIAP HARI" },
+            { name: "KENTUCKY MIDDAY", closeTime: "00:05", openTime: "00:20", frequency: "RESULT SETIAP HARI" },
+            { name: "FLORIDA MIDDAY", closeTime: "00:20", openTime: "00:30", frequency: "RESULT SETIAP HARI" },
+            { name: "HUAHIN 01", closeTime: "00:45", openTime: "01:00", frequency: "RESULT SETIAP HARI" },
+            { name: "BANGKOK 01", closeTime: "01:15", openTime: "01:30", frequency: "RESULT SETIAP HARI" },
+            { name: "NEW YORK MIDDAY", closeTime: "01:15", openTime: "01:25", frequency: "RESULT SETIAP HARI" },
+            { name: "CAROLINA DAY", closeTime: "01:45", openTime: "02:00", frequency: "RESULT SETIAP HARI" },
+            { name: "BRUNEI 02", closeTime: "02:30", openTime: "02:45", frequency: "RESULT SETIAP HARI" },
+            { name: "OREGON 03", closeTime: "02:50", openTime: "03:00", frequency: "RESULT SETIAP HARI" },
+            { name: "OREGON 06", closeTime: "05:50", openTime: "06:00", frequency: "RESULT SETIAP HARI" },
+            { name: "CALIFORNIA", closeTime: "08:25", openTime: "08:30", frequency: "RESULT SETIAP HARI" },
+            { name: "FLORIDA EVENING", closeTime: "08:35", openTime: "08:45", frequency: "RESULT SETIAP HARI" },
+            { name: "OREGON 09", closeTime: "08:50", openTime: "09:00", frequency: "RESULT SETIAP HARI" },
+            { name: "BANGKOK 09", closeTime: "09:15", openTime: "09:30", frequency: "RESULT SETIAP HARI" },
+            { name: "NEW YORK EVENING", closeTime: "09:25", openTime: "09:35", frequency: "RESULT SETIAP HARI" },
+            { name: "KENTUCKY EVENING", closeTime: "09:45", openTime: "10:00", frequency: "RESULT SETIAP HARI" },
+            { name: "CAROLINA EVENING", closeTime: "10:17", openTime: "10:22", frequency: "RESULT SETIAP HARI" },
+            { name: "TOTO CAMBODIA LIVE", closeTime: "10:45", openTime: "11:00", frequency: "RESULT SETIAP HARI" },
+            { name: "CHELSEA 11", closeTime: "11:00", openTime: "11:15", frequency: "RESULT SETIAP HARI" },
+            { name: "OREGON 12", closeTime: "11:50", openTime: "12:00", frequency: "RESULT SETIAP HARI" },
+            { name: "POIPET 12", closeTime: "12:15", openTime: "12:30", frequency: "RESULT SETIAP HARI" },
+            { name: "BULLSEYE", closeTime: "13:00", openTime: "13:15", frequency: "RESULT SETIAP HARI" },
+            { name: "TOTO MACAU SIANG", closeTime: "13:00", openTime: "13:15", frequency: "RESULT SETIAP HARI" },
+            { name: "SYDNEY", closeTime: "13:49", openTime: "14:05", frequency: "RESULT SETIAP HARI" },
+            { name: "JAKARTA POOLS SIANG", closeTime: "13:55", openTime: "14:10", frequency: "RESULT SETIAP HARI" },
+            { name: "BRUNEI 14", closeTime: "14:30", openTime: "14:45", frequency: "RESULT SETIAP HARI" },
+            { name: "CHELSEA 15", closeTime: "15:00", openTime: "15:15", frequency: "RESULT SETIAP HARI" },
+            { name: "TOTOMACAU 5D SORE", closeTime: "15:15", openTime: "15:30", frequency: "RESULT SETIAP HARI" },
+            { name: "POIPET 15", closeTime: "15:15", openTime: "15:30", frequency: "RESULT SETIAP HARI" },
+            { name: "TOTOMALI SORE", closeTime: "15:15", openTime: "15:30", frequency: "RESULT SETIAP HARI" },
+            { name: "TOTO MACAU SORE", closeTime: "16:00", openTime: "16:15", frequency: "RESULT SETIAP HARI" },
+            { name: "HUAHIN 16", closeTime: "16:15", openTime: "16:30", frequency: "RESULT SETIAP HARI" },
+            { name: "KING KONG4D SORE", closeTime: "17:00", openTime: "17:15", frequency: "RESULT SETIAP HARI" },
+            { name: "SINGAPORE", closeTime: "17:30", openTime: "17:45", frequency: "SELASA & JUMAT(LIBUR)" },
+            { name: "MAGNUM 4D", closeTime: "18:10", openTime: "18:40", frequency: "RESULT SETIAP RABU,SABTU,MINGGU & SELASA" },
+            { name: "CHELSEA 19", closeTime: "19:00", openTime: "19:15", frequency: "RESULT SETIAP HARI" },
+            { name: "TOTO MACAU MALAM I", closeTime: "19:00", openTime: "19:15", frequency: "RESULT SETIAP HARI" },
+            { name: "POIPET 19", closeTime: "19:30", openTime: "19:45", frequency: "RESULT SETIAP HARI" },
+            { name: "PCSO", closeTime: "19:50", openTime: "20:10", frequency: "SENIN s/d SABTU (HARI MINGGU LIBUR)" },
+            { name: "TOTOMALI MALAM I", closeTime: "20:15", openTime: "20:30", frequency: "RESULT SETIAP HARI" },
+            { name: "HUAHIN 21", closeTime: "20:45", openTime: "21:00", frequency: "RESULT SETIAP HARI" },
+            { name: "CHELSEA 21", closeTime: "21:00", openTime: "21:15", frequency: "RESULT SETIAP HARI" },
+            { name: "TOTO MACAU 5D MALAM", closeTime: "21:15", openTime: "21:30", frequency: "RESULT SETIAP HARI" },
+            { name: "NEVADA", closeTime: "21:15", openTime: "21:30", frequency: "RESULT SETIAP HARI" },
+            { name: "BRUNEI 21", closeTime: "21:30", openTime: "21:45", frequency: "RESULT SETIAP HARI" },
+            { name: "TOTO MACAU MALAM II", closeTime: "22:00", openTime: "22:15", frequency: "RESULT SETIAP HARI" },
+            { name: "POIPET 22", closeTime: "22:30", openTime: "22:45", frequency: "RESULT SETIAP HARI" },
+            { name: "HONGKONG", closeTime: "22:59", openTime: "23:15", frequency: "RESULT SETIAP HARI" },
+            { name: "TOTO MACAU MALAM III", closeTime: "23:00", openTime: "23:15", frequency: "RESULT SETIAP HARI" },
+            { name: "TOTOMALI MALAM II", closeTime: "23:15", openTime: "23:30", frequency: "RESULT SETIAP HARI" },
+            { name: "JAKARTA POOLS MALAM", closeTime: "23:25", openTime: "23:40", frequency: "RESULT SETIAP HARI" },
+            { name: "KING KONG4D MALAM", closeTime: "23:30", openTime: "23:45", frequency: "RESULT SETIAP HARI" }
+        ];
 
-// =============== PLAY ALARM FUNCTION ===============
-function playAlarm() {
-  if (!audioUnlocked || !alarmEnabled) {
-    console.log("Alarm tidak dapat diputar: Audio=" + audioUnlocked + ", Alarm=" + alarmEnabled);
-    return;
-  }
-  
-  console.log("Memutar alarm result...");
-  
-  // Hentikan alarm sebelumnya jika masih berjalan
-  stopAlarm();
-  
-  // Putar suara alarm
-  currentAlarm = playSound('alarm', 0.8);
-  
-  // Jika alarm berhasil diputar, atur untuk mengulang
-  if (currentAlarm) {
-    currentAlarm.onended = function() {
-      // Ulang alarm setelah 3 detik
-      setTimeout(playAlarm, 3000);
-    };
-  }
-  
-  showToast("Alarm result berbunyi!", "alarm");
-}
+        // Variabel global
+        let currentSort = { column: null, direction: 'asc' };
+        let currentFilter = 'all';
+        let alarmIntervals = {};
+        let nextEventTimeout = null;
 
-// =============== STOP ALARM FUNCTION ===============
-function stopAlarm() {
-  if (currentAlarm) {
-    currentAlarm.pause();
-    currentAlarm.currentTime = 0;
-    currentAlarm.onended = null;
-    currentAlarm = null;
-  }
-}
-
-// =============== TEST ALARM ===============
-function testAlarm() {
-  if (!audioUnlocked) {
-    showToast("Aktifkan suara terlebih dahulu", "error");
-    return;
-  }
-  
-  if (!alarmEnabled) {
-    showToast("Aktifkan alarm terlebih dahulu", "error");
-    return;
-  }
-  
-  playAlarm();
-  showToast("Menguji alarm result", "alarm");
-}
-
-// =============== SIMULASI RESULT ===============
-function simulateResult() {
-  simulatedMode = true;
-  showResultNotification("SIMULASI PASARAN");
-  showToast("Simulasi result dilakukan", "success");
-}
-
-// =============== SHOW TOAST NOTIFICATION ===============
-function showToast(message, type = "success") {
-  // Hapus toast sebelumnya jika ada
-  const existingToast = document.querySelector('.toast');
-  if (existingToast) {
-    existingToast.classList.add('hide');
-    setTimeout(() => existingToast.remove(), 300);
-  }
-  
-  // Buat toast baru
-  const toast = document.createElement('div');
-  toast.className = `toast ${type === "alarm" ? "toast-alarm" : ""}`;
-  
-  const icon = type === "success" ? "fa-check-circle" : 
-               type === "error" ? "fa-exclamation-circle" : "fa-bell";
-  toast.innerHTML = `
-    <i class="fas ${极速赛车开奖结果
-    <span>${message}</span>
-  `;
-  
-  document.body.appendChild(toast);
-  
-  // Hapus toast setelah 3 detik
-  setTimeout(() => {
-    toast.classList.add('hide');
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
-}
-
-// =============== ENABLE AUDIO FUNCTION ===============
-function enableAudio() {
-  // Coba unlock audio dengan memutar suara senyap
-  const silentAudio = new Audio("data:audio/wav;base64,UklGRnoAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAAABMYXZmNTguODkuMTAw");
-  silentAudio.volume = 0.001; // Hampir tidak terdengar
-  
-  silentAudio.play().then(() => {
-    audioUnlocked = true;
-    document.getElementById("audioControl").querySelector("i").className = "fas fa-volume-up";
-    localStorage.setItem("audioUnlocked", "true");
-    
-    // Mainkan suara konfirmasi
-    playSound('alarm', 0.3);
-    showToast("Suara diaktifkan", "success");
-  }).catch(error => {
-    console.error("Gagal unlock audio:", error);
-    showToast("Klik untuk mengaktifkan suara", "error");
-  });
-}
-
-// =============== TOGGLE ALARM FUNCTION ===============
-function toggleAlarm() {
-  alarmEnabled = !alarmEnabled;
-  
-  if (alarmEnabled) {
-    document.getElementById("alarmControl").classList.add("alarm-active");
-    document.getElementById("alarmControl").querySelector("i").className = "fas fa-bell";
-    document.getElementById("alarmStatus").textContent = "ON";
-    localStorage.setItem("alarmEnabled", "true");
-    showToast("Alarm diaktifkan", "success");
-  } else {
-    document.getElementById("alarmControl").classList.remove("alarm-active");
-    document.getElementById("alarmControl").querySelector("i").className = "fas fa-bell-slash";
-    document.getElementById("alarmStatus").textContent = "OFF";
-    localStorage.setItem("alarmEnabled", "false");
-    stopAlarm();
-    showToast("Alarm dimatikan", "error");
-  }
-}
-
-// =============== AUDIO CONTROL ===============
-const audioControl = document.getElementById("audioControl");
-const audioIcon = audioControl.querySelector("i");
-
-audioControl.addEventListener("click", function() {
-  if (audioUnlocked) {
-    // Matikan suara
-    audioUnlocked = false;
-    audioIcon.className = "fas fa-volume-mute";
-    localStorage.setItem("audioUnlocked", "false");
-    showToast("Suara dinonaktifkan", "success");
-    
-    // Matikan alarm juga jika suara dimatikan
-    if (alarmEnabled) {
-      toggleAlarm();
-    }
-  } else {
-    // Hidupkan suara
-    enableAudio();
-  }
-});
-
-// =============== ALARM CONTROL ===============
-const alarmControl = document.getElementById("alarmControl");
-alarmControl.addEventListener("click", toggleAlarm);
-
-// =============== DAFTAR PASARAN ===============
-const pasaranList = [
-  { key: "HOKIDRAW", name: "HOKIDRAW", result: "setiap jam", desc: "Result 24 kali dalam sehari dan result keluar per 1 jam sekali ya bosku serta setelah livedraw selesai dilakukan sekitar menit 10-15 ya bosku." },
-  { key: "toto_macau_pagi", name: "TOTO_MACAU_PAGI", result: "00:15", desc: "Tutup Pukul 00:00 WIB, Result Pukul 00:15 WIB." },
-  { key: "hua_hin_0100", name: "HUAHIN_0100", result: "01:00", desc: "Tutup Pukul 00:45 WIB, Result Pukul 01:00 WIB." },
-  { key: "kentucky_midday", name: "KENTUCKY_MIDDAY", result: "00:20", desc: "Tutup Pukul 00:05 WIB, Result Pukul 00:20 WIB." },
-  { key: "florida_midday", name: "FLORIDA_MIDDAY", result: "00:30", desc: "Tutup Pukul 00:20 WIB, Result Pukul 00:30 WIB." },
-  { key: "bangkok_0130", name: "极速赛车开奖结果
-  { key: "new_york_midday", name: "NEW_YORK_MIDDAY", result: "01:25", desc: "Tutup Pukul 01:15 WIB, Result Pukul 01:25 WIB." },
-  { key: "carolina_day", name: "CAROLINA_DAY", result: "02:00", desc: "Tutup Pukul 01:45 WIB, Result Pukul 02:00 WIB." },
-  { key: "brunei_02", name: "BRUNEI_02", result: "02:45", desc: "Tutup Pukul 02:30 WIB, Result Pukul 02:45 W极速赛车开奖结果
-  { key: "oregon_03", name: "OREGON_03", result: "03:极速赛车开奖结果
-  { key: "oregon_06", name: "OREGON_06", result: "06:00", desc: "Tutup Pukul 05:50 WIB, Result Pukul 06:00 WIB." },
-  { key: "california", name: "CALIFORNIA", result: "08:30", desc: "Tutup Pukul 08:25 WIB, Result Pukul 08:30 WIB." },
-  { key: "florida_evening", name: "FLORIDA_EVENING", result: "08:45", desc: "Tutup Pukul 08:35 WIB, Result Pukul 08:45 WIB." },
-  { key: "oregon_09", name: "OREGON极速赛车开奖结果
-  { key: "bangkok_0930", name: "BANGKOK_0930", result: "09:30", desc: "Tutup Pukul 09:15 WIB, Result Pukul 09:30 WIB." },
-  { key: "new_york_evening", name: "NEW_YORK_EVENING", result: "09:35", desc: "Tutup Pukul 09:25 WIB, Result P极速赛车开奖结果
-  { key: "kentucky_evening", name: "KENTUCKY_EVENING", result: "10:00", desc: "Tutup Pukul 09:45 WIB, Result Pukul 10:00 WIB." },
-  { key: "carolina_evening", name: "CAROLINA_EVENING", result: "10:22", desc: "Tutup Pukul 10:17 WIB, Result Pukul 10:22 WIB." },
-  { key: "toto_cambodia", name: "TOTO_CAMBODIA", result: "11:00", desc: "Tutup Pukul 10:45 WIB, Result Pukul 11:00 WIB." },
-  { key: "chelsea_11", name: "CHELSEA_11", result: "11:15", desc: "Tutup Pukul 11:00 WIB, Result Pukul 11:15 WIB." },
-  { key: "oregon_12", name: "OREGON_12", result: "12:00", desc: "Tutup Pukul 11:50 WIB, Result Pukul 12:00 WIB." },
-  { key: "bullseye", name: "BULLSEYE", result: "13:15", desc: "Tutup Pukul 13:00 WIB, Result Pukul 13:15 WIB." },
-  { key: "poipet_12", name: "POIPET_12", result: "12:30", desc: "Tutup Pukul 极速赛车开奖结果
-  { key: "toto_macau_siang", name: "TOTO_MACAU_SIANG", result: "13:15", desc: "Tutup Pukul 13:00 WIB, Result Pukul 13:15 WIB." },
-  { key: "sydney", name: "SYDNEY", result: "14:05", desc: "Tutup P极速赛车开奖结果
-  { key极速赛车开奖结果
-  { key: "brunei_14", name: "BRUNEI_14", result: "14:45", desc: "Tutup Pukul 14:30 WIB, Result Pukul 14:45 WIB." },
-  { key: "chelsea_15", name: "CHELSEA_15", result: "15:15", desc: "Tutup Pukul 15:00 WIB, Result Pukul 15:15 WIB." },
-  { key: "toto_macau_5d_sore", name: "TOTO_MACAU_5D极速赛车开奖结果
-  { key: "poipet_15", name: "POIPET极速赛车开奖结果
-  { key: "toto_mali_1530", name: "TOTO_MALI_1530", result: "15:30", desc: "Tutup Pukul 15:15 WIB, Result Pukul 15:30 WIB." },
-  { key: "toto_macau_sore", name: "TOTO_MACAU_SORE", result: "16:15", desc: "Tutup Pukul 16:00 WIB, Result Pukul 16:15 WIB." },
-  { key: "hua_hin_1630", name: "HUAHIN_1630", result: "16:30", desc: "Tutup Pukul 16:15 WIB, Result Pukul 16:30 WIB." },
-  { key: "kingkong_4d_sore", name: "KINGKONG_4D_SORE", result: "17:15", desc: "Tutup Pukul 17:00 WIB, Result Pukul 17:15 WIB." },
-  { key: "singapore_pools", name: "SINGAPORE_POOLS", result: "极速赛车开奖结果
-  { key: "magnum4d_pools", name: "MAGNUM4D_POOLS", result: "18:40", desc: "Tutup Pukul 18:10 W极速赛车开奖结果
-  { key: "chelsea_19", name: "CHELSEA_19", result: "19:15", desc: "Tutup Pukul 19:00 WIB, Result Pukul 19:15 WIB." },
-  { key: "toto_macau_malam_I", name: "TOTO_MACAU_MALAM_I", result: "19:15", desc: "Tutup Pukul 19:00 WIB, Result Pukul 19:15 WIB." },
-  { key: "poipet_19", name: "POIPET_19", result: "19:45", desc: "Tutup Pukul 19:30 WIB, Result Pukul 19:45 WIB." },
-  { key: "pcso", name: "PCSO", result: "20:10", desc: "Tutup Pukul 19:50 WIB, Result Pukul 20:10 WIB." },
-  { key: "toto_mali_2030", name: "TOTO_MALI_2030", result: "20:30", desc: "Tutup Pukul 20:15 WIB, Result Pukul 20:30 WIB." },
-  { key: "hua_hin_2100", name: "HUAHIN_2100", result: "21:00", desc: "Tutup Pukul 20:45 WIB, Result Pukul 21:00 WIB." },
-  { key: "chelsea_21", name: "CHELSEA_21", result: "21:15", desc: "Tutup Pukul 21:00 WIB, Result Pukul 21:15 WIB." },
-  { key: "toto_macau极速赛车开奖结果
-  { key: "nevada", name: "NEVADA", result: "21:30", desc: "Tutup Pukul 21:15 WIB, Result Pukul 21:30 WIB." },
-  { key: "brunei_21", name: "BRUNEI_21", result: "21:45", desc: "Tutup Pukul 21:30 WIB, Result Pukul 21:45 WIB." },
-  { key: "toto_macau_malam_II", name: "TOTO_MACAU_MALAM_II", result: "22:15", desc: "Tutup Pukul 22:00 WIB, Result Pukul 22:15 WIB." },
-  { key: "poipet_22", name: "POIPET_22", result: "22:45", desc: "Tutup Pukul 22:30 WIB, Result Pukul 22:45 WIB." },
-  { key: "hongkong", name: "HONGKONG", result: "23:15", desc: "Tutup Pukul 22:59 WIB, Result Pukul 23:15 WIB." },
-  { key: "toto_macau_malam_III", name: "TOTO_MACAU_MALAM_III", result: "23:15", desc: "Tutup Pukul 23:00 WIB, Result Pukul 23:15 WIB." },
-  { key: "toto_mali_2330", name: "TOTO_MALI_2330", result: "23:30", desc: "Tutup Pukul 23:15 WIB, Result Pukul 23:30 WIB." },
-  { key: "jakarta_2330", name: "JAKARTA_2330", result: "23:40", desc: "极速赛车开奖结果
-  { key: "kingkong_4d_malam", name: "KINGKONG_4D_MALAM", result: "23:45", desc: "Tutup Pukul 23:30 WIB, Result Pukul 23:45 WIB." }
-];
-
-const jadwal = {};
-pasaranList.forEach(p => {
-  jadwal[p.key] = `Pasaran : ${p.name}\n${p.desc}`;
-});
-
-let currentText = "";
-
-function runRobot() {
-  const value = document.getElementById("pasaran").value;
-  const output = document.getElementById("output");
-  const copyBtn = document.getElementById("copyBtn");
-
-  if (!value) {
-    output.style.display = "none";
-    copyBtn.style.display = "none";
-    return;
-  }
-
-  // Play sound effect
-  playSound('alarm', 0.3);
-  
-  currentText = jadwal[value];
-  output.textContent = currentText;
-  output.style.display = "block";
-  copyBtn.style.display = "inline-block";
-
-  localStorage.setItem("lastPasaran", value);
-  
-  // Tampilkan notifikasi toast
-  const selectedPasaran = pasaranList.find(p => p.key === value);
-  if (selectedPasaran) {
-    showToast(`Memilih pasaran ${selectedPasaran.name}`, "success");
-  }
-}
-
-function copyToClipboard() {
-  if (!currentText) return;
-
-  const textarea = document.createElement("textarea");
-  textarea.value = currentText;
-  document.body.appendChild(textarea);
-  textarea.select();
-  document.execCommand("copy");
-  document.body.removeChild(textarea);
-
-  playSound('alarm', 0.3);
-  showToast("Teks berhasil disalin ke clipboard", "success");
-
-  const btn = document.getElementById("copyBtn");
-  const original = btn.innerHTML;
-  btn.innerHTML = '<i class="fas fa-check"></i> COPIED!';
-
-  setTimeout(() => btn.innerHTML = original, 1500);
-}
-
-// =============== FUNGSI PENGECEKAN RESULT ===============
-function checkIfResultAvailable() {
-  const now = new Date();
-  const currentTime = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-  
-  // Update debug info
-  document.getElementById("currentTime").textContent = 
-    `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-  
-  pasaranList.forEach(pasaran => {
-    if (pasaran.result !== "setiap jam") {
-      const [h, m] = pasaran.result.split(':').map(Number);
-      const resultTime = h * 3600 + m * 60;
-      
-      // Update debug info untuk pasaran berikutnya
-      if (pasaran.key === "HONGKONG") {
-        document.getElementById("nextResultTime").textContent = pasaran.result;
-        document.getElementById("debugStatus").textContent = 
-          `Selisih: ${resultTime - currentTime} detik`;
-      }
-      
-      // Jika waktu saat ini 5 menit setelah result time
-      if (currentTime >= resultTime && currentTime <= resultTime + 300) {
-        // Jika result belum pernah diumumkan untuk pasaran ini
-        if (!lastResultState[pasaran.key] || lastResultState[pasaran.key] < now.getDate()) {
-          // Tandai result sudah diumumkan hari ini
-          lastResultState[pasaran.key] = now.getDate();
-          
-          // Tampilkan notifikasi
-          showResultNotification(pasaran.name);
+        // Fungsi untuk menginisialisasi dashboard
+        function initializeDashboard() {
+            populateTable();
+            setupEventListeners();
+            updateAllStatuses();
+            scheduleNextEvent();
+            setupAlarms();
         }
-      }
-    }
-  });
-}
 
-function showResultNotification(pasaranName) {
-  const notifModal = document.getElementById("notifModal");
-  const notifPasaran = document.getElementById("notifPasaran");
-  
-  notifPasaran.textContent = pasaranName;
-  notifModal.style.display = "flex";
-  
-  // Mainkan alarm jika diaktifkan
-  if (alarmEnabled) {
-    playAlarm();
-  }
-  
-  // Update UI untuk menunjukkan result tersedia
-  const resultIndicator = document.getElementById("resultIndicator");
-  resultIndicator.className = "result-indicator result-available";
-  resultIndicator.innerHTML = `<i class="fas fa-check-circle"></i> RESULT TERSEDIA`;
-  
-  // Tampilkan notifikasi browser jika didukung
-  if ("Notification" in window && Notification.permission === "granted") {
-    new Notification("🔔 RESULT TELAH KELUAR!", {
-      body: `Result untuk ${pasaranName} telah tersedia. Silakan periksa!`,
-      icon: "https://example.com/icon.png",
-      tag: "pasaran-result"
-    });
-  }
-}
+        // Mengisi tabel dengan data
+        function populateTable() {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            
+            togelData
+                .filter(item => {
+                    const matchesSearch = item.name.toLowerCase().includes(searchText);
+                    const matchesFilter = currentFilter === 'all' || 
+                                        (currentFilter === 'open' && isMarketOpen(item)) || 
+                                        (currentFilter === 'closed' && !isMarketOpen(item));
+                    return matchesSearch && matchesFilter;
+                })
+                .forEach(item => {
+                    const row = document.createElement('tr');
+                    const status = isMarketOpen(item) ? 'BUKA' : 'TUTUP';
+                    const statusClass = isMarketOpen(item) ? 'status-open' : 'status-closed';
+                    
+                    row.innerHTML = `
+                        <td>${item.name}</td>
+                        <td>${item.closeTime}</td>
+                        <td>${item.openTime}</td>
+                        <td class="${statusClass}">${status}</td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                });
+        }
 
-function closeNotif() {
-  document.getElementById("notifModal").style.display = "none";
-  stopAlarm();
-  simulatedMode = false;
-}
+        // Memeriksa apakah pasaran sedang buka
+        function isMarketOpen(market) {
+            const now = new Date();
+            const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            
+            // Jika waktu saat ini melewati waktu buka dan belum mencapai waktu tutup berikutnya
+            return currentTime >= market.openTime && currentTime < market.closeTime;
+        }
 
-// =============== UPDATE NEXT DRAW ===============
-function updateNextDraw() {
-  const now = new Date();
-  const currentSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+        // Mengatur event listeners
+        function setupEventListeners() {
+            // Pencarian
+            document.getElementById('searchInput').addEventListener('input', populateTable);
+            
+            // Filter
+            document.querySelectorAll('.filter-buttons button').forEach(button => {
+                button.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-buttons button').forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.getAttribute('data-filter');
+                    populateTable();
+                });
+            });
+            
+            // Sorting
+            document.querySelectorAll('th[data-sort]').forEach(header => {
+                header.addEventListener('click', function() {
+                    const column = this.getAttribute('data-sort');
+                    
+                    if (currentSort.column === column) {
+                        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        currentSort.column = column;
+                        currentSort.direction = 'asc';
+                    }
+                    
+                    sortTable(column, currentSort.direction);
+                    updateSortIndicators();
+                });
+            });
+        }
 
-  let next = null;
-  let minDiff = Infinity;
+        // Mengurutkan tabel
+        function sortTable(column, direction) {
+            togelData.sort((a, b) => {
+                let valueA, valueB;
+                
+                switch(column) {
+                    case 'name':
+                        valueA = a.name;
+                        valueB = b.name;
+                        break;
+                    case 'closeTime':
+                        valueA = convertTimeToMinutes(a.closeTime);
+                        valueB = convertTimeToMinutes(b.closeTime);
+                        break;
+                    case 'openTime':
+                        valueA = convertTimeToMinutes(a.openTime);
+                        valueB = convertTimeToMinutes(b.openTime);
+                        break;
+                    case 'status':
+                        valueA = isMarketOpen(a) ? 1 : 0;
+                        valueB = isMarketOpen(b) ? 1 : 0;
+                        break;
+                    default:
+                        valueA = a[column];
+                        valueB = b[column];
+                }
+                
+                if (valueA < valueB) return direction === 'asc' ? -1 : 1;
+                if (valueA > valueB) return direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+            
+            populateTable();
+        }
 
-  pasaranList
-    .filter(p => p.result !== "setiap jam")
-    .forEach(p => {
-      const [h, m] = p.result.split(':').map(Number);
-      const resultSec = h * 3600 + m * 60;
-      let diff = resultSec - currentSec;
-      if (diff < 0) diff += 86400;
+        // Mengonversi waktu ke menit untuk sorting
+        function convertTimeToMinutes(timeStr) {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
 
-      if (diff <极速赛车开奖结果
-        minDiff = diff;
-        next = p;
-      }
-    });
+        // Memperbarui indikator sorting
+        function updateSortIndicators() {
+            document.querySelectorAll('th[data-sort]').forEach(header => {
+                header.textContent = header.textContent.replace('⬆', '').replace('⬇', '');
+                header.textContent = header.textContent.replace('⬍', '');
+                
+                if (header.getAttribute('data-sort') === currentSort.column) {
+                    header.textContent += currentSort.direction === 'asc' ? ' ⬆' : ' ⬇';
+                } else {
+                    header.textContent += ' ⬍';
+                }
+            });
+        }
 
-  if (next) {
-    const h = Math.floor(minDiff / 3600);
-    const m = Math.floor((minDiff % 3600) / 60);
-    const s = minDiff % 60;
+        // Memperbarui semua status
+        function updateAllStatuses() {
+            populateTable();
+            
+            // Perbarui setiap menit
+            setTimeout(updateAllStatuses, 60000);
+        }
 
-    document.getElementById("nextName").textContent = next.name;
-    document.getElementById("nextTime").textContent = `RESULT: ${next.result} WIB`;
-    document.getElementById("countdown").textContent = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-    document.getElementById("nextDesc").textContent = next.desc;
-  }
-}
+        // Menjadwalkan event berikutnya
+        function scheduleNextEvent() {
+            const now = new Date();
+            const currentTime = now.getHours() * 60 + now.getMinutes();
+            
+            let nextEvent = null;
+            let minDiff = Infinity;
+            
+            // Cari event terdekat
+            togelData.forEach(market => {
+                const openTimeMinutes = convertTimeToMinutes(market.openTime);
+                let diff = openTimeMinutes - currentTime;
+                
+                // Jika sudah lewat, tambahkan 24 jam (1440 menit)
+                if (diff < 0) diff += 1440;
+                
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    nextEvent = market;
+                }
+            });
+            
+            if (nextEvent) {
+                const eventTime = new Date(now);
+                eventTime.setHours(Math.floor(convertTimeToMinutes(nextEvent.openTime) / 60));
+                eventTime.setMinutes(convertTimeToMinutes(nextEvent.openTime) % 60);
+                eventTime.setSeconds(0);
+                
+                // Jika waktu event sudah lewat hari ini, atur untuk besok
+                if (eventTime < now) {
+                    eventTime.setDate(eventTime.getDate() + 1);
+                }
+                
+                const timeDiff = eventTime - now;
+                
+                document.getElementById('nextEvent').textContent = 
+                    `Pasaran berikutnya: ${nextEvent.name} pada ${nextEvent.openTime}`;
+                
+                // Jika kurang dari 5 menit, highlight countdown
+                const countdownElement = document.getElementById('countdown');
+                if (minDiff <= 5) {
+                    countdownElement.classList.add('highlight');
+                } else {
+                    countdownElement.classList.remove('highlight');
+                }
+                
+                // Atur timeout untuk event berikutnya
+                if (nextEventTimeout) clearTimeout(nextEventTimeout);
+                nextEventTimeout = setTimeout(() => {
+                    showNotification(`Pasaran ${nextEvent.name} telah dibuka pada ${nextEvent.openTime}`);
+                    scheduleNextEvent();
+                }, timeDiff);
+            }
+        }
 
-// =============== INISIALISASI ===============
-window.addEventListener("load", () => {
-  updateNextDraw();
-  const last = localStorage.getItem("lastPasaran");
-  if (last) document.getElementById("pasaran").value = last;
-  
-  // Cek status audio
-  if (localStorage.getItem("audioUnlocked") === "true") {
-    audioUnlocked = true;
-    document.getElementById("audioControl").querySelector("i").className = "fas fa-volume-up";
-  } else {
-    audioUnlocked = false;
-    document.getElementById("audioControl").querySelector("i").className = "fas fa-volume-mute";
-  }
-  
-  // Cek status alarm
-  if (localStorage.getItem("alarmEnabled") !== "false") {
-    alarmEnabled = true;
-    document.getElementById("alarmControl").classList.add("alarm-active");
-    document.getElementById("alarmControl").querySelector("i").className = "fas fa-bell";
-    document.getElementById("alarmStatus").textContent = "ON";
-  } else {
-    alarmEnabled = false;
-    document.getElementById("alarmControl").classList.remove("alarm-active");
-    document.getElementById("alarmControl").querySelector("i").className = "fas fa-bell-slash";
-    document.getElementById("alarmStatus").textContent = "OFF";
-  }
-  
-  // Minta izin notifikasi
-  if ("Notification" in window && Notification.permission === "default") {
-    Notification.requestPermission();
-  }
-  
-  // Update countdown setiap detik
-  setInterval(updateNextDraw, 1000);
-  
-  // Cek result setiap 10 detik
-  resultCheckInterval = setInterval(checkIfResultAvailable, 10000);
-  
-  // Event listener untuk test alarm button
-  document.getElementById("testAlarmBtn").addEventListener("click", testAlarm);
-  
-  // Event listener untuk simulate result button
-  document.getElementById("simulateResultBtn").addEventListener("click", simulateResult);
-});
+        // Mengatur alarm untuk semua pasaran
+        function setupAlarms() {
+            togelData.forEach(market => {
+                // Hapus interval lama jika ada
+                if (alarmIntervals[market.name]) {
+                    clearInterval(alarmIntervals[market.name]);
+                }
+                
+                // Atur interval untuk memeriksa waktu result
+                alarmIntervals[market.name] = setInterval(() => {
+                    const now = new Date();
+                    const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+                    
+                    if (currentTime === market.openTime) {
+                        showNotification(`Pasaran ${market.name} telah dibuka pada ${market.openTime}`);
+                    }
+                }, 60000); // Periksa setiap menit
+            });
+        }
 
-// =============== NOTIFIKASI OTOMATIS ===============
-const notifModal = document.getElementById("notifModal");
+        // Menampilkan notifikasi
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notificationText');
+            const alarmSound = document.getElementById('alarmSound');
+            
+            notificationText.textContent = message;
+            notification.style.display = 'block';
+            
+            // Memainkan suara alarm
+            alarmSound.play();
+            
+            // Sembunyikan notifikasi setelah 5 detik
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
 
-notifModal.addEventListener("click", (e) => {
-  if (e.target === notifModal) {
-    notifModal.style.display = "none";
-    stopAlarm();
-    simulatedMode = false;
-  }
-});
-
-document.querySelector('.notif-box').addEventListener('click', e => e.stopPropagation());
-</script>
+        // Inisialisasi dashboard saat halaman dimuat
+        window.onload = initializeDashboard;
+    </script>
 </body>
 </html>
