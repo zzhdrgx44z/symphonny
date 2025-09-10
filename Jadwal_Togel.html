@@ -490,7 +490,7 @@ select:hover, select:focus {
   color: var(--text);
   padding: 15px 25px;
   border-radius: 12px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 5px极速赛车开奖结果
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -582,6 +582,19 @@ select:hover, select:focus {
     left: 15px;
   }
 }
+
+/* Debug Info */
+.debug-info {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(0,0,0,0.7);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  z-index: 1000;
+}
 </style>
 </head>
 <body>
@@ -616,6 +629,9 @@ select:hover, select:focus {
       <div class="next-desc" id="nextDesc">Menghitung pasaran berikutnya...</div>
       <button class="btn btn-alarm" id="testAlarmBtn">
         <i class="fas fa-bell"></i> TEST ALARM
+      </button>
+      <button class="btn" id="simulateResultBtn" style="background: var(--warning); color: var(--dark); margin-top: 10px;">
+        <i class="fas fa-wand-magic-sparkles"></i> SIMULASI RESULT
       </button>
     </div>
   </div>
@@ -716,6 +732,13 @@ select:hover, select:focus {
   </div>
 </div>
 
+<!-- Debug Info (untuk testing) -->
+<div class="debug-info" id="debugInfo">
+  Waktu: <span id="currentTime">00:00:00</span> | 
+  Result: <span id="nextResultTime">00:00</span> |
+  Status: <span id="debugStatus">Menunggu</span>
+</div>
+
 <script>
 // =============== VARIABEL GLOBAL ===============
 let audioUnlocked = false;
@@ -726,8 +749,8 @@ let resultCheckInterval;
 const soundCooldown = 300; // ms
 let lastResultState = {};
 let audioContext = null;
-let alarmInterval = null;
 let currentAlarm = null;
+let simulatedMode = false; // Mode simulasi untuk testing
 
 // =============== SOUND EFFECTS ===============
 const soundLibrary = {
@@ -754,7 +777,10 @@ function preloadAudio() {
 
 // =============== PLAY SOUND FUNCTION ===============
 function playSound(soundName, vol = 1) {
-  if (!audioUnlocked) return;
+  if (!audioUnlocked) {
+    console.log("Audio tidak di-unlock, tidak dapat memutar suara");
+    return;
+  }
   
   // Cooldown untuk mencegah spam suara
   const now = Date.now();
@@ -762,25 +788,36 @@ function playSound(soundName, vol = 1) {
   lastPlayedTime = now;
   
   if (audioCache[soundName]) {
-    const audio = audioCache[soundName].cloneNode();
-    audio.volume = globalVolume * vol;
-    
-    // Coba putar suara
-    const playPromise = audio.play();
-    
-    if (playPromise !== undefined) {
-      playPromise.catch(error => {
-        console.warn("Gagal memutar suara:", error);
-      });
+    try {
+      const audio = audioCache[soundName].cloneNode();
+      audio.volume = globalVolume * vol;
+      
+      // Coba putar suara
+      const playPromise = audio.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.warn("Gagal memutar suara:", error);
+        });
+      }
+      
+      return audio;
+    } catch (error) {
+      console.error("Error memutar suara:", error);
     }
-    
-    return audio;
   }
+  
+  return null;
 }
 
 // =============== PLAY ALARM FUNCTION ===============
 function playAlarm() {
-  if (!audioUnlocked || !alarmEnabled) return;
+  if (!audioUnlocked || !alarmEnabled) {
+    console.log("Alarm tidak dapat diputar: Audio=" + audioUnlocked + ", Alarm=" + alarmEnabled);
+    return;
+  }
+  
+  console.log("Memutar alarm result...");
   
   // Hentikan alarm sebelumnya jika masih berjalan
   stopAlarm();
@@ -788,7 +825,7 @@ function playAlarm() {
   // Putar suara alarm
   currentAlarm = playSound('alarm', 0.8);
   
-  // Jika alarm berhasil diputar, atur interval untuk mengulang
+  // Jika alarm berhasil diputar, atur untuk mengulang
   if (currentAlarm) {
     currentAlarm.onended = function() {
       // Ulang alarm setelah 3 detik
@@ -806,11 +843,6 @@ function stopAlarm() {
     currentAlarm.currentTime = 0;
     currentAlarm.onended = null;
     currentAlarm = null;
-  }
-  
-  if (alarmInterval) {
-    clearInterval(alarmInterval);
-    alarmInterval = null;
   }
 }
 
@@ -846,6 +878,13 @@ function testAlarm() {
   showToast("Menguji alarm result", "alarm");
 }
 
+// =============== SIMULASI RESULT ===============
+function simulateResult() {
+  simulatedMode = true;
+  showResultNotification("SIMULASI PASARAN");
+  showToast("Simulasi result dilakukan", "success");
+}
+
 // =============== SHOW TOAST NOTIFICATION ===============
 function showToast(message, type = "success") {
   // Hapus toast sebelumnya jika ada
@@ -879,22 +918,20 @@ function showToast(message, type = "success") {
 function enableAudio() {
   // Buat context audio untuk unlock
   try {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    
-    // Buat node oscillator sederhana untuk unlock
-    const oscillator = audioContext.createOscillator();
-    oscillator.connect(audioContext.destination);
-    oscillator.start();
-    oscillator.stop(audioContext.currentTime + 0.001);
-    
-    // Set status audio unlocked
-    audioUnlocked = true;
-    document.getElementById("audioControl").querySelector("i").className = "fas fa-volume-up";
-    localStorage.setItem("audioUnlocked", "true");
-    
-    // Mainkan suara konfirmasi
-    playSound('beep', 0.5);
-    showToast("Suara diaktifkan", "success");
+    // Coba unlock audio dengan memutar suara senyap
+    const silentAudio = new Audio("data:audio/wav;base64,UklGRnoAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAAABMYXZmNTguODkuMTAw");
+    silentAudio.play().then(() => {
+      audioUnlocked = true;
+      document.getElementById("audioControl").querySelector("i").className = "fas fa-volume-up";
+      localStorage.setItem("audioUnlocked", "true");
+      
+      // Mainkan suara konfirmasi
+      playSound('beep', 0.5);
+      showToast("Suara diaktifkan", "success");
+    }).catch(error => {
+      console.error("Gagal unlock audio:", error);
+      showToast("Gagal mengaktifkan suara", "error");
+    });
   } catch (error) {
     console.error("Gagal mengaktifkan audio:", error);
     showToast("Gagal mengaktifkan suara", "error");
@@ -1065,10 +1102,21 @@ function checkIfResultAvailable() {
   const now = new Date();
   const currentTime = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
   
+  // Update debug info
+  document.getElementById("currentTime").textContent = 
+    `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+  
   pasaranList.forEach(pasaran => {
     if (pasaran.result !== "setiap jam") {
       const [h, m] = pasaran.result.split(':').map(Number);
       const resultTime = h * 3600 + m * 60;
+      
+      // Update debug info untuk pasaran berikutnya
+      if (pasaran.key === "HONGKONG") {
+        document.getElementById("nextResultTime").textContent = pasaran.result;
+        document.getElementById("debugStatus").textContent = 
+          `Selisih: ${resultTime - currentTime} detik`;
+      }
       
       // Jika waktu saat ini 5 menit setelah result time
       if (currentTime >= resultTime && currentTime <= resultTime + 300) {
@@ -1119,6 +1167,7 @@ function closeNotif() {
   document.getElementById("notifModal").style.display = "none";
   playSound('click', 0.5);
   stopAlarm();
+  simulatedMode = false;
 }
 
 // =============== UPDATE NEXT DRAW ===============
@@ -1199,6 +1248,9 @@ window.addEventListener("load", () => {
   
   // Event listener untuk test alarm button
   document.getElementById("testAlarmBtn").addEventListener("click", testAlarm);
+  
+  // Event listener untuk simulate result button
+  document.getElementById("simulateResultBtn").addEventListener("click", simulateResult);
 });
 
 // =============== NOTIFIKASI OTOMATIS ===============
@@ -1209,6 +1261,7 @@ notifModal.addEventListener("click", (e) => {
     notifModal.style.display = "none";
     playSound('click', 0.5);
     stopAlarm();
+    simulatedMode = false;
   }
 });
 
