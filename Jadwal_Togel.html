@@ -649,6 +649,27 @@
             width: 100px;
             height: 100px;
         }
+
+        .sound-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            border: 1px solid var(--sharingan-red);
+        }
+
+        .sound-control i {
+            font-size: 1.5rem;
+            color: var(--sharingan-red);
+        }
     </style>
 </head>
 <body>
@@ -778,9 +799,9 @@
         </div>
     </div>
 
-    <audio id="alarmSound" loop>
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" type="audio/mpeg">
-    </audio>
+    <div class="sound-control" id="soundControl">
+        <i class="fas fa-volume-up"></i>
+    </div>
 
     <script>
         // Data pasaran togel
@@ -847,6 +868,7 @@
         let nextEventTimeout = null;
         let notifications = [];
         let activeAlarms = [];
+        let soundEnabled = true;
 
         // Fungsi untuk menginisialisasi dashboard
         function initializeDashboard() {
@@ -980,6 +1002,7 @@
             
             // Test alarm
             document.getElementById('testAlarm').addEventListener('click', function() {
+                playAlarmSound();
                 showAlarmModal("Test Alarm", "Ini adalah test alarm untuk memeriksa fungsi notifikasi Sharingan");
             });
             
@@ -992,25 +1015,62 @@
             // Tombol alarm modal
             document.getElementById('stopAlarm').addEventListener('click', function() {
                 document.getElementById('alarmModal').classList.remove('show');
-                document.getElementById('alarmSound').pause();
-                document.getElementById('alarmSound').currentTime = 0;
                 document.getElementById('sharinganNotification').classList.remove('show');
+                stopAlarmSound();
             });
             
             document.getElementById('snoozeAlarm').addEventListener('click', function() {
                 document.getElementById('alarmModal').classList.remove('show');
-                document.getElementById('alarmSound').pause();
-                document.getElementById('alarmSound').currentTime = 0;
                 document.getElementById('sharinganNotification').classList.remove('show');
+                stopAlarmSound();
                 
                 // Tampilkan notifikasi snooze
                 addNotification("Alarm Ditunda", "Alarm akan kembali berbunyi dalam 5 menit", "info");
                 
                 // Set timeout untuk membunyikan alarm lagi setelah 5 menit
                 setTimeout(() => {
+                    playAlarmSound();
                     showAlarmModal("Alarm Result", "Waktu result telah tiba! (Alarm yang ditunda)");
                 }, 5 * 60 * 1000);
             });
+            
+            // Kontrol suara
+            document.getElementById('soundControl').addEventListener('click', function() {
+                soundEnabled = !soundEnabled;
+                const icon = this.querySelector('i');
+                if (soundEnabled) {
+                    icon.className = 'fas fa-volume-up';
+                    this.title = 'Suara diaktifkan';
+                } else {
+                    icon.className = 'fas fa-volume-mute';
+                    this.title = 'Suara dimatikan';
+                }
+            });
+        }
+
+        // Memutar suara alarm
+        function playAlarmSound() {
+            if (!soundEnabled) return;
+            
+            try {
+                // Buat elemen audio secara dinamis
+                const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3');
+                audio.volume = 0.7;
+                audio.play().catch(e => console.log("Autoplay prevented: ", e));
+                
+                // Simpan referensi audio untuk dihentikan nanti
+                window.alarmAudio = audio;
+            } catch (error) {
+                console.error("Error playing alarm sound:", error);
+            }
+        }
+
+        // Menghentikan suara alarm
+        function stopAlarmSound() {
+            if (window.alarmAudio) {
+                window.alarmAudio.pause();
+                window.alarmAudio.currentTime = 0;
+            }
         }
 
         // Mengurutkan tabel
@@ -1133,6 +1193,7 @@
                 // Atur timeout untuk event berikutnya
                 if (nextEventTimeout) clearTimeout(nextEventTimeout);
                 nextEventTimeout = setTimeout(() => {
+                    playAlarmSound();
                     showAlarmModal(`Pasaran ${nextEvent.name} Dibuka`, `Waktu result untuk ${nextEvent.name} telah tiba pada ${nextEvent.openTime}`);
                     scheduleNextEvent();
                 }, timeDiff);
@@ -1156,6 +1217,7 @@
                     const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
                     
                     if (currentTime === market.openTime) {
+                        playAlarmSound();
                         showAlarmModal(`Pasaran ${market.name} Dibuka`, `Waktu result untuk ${market.name} telah tiba pada ${market.openTime}`);
                         
                         // Tambahkan ke daftar alarm aktif
@@ -1173,7 +1235,6 @@
         function showAlarmModal(title, message) {
             const alarmModal = document.getElementById('alarmModal');
             const alarmMessage = document.getElementById('alarmMessage');
-            const alarmSound = document.getElementById('alarmSound');
             const sharinganNotification = document.getElementById('sharinganNotification');
             const sharinganText = document.getElementById('sharinganText');
             
@@ -1181,9 +1242,6 @@
             alarmModal.classList.add('show');
             sharinganNotification.classList.add('show');
             sharinganText.textContent = title;
-            
-            // Memainkan suara alarm
-            alarmSound.play();
             
             // Tambahkan notifikasi
             addNotification(title, message, "important");
