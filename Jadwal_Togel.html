@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Togel - Notifikasi dengan Suara</title>
+    <title>Dashboard Togel - Notifikasi Modern</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -671,10 +671,6 @@
                 opacity: 0;
             }
         }
-
-        .audio-container {
-            display: none;
-        }
     </style>
 </head>
 <body>
@@ -788,16 +784,6 @@
 
     <div class="sound-control" id="soundControl">
         <i class="fas fa-volume-up"></i>
-    </div>
-
-    <!-- Audio Elements -->
-    <div class="audio-container">
-        <audio id="alarmSound" preload="auto">
-            <source src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" type="audio/mpeg">
-        </audio>
-        <audio id="notificationSound" preload="auto">
-            <source src="https://assets.mixkit.co/sfx/preview/mixkit-magic-sparkles-3001.mp3" type="audio/mpeg">
-        </audio>
     </div>
 
     <script>
@@ -953,7 +939,7 @@
                     
                     row.innerHTML = `
                         <td>${item.name}</td>
-                        <td>${item.closeTime</td>
+                        <td>${item.closeTime}</td>
                         <td>${item.openTime}</td>
                         <td><span class="status ${statusClass}"><i class="fas ${statusIcon}"></i> ${status}</span></td>
                     `;
@@ -1074,11 +1060,9 @@
                 const icon = this.querySelector('i');
                 if (soundEnabled) {
                     icon.className = 'fas fa-volume-up';
-                    playNotificationSound();
                     showNotification("Suara Diaktifkan", "Notifikasi suara sekarang aktif", "info");
                 } else {
                     icon.className = 'fas fa-volume-mute';
-                    playNotificationSound();
                     showNotification("Suara Dimatikan", "Notifikasi suara sekarang nonaktif", "info");
                 }
             });
@@ -1089,41 +1073,23 @@
             if (!soundEnabled) return;
             
             try {
-                const alarmSound = document.getElementById('alarmSound');
-                alarmSound.currentTime = 0;
-                alarmSound.play().catch(e => {
-                    console.log("Autoplay prevented: ", e);
-                    // Fallback: User interaction might be required
-                    showNotification("Interaksi Diperlukan", "Klik untuk mengaktifkan suara", "info");
-                });
+                // Buat elemen audio secara dinamis
+                const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3');
+                audio.volume = 0.7;
+                audio.play().catch(e => console.log("Autoplay prevented: ", e));
+                
+                // Simpan referensi audio untuk dihentikan nanti
+                window.alarmAudio = audio;
             } catch (error) {
                 console.error("Error playing alarm sound:", error);
             }
         }
 
-        // Memutar suara notifikasi
-        function playNotificationSound() {
-            if (!soundEnabled) return;
-            
-            try {
-                const notificationSound = document.getElementById('notificationSound');
-                notificationSound.currentTime = 0;
-                notificationSound.play().catch(e => {
-                    console.log("Autoplay prevented for notification: ", e);
-                });
-            } catch (error) {
-                console.error("Error playing notification sound:", error);
-            }
-        }
-
         // Menghentikan suara alarm
         function stopAlarmSound() {
-            try {
-                const alarmSound = document.getElementById('alarmSound');
-                alarmSound.pause();
-                alarmSound.currentTime = 0;
-            } catch (error) {
-                console.error("Error stopping alarm sound:", error);
+            if (window.alarmAudio) {
+                window.alarmAudio.pause();
+                window.alarmAudio.currentTime = 0;
             }
         }
 
@@ -1317,9 +1283,6 @@
             }
             
             toast.classList.add('show');
-            
-            // Putar suara notifikasi
-            playNotificationSound();
             
             // Tambahkan ke daftar notifikasi
             addNotification(title, message, type);
