@@ -3,210 +3,637 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Result Togel</title>
+    <title>Dashboard Result Togel - Live Alarm</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #1e293b;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --card-bg: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
-            background-color: #f5f5f5;
+            background: linear-gradient(135deg, var(--dark), var(--secondary));
+            color: var(--text-primary);
+            min-height: 100vh;
             padding: 20px;
         }
-        
+
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
         }
-        
+
         header {
             text-align: center;
-            margin-bottom: 20px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         h1 {
-            color: #333;
+            font-size: 2.5rem;
             margin-bottom: 10px;
+            background: linear-gradient(90deg, var(--accent), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
         }
-        
+
+        .current-time {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-top: 10px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+        }
+
+        @media (max-width: 992px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
         .controls {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 15px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.6);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
             flex-wrap: wrap;
         }
-        
-        .search-box {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            width: 300px;
-        }
-        
+
         .filter-buttons button {
             padding: 10px 15px;
-            margin-left: 5px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
-            background-color: #f0f0f0;
+            background: rgba(15, 23, 42, 0.6);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
-        
+
+        .filter-buttons button:hover {
+            background: var(--primary);
+        }
+
         .filter-buttons button.active {
-            background-color: #4CAF50;
-            color: white;
+            background: var(--primary);
         }
-        
+
+        .countdown-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 20px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .countdown-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
         .countdown {
-            text-align: center;
-            padding: 15px;
-            margin-bottom: 20px;
-            background-color: #f8f9fa;
-            border-radius: 5px;
-            font-size: 1.2em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary), #1e40af);
+            border-radius: 12px;
+            font-size: 1.5rem;
+            font-weight: bold;
         }
-        
+
         .countdown.highlight {
-            background-color: #ffeb3b;
-            animation: pulse 1s infinite;
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.7);
         }
-        
-        @keyframes pulse {
-            0% { background-color: #ffeb3b; }
-            50% { background-color: #ffc107; }
-            100% { background-color: #ffeb3b; }
+
+        .countdown-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        
+
+        .countdown-value {
+            font-size: 2.5rem;
+            line-height: 1;
+        }
+
+        .countdown-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .next-event {
+            text-align: center;
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+
         .table-container {
             overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
         }
-        
+
         table {
             width: 100%;
             border-collapse: collapse;
+            background: var(--card-bg);
         }
-        
+
         th, td {
-            padding: 12px 15px;
+            padding: 16px 20px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         th {
-            background-color: #f8f9fa;
+            background: rgba(15, 23, 42, 0.6);
+            cursor: pointer;
             position: sticky;
             top: 0;
-            cursor: pointer;
+            user-select: none;
         }
-        
+
+        th:hover {
+            background: rgba(37, 99, 235, 0.3);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
         tr:hover {
-            background-color: #f5f5f5;
+            background: rgba(37, 99, 235, 0.1);
         }
-        
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
         .status-open {
-            color: #4CAF50;
-            font-weight: bold;
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
         }
-        
+
         .status-closed {
-            color: #f44336;
-            font-weight: bold;
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
         }
-        
-        .notification {
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .alarm-panel {
+            padding: 20px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .alarm-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .alarm-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .alarm-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 8px;
+        }
+
+        .alarm-time {
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .alarm-active {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--success);
+        }
+
+        .alarm-inactive {
+            color: var(--text-secondary);
+        }
+
+        .notification-area {
+            padding: 20px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .notification-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 12px 15px;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .notification-time {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .notification-message {
+            font-size: 0.95rem;
+        }
+
+        .notification-important {
+            border-left-color: var(--accent);
+        }
+
+        /* Notification Toast */
+        .notification-toast {
             position: fixed;
             top: 20px;
             right: 20px;
-            padding: 15px;
-            background-color: #4CAF50;
+            padding: 15px 20px;
+            background: var(--card-bg);
             color: white;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            display: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 15px;
             z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.5s ease;
+            border-left: 4px solid var(--accent);
         }
-        
-        .audio-notification {
-            display: none;
+
+        .notification-toast.show {
+            transform: translateX(0);
         }
-        
-        @media (max-width: 768px) {
-            .controls {
-                flex-direction: column;
-            }
-            
-            .search-box {
-                width: 100%;
-                margin-bottom: 10px;
-            }
-            
-            .filter-buttons {
-                width: 100%;
-                display: flex;
-                justify-content: space-between;
-            }
-            
-            .filter-buttons button {
-                flex: 1;
-                margin: 0 2px;
-            }
+
+        .notification-toast i {
+            font-size: 1.5rem;
+            color: var(--accent);
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-toast h4 {
+            margin-bottom: 5px;
+            color: var(--accent);
+        }
+
+        .notification-toast p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .close-notification {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        /* Alarm modal */
+        .alarm-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .alarm-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .alarm-content {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 0 30px rgba(245, 158, 11, 0.5);
+            animation: alarmPulse 2s infinite;
+            border: 2px solid var(--accent);
+        }
+
+        .alarm-content h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+
+        .alarm-content p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .alarm-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .alarm-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .stop-alarm {
+            background: var(--danger);
+            color: white;
+        }
+
+        .stop-alarm:hover {
+            background: #dc2626;
+        }
+
+        .snooze-alarm {
+            background: var(--primary);
+            color: white;
+        }
+
+        .snooze-alarm:hover {
+            background: #1d4ed8;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(245, 158, 11, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+
+        @keyframes alarmPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .highlight-text {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #1d4ed8;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Dashboard Result Togel</h1>
+            <h1><i class="fas fa-alarm-clock"></i> Dashboard Result Togel</h1>
             <p>Pantau jadwal result togel dan dapatkan notifikasi ketika waktu result tiba</p>
+            <div class="current-time" id="currentTime">Loading waktu...</div>
         </header>
-        
-        <div class="controls">
-            <input type="text" class="search-box" placeholder="Cari pasaran togel..." id="searchInput">
-            <div class="filter-buttons">
-                <button class="active" data-filter="all">Semua</button>
-                <button data-filter="open">Buka</button>
-                <button data-filter="closed">Tutup</button>
+
+        <div class="dashboard">
+            <div class="main-content">
+                <div class="controls">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Cari pasaran togel...">
+                    </div>
+                    <div class="filter-buttons">
+                        <button class="active" data-filter="all"><i class="fas fa-list"></i> Semua</button>
+                        <button data-filter="open"><i class="fas fa-door-open"></i> Buka</button>
+                        <button data-filter="closed"><i class="fas fa-door-closed"></i> Tutup</button>
+                    </div>
+                </div>
+
+                <div class="countdown-container">
+                    <div class="countdown-header">
+                        <h2><i class="fas fa-fire"></i> Countdown Result Berikutnya</h2>
+                        <span class="highlight-text" id="nextEventTime">00:00:00</span>
+                    </div>
+                    <div class="countdown" id="countdown">
+                        <div class="countdown-item">
+                            <span class="countdown-value" id="countdownHours">00</span>
+                            <span class="countdown-label">Jam</span>
+                        </div>
+                        <div class="countdown-item">
+                            <span class="countdown-value" id="countdownMinutes">00</span>
+                            <span class="countdown-label">Menit</span>
+                        </div>
+                        <div class="countdown-item">
+                            <span class="countdown-value" id="countdownSeconds">00</span>
+                            <span class="countdown-label">Detik</span>
+                        </div>
+                    </div>
+                    <div class="next-event" id="nextEvent">Menghitung pasaran berikutnya...</div>
+                </div>
+
+                <div class="table-container">
+                    <table id="resultTable">
+                        <thead>
+                            <tr>
+                                <th data-sort="name">Nama Pasaran <i class="fas fa-sort"></i></th>
+                                <th data-sort="closeTime">Tutup <i class="fas fa-sort"></i></th>
+                                <th data-sort="openTime">Buka <i class="fas fa-sort"></i></th>
+                                <th data-sort="status">Status <i class="fas fa-sort"></i></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Data akan diisi oleh JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="alarm-panel">
+                    <div class="alarm-header">
+                        <h2><i class="fas fa-bell"></i> Alarm Aktif</h2>
+                        <button id="testAlarm" class="highlight-text"><i class="fas fa-volume-up"></i> Test Alarm</button>
+                    </div>
+                    <div class="alarm-list" id="alarmList">
+                        <!-- Daftar alarm akan diisi oleh JavaScript -->
+                    </div>
+                </div>
+
+                <div class="notification-area">
+                    <div class="notification-header">
+                        <h2><i class="fas fa-history"></i> Riwayat Notifikasi</h2>
+                        <button id="clearNotifications" class="highlight-text"><i class="fas fa-trash"></i> Hapus</button>
+                    </div>
+                    <div class="notification-list" id="notificationList">
+                        <!-- Notifikasi akan diisi oleh JavaScript -->
+                    </div>
+                </div>
             </div>
         </div>
-        
-        <div class="countdown" id="countdown">
-            <span id="nextEvent">Menghitung pasaran berikutnya...</span>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="notification-toast" id="notificationToast">
+        <i class="fas fa-bell"></i>
+        <div class="notification-content">
+            <h4 id="toastTitle">Pemberitahuan</h4>
+            <p id="toastMessage">Pesan notifikasi</p>
         </div>
-        
-        <div class="table-container">
-            <table id="resultTable">
-                <thead>
-                    <tr>
-                        <th data-sort="name">Nama Pasaran ⬍</th>
-                        <th data-sort="closeTime">Tutup ⬍</th>
-                        <th data-sort="openTime">Buka ⬍</th>
-                        <th data-sort="status">Status ⬍</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <!-- Data akan diisi oleh JavaScript -->
-                </tbody>
-            </table>
+        <button class="close-notification" id="closeToast">&times;</button>
+    </div>
+
+    <!-- Alarm Modal -->
+    <div class="alarm-modal" id="alarmModal">
+        <div class="alarm-content">
+            <h2><i class="fas fa-bell"></i> Alarm Result Togel</h2>
+            <p id="alarmMessage">Waktu result telah tiba!</p>
+            <div class="alarm-buttons">
+                <button class="stop-alarm" id="stopAlarm"><i class="fas fa-stop"></i> Berhenti</button>
+                <button class="snooze-alarm" id="snoozeAlarm"><i class="fas fa-clock"></i> Tunda 5 Menit</button>
+            </div>
         </div>
     </div>
-    
-    <div class="notification" id="notification">
-        <span id="notificationText"></span>
-    </div>
-    
-    <audio id="alarmSound" class="audio-notification">
+
+    <audio id="alarmSound" loop>
         <source src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" type="audio/mpeg">
     </audio>
-    
+
     <script>
         // Data pasaran togel
         const togelData = [
@@ -270,14 +697,36 @@
         let currentFilter = 'all';
         let alarmIntervals = {};
         let nextEventTimeout = null;
+        let notifications = [];
+        let activeAlarms = [];
 
         // Fungsi untuk menginisialisasi dashboard
         function initializeDashboard() {
+            updateCurrentTime();
             populateTable();
+            updateAlarmList();
             setupEventListeners();
             updateAllStatuses();
             scheduleNextEvent();
             setupAlarms();
+            
+            // Update waktu setiap detik
+            setInterval(updateCurrentTime, 1000);
+        }
+
+        // Memperbarui waktu saat ini
+        function updateCurrentTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            document.getElementById('currentTime').textContent = now.toLocaleDateString('id-ID', options);
         }
 
         // Mengisi tabel dengan data
@@ -299,16 +748,45 @@
                     const row = document.createElement('tr');
                     const status = isMarketOpen(item) ? 'BUKA' : 'TUTUP';
                     const statusClass = isMarketOpen(item) ? 'status-open' : 'status-closed';
+                    const statusIcon = isMarketOpen(item) ? 'fa-door-open' : 'fa-door-closed';
                     
                     row.innerHTML = `
                         <td>${item.name}</td>
                         <td>${item.closeTime}</td>
                         <td>${item.openTime}</td>
-                        <td class="${statusClass}">${status}</td>
+                        <td><span class="status ${statusClass}"><i class="fas ${statusIcon}"></i> ${status}</span></td>
                     `;
                     
                     tableBody.appendChild(row);
                 });
+        }
+
+        // Memperbarui daftar alarm
+        function updateAlarmList() {
+            const alarmList = document.getElementById('alarmList');
+            alarmList.innerHTML = '';
+            
+            togelData.forEach(market => {
+                const alarmItem = document.createElement('div');
+                alarmItem.className = 'alarm-item';
+                
+                const isActive = isAlarmActive(market.name);
+                const statusClass = isActive ? 'alarm-active' : 'alarm-inactive';
+                const statusIcon = isActive ? 'fa-bell' : 'fa-bell-slash';
+                
+                alarmItem.innerHTML = `
+                    <div>${market.name}</div>
+                    <div class="alarm-time">${market.openTime}</div>
+                    <div class="${statusClass}"><i class="fas ${statusIcon}"></i> ${isActive ? 'Aktif' : 'Nonaktif'}</div>
+                `;
+                
+                alarmList.appendChild(alarmItem);
+            });
+        }
+
+        // Memeriksa apakah alarm aktif untuk pasaran tertentu
+        function isAlarmActive(marketName) {
+            return activeAlarms.includes(marketName);
         }
 
         // Memeriksa apakah pasaran sedang buka
@@ -350,6 +828,43 @@
                     sortTable(column, currentSort.direction);
                     updateSortIndicators();
                 });
+            });
+            
+            // Test alarm
+            document.getElementById('testAlarm').addEventListener('click', function() {
+                showAlarmModal("Test Alarm", "Ini adalah test alarm untuk memeriksa fungsi notifikasi");
+            });
+            
+            // Hapus notifikasi
+            document.getElementById('clearNotifications').addEventListener('click', function() {
+                notifications = [];
+                updateNotificationList();
+            });
+            
+            // Tutup notifikasi toast
+            document.getElementById('closeToast').addEventListener('click', function() {
+                document.getElementById('notificationToast').classList.remove('show');
+            });
+            
+            // Tombol alarm modal
+            document.getElementById('stopAlarm').addEventListener('click', function() {
+                document.getElementById('alarmModal').classList.remove('show');
+                document.getElementById('alarmSound').pause();
+                document.getElementById('alarmSound').currentTime = 0;
+            });
+            
+            document.getElementById('snoozeAlarm').addEventListener('click', function() {
+                document.getElementById('alarmModal').classList.remove('show');
+                document.getElementById('alarmSound').pause();
+                document.getElementById('alarmSound').currentTime = 0;
+                
+                // Tampilkan notifikasi snooze
+                showNotification("Alarm Ditunda", "Alarm akan kembali berbunyi dalam 5 menit", "info");
+                
+                // Set timeout untuk membunyikan alarm lagi setelah 5 menit
+                setTimeout(() => {
+                    showAlarmModal("Alarm Result", "Waktu result telah tiba! (Alarm yang ditunda)");
+                }, 5 * 60 * 1000);
             });
         }
 
@@ -397,13 +912,11 @@
         // Memperbarui indikator sorting
         function updateSortIndicators() {
             document.querySelectorAll('th[data-sort]').forEach(header => {
-                header.textContent = header.textContent.replace('⬆', '').replace('⬇', '');
-                header.textContent = header.textContent.replace('⬍', '');
+                // Hapus semua indikator
+                header.querySelector('i').className = 'fas fa-sort';
                 
                 if (header.getAttribute('data-sort') === currentSort.column) {
-                    header.textContent += currentSort.direction === 'asc' ? ' ⬆' : ' ⬇';
-                } else {
-                    header.textContent += ' ⬍';
+                    header.querySelector('i').className = currentSort.direction === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
                 }
             });
         }
@@ -450,13 +963,23 @@
                 }
                 
                 const timeDiff = eventTime - now;
+                const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+                const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
                 
-                document.getElementById('nextEvent').textContent = 
-                    `Pasaran berikutnya: ${nextEvent.name} pada ${nextEvent.openTime}`;
+                // Update countdown display
+                document.getElementById('countdownHours').textContent = hours.toString().padStart(2, '0');
+                document.getElementById('countdownMinutes').textContent = minutes.toString().padStart(2, '0');
+                document.getElementById('countdownSeconds').textContent = seconds.toString().padStart(2, '0');
                 
-                // Jika kurang dari 5 menit, highlight countdown
+                document.getElementById('nextEvent').innerHTML = 
+                    `Pasaran berikutnya: <span class="highlight-text">${nextEvent.name}</span> pada <span class="highlight-text">${nextEvent.openTime}</span>`;
+                
+                document.getElementById('nextEventTime').textContent = `${nextEvent.openTime}`;
+                
+                // Jika kurang dari 10 menit, highlight countdown
                 const countdownElement = document.getElementById('countdown');
-                if (minDiff <= 5) {
+                if (minDiff <= 10) {
                     countdownElement.classList.add('highlight');
                 } else {
                     countdownElement.classList.remove('highlight');
@@ -465,9 +988,12 @@
                 // Atur timeout untuk event berikutnya
                 if (nextEventTimeout) clearTimeout(nextEventTimeout);
                 nextEventTimeout = setTimeout(() => {
-                    showNotification(`Pasaran ${nextEvent.name} telah dibuka pada ${nextEvent.openTime}`);
+                    showAlarmModal(`Pasaran ${nextEvent.name} Dibuka`, `Waktu result untuk ${nextEvent.name} telah tiba pada ${nextEvent.openTime}`);
                     scheduleNextEvent();
                 }, timeDiff);
+                
+                // Perbarui countdown setiap detik
+                setTimeout(scheduleNextEvent, 1000);
             }
         }
 
@@ -485,27 +1011,103 @@
                     const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
                     
                     if (currentTime === market.openTime) {
-                        showNotification(`Pasaran ${market.name} telah dibuka pada ${market.openTime}`);
+                        showAlarmModal(`Pasaran ${market.name} Dibuka`, `Waktu result untuk ${market.name} telah tiba pada ${market.openTime}`);
+                        
+                        // Tambahkan ke daftar alarm aktif
+                        if (!activeAlarms.includes(market.name)) {
+                            activeAlarms.push(market.name);
+                        }
+                        
+                        updateAlarmList();
                     }
                 }, 60000); // Periksa setiap menit
             });
         }
 
-        // Menampilkan notifikasi
-        function showNotification(message) {
-            const notification = document.getElementById('notification');
-            const notificationText = document.getElementById('notificationText');
+        // Menampilkan modal alarm
+        function showAlarmModal(title, message) {
+            const alarmModal = document.getElementById('alarmModal');
+            const alarmMessage = document.getElementById('alarmMessage');
             const alarmSound = document.getElementById('alarmSound');
             
-            notificationText.textContent = message;
-            notification.style.display = 'block';
+            alarmMessage.textContent = message;
+            alarmModal.classList.add('show');
             
             // Memainkan suara alarm
             alarmSound.play();
             
+            // Tambahkan notifikasi
+            addNotification(title, message, "important");
+        }
+
+        // Menambahkan notifikasi
+        function addNotification(title, message, type = "info") {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('id-ID');
+            
+            notifications.unshift({
+                title,
+                message,
+                time: timeString,
+                type
+            });
+            
+            // Batasi jumlah notifikasi
+            if (notifications.length > 20) {
+                notifications.pop();
+            }
+            
+            updateNotificationList();
+            
+            // Tampilkan toast notifikasi
+            showNotification(title, message, type);
+        }
+
+        // Memperbarui daftar notifikasi
+        function updateNotificationList() {
+            const notificationList = document.getElementById('notificationList');
+            notificationList.innerHTML = '';
+            
+            notifications.forEach(notification => {
+                const notificationItem = document.createElement('div');
+                notificationItem.className = `notification-item ${notification.type === 'important' ? 'notification-important' : ''}`;
+                
+                notificationItem.innerHTML = `
+                    <div class="notification-time">${notification.time}</div>
+                    <div class="notification-message">
+                        <strong>${notification.title}</strong><br>
+                        ${notification.message}
+                    </div>
+                `;
+                
+                notificationList.appendChild(notificationItem);
+            });
+        }
+
+        // Menampilkan notifikasi toast
+        function showNotification(title, message, type = "info") {
+            const toast = document.getElementById('notificationToast');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = toast.querySelector('i');
+            
+            toastTitle.textContent = title;
+            toastMessage.textContent = message;
+            
+            // Atur ikon berdasarkan jenis notifikasi
+            if (type === "important") {
+                toastIcon.className = "fas fa-bell";
+                toast.style.borderLeftColor = "var(--accent)";
+            } else {
+                toastIcon.className = "fas fa-info-circle";
+                toast.style.borderLeftColor = "var(--primary)";
+            }
+            
+            toast.classList.add('show');
+            
             // Sembunyikan notifikasi setelah 5 detik
             setTimeout(() => {
-                notification.style.display = 'none';
+                toast.classList.remove('show');
             }, 5000);
         }
 
