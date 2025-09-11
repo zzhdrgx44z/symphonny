@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TOTO Macau - Dashboard Animasi</title>
+    <title>TOTO Macau - Dashboard Animasi dengan Pencarian</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
@@ -182,6 +182,61 @@
             }
         }
         
+        /* SEARCH STYLES */
+        .search-container {
+            margin: 25px 0;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .search-box {
+            display: flex;
+            max-width: 500px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 50px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+        }
+        
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .search-button {
+            padding: 15px 25px;
+            border: none;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .search-button:hover {
+            background: linear-gradient(90deg, var(--accent2), var(--accent));
+        }
+        
+        .search-results {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: var(--accent2);
+        }
+        
         /* BUTTON CONTROLS */
         .controls {
             display: flex;
@@ -292,6 +347,11 @@
             background: rgba(231, 76, 60, 0.2);
         }
         
+        .schedule-card.highlight {
+            animation: highlight 1.5s ease-in-out infinite;
+            box-shadow: 0 0 25px var(--accent);
+        }
+        
         @keyframes pulseCard {
             0% {
                 box-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
@@ -301,6 +361,17 @@
             }
             100% {
                 box-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
+            }
+        }
+        
+        @keyframes highlight {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 15px var(--accent);
+            }
+            50% {
+                transform: scale(1.02);
+                box-shadow: 0 0 30px var(--accent);
             }
         }
         
@@ -547,7 +618,7 @@
             padding: 30px;
             background: var(--card-bg);
             border-radius: 20px;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px;
             box-shadow: var(--glow);
             border: 1px solid rgba(255, 255, 255, 0.1);
             animation: fadeIn 1.5s ease-out;
@@ -644,6 +715,49 @@
                 margin-top: 8px;
                 align-self: flex-end;
             }
+            
+            .search-box {
+                flex-direction: column;
+                border-radius: 20px;
+            }
+            
+            .search-input {
+                width: 100%;
+                border-radius: 20px 20px 0 0;
+            }
+            
+            .search-button {
+                border-radius: 0 0 20px 20px;
+                justify-content: center;
+            }
+        }
+        
+        /* NO RESULTS MESSAGE */
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--glow);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .no-results i {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+        
+        .no-results h2 {
+            margin-bottom: 15px;
+            color: var(--accent2);
+        }
+        
+        .no-results p {
+            margin-bottom: 20px;
+            opacity: 0.8;
         }
     </style>
 </head>
@@ -663,6 +777,18 @@
         <!-- HEADER SECTION -->
         <header>
             <h1><i class="fas fa-dice"></i> TOTO MACAU ULTRA <i class="fas fa-dice"></i></h1>
+            
+            <!-- SEARCH BOX -->
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" id="search-input" class="search-input" placeholder="Cari pasaran...">
+                    <button class="search-button" id="search-btn">
+                        <i class="fas fa-search"></i> Cari
+                    </button>
+                </div>
+            </div>
+            <div class="search-results" id="search-results"></div>
+            
             <div class="clock" id="live-clock">00:00:00</div>
             <p>Dashboard Canggih dengan Animasi Spektakuler untuk Melacak Result</p>
             
@@ -709,8 +835,8 @@
         const scheduleData = [
             { 
                 pasaran: "TOTO MACAU PAGI", 
-                jamResult: "00:00", 
-                jamAlarm: "00:15",
+                jamResult: "13:00", 
+                jamAlarm: "13:15",
                 links: [
                     { type: "website", url: "http://totomacau-pools.us/", text: "Website Resmi" },
                     { type: "streaming", url: "https://kick.com/live-ttm4d", text: "Live Streaming" }
@@ -718,16 +844,16 @@
             },
             { 
                 pasaran: "KENTUCKY MIDDAY", 
-                jamResult: "00:05", 
-                jamAlarm: "00:20",
+                jamResult: "13:05", 
+                jamAlarm: "13:20",
                 links: [
                     { type: "website", url: "https://www.kylottery.com/apps/draw_games/pick4/", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "FLORIDA MIDDAY", 
-                jamResult: "00:20", 
-                jamAlarm: "00:30",
+                jamResult: "13:20", 
+                jamAlarm: "13:30",
                 links: [
                     { type: "website", url: "https://floridalottery.com/games/draw-games/pick-4", text: "Website Resmi" },
                     { type: "streaming", url: "https://www.youtube.com/user/floridalottery", text: "YouTube Streaming" }
@@ -735,8 +861,8 @@
             },
             { 
                 pasaran: "HUAHIN 0100", 
-                jamResult: "00:45", 
-                jamAlarm: "01:00",
+                jamResult: "13:45", 
+                jamAlarm: "14:00",
                 links: [
                     { type: "website", url: "https://huahinlottery.com/", text: "Website Resmi" },
                     { type: "streaming", url: "https://www.youtube.com/@huahinlottery5727", text: "YouTube Streaming" }
@@ -744,16 +870,16 @@
             },
             { 
                 pasaran: "BANGKOK 0130", 
-                jamResult: "01:15", 
-                jamAlarm: "01:30",
+                jamResult: "14:15", 
+                jamAlarm: "14:30",
                 links: [
                     { type: "website", url: "https://bangkokpoolstoday.com/", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "NEW YORK MIDDAY", 
-                jamResult: "01:15", 
-                jamAlarm: "01:25",
+                jamResult: "14:15", 
+                jamAlarm: "14:25",
                 links: [
                     { type: "website", url: "https://nylottery.ny.gov/draw-game?game=win4", text: "Website Resmi" },
                     { type: "streaming", url: "https://www.youtube.com/user/NewYorkLottery", text: "YouTube Streaming" }
@@ -761,48 +887,48 @@
             },
             { 
                 pasaran: "NORTH CAROLINA DAY", 
-                jamResult: "01:45", 
-                jamAlarm: "02:00",
+                jamResult: "14:45", 
+                jamAlarm: "15:00",
                 links: [
                     { type: "website", url: "https://www.wral.com/entertainment/lottery/", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "BRUNEI 02", 
-                jamResult: "02:30", 
-                jamAlarm: "02:45",
+                jamResult: "15:30", 
+                jamAlarm: "15:45",
                 links: [
                     { type: "website", url: "https://bruneipools.com/live-draw.html", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "OREGON 03", 
-                jamResult: "02:50", 
-                jamAlarm: "03:00",
+                jamResult: "15:50", 
+                jamAlarm: "16:00",
                 links: [
                     { type: "website", url: "https://www.oregonlottery.org/pick-4/winning-numbers/", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "OREGON 06", 
-                jamResult: "05:50", 
-                jamAlarm: "06:00",
+                jamResult: "18:50", 
+                jamAlarm: "19:00",
                 links: [
                     { type: "website", url: "https://www.oregonlottery.org/pick-4/winning-numbers/", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "CALIFORNIA", 
-                jamResult: "08:25", 
-                jamAlarm: "08:30",
+                jamResult: "21:25", 
+                jamAlarm: "21:30",
                 links: [
                     { type: "website", url: "http://www.calottery.com/play/draw-games/daily-4", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "FLORIDA EVENING", 
-                jamResult: "08:35", 
-                jamAlarm: "08:45",
+                jamResult: "21:35", 
+                jamAlarm: "21:45",
                 links: [
                     { type: "website", url: "https://floridalottery.com/games/draw-games/pick-4", text: "Website Resmi" },
                     { type: "streaming", url: "https://www.youtube.com/user/floridalottery", text: "YouTube Streaming" }
@@ -810,24 +936,24 @@
             },
             { 
                 pasaran: "OREGON 09", 
-                jamResult: "08:50", 
-                jamAlarm: "09:00",
+                jamResult: "21:50", 
+                jamAlarm: "22:00",
                 links: [
                     { type: "website", url: "https://www.oregonlottery.org/pick-4/winning-numbers/", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "BANGKOK 0930", 
-                jamResult: "09:15", 
-                jamAlarm: "09:30",
+                jamResult: "22:15", 
+                jamAlarm: "22:30",
                 links: [
                     { type: "website", url: "https://bangkokpoolstoday.com/", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "NEW YORK EVENING", 
-                jamResult: "09:25", 
-                jamAlarm: "09:35",
+                jamResult: "22:25", 
+                jamAlarm: "22:35",
                 links: [
                     { type: "website", url: "https://nylottery.ny.gov/draw-game?game=win4", text: "Website Resmi" },
                     { type: "streaming", url: "https://www.youtube.com/user/NewYorkLottery", text: "YouTube Streaming" }
@@ -835,24 +961,24 @@
             },
             { 
                 pasaran: "KENTUCKY EVENING", 
-                jamResult: "09:45", 
-                jamAlarm: "10:00",
+                jamResult: "22:45", 
+                jamAlarm: "23:00",
                 links: [
                     { type: "website", url: "https://www.kylottery.com/apps/draw_games/pick4/", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "CAROLINA EVENING", 
-                jamResult: "10:17", 
-                jamAlarm: "10:22",
+                jamResult: "23:17", 
+                jamAlarm: "23:22",
                 links: [
                     { type: "website", url: "http://www.wral.com/news/video/1075494/", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "TOTO CAMBODIA", 
-                jamResult: "10:45", 
-                jamAlarm: "11:00",
+                jamResult: "23:45", 
+                jamAlarm: "00:00",
                 links: [
                     { type: "website", url: "https://totocambodialive.com/", text: "Website Resmi" },
                     { type: "streaming", url: "https://www.youtube.com/@TotoCambodiaOfficial", text: "YouTube Streaming" }
@@ -860,32 +986,32 @@
             },
             { 
                 pasaran: "CHELSEA 11", 
-                jamResult: "11:00", 
-                jamAlarm: "11:15",
+                jamResult: "00:00", 
+                jamAlarm: "00:15",
                 links: [
                     { type: "website", url: "https://chelseapools.co.uk/", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "OREGON 12", 
-                jamResult: "11:50", 
-                jamAlarm: "12:00",
+                jamResult: "00:50", 
+                jamAlarm: "01:00",
                 links: [
                     { type: "website", url: "https://www.oregonlottery.org/pick-4/winning-numbers/", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "BULLSEYE", 
-                jamResult: "13:00", 
-                jamAlarm: "13:15",
+                jamResult: "02:00", 
+                jamAlarm: "02:15",
                 links: [
                     { type: "website", url: "https://mylotto.co.nz/results/bullseye", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "POIPET 12", 
-                jamResult: "12:15", 
-                jamAlarm: "12:30",
+                jamResult: "02:15", 
+                jamAlarm: "02:30",
                 links: [
                     { type: "website", url: "https://poipetlottery.com/result", text: "Website Resmi" },
                     { type: "streaming", url: "https://www.youtube.com/@poipetlottery70/featured", text: "YouTube Streaming" }
@@ -893,8 +1019,8 @@
             },
             { 
                 pasaran: "TOTO MACAU SIANG", 
-                jamResult: "13:00", 
-                jamAlarm: "13:15",
+                jamResult: "02:00", 
+                jamAlarm: "02:15",
                 links: [
                     { type: "website", url: "http://totomacau-pools.us/", text: "Website Resmi" },
                     { type: "streaming", url: "https://kick.com/live-ttm4d", text: "Live Streaming" }
@@ -902,8 +1028,8 @@
             },
             { 
                 pasaran: "SYDNEY", 
-                jamResult: "13:49", 
-                jamAlarm: "14:05",
+                jamResult: "02:49", 
+                jamAlarm: "03:05",
                 links: [
                     { type: "website", url: "https://sydneylottobaru.site/", text: "Website Resmi" },
                     { type: "streaming", url: "https://kick.com/sydney-lotto-official", text: "Live Streaming" }
@@ -911,8 +1037,8 @@
             },
             { 
                 pasaran: "JAKARTA 1400", 
-                jamResult: "13:55", 
-                jamAlarm: "14:10",
+                jamResult: "02:55", 
+                jamAlarm: "03:10",
                 links: [
                     { type: "website", url: "https://jakartapool.com/", text: "Website Resmi" },
                     { type: "streaming", url: "https://kick.com/studio-live-game", text: "Live Streaming" }
@@ -920,24 +1046,24 @@
             },
             { 
                 pasaran: "BRUNEI 14", 
-                jamResult: "14:30", 
-                jamAlarm: "14:45",
+                jamResult: "03:30", 
+                jamAlarm: "03:45",
                 links: [
                     { type: "website", url: "https://bruneipools.com/", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "CHELSEA 15", 
-                jamResult: "15:00", 
-                jamAlarm: "15:15",
+                jamResult: "04:00", 
+                jamAlarm: "04:15",
                 links: [
                     { type: "website", url: "https://chelseapools.co.uk/", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "TOTO MACAU 5D", 
-                jamResult: "15:15", 
-                jamAlarm: "15:30",
+                jamResult: "04:15", 
+                jamAlarm: "04:30",
                 links: [
                     { type: "website", url: "http://totomacau-pools.us/", text: "Website Resmi" },
                     { type: "streaming", url: "https://kick.com/studio-live-game", text: "Live Streaming" }
@@ -945,8 +1071,8 @@
             },
             { 
                 pasaran: "TOTOMALI 1530", 
-                jamResult: "15:15", 
-                jamAlarm: "15:30",
+                jamResult: "04:15", 
+                jamAlarm: "04:30",
                 links: [
                     { type: "website", url: "https://totomali.com/", text: "Website Resmi" },
                     { type: "streaming", url: "https://www.youtube.com/@TotoMaliLive", text: "YouTube Streaming" }
@@ -954,8 +1080,8 @@
             },
             { 
                 pasaran: "POIPET 15", 
-                jamResult: "15:15", 
-                jamAlarm: "15:30",
+                jamResult: "04:15", 
+                jamAlarm: "04:30",
                 links: [
                     { type: "website", url: "https://poipetlottery.com/", text: "Website Resmi" },
                     { type: "streaming", url: "https://www.youtube.com/@poipetlottery70/featured", text: "YouTube Streaming" }
@@ -963,8 +1089,8 @@
             },
             { 
                 pasaran: "TOTO MACAU SORE", 
-                jamResult: "16:00", 
-                jamAlarm: "16:15",
+                jamResult: "05:00", 
+                jamAlarm: "05:15",
                 links: [
                     { type: "website", url: "http://totomacau-pools.us/", text: "Website Resmi" },
                     { type: "streaming", url: "https://kick.com/live-ttm4d", text: "Live Streaming" }
@@ -972,8 +1098,8 @@
             },
             { 
                 pasaran: "HUAHIN 1630", 
-                jamResult: "16:15", 
-                jamAlarm: "16:30",
+                jamResult: "05:15", 
+                jamAlarm: "05:30",
                 links: [
                     { type: "website", url: "https://huahinlottery.com/", text: "Website Resmi" },
                     { type: "streaming", url: "https://www.youtube.com/@huahinlottery5727", text: "YouTube Streaming" }
@@ -981,8 +1107,8 @@
             },
             { 
                 pasaran: "KING KONG 4D", 
-                jamResult: "17:00", 
-                jamAlarm: "17:15",
+                jamResult: "06:00", 
+                jamAlarm: "06:15",
                 links: [
                     { type: "website", url: "https://kingkongpools.id/", text: "Website Resmi" },
                     { type: "streaming", url: "https://kick.com/king-kong-pools", text: "Live Streaming" }
@@ -990,24 +1116,24 @@
             },
             { 
                 pasaran: "SINGAPORE", 
-                jamResult: "17:30", 
-                jamAlarm: "17:45",
+                jamResult: "06:30", 
+                jamAlarm: "06:45",
                 links: [
                     { type: "website", url: "https://online.singaporepools.com/en/lottery", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "MAGNUM 4D", 
-                jamResult: "18:10", 
-                jamAlarm: "18:40",
+                jamResult: "07:10", 
+                jamAlarm: "07:40",
                 links: [
                     { type: "website", url: "https://www.magnum4d.my/en", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "TOTO MACAU MALAM I", 
-                jamResult: "19:00", 
-                jamAlarm: "19:15",
+                jamResult: "08:00", 
+                jamAlarm: "08:15",
                 links: [
                     { type: "website", url: "http://totomacau-pools.us/", text: "Website Resmi" },
                     { type: "streaming", url: "https://kick.com/live-ttm4d", text: "Live Streaming" }
@@ -1015,16 +1141,16 @@
             },
             { 
                 pasaran: "CHELSEA 19", 
-                jamResult: "19:00", 
-                jamAlarm: "19:15",
+                jamResult: "08:00", 
+                jamAlarm: "08:15",
                 links: [
                     { type: "website", url: "https://chelseapools.co.uk/", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "POIPET 19", 
-                jamResult: "19:30", 
-                jamAlarm: "19:45",
+                jamResult: "08:30", 
+                jamAlarm: "08:45",
                 links: [
                     { type: "website", url: "https://poipetlottery.com/", text: "Website Resmi" },
                     { type: "streaming", url: "https://www.youtube.com/@poipetlottery70/featured", text: "YouTube Streaming" }
@@ -1032,16 +1158,16 @@
             },
             { 
                 pasaran: "PCSO", 
-                jamResult: "19:50", 
-                jamAlarm: "20:10",
+                jamResult: "08:50", 
+                jamAlarm: "09:10",
                 links: [
                     { type: "website", url: "https://www.pcso.gov.ph/", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "TOTOMALI 2030", 
-                jamResult: "20:15", 
-                jamAlarm: "20:30",
+                jamResult: "09:15", 
+                jamAlarm: "09:30",
                 links: [
                     { type: "website", url: "https://totomali.com/", text: "Website Resmi" },
                     { type: "streaming", url: "https://www.youtube.com/@TotoMaliLive", text: "YouTube Streaming" }
@@ -1049,8 +1175,8 @@
             },
             { 
                 pasaran: "HUAHIN 2100", 
-                jamResult: "20:45", 
-                jamAlarm: "21:00",
+                jamResult: "09:45", 
+                jamAlarm: "10:00",
                 links: [
                     { type: "website", url: "https://huahinlottery.com/", text: "Website Resmi" },
                     { type: "streaming", url: "https://www.youtube.com/@huahinlottery5727", text: "YouTube Streaming" }
@@ -1058,16 +1184,16 @@
             },
             { 
                 pasaran: "CHELSEA 21", 
-                jamResult: "21:00", 
-                jamAlarm: "21:15",
+                jamResult: "10:00", 
+                jamAlarm: "10:15",
                 links: [
                     { type: "website", url: "https://chelseapools.co.uk/", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "TOTO MACAU 5D II", 
-                jamResult: "21:15", 
-                jamAlarm: "21:30",
+                jamResult: "10:15", 
+                jamAlarm: "10:30",
                 links: [
                     { type: "website", url: "http://totomacau-pools.us/", text: "Website Resmi" },
                     { type: "streaming", url: "https://kick.com/studio-live-game", text: "Live Streaming" }
@@ -1075,24 +1201,24 @@
             },
             { 
                 pasaran: "NEVADA", 
-                jamResult: "21:15", 
-                jamAlarm: "21:30",
+                jamResult: "10:15", 
+                jamAlarm: "10:30",
                 links: [
                     { type: "website", url: "https://www.nevadalottery.us/", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "BRUNEI 21", 
-                jamResult: "21:30", 
-                jamAlarm: "21:45",
+                jamResult: "10:30", 
+                jamAlarm: "10:45",
                 links: [
                     { type: "website", url: "https://bruneipools.com/", text: "Website Resmi" }
                 ]
             },
             { 
                 pasaran: "TOTO MACAU MALAM II", 
-                jamResult: "22:00", 
-                jamAlarm: "22:15",
+                jamResult: "11:00", 
+                jamAlarm: "11:15",
                 links: [
                     { type: "website", url: "http://totomacau-pools.us/", text: "Website Resmi" },
                     { type: "streaming", url: "https://kick.com/live-ttm4d", text: "Live Streaming" }
@@ -1100,8 +1226,8 @@
             },
             { 
                 pasaran: "POIPET 22", 
-                jamResult: "22:30", 
-                jamAlarm: "22:45",
+                jamResult: "11:30", 
+                jamAlarm: "11:45",
                 links: [
                     { type: "website", url: "https://poipetlottery.com/", text: "Website Resmi" },
                     { type: "streaming", url: "https://www.youtube.com/@poipetlottery70/featured", text: "YouTube Streaming" }
@@ -1109,8 +1235,8 @@
             },
             { 
                 pasaran: "HONGKONG", 
-                jamResult: "22:59", 
-                jamAlarm: "23:15",
+                jamResult: "11:59", 
+                jamAlarm: "12:15",
                 links: [
                     { type: "website", url: "https://lottohongkong.fun/", text: "Website Resmi" },
                     { type: "streaming", url: "https://kick.com/hongkong-lotto-official", text: "Live Streaming" }
@@ -1118,8 +1244,8 @@
             },
             { 
                 pasaran: "TOTO MACAU MALAM III", 
-                jamResult: "23:00", 
-                jamAlarm: "23:15",
+                jamResult: "12:00", 
+                jamAlarm: "12:15",
                 links: [
                     { type: "website", url: "http://totomacau-pools.us/", text: "Website Resmi" },
                     { type: "streaming", url: "https://kick.com/live-ttm4d", text: "Live Streaming" }
@@ -1127,8 +1253,8 @@
             },
             { 
                 pasaran: "TOTOMALI 2330", 
-                jamResult: "23:15", 
-                jamAlarm: "23:30",
+                jamResult: "12:15", 
+                jamAlarm: "12:30",
                 links: [
                     { type: "website", url: "https://totomali.com/", text: "Website Resmi" },
                     { type: "streaming", url: "https://www.youtube.com/@TotoMaliLive", text: "YouTube Streaming" }
@@ -1136,8 +1262,8 @@
             },
             { 
                 pasaran: "JAKARTA 2300", 
-                jamResult: "23:25", 
-                jamAlarm: "23:40",
+                jamResult: "12:25", 
+                jamAlarm: "12:40",
                 links: [
                     { type: "website", url: "https://jakartapool.com/", text: "Website Resmi" },
                     { type: "streaming", url: "https://kick.com/studio-live-game", text: "Live Streaming" }
@@ -1145,8 +1271,8 @@
             },
             { 
                 pasaran: "KING KONG 4D", 
-                jamResult: "23:30", 
-                jamAlarm: "23:45",
+                jamResult: "12:30", 
+                jamAlarm: "12:45",
                 links: [
                     { type: "website", url: "https://kingkongpools.id/", text: "Website Resmi" },
                     { type: "streaming", url: "https://kick.com/king-kong-pools", text: "Live Streaming" }
@@ -1171,6 +1297,7 @@
         // ========== GLOBAL VARIABLES ========== 
         let soundEnabled = true;
         let alarmTimeouts = [];
+        let currentSearchTerm = '';
         
         // ========== DOM ELEMENTS ========== 
         const liveClock = document.getElementById('live-clock');
@@ -1182,6 +1309,9 @@
         const toggleSoundBtn = document.getElementById('toggle-sound');
         const notificationBtn = document.getElementById('notification-btn');
         const particlesContainer = document.getElementById('particles');
+        const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
+        const searchResults = document.getElementById('search-results');
         
         // ========== FUNCTIONS ========== 
         // Create particles
@@ -1222,13 +1352,30 @@
             liveClock.textContent = timeString;
         }
         
+        // Filter data berdasarkan pencarian
+        function filterSchedules(searchTerm) {
+            if (!searchTerm) return scheduleData;
+            
+            return scheduleData.filter(schedule => 
+                schedule.pasaran.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+        
         // Render jadwal
-        function renderSchedules() {
+        function renderSchedules(schedulesToRender = null) {
+            const schedules = schedulesToRender || scheduleData;
             scheduleContainer.innerHTML = '';
             const now = new Date();
             const currentTime = now.getHours() * 60 + now.getMinutes();
             
-            scheduleData.forEach((schedule, index) => {
+            // Update hasil pencarian
+            if (currentSearchTerm) {
+                searchResults.textContent = `Menampilkan ${schedules.length} hasil untuk "${currentSearchTerm}"`;
+            } else {
+                searchResults.textContent = '';
+            }
+            
+            schedules.forEach((schedule, index) => {
                 const [resultHour, resultMinute] = schedule.jamResult.split(':').map(Number);
                 const [alarmHour, alarmMinute] = schedule.jamAlarm.split(':').map(Number);
                 
@@ -1269,6 +1416,9 @@
                 
                 const card = document.createElement('div');
                 card.className = `schedule-card ${status}`;
+                if (currentSearchTerm && schedule.pasaran.toLowerCase().includes(currentSearchTerm.toLowerCase())) {
+                    card.classList.add('highlight');
+                }
                 card.style.animationDelay = `${index * 0.05}s`;
                 card.innerHTML = `
                     <div class="card-header">
@@ -1298,6 +1448,26 @@
                     setCountdown(schedule, resultTime, currentTime);
                 }
             });
+            
+            // Jika tidak ada hasil pencarian
+            if (schedules.length === 0 && currentSearchTerm) {
+                scheduleContainer.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 20px;"></i>
+                        <h2>Tidak ada hasil untuk "${currentSearchTerm}"</h2>
+                        <p>Coba dengan kata kunci lain atau lihat semua pasaran</p>
+                        <button class="btn" id="clear-search">
+                            <i class="fas fa-times"></i> Tampilkan Semua
+                        </button>
+                    </div>
+                `;
+                
+                document.getElementById('clear-search').addEventListener('click', () => {
+                    currentSearchTerm = '';
+                    searchInput.value = '';
+                    renderSchedules();
+                });
+            }
         }
         
         // Set countdown untuk jadwal
@@ -1420,6 +1590,21 @@
                 });
             } else {
                 alert('Browser Anda tidak mendukung notifikasi.');
+            }
+        });
+        
+        // Pencarian
+        searchBtn.addEventListener('click', () => {
+            currentSearchTerm = searchInput.value.trim();
+            const filteredSchedules = filterSchedules(currentSearchTerm);
+            renderSchedules(filteredSchedules);
+        });
+        
+        searchInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                currentSearchTerm = searchInput.value.trim();
+                const filteredSchedules = filterSchedules(currentSearchTerm);
+                renderSchedules(filteredSchedules);
             }
         });
         
