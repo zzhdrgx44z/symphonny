@@ -1346,17 +1346,39 @@ break;
 case "tepi_tengah":
 case "silang_homo":
 case "50_50":
-case "kembang_kempis":
-  bayar = bet * 0.98; // 2% diskon → bayar 98%
-  key = bet * 0.03;   // 3% key dari nominal bet
+case "kembang_kempis": {
+  const diskon = 0.02; // 2%
+  const keyRate = 0.03; // 3%
+  
+  const bayar = bet * (1 - diskon); // bet * 0.98
+  const keyNominal = bet * keyRate; // 3% dari bet
+  
   const tipeName = {
     "tepi_tengah": "TEPI TENGAH",
     "silang_homo": "SILANG HOMO",
     "50_50": "50-50",
     "kembang_kempis": "KEMBANG KEMPIS"
   }[tipe];
-  hasil = `Berikut contoh perhitungan tipe ${tipeName} ya bosku Nominal bet ${format(bet)} - diskon 2% = ${format(bayar)} Key 3% = ${format(key)} Total yang harus anda bayar = ${format(bayar + key)} Jika anda menang (Hadiah 1:1): Hadiah = ${format(bet)} Modal = ${format(bayar + key)} Total kemenangan = ${format(bet + bayar + key)} ya bosku`;
-break;
+
+  // Hadiah jika menang: 1:1 dari bet penuh
+  const hadiahKotor = bet;
+  const hadiahBersih = hadiahKotor - keyNominal; // dipotong komisi 3%
+  // Atau, jika tidak dipotong, ganti jadi: const hadiahBersih = bet;
+
+  // Total yang diterima saat menang = hadiahBersih
+  // Modal sudah dikeluarkan = bayar
+
+  hasil = `Berikut contoh perhitungan tipe ${tipeName} ya bosku\n` +
+          `Nominal bet: ${format(bet)}\n` +
+          `Diskon 2%: ${format(bet * diskon)}\n` +
+          `Yang harus dibayar: ${format(bayar)}\n\n` +
+          `Jika menang (Hadiah 1:1):\n` +
+          `- Hadiah kotor: ${format(hadiahKotor)}\n` +
+          `- Komisi (3%): ${format(keyNominal)}\n` +
+          `- Hadiah bersih: ${format(hadiahBersih)}\n` +
+          `- Total dana setelah menang: ${format(hadiahBersih)} (modal sudah dikeluarkan ${format(bayar)})\n` +
+          `- Keuntungan bersih: ${format(hadiahBersih - bayar)}`;
+  break;
 
 case "dasar_ganjil_besar":
 bayar = bet * 0.98;
@@ -2072,6 +2094,7 @@ break;
 </body>
 
 </html>
+
 
 
 
