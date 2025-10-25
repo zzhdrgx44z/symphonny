@@ -912,7 +912,7 @@
     <!-- ALARM MODAL -->
     <div class="alarm-modal" id="alarm-modal">
         <div class="modal-content">
-            <h2><i class="fas fa-bell"></i> WAKTU BETCLOSED TELAH TIBA!</h2>
+            <h2><i class="fas fa-bell"></i> WAKTU RESULT TELAH TIBA!</h2>
             <div class="alarm-sound"><i class="fas fa-bell"></i></div>
             <p id="alarm-text">TOTO MACAU PAGI akan segera dimulai</p>
             <button class="btn" id="close-alarm">
@@ -1139,7 +1139,7 @@
                 scheduleContainer.appendChild(card);
 
                 if (status === 'upcoming') {
-                    setCountdown(schedule, betclosedTime, currentTime);
+                    setCountdown(schedule, resultTime, currentTime);
                 }
             });
 
@@ -1162,22 +1162,22 @@
             }
         }
 
-        // Set countdown untuk jadwal
-        function setCountdown(schedule, betclosedTime, currentTime) {
+        // Set countdown untuk jadwal - PERBAIKAN: Alarm hanya pada jam result
+        function setCountdown(schedule, resultTime, currentTime) {
             const countdownElement = document.getElementById(`countdown-${schedule.pasaran.replace(/\s+/g, '-')}`);
             if (!countdownElement) return;
 
-            let timeDiff = betclosedTime - currentTime;
+            let timeDiff = resultTime - currentTime;
             if (timeDiff < 0) timeDiff += 1440;
 
             const hours = Math.floor(timeDiff / 60);
             const minutes = timeDiff % 60;
-            countdownElement.textContent = `${hours}j ${minutes}m menuju betclosed`;
+            countdownElement.textContent = `${hours}j ${minutes}m menuju result`;
 
             const now = new Date();
             const alarmDate = new Date(now);
-            alarmDate.setHours(parseInt(schedule.jamBetclosed.split(':')[0]));
-            alarmDate.setMinutes(parseInt(schedule.jamBetclosed.split(':')[1]));
+            alarmDate.setHours(parseInt(schedule.jamResult.split(':')[0]));
+            alarmDate.setMinutes(parseInt(schedule.jamResult.split(':')[1]));
             alarmDate.setSeconds(0);
 
             if (alarmDate < now) {
@@ -1193,14 +1193,14 @@
 
         // Trigger alarm
         function triggerAlarm(pasaran) {
-            alarmText.textContent = `${pasaran} akan segera dimulai!`;
+            alarmText.textContent = `RESULT ${pasaran} telah keluar!`;
             alarmModal.style.display = 'flex';
             if (soundEnabled) {
                 playAlarmSound();
             }
             if (Notification.permission === 'granted') {
-                new Notification('⏰ Alarm TOTO', {
-                    body: `${pasaran} akan segera dimulai!`,
+                new Notification('⏰ RESULT TOTO', {
+                    body: `Result ${pasaran} telah keluar!`,
                     icon: 'https://example.com/icon.png'
                 });
             }
@@ -1255,7 +1255,7 @@
             if ('Notification' in window) {
                 Notification.requestPermission().then(permission => {
                     if (permission === 'granted') {
-                        alert('Notifikasi diaktifkan! Anda akan menerima pemberitahuan saat betclosed.');
+                        alert('Notifikasi diaktifkan! Anda akan menerima pemberitahuan saat result.');
                     }
                 });
             } else {
