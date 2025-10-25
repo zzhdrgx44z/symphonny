@@ -914,12 +914,17 @@
         <div class="modal-content">
             <h2><i class="fas fa-bell"></i> WAKTU RESULT TELAH TIBA!</h2>
             <div class="alarm-sound"><i class="fas fa-bell"></i></div>
-            <p id="alarm-text">TOTO MACAU PAGI akan segera dimulai</p>
+            <p id="alarm-text">RESULT TOTO MACAU PAGI telah keluar!</p>
             <button class="btn" id="close-alarm">
                 <i class="fas fa-times"></i> Tutup Alarm
             </button>
         </div>
     </div>
+
+    <!-- Audio Element untuk Bell Sound -->
+    <audio id="bell-sound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==" type="audio/wav">
+    </audio>
 
     <script>
         // ========== DATA SCHEDULE YANG DIPERBAIKI ========== 
@@ -1008,6 +1013,7 @@
         const searchInput = document.getElementById('search-input');
         const searchBtn = document.getElementById('search-btn');
         const searchResults = document.getElementById('search-results');
+        const bellSound = document.getElementById('bell-sound');
 
         // ========== FUNCTIONS ========== 
         // Create particles
@@ -1196,7 +1202,7 @@
             alarmText.textContent = `RESULT ${pasaran} telah keluar!`;
             alarmModal.style.display = 'flex';
             if (soundEnabled) {
-                playAlarmSound();
+                playBellSound();
             }
             if (Notification.permission === 'granted') {
                 new Notification('⏰ RESULT TOTO', {
@@ -1206,34 +1212,36 @@
             }
         }
 
-        // Mainkan suara alarm
-        function playAlarmSound() {
+        // Mainkan suara bell - PERBAIKAN: Menggunakan suara bell yang lebih natural
+        function playBellSound() {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
-            oscillator.frequency.exponentialRampToValueAtTime(880, audioContext.currentTime + 0.5);
-            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-            oscillator.start();
-            oscillator.stop(audioContext.currentTime + 0.5);
-
-            setTimeout(() => {
-                const oscillator2 = audioContext.createOscillator();
-                const gainNode2 = audioContext.createGain();
-                oscillator2.connect(gainNode2);
-                gainNode2.connect(audioContext.destination);
-                oscillator2.type = 'sine';
-                oscillator2.frequency.setValueAtTime(660, audioContext.currentTime);
-                oscillator2.frequency.exponentialRampToValueAtTime(1320, audioContext.currentTime + 0.5);
-                gainNode2.gain.setValueAtTime(0.1, audioContext.currentTime);
-                gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-                oscillator2.start();
-                oscillator2.stop(audioContext.currentTime + 0.5);
-            }, 600);
+            
+            // Membuat suara bell yang lebih natural
+            const bellSound = () => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Frekuensi bell yang lebih natural
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.8);
+                
+                // Envelope untuk suara bell
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.1);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.0);
+                
+                oscillator.type = 'sine';
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 1.0);
+            };
+            
+            // Memainkan bell beberapa kali dengan interval
+            bellSound();
+            setTimeout(() => bellSound(), 300);
+            setTimeout(() => bellSound(), 600);
         }
 
         // ========== EVENT LISTENERS ========== 
