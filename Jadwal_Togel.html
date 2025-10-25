@@ -849,6 +849,33 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--gradient3);
         }
+        /* BELL SELECTION STYLES */
+        .bell-selection {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .bell-option {
+            padding: 12px 20px;
+            border: 2px solid var(--accent3);
+            border-radius: 25px;
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        .bell-option:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        .bell-option.active {
+            background: var(--gradient3);
+            border-color: var(--accent2);
+            box-shadow: 0 0 15px rgba(79, 172, 254, 0.5);
+        }
     </style>
 </head>
 <body>
@@ -884,6 +911,20 @@
             <div class="search-results" id="search-results"></div>
             <div class="clock floating" id="live-clock">00:00:00</div>
             <p>Dashboard Canggih dengan Animasi Spektakuler untuk Melacak Betclosed</p>
+            
+            <!-- BELL SELECTION -->
+            <div class="bell-selection">
+                <div class="bell-option active" data-bell="church">
+                    <i class="fas fa-church"></i> Church Bell
+                </div>
+                <div class="bell-option" data-bell="digital">
+                    <i class="fas fa-bell"></i> Digital Bell
+                </div>
+                <div class="bell-option" data-bell="wind">
+                    <i class="fas fa-wind"></i> Wind Chime
+                </div>
+            </div>
+            
             <div class="controls">
                 <button class="btn btn-alarm" id="test-alarm">
                     <i class="fas fa-bell"></i> Test Alarm
@@ -921,11 +962,6 @@
         </div>
     </div>
 
-    <!-- Audio Element untuk Bell Sound -->
-    <audio id="bell-sound" preload="auto">
-        <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==" type="audio/wav">
-    </audio>
-
     <script>
         // ========== DATA SCHEDULE YANG DIPERBAIKI ========== 
         const scheduleData = [
@@ -946,7 +982,7 @@
             { pasaran: "NEW YORK EVENING", jamBetclosed: "09:25", jamResult: "09:35", linkSitus: "https://nylottery.ny.gov/draw-game?game=win4", linkStreaming: "https://www.youtube.com/user/NewYorkLottery" },
             { pasaran: "KENTUCKY EVENING", jamBetclosed: "09:45", jamResult: "10:00", linkSitus: "https://www.kylottery.com/apps/draw_games/pick4/", linkStreaming: "" },
             { pasaran: "CAROLINA EVENING", jamBetclosed: "10:17", jamResult: "10:22", linkSitus: "http://www.wral.com/news/video/1075494/", linkStreaming: "" },
-            { pasaran: "TOTO CAMBODIA", jamBetclosed: "10:45", jamResult: "11:00", linkSitus: "https://totocambodialive.com/", linkStreaming: "https://www.youtube.com/@TotoCambodiaLiveOfficial/streams" },
+            { pasaran: "TOTO CAMBODIA", jamBetclosed: "10:45", jamResult: "11:00", linkSitus: "https://totocambodialive.com/", linkStreaming: "https://www.youtube.com/@TotoCambodiaOfficial" },
             { pasaran: "CHELSEA 11", jamBetclosed: "11:00", jamResult: "11:15", linkSitus: "https://chelseapools.co.uk/", linkStreaming: "" },
             { pasaran: "OREGON 12", jamBetclosed: "11:50", jamResult: "12:00", linkSitus: "https://www.oregonlottery.org/pick-4/winning-numbers/", linkStreaming: "" },
             { pasaran: "POIPET 12", jamBetclosed: "12:15", jamResult: "12:30", linkSitus: "https://poipetlottery.com/result", linkStreaming: "https://www.youtube.com/@poipetlottery70/featured" },
@@ -999,6 +1035,7 @@
         let soundEnabled = true;
         let alarmTimeouts = [];
         let currentSearchTerm = '';
+        let selectedBell = 'church'; // Default bell type
 
         // ========== DOM ELEMENTS ========== 
         const liveClock = document.getElementById('live-clock');
@@ -1013,7 +1050,7 @@
         const searchInput = document.getElementById('search-input');
         const searchBtn = document.getElementById('search-btn');
         const searchResults = document.getElementById('search-results');
-        const bellSound = document.getElementById('bell-sound');
+        const bellOptions = document.querySelectorAll('.bell-option');
 
         // ========== FUNCTIONS ========== 
         // Create particles
@@ -1212,36 +1249,120 @@
             }
         }
 
-        // Mainkan suara bell - PERBAIKAN: Menggunakan suara bell yang lebih natural
+        // Mainkan suara bell berdasarkan pilihan
         function playBellSound() {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             
-            // Membuat suara bell yang lebih natural
-            const bellSound = () => {
+            switch(selectedBell) {
+                case 'church':
+                    playChurchBell(audioContext);
+                    break;
+                case 'digital':
+                    playDigitalBell(audioContext);
+                    break;
+                case 'wind':
+                    playWindChime(audioContext);
+                    break;
+                default:
+                    playChurchBell(audioContext);
+            }
+        }
+
+        // Church Bell - suara bell gereja yang dalam dan beresonansi
+        function playChurchBell(audioContext) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // Frekuensi bell gereja yang dalam
+            oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(150, audioContext.currentTime + 1.5);
+            
+            // Envelope untuk bell gereja
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.4, audioContext.currentTime + 0.2);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 2.0);
+            
+            oscillator.type = 'sine';
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 2.0);
+            
+            // Memainkan bell kedua dengan delay untuk efek resonansi
+            setTimeout(() => {
+                const oscillator2 = audioContext.createOscillator();
+                const gainNode2 = audioContext.createGain();
+                
+                oscillator2.connect(gainNode2);
+                gainNode2.connect(audioContext.destination);
+                
+                oscillator2.frequency.setValueAtTime(400, audioContext.currentTime);
+                oscillator2.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 1.0);
+                
+                gainNode2.gain.setValueAtTime(0, audioContext.currentTime);
+                gainNode2.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.1);
+                gainNode2.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 1.5);
+                
+                oscillator2.type = 'sine';
+                oscillator2.start(audioContext.currentTime);
+                oscillator2.stop(audioContext.currentTime + 1.5);
+            }, 300);
+        }
+
+        // Digital Bell - suara bell elektronik yang bersih
+        function playDigitalBell(audioContext) {
+            const playSingleBell = (freq, time) => {
                 const oscillator = audioContext.createOscillator();
                 const gainNode = audioContext.createGain();
                 
                 oscillator.connect(gainNode);
                 gainNode.connect(audioContext.destination);
                 
-                // Frekuensi bell yang lebih natural
-                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-                oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.8);
+                oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
                 
-                // Envelope untuk suara bell
                 gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-                gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.1);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.0);
+                gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.05);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
                 
-                oscillator.type = 'sine';
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 1.0);
+                oscillator.type = 'square';
+                oscillator.start(audioContext.currentTime + time);
+                oscillator.stop(audioContext.currentTime + time + 0.3);
             };
             
-            // Memainkan bell beberapa kali dengan interval
-            bellSound();
-            setTimeout(() => bellSound(), 300);
-            setTimeout(() => bellSound(), 600);
+            // Memainkan sequence bell digital
+            playSingleBell(800, 0);
+            playSingleBell(600, 0.1);
+            playSingleBell(400, 0.2);
+            playSingleBell(600, 0.3);
+            playSingleBell(800, 0.4);
+        }
+
+        // Wind Chime - suara wind chime yang lembut
+        function playWindChime(audioContext) {
+            const playChime = (freq, time, duration) => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
+                
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.1);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+                
+                oscillator.type = 'sine';
+                oscillator.start(audioContext.currentTime + time);
+                oscillator.stop(audioContext.currentTime + time + duration);
+            };
+            
+            // Memainkan chord wind chime
+            playChime(523.25, 0, 2.0); // C5
+            playChime(659.25, 0.1, 1.8); // E5
+            playChime(783.99, 0.2, 1.6); // G5
+            playChime(1046.50, 0.3, 1.4); // C6
         }
 
         // ========== EVENT LISTENERS ========== 
@@ -1269,6 +1390,33 @@
             } else {
                 alert('Browser Anda tidak mendukung notifikasi.');
             }
+        });
+
+        // Bell selection event listeners
+        bellOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                // Remove active class from all options
+                bellOptions.forEach(opt => opt.classList.remove('active'));
+                // Add active class to clicked option
+                option.classList.add('active');
+                // Update selected bell type
+                selectedBell = option.dataset.bell;
+                // Test the new bell sound
+                if (soundEnabled) {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    switch(selectedBell) {
+                        case 'church':
+                            playChurchBell(audioContext);
+                            break;
+                        case 'digital':
+                            playDigitalBell(audioContext);
+                            break;
+                        case 'wind':
+                            playWindChime(audioContext);
+                            break;
+                    }
+                }
+            });
         });
 
         searchBtn.addEventListener('click', () => {
@@ -1301,4 +1449,3 @@
     </script>
 </body>
 </html>
-
