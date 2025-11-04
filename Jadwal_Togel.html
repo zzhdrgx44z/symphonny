@@ -2080,48 +2080,75 @@
             }
         }
 
-        // Set countdown untuk jadwal
+        // Set countdown untuk jadwal - PERBAIKAN UTAMA
         function setCountdown(schedule, resultTime, currentTime) {
             const countdownElement = document.getElementById(`countdown-${schedule.pasaran.replace(/\s+/g, '-')}`);
             if (!countdownElement) return;
 
             let timeDiff = resultTime - currentTime;
-            if (timeDiff < 0) timeDiff += 1440;
+            if (timeDiff < 0) timeDiff += 1440; // Tambah 24 jam jika waktu sudah lewat
 
             const hours = Math.floor(timeDiff / 60);
             const minutes = timeDiff % 60;
             countdownElement.textContent = `${hours}j ${minutes}m menuju result`;
 
+            // PERBAIKAN: Hitung waktu alarm yang tepat
             const now = new Date();
-            const alarmDate = new Date(now);
-            alarmDate.setHours(parseInt(schedule.jamResult.split(':')[0]));
-            alarmDate.setMinutes(parseInt(schedule.jamResult.split(':')[1]));
-            alarmDate.setSeconds(0);
-
-            if (alarmDate < now) {
+            const alarmDate = new Date();
+            
+            // Set jam dan menit untuk alarm
+            const [resultHour, resultMinute] = schedule.jamResult.split(':').map(Number);
+            alarmDate.setHours(resultHour, resultMinute, 0, 0);
+            
+            // Jika waktu result sudah lewat hari ini, set untuk besok
+            if (alarmDate <= now) {
                 alarmDate.setDate(alarmDate.getDate() + 1);
             }
-
+            
             const timeoutTime = alarmDate.getTime() - now.getTime();
+            
+            // Hapus timeout sebelumnya jika ada
+            const existingTimeout = alarmTimeouts.find(timeout => timeout.pasaran === schedule.pasaran);
+            if (existingTimeout) {
+                clearTimeout(existingTimeout.id);
+                alarmTimeouts = alarmTimeouts.filter(timeout => timeout.pasaran !== schedule.pasaran);
+            }
+            
+            // Set timeout baru
             const timeoutId = setTimeout(() => {
                 triggerAlarm(schedule.pasaran);
             }, timeoutTime);
-            alarmTimeouts.push(timeoutId);
+            
+            alarmTimeouts.push({
+                id: timeoutId,
+                pasaran: schedule.pasaran
+            });
         }
 
-        // Trigger alarm
+        // Trigger alarm - PERBAIKAN
         function triggerAlarm(pasaran) {
+            console.log(`Alarm triggered for: ${pasaran}`);
             alarmText.textContent = `RESULT ${pasaran} telah keluar!`;
             alarmModal.style.display = 'flex';
+            
             if (soundEnabled) {
                 playBellSound();
             }
+            
+            // PERBAIKAN: Notifikasi browser
             if (Notification.permission === 'granted') {
                 new Notification('⏰ RESULT TOTO', {
                     body: `Result ${pasaran} telah keluar!`,
-                    icon: 'https://example.com/icon.png'
+                    icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iOCIgZmlsbD0iIzAwRjJGRSIvPgo8cGF0aCBkPSJNMzIgMTZWMzJIMTZWMzZIMzJWNTJIMzZWMzZINTJWMzJIMzZWMjBIMzJWMTZaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K'
                 });
             }
+            
+            // PERBAIKAN: Auto close alarm setelah 10 detik
+            setTimeout(() => {
+                if (alarmModal.style.display === 'flex') {
+                    alarmModal.style.display = 'none';
+                }
+            }, 10000);
         }
 
         // Show copy notification
@@ -2454,13 +2481,26 @@
                 toggleSoundBtn.innerHTML = '<i class="fas fa-volume-mute"></i> Sound Off';
             }
         });
+        
+        // PERBAIKAN: Notifikasi permission handling
         notificationBtn.addEventListener('click', () => {
             if ('Notification' in window) {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        alert('Notifikasi diaktifkan! Anda akan menerima pemberitahuan saat result.');
-                    }
-                });
+                if (Notification.permission === 'granted') {
+                    alert('Notifikasi sudah diaktifkan sebelumnya!');
+                } else if (Notification.permission === 'denied') {
+                    alert('Notifikasi telah diblokir. Silakan aktifkan manual di pengaturan browser.');
+                } else {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                            alert('Notifikasi diaktifkan! Anda akan menerima pemberitahuan saat result.');
+                            // Test notification
+                            new Notification('CYBER TOGEL', {
+                                body: 'Notifikasi berhasil diaktifkan!',
+                                icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iOCIgZmlsbD0iIzAwRjJGRSIvPgo8cGF0aCBkPSJNMzIgMTZWMzJIMTZWMzZIMzJWNTJIMzZWMzZINTJWMzJIMzZWMjBIMzJWMTZaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K'
+                            });
+                        }
+                    });
+                }
             } else {
                 alert('Browser Anda tidak mendukung notifikasi.');
             }
@@ -2523,7 +2563,11 @@
         createParticles();
         renderSchedules();
         renderDropdownItems();
-        setInterval(renderSchedules, 60000);
+        
+        // PERBAIKAN: Update schedules setiap 30 detik untuk menjaga countdown tetap akurat
+        setInterval(() => {
+            renderSchedules();
+        }, 30000);
 
         document.addEventListener('DOMContentLoaded', function() {
             const titles = document.querySelectorAll('.pasaran, h1, h2');
