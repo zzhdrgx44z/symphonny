@@ -1009,7 +1009,7 @@ tr:last-child td {
   font-weight: 700;
   color: var(--accent);
   margin-top: 10px;
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', monospace;
 }
 
 /* =============== COPY BUTTON =============== */
@@ -2027,10 +2027,37 @@ function buatTabel(data, kategori) {
           </tr>`;
       }
     }
-    
-    // Tambahkan tampilan hadiah togel yang lebih menarik
+
+  } else {
+    // Default table structure
+    tableHTML += '<tr>';
+    if (data[0]) {
+      data[0].forEach(header => {
+        tableHTML += `<th>${escapeHTML(header)}</th>`;
+      });
+      tableHTML += '</tr>';
+
+      for (let i = 1; i < data.length; i++) {
+        if (!data[i]) continue;
+        
+        tableHTML += '<tr>';
+        data[i].forEach(cell => {
+          tableHTML += `<td>${escapeHTML(cell) || '-'}</td>`;
+        });
+        tableHTML += '</tr>';
+      }
+    }
+  }
+
+  if (!tableHTML.includes('<tr>') || tableHTML.match(/<tr>/g).length <= 2) {
+    tableHTML += '<tr><td colspan="4" style="text-align:center;padding:40px;color:#ff3366;">No data available for this category</td></tr>';
+  }
+
+  tableHTML += '</table></div>';
+  
+  // Tambahkan tampilan hadiah togel yang lebih menarik
+  if (kategori === 'hadiah') {
     tableHTML += `
-      </table></div>
       <div class="hadiah-togel-container">
         <div class="hadiah-togel-card">
           <div class="hadiah-togel-header">
@@ -2063,35 +2090,8 @@ function buatTabel(data, kategori) {
           </div>
         </div>
       </div>`;
-      
-    return tableHTML;
-
-  } else {
-    // Default table structure
-    tableHTML += '<tr>';
-    if (data[0]) {
-      data[0].forEach(header => {
-        tableHTML += `<th>${escapeHTML(header)}</th>`;
-      });
-      tableHTML += '</tr>';
-
-      for (let i = 1; i < data.length; i++) {
-        if (!data[i]) continue;
-        
-        tableHTML += '<tr>';
-        data[i].forEach(cell => {
-          tableHTML += `<td>${escapeHTML(cell) || '-'}</td>`;
-        });
-        tableHTML += '</tr>';
-      }
-    }
   }
-
-  if (!tableHTML.includes('<tr>') || tableHTML.match(/<tr>/g).length <= 2) {
-    tableHTML += '<tr><td colspan="4" style="text-align:center;padding:40px;color:#ff3366;">No data available for this category</td></tr>';
-  }
-
-  tableHTML += '</table></div>';
+  
   return tableHTML;
 }
 
