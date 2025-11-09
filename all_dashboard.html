@@ -827,24 +827,28 @@ body::after {
   line-height: 1.6;
 }
 
-/* =============== DATA TABLES =============== */
+/* =============== IMPROVED DATA TABLES =============== */
 #data1, #data2, #data3, #data4, #data5 {
   width: 100%;
-  max-width: 1200px;
-  margin: 30px auto;
+  max-width: 100%;
+  margin: 30px 0;
   display: none;
+}
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 15px;
+  background: var(--panel);
+  box-shadow: var(--shadow-card);
 }
 
 table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse;
   background: var(--panel);
-  border: 1px solid var(--border-color);
-  border-radius: 15px;
-  overflow: hidden;
-  box-shadow: var(--shadow-card);
-  backdrop-filter: blur(10px);
+  min-width: 800px; /* Minimum width to ensure readability */
 }
 
 th {
@@ -852,14 +856,15 @@ th {
     rgba(0, 255, 255, 0.2), 
     rgba(0, 150, 255, 0.1));
   color: var(--primary);
-  padding: 18px;
-  text-align: center;
+  padding: 18px 15px;
+  text-align: left;
   font-weight: 600;
   font-family: 'Orbitron', monospace;
   text-transform: uppercase;
   letter-spacing: 1px;
   border-bottom: 2px solid var(--border-color);
   position: relative;
+  white-space: nowrap;
 }
 
 th::after {
@@ -876,12 +881,13 @@ th::after {
 }
 
 td {
-  padding: 16px;
-  text-align: center;
+  padding: 15px;
   color: var(--text-primary);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   transition: all 0.3s ease;
   font-family: 'Space Mono', monospace;
+  word-wrap: break-word;
+  max-width: 400px; /* Limit cell width for readability */
 }
 
 tr:hover td {
@@ -952,11 +958,12 @@ tr:last-child td {
 /* =============== SPECIAL COLUMNS =============== */
 .kolom-pertanyaan {
   text-align: left;
-  padding: 16px 20px;
+  padding: 15px;
   background: rgba(0, 255, 255, 0.05);
   border-left: 3px solid var(--primary);
   font-weight: 500;
   position: relative;
+  min-width: 250px;
 }
 
 .kolom-pertanyaan::before {
@@ -972,11 +979,12 @@ tr:last-child td {
 .kolom-penyelesaian,
 .kolom-jawaban {
   text-align: left;
-  padding: 16px 20px;
+  padding: 15px;
   line-height: 1.7;
   font-family: 'Space Mono', monospace;
   white-space: pre-wrap;
   word-wrap: break-word;
+  min-width: 300px;
 }
 
 .judul-bagian {
@@ -1680,13 +1688,13 @@ function tampilkanDataFilter(elementId, data, kategori) {
   }
 }
 
-// =============== TABLE CREATION ===============
+// =============== IMPROVED TABLE CREATION ===============
 function buatTabel(data, kategori) {
   if (!data || data.length < 2) {
     return '<p style="color:#ff3366;text-align:center;padding:40px;">No data available</p>';
   }
 
-  let table = `<table>`;
+  let tableHTML = `<div class="table-container"><table>`;
 
   if (kategori === 'bonus') {
     let currentTitle = '';
@@ -1698,7 +1706,7 @@ function buatTabel(data, kategori) {
       if (!title && !issue && !solution) continue;
 
       if (title && title !== currentTitle) {
-        table += `<tr>
+        tableHTML += `<tr>
           <td colspan="3" class="judul-bagian">${escapeHTML(title)}</td>
         </tr>`;
         currentTitle = title;
@@ -1707,7 +1715,7 @@ function buatTabel(data, kategori) {
       if (issue && solution) {
         const escapedSolution = escapeSpecialChars(solution);
         const modifiedIssue = escapeHTML(issue).replace(/\n/g, "<br>");
-        table += `<tr>
+        tableHTML += `<tr>
           <td class="kolom-pertanyaan">${modifiedIssue}</td>
           <td class="kolom-penyelesaian">${escapeHTML(solution)}</td>
           <td style="vertical-align: middle;">
@@ -1728,7 +1736,7 @@ function buatTabel(data, kategori) {
       if (!title && !description && !answer) continue;
 
       if (title && title !== currentTitle) {
-        table += `<tr>
+        tableHTML += `<tr>
           <td colspan="3" class="judul-bagian">${escapeHTML(title)}</td>
         </tr>`;
         currentTitle = title;
@@ -1736,7 +1744,7 @@ function buatTabel(data, kategori) {
 
       if (description && answer) {
         const escapedAnswer = escapeSpecialChars(answer);
-        table += `<tr>
+        tableHTML += `<tr>
           <td class="kolom-pertanyaan">${escapeHTML(description)}</td>
           <td class="kolom-jawaban">${escapeHTML(answer)}</td>
           <td style="vertical-align: middle;">
@@ -1757,7 +1765,7 @@ function buatTabel(data, kategori) {
       if (!title && !question && !answer) continue;
 
       if (title && title !== currentTitle) {
-        table += `<tr>
+        tableHTML += `<tr>
           <td colspan="3" class="judul-bagian">${escapeHTML(title)}</td>
         </tr>`;
         currentTitle = title;
@@ -1766,7 +1774,7 @@ function buatTabel(data, kategori) {
       if (question && answer) {
         const escapedAnswer = escapeSpecialChars(answer);
         const modifiedQuestion = escapeHTML(question).replace(/\n/g, "<br>");
-        table += `<tr>
+        tableHTML += `<tr>
           <td class="kolom-pertanyaan">${modifiedQuestion}</td>
           <td class="kolom-jawaban">${escapeHTML(answer)}</td>
           <td style="vertical-align: middle;">
@@ -1779,23 +1787,23 @@ function buatTabel(data, kategori) {
     }
   } else {
     // Default table for datalogin and linknawala
-    table += '<tr>';
+    tableHTML += '<tr>';
     data[0].forEach(header => {
-      table += `<th>${escapeHTML(header)}</th>`;
+      tableHTML += `<th>${escapeHTML(header)}</th>`;
     });
-    table += '</tr>';
+    tableHTML += '</tr>';
 
     for (let i = 1; i < data.length; i++) {
-      table += '<tr>';
+      tableHTML += '<tr>';
       data[i].forEach(cell => {
-        table += `<td>${escapeHTML(cell) || '-'}</td>`;
+        tableHTML += `<td>${escapeHTML(cell) || '-'}</td>`;
       });
-      table += '</tr>';
+      tableHTML += '</tr>';
     }
   }
 
-  table += '</table>';
-  return table;
+  tableHTML += '</table></div>';
+  return tableHTML;
 }
 
 // =============== UTILITY FUNCTIONS ===============
