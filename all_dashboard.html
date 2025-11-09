@@ -1827,6 +1827,12 @@ async function muatSemuaData() {
         const data = await ambilDataSheet(gid);
         semuaData[sheetName] = data;
         console.log(`✅ ${sheetName} loaded:`, data.length, 'rows');
+        
+        // Tampilkan data secara otomatis setelah dimuat
+        if (data && data.length > 1) {
+          const elementId = `data${Object.keys(SHEET_GIDS).indexOf(sheetName) + 1}`;
+          document.getElementById(elementId).innerHTML = buatTabel(data, sheetName);
+        }
       } catch (error) {
         console.error(`❌ Error loading ${sheetName}:`, error);
         semuaData[sheetName] = [];
@@ -1835,12 +1841,28 @@ async function muatSemuaData() {
 
     await Promise.all(promises);
     tampilkanNotifikasi("All data loaded successfully!", "sukses");
+    
+    // Tampilkan semua tabel setelah data selesai dimuat
+    tampilkanSemuaTabel();
+    
   } catch (error) {
     console.error("Error loading all data:", error);
     tampilkanNotifikasi("Failed to load data. Please refresh the page.", "error");
   } finally {
     tampilkanLoading(false);
   }
+}
+
+// Fungsi untuk menampilkan semua tabel
+function tampilkanSemuaTabel() {
+  Object.keys(SHEET_GIDS).forEach((kategori, index) => {
+    const elementId = `data${index + 1}`;
+    const data = semuaData[kategori];
+    
+    if (data && data.length > 1) {
+      document.getElementById(elementId).style.display = 'block';
+    }
+  });
 }
 
 async function ambilDataSheet(gid) {
@@ -1967,7 +1989,8 @@ function cariTabel() {
   document.getElementById('pesanTidakDitemukan').style.display = 'none';
 
   if (input.length < 2) {
-    filterKategori(kategoriSekarang);
+    // Jika pencarian kosong, tampilkan semua tabel
+    tampilkanSemuaTabel();
     return;
   }
 
@@ -1976,12 +1999,24 @@ function cariTabel() {
   setTimeout(() => {
     let ditemukan = false;
 
-    if (kategoriSekarang && semuaData[kategoriSekarang] && semuaData[kategoriSekarang].length > 0) {
-      const hasilFilter = filterData(semuaData[kategoriSekarang], input);
-      const elementId = `data${Object.keys(SHEET_GIDS).indexOf(kategoriSekarang) + 1}`;
-      tampilkanDataFilter(elementId, hasilFilter, kategoriSekarang);
-      ditemukan = hasilFilter.length > 1;
-    }
+    // Sembunyikan semua tabel terlebih dahulu
+    document.querySelectorAll('#data1, #data2, #data3, #data4, #data5').forEach(el => {
+      el.style.display = 'none';
+    });
+
+    // Cari di semua kategori
+    Object.keys(SHEET_GIDS).forEach((kategori, index) => {
+      const data = semuaData[kategori];
+      if (data && data.length > 1) {
+        const hasilFilter = filterData(data, input);
+        if (hasilFilter.length > 1) {
+          const elementId = `data${index + 1}`;
+          document.getElementById(elementId).style.display = 'block';
+          document.getElementById(elementId).innerHTML = buatTabel(hasilFilter, kategori);
+          ditemukan = true;
+        }
+      }
+    });
 
     if (!ditemukan && input.length > 0) {
       document.getElementById('pesanTidakDitemukan').style.display = 'block';
@@ -2006,16 +2041,6 @@ function filterData(data, query) {
     }
   }
   return filtered;
-}
-
-function tampilkanDataFilter(elementId, data, kategori) {
-  const element = document.getElementById(elementId);
-  if (data.length > 1) {
-    element.innerHTML = buatTabel(data, kategori);
-    element.style.display = 'block';
-  } else {
-    element.style.display = 'none';
-  }
 }
 
 // =============== IMPROVED TABLE CREATION ===============
