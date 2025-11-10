@@ -1854,95 +1854,66 @@ function buatTabel(data, kategori) {
 
   // Handle different table structures based on category
   if (kategori === 'bonus') {
-  let judulSekarang = '';
+  tableHTML += `
+    <tr>
+      <th style="width: 35%; font-size: 1.3em; padding: 20px 15px;">Issue / Problem</th>
+      <th style="width: 55%; font-size: 1.3em; padding: 20px 15px;">Solution / Resolution</th>
+      <th style="width: 10%; font-size: 1.3em; padding: 20px 15px;">Action</th>
+    </tr>`;
+
+  let currentTitle = '';
   for (let i = 1; i < data.length; i++) {
-  const judul = data[i][0];
-  const kendala = data[i][1];
-  const penyelesaian = data[i][2];
+    const row = data[i];
+    if (!row || row.length < 3) continue;
 
-  if (!judul && !kendala && !penyelesaian) continue;
+    const title = (row[0] || '').toString().trim();
+    const issue = (row[1] || '').toString().trim();
+    const solution = (row[2] || '').toString().trim();
 
-  if (judul && judul !== judulSekarang) {
-  table += `<tr>
-  <td colspan="3" class="judul-bagian">
-  ${escapeHTML(judul)}
-  </td>
-  </tr>`;
-  judulSekarang = judul;
-  }
+    if (!title && !issue && !solution) continue;
 
-  if (kendala && penyelesaian) {
-  const escapedPenyelesaian = escapeKarakterKhusus(penyelesaian);
-  const modifiedKendala = escapeHTML(kendala).replace(/\n/g, "<br>");
-  table += `<tr>
-  <td class="kolom-pertanyaan">
-  ${modifiedKendala}
-  </td>
-  <td class="kolom-penyelesaian">${escapeHTML(penyelesaian)}</td>
-  <td style="vertical-align: middle;">
-  <span class="teks-copy" onclick="salinPenyelesaian(\`${escapedPenyelesaian}\`, this)">Salin</span>
-  </td>
-  </tr>`;
-  }
-  }
-
-  } else if (kategori === 'report') {
-    tableHTML += `
-      <tr>
-        <th style="width: 40%;">Description</th>
-        <th style="width: 50%;">Answer</th>
-        <th style="width: 10%;">Action</th>
-      </tr>`;
-
-    let currentTitle = '';
-    for (let i = 1; i < data.length; i++) {
-      const row = data[i];
-      if (!row || row.length < 3) continue;
-
-      const title = row[0] || '';
-      const description = row[1] || '';
-      const answer = row[2] || '';
-
-      if (!title && !description && !answer) continue;
-
-      if (title && title !== currentTitle) {
-        tableHTML += `
-          <tr>
-            <td colspan="3" class="judul-bagian">
-              <i class="fas fa-folder" style="margin-right: 10px;"></i>
-              ${escapeHTML(title)}
-            </td>
-          </tr>`;
-        currentTitle = title;
-      }
-
-      if (description || answer) {
-        const escapedAnswer = escapeSpecialChars(answer);
-        const modifiedDescription = escapeHTML(description).replace(/\n/g, "<br>");
-        const modifiedAnswer = escapeHTML(answer).replace(/\n/g, "<br>");
-        
-        tableHTML += `
-          <tr>
-            <td class="kolom-pertanyaan">
-              <div style="display: flex; align-items: flex-start; gap: 10px;">
-                <i class="fas fa-question-circle" style="color: var(--primary); margin-top: 2px;"></i>
-                <div>${modifiedDescription}</div>
-              </div>
-            </td>
-            <td class="kolom-jawaban">
-              <div style="display: flex; align-items: flex-start; gap: 10px;">
-                <i class="fas fa-check-circle" style="color: var(--accent); margin-top: 2px;"></i>
-                <div>${modifiedAnswer}</div>
-              </div>
-            </td>
-            <td style="vertical-align: middle; text-align: center;">
-              <span class="teks-copy" onclick="salinJawaban('${escapedAnswer}', this)">
-                <i class="fas fa-copy"></i> Copy
-              </span>
-            </td>
-          </tr>`;
-      }
+    if (title && title !== currentTitle) {
+      tableHTML += `
+        <tr>
+          <td colspan="3" class="judul-bagian" style="font-size: 1.4em; padding: 25px 20px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: white;">
+            <i class="fas fa-folder-open" style="margin-right: 15px; font-size: 1.2em;"></i>
+            ${escapeHTML(title)}
+          </td>
+        </tr>`;
+      currentTitle = title;
     }
+
+    if (issue || solution) {
+      const escapedSolution = escapeSpecialChars(solution);
+      const modifiedIssue = escapeHTML(issue).replace(/\n/g, "<br>");
+      const modifiedSolution = escapeHTML(solution).replace(/\n/g, "<br>");
+      
+      tableHTML += `
+        <tr style="border-bottom: 2px solid #e0e0e0;">
+          <td class="kolom-pertanyaan" style="font-size: 1.2em; padding: 25px 20px; line-height: 1.6; vertical-align: top;">
+            <div style="display: flex; align-items: flex-start; gap: 15px;">
+              <i class="fas fa-question-circle" style="color: var(--primary); margin-top: 4px; font-size: 1.3em;"></i>
+              <div style="flex: 1;">${modifiedIssue || '<span style="color: #999; font-style: italic;">No issue description</span>'}</div>
+            </div>
+          </td>
+          <td class="kolom-penyelesaian" style="font-size: 1.2em; padding: 25px 20px; line-height: 1.6; vertical-align: top;">
+            <div style="display: flex; align-items: flex-start; gap: 15px;">
+              <i class="fas fa-check-circle" style="color: var(--accent); margin-top: 4px; font-size: 1.3em;"></i>
+              <div style="flex: 1;">${modifiedSolution || '<span style="color: #999; font-style: italic;">No solution provided</span>'}</div>
+            </div>
+          </td>
+          <td style="vertical-align: middle; text-align: center; padding: 25px 15px;">
+            <span class="teks-copy" onclick="salinPenyelesaian('${escapedSolution}', this)" 
+                  style="font-size: 1.1em; padding: 12px 20px; cursor: pointer; background: var(--primary); color: white; border-radius: 8px; display: inline-block; transition: all 0.3s ease;"
+                  onmouseover="this.style.background='var(--accent)'; this.style.transform='scale(1.05)'"
+                  onmouseout="this.style.background='var(--primary)'; this.style.transform='scale(1)'"
+                  title="Copy Solution to Clipboard">
+              <i class="fas fa-copy" style="margin-right: 8px;"></i>COPY
+            </span>
+          </td>
+        </tr>`;
+    }
+  }
 
   } else if (kategori === 'hadiah') {
     // Perbaikan khusus untuk kolom Hadiah Togel
@@ -2315,6 +2286,7 @@ function updateConnectionStatus() {
 </script>
 </body>
 </html>
+
 
 
 
