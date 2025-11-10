@@ -1854,62 +1854,66 @@ function buatTabel(data, kategori) {
 
   // Handle different table structures based on category
   if (kategori === 'bonus') {
-    tableHTML += `
-      <tr>
-        <th style="width: 40%;">Issue</th>
-        <th style="width: 50%;">Solution</th>
-        <th style="width: 10%;">Action</th>
-      </tr>`;
+  tableHTML += `
+    <tr>
+      <th style="width: 40%;">Issue</th>
+      <th style="width: 50%;">Solution</th>
+      <th style="width: 10%;">Action</th>
+    </tr>`;
 
-    let currentTitle = '';
-    for (let i = 1; i < data.length; i++) {
-      const row = data[i];
-      if (!row || row.length < 3) continue;
+  let currentTitle = '';
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (!row || row.length < 3) continue;
 
-      const title = row[0] || '';
-      const issue = row[1] || '';
-      const solution = row[2] || '';
+    const title = (row[0] || '').toString().trim();
+    const issue = (row[1] || '').toString().trim();
+    const solution = (row[2] || '').toString().trim();
 
-      if (!title && !issue && !solution) continue;
+    // Skip jika semua kolom kosong
+    if (!title && !issue && !solution) continue;
 
-      if (title && title !== currentTitle) {
-        tableHTML += `
-          <tr>
-            <td colspan="3" class="judul-bagian">
-              <i class="fas fa-folder" style="margin-right: 10px;"></i>
-              ${escapeHTML(title)}
-            </td>
-          </tr>`;
-        currentTitle = title;
-      }
-
-      if (issue || solution) {
-        const escapedSolution = escapeSpecialChars(solution);
-        const modifiedIssue = escapeHTML(issue).replace(/\n/g, "<br>");
-        const modifiedSolution = escapeHTML(solution).replace(/\n/g, "<br>");
-        
-        tableHTML += `
-          <tr>
-            <td class="kolom-pertanyaan">
-              <div style="display: flex; align-items: flex-start; gap: 10px;">
-                <i class="fas fa-question-circle" style="color: var(--primary); margin-top: 2px;"></i>
-                <div>${modifiedIssue}</div>
-              </div>
-            </td>
-            <td class="kolom-penyelesaian">
-              <div style="display: flex; align-items: flex-start; gap: 10px;">
-                <i class="fas fa-check-circle" style="color: var(--accent); margin-top: 2px;"></i>
-                <div>${modifiedSolution}</div>
-              </div>
-            </td>
-            <td style="vertical-align: middle; text-align: center;">
-              <span class="teks-copy" onclick="salinPenyelesaian('${escapedSolution}', this)">
-                <i class="fas fa-copy"></i> Copy
-              </span>
-            </td>
-          </tr>`;
-      }
+    // Handle title section
+    if (title && title !== currentTitle) {
+      tableHTML += `
+        <tr>
+          <td colspan="3" class="judul-bagian">
+            <i class="fas fa-folder" style="margin-right: 10px;"></i>
+            ${escapeHTML(title)}
+          </td>
+        </tr>`;
+      currentTitle = title;
     }
+
+    // Handle issue-solution rows (hanya tampilkan jika ada issue atau solution)
+    if (issue || solution) {
+      const escapedSolution = escapeSpecialChars(solution);
+      const modifiedIssue = escapeHTML(issue).replace(/\n/g, "<br>");
+      const modifiedSolution = escapeHTML(solution).replace(/\n/g, "<br>");
+      
+      tableHTML += `
+        <tr>
+          <td class="kolom-pertanyaan">
+            <div style="display: flex; align-items: flex-start; gap: 10px;">
+              <i class="fas fa-question-circle" style="color: var(--primary); margin-top: 2px;"></i>
+              <div>${modifiedIssue || '-'}</div>
+            </div>
+          </td>
+          <td class="kolom-penyelesaian">
+            <div style="display: flex; align-items: flex-start; gap: 10px;">
+              <i class="fas fa-check-circle" style="color: var(--accent); margin-top: 2px;"></i>
+              <div>${modifiedSolution || '-'}</div>
+            </div>
+          </td>
+          <td style="vertical-align: middle; text-align: center;">
+            <span class="teks-copy" onclick="salinPenyelesaian('${escapedSolution}', this)" title="Copy Solution">
+              <i class="fas fa-copy"></i> Copy
+            </span>
+          </td>
+        </tr>`;
+    }
+  }
+}
 
   } else if (kategori === 'report') {
     tableHTML += `
@@ -2340,3 +2344,4 @@ function updateConnectionStatus() {
 </script>
 </body>
 </html>
+
