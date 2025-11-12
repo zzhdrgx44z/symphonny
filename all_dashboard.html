@@ -2267,129 +2267,7 @@ let tableHTML = `
 </div>
 <div class="table-container"><table>`;
 
-// Handle different table structures based on category
-if (kategori === 'datalogin') {
-tableHTML += `
-<tr>
-<th style="width: 35%; font-size: 1.3em; padding: 20px 15px;">Issue / Problem</th>
-<th style="width: 35%; font-size: 1 em; padding: 20px 15px;">Solution / Resolution</th>
-<th style="width: 10%; font-size: 1.3em; padding: 20px 15px;">Action</th>
-</tr>`;
-
-let currentTitle = '';
-for (let i = 1; i < data.length; i++) {
-const row = data[i];
-if (!row || row.length < 3) continue;
-
-const title = (row[0] || '').toString().trim();
-const issue = (row[1] || '').toString().trim();
-const solution = (row[2] || '').toString().trim();
-
-if (!title && !issue && !solution) continue;
-
-if (title && title !== currentTitle) {
-tableHTML += `
-<tr>
-<td colspan="3" class="judul-bagian" style="font-size: 1.4em; padding: 25px 20px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: white;">
-<i class="fas fa-folder-open" style="margin-right: 15px; font-size: 1.2em;"></i>
-${escapeHTML(title)}
-</td>
-</tr>`;
-currentTitle = title;
-}
-
-if (issue || solution) {
-const escapedSolution = escapeSpecialChars(solution);
-const modifiedIssue = escapeHTML(issue).replace(/\n/g, "<br>");
-const modifiedSolution = escapeHTML(solution).replace(/\n/g, "<br>");
-
-tableHTML += `
-<tr style="border-bottom: 2px solid #e0e0e0;">
-<td class="kolom-pertanyaan" style="font-size: 1.2em; padding: 25px 20px; line-height: 1.6; vertical-align: top;">
-<div style="display: flex; align-items: flex-start; gap: 15px;">
-<i class="fas fa-question-circle" style="color: var(--primary); margin-top: 4px; font-size: 1.3em;"></i>
-<div style="flex: 1;">${modifiedIssue || '<span style="color: #999; font-style: italic;">No issue description</span>'}</div>
-</div>
-</td>
-<td class="kolom-penyelesaian" style="font-size: 1.2em; padding: 25px 20px; line-height: 1.6; vertical-align: top;">
-<div style="display: flex; align-items: flex-start; gap: 15px;">
-<i class="fas fa-check-circle" style="color: var(--accent); margin-top: 4px; font-size: 1.3em;"></i>
-<div style="flex: 1;">${modifiedSolution || '<span style="color: #999; font-style: italic;">No solution provided</span>'}</div>
-</div>
-</td>
-<td style="vertical-align: middle; text-align: center; padding: 25px 15px;">
-<span class="teks-copy" onclick="salinPenyelesaian('${escapedSolution}', this)"
-style="font-size: 1.1em; padding: 12px 20px; cursor: pointer; background: var(--primary); color: white; border-radius: 8px; display: inline-block; transition: all 0.3s ease;"
-onmouseover="this.style.background='var(--accent)'; this.style.transform='scale(1.05)'"
-onmouseout="this.style.background='var(--primary)'; this.style.transform='scale(1)'"
-title="Copy Solution to Clipboard">
-<i class="fas fa-copy" style="margin-right: 8px;"></i>COPY
-</span>
-</td>
-</tr>`;
-}
-}
-
-} else if (kategori === 'linknawala') {
-tableHTML += `
-<tr>
-<th style="width: 40%;">Question</th>
-<th style="width: 50%;">Answer</th>
-<th style="width: 10%;">Action</th>
-</tr>`;
-
-let currentTitle = '';
-for (let i = 1; i < data.length; i++) {
-const row = data[i];
-if (!row || row.length < 3) continue;
-
-const title = row[0] || '';
-const question = row[1] || '';
-const answer = row[2] || '';
-
-if (!title && !question && !answer) continue;
-
-if (title && title !== currentTitle) {
-tableHTML += `
-<tr>
-<td colspan="3" class="judul-bagian">
-<i class="fas fa-folder" style="margin-right: 10px;"></i>
-${escapeHTML(title)}
-</td>
-</tr>`;
-currentTitle = title;
-}
-
-if (question || answer) {
-const escapedAnswer = escapeSpecialChars(answer);
-const modifiedQuestion = escapeHTML(question).replace(/\n/g, "<br>");
-const modifiedAnswer = escapeHTML(answer).replace(/\n/g, "<br>");
-
-tableHTML += `
-<tr>
-<td class="kolom-pertanyaan">
-<div style="display: flex; align-items: flex-start; gap: 10px;">
-<i class="fas fa-question-circle" style="color: var(--primary); margin-top: 2px;"></i>
-<div>${modifiedQuestion}</div>
-</div>
-</td>
-<td class="kolom-jawaban">
-<div style="display: flex; align-items: flex-start; gap: 10px;">
-<i class="fas fa-check-circle" style="color: var(--accent); margin-top: 2px;"></i>
-<div>${modifiedAnswer}</div>
-</div>
-</td>
-<td style="vertical-align: middle; text-align: center;">
-<span class="teks-copy" onclick="salinJawaban('${escapedAnswer}', this)">
-<i class="fas fa-copy"></i> Copy
-</span>
-</td>
-</tr>`;
-}
-}
-
-} else {
-// Default table structure untuk kategori lainnya
+// Default table structure untuk semua kategori
 tableHTML += '<tr>';
 if (data[0]) {
 data[0].forEach(header => {
@@ -2405,7 +2283,6 @@ data[i].forEach(cell => {
 tableHTML += `<td>${escapeHTML(cell) || '-'}</td>`;
 });
 tableHTML += '</tr>';
-}
 }
 }
 
@@ -2441,28 +2318,6 @@ return text.toString()
 }
 
 // =============== COPY FUNCTIONS ===============
-function salinPenyelesaian(text, element) {
-const unescaped = text
-.replace(/\\'/g, "'")
-.replace(/\\"/g, '"')
-.replace(/\\n/g, '\n')
-.replace(/\\r/g, '\r')
-.replace(/\\t/g, '\t')
-.replace(/\\\\/g, '\\');
-
-salinKeClipboard(unescaped, element);
-}
-
-function salinJawaban(text, element) {
-const unescaped = text
-.replace(/\\'/g, "'")
-.replace(/\\"/g, '"')
-.replace(/\\n/g, '\n')
-.replace(/\\\\/g, '\\');
-
-salinKeClipboard(unescaped, element);
-}
-
 function salinTabel(kategori) {
 const data = semuaData[kategori];
 if (!data || data.length === 0) {
