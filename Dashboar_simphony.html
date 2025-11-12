@@ -3,1940 +3,780 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TOMMY HILFIGER - Blocked Links Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <title>Sistem Login dengan Google Sheets</title>
     <style>
-        /* =============== VARIABEL WARNA & DESAIN =============== */
         :root {
-            --primary: #00ffff;
-            --primary-dark: #00cccc;
-            --secondary: #ff00ff;
-            --secondary-dark: #cc00cc;
-            --accent: #00ff88;
-            --accent-dark: #00cc66;
-            --warning: #ffaa00;
-            --success: #00ff00;
-            --danger: #ff3366;
-            --dark: #0a0a0f;
-            --darker: #05050a;
-            --panel: rgba(10, 15, 30, 0.95);
-            --panel-light: rgba(15, 25, 40, 0.85);
-            --glass: rgba(255, 255, 255, 0.05);
-            --border-color: rgba(0, 255, 255, 0.2);
-            --text-primary: #ffffff;
-            --text-secondary: #b0c4ff;
-            --text-muted: #8090b0;
-            --shadow-glow: 0 0 20px rgba(0, 255, 255, 0.3);
-            --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --primary-color: #4a6fa5;
+            --secondary-color: #6b8cbc;
+            --accent-color: #ff6b6b;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
         }
-
-        /* =============== RESET & BASE STYLES =============== */
+        
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
+        
         body {
-            display: flex;
-            min-height: 100vh;
-            color: var(--text-primary);
-            font-family: 'Rajdhani', sans-serif;
-            background: 
-                radial-gradient(ellipse at top left, rgba(0, 50, 100, 0.3) 0%, transparent 50%),
-                radial-gradient(ellipse at bottom right, rgba(100, 0, 150, 0.3) 0%, transparent 50%),
-                linear-gradient(135deg, #0a0a0f 0%, #0a0a1f 50%, #0a0515 100%);
-            overflow-x: hidden;
-            position: relative;
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            line-height: 1.6;
         }
-
-        /* Animated Background */
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                radial-gradient(circle at 20% 30%, rgba(0, 150, 255, 0.1) 0%, transparent 20%),
-                radial-gradient(circle at 80% 70%, rgba(255, 0, 255, 0.1) 0%, transparent 20%),
-                radial-gradient(circle at 50% 50%, rgba(0, 255, 136, 0.05) 0%, transparent 30%);
-            animation: backgroundPulse 10s ease-in-out infinite;
-            pointer-events: none;
-            z-index: -2;
-        }
-
-        body::after {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                repeating-linear-gradient(
-                    0deg,
-                    transparent,
-                    transparent 2px,
-                    rgba(0, 255, 255, 0.02) 2px,
-                    rgba(0, 255, 255, 0.02) 4px
-                );
-            pointer-events: none;
-            z-index: -1;
-            animation: scanlines 8s linear infinite;
-        }
-
-        @keyframes backgroundPulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
-
-        @keyframes scanlines {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(10px); }
-        }
-
-        /* =============== ENHANCED SIDEBAR =============== */
-        .sidebar-future {
-            width: 320px;
-            height: 100vh;
-            background: linear-gradient(180deg,
-                rgba(5, 10, 20, 0.98) 0%,
-                rgba(10, 15, 30, 0.95) 50%,
-                rgba(5, 10, 20, 0.98) 100%);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-right: 1px solid var(--border-color);
-            box-shadow:
-                4px 0 30px rgba(0, 255, 255, 0.2),
-                inset -1px 0 0 rgba(255, 255, 255, 0.05);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            z-index: 100;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Sidebar Collapsed State */
-        .sidebar-future.collapsed {
-            width: 80px;
-        }
-
-        .sidebar-future.collapsed .robot-header h2,
-        .sidebar-future.collapsed .robot-subtitle,
-        .sidebar-future.collapsed .robot-nav ul li a span,
-        .sidebar-future.collapsed .robot-footer .sys-line {
-            display: none;
-        }
-
-        .sidebar-future.collapsed .robot-header {
-            padding: 20px 10px;
-        }
-
-        .sidebar-future.collapsed .robot-nav ul li a {
-            justify-content: center;
-            padding: 14px;
-        }
-
-        .sidebar-future.collapsed .robot-footer {
-            padding: 10px;
-        }
-
-        /* Sidebar Toggle Button */
-        .sidebar-toggle {
-            position: absolute;
-            top: 20px;
-            right: -15px;
-            width: 30px;
-            height: 30px;
-            background: var(--panel);
-            border: 1px solid var(--border-color);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary);
-            cursor: pointer;
-            z-index: 101;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
-        }
-
-        .sidebar-toggle:hover {
-            background: var(--primary);
-            color: var(--dark);
-            transform: scale(1.1);
-            box-shadow: 0 0 20px var(--primary);
-        }
-
-        /* Sidebar Glow Effect */
-        .sidebar-future::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 1px;
-            height: 100%;
-            background: linear-gradient(180deg,
-                transparent,
-                var(--primary),
-                transparent);
-            animation: sidebarGlow 3s ease-in-out infinite;
-        }
-
-        @keyframes sidebarGlow {
-            0%, 100% { opacity: 0.3; box-shadow: 0 0 10px var(--primary); }
-            50% { opacity: 1; box-shadow: 0 0 30px var(--primary); }
-        }
-
-        /* Sidebar Header */
-        .robot-header {
-            padding: 30px 20px;
-            text-align: center;
-            position: relative;
-            background: linear-gradient(135deg, var(--glass), transparent);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .robot-header::after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            left: 10%;
-            width: 80%;
-            height: 1px;
-            background: linear-gradient(90deg,
-                transparent,
-                var(--primary),
-                transparent);
-            animation: headerLine 3s ease-in-out infinite;
-        }
-
-        @keyframes headerLine {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
-
-        .robot-header h2 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 2rem;
-            font-weight: 900;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
-            letter-spacing: 2px;
-            margin-bottom: 8px;
-            animation: titleGlow 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes titleGlow {
-            0% { filter: brightness(1); }
-            100% { filter: brightness(1.2); }
-        }
-
-        .robot-subtitle {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            margin-bottom: 15px;
-        }
-
-        .status-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 16px;
-            background: rgba(0, 255, 136, 0.1);
-            border: 1px solid rgba(0, 255, 136, 0.3);
-            border-radius: 20px;
-            font-size: 0.9rem;
-            color: var(--accent);
-            animation: statusPulse 2s ease-in-out infinite;
-        }
-
-        @keyframes statusPulse {
-            0%, 100% {
-                box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
-                transform: scale(1);
-            }
-            50% {
-                box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
-                transform: scale(1.05);
-            }
-        }
-
-        .status-indicator .dot {
-            width: 8px;
-            height: 8px;
-            background: var(--accent);
-            border-radius: 50%;
-            box-shadow: 0 0 10px var(--accent);
-            animation: dotPulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes dotPulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(1.2); }
-        }
-
-        /* Enhanced Navigation */
-        .robot-nav {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px 0;
-            scrollbar-width: thin;
-            scrollbar-color: var(--border-color) transparent;
-        }
-
-        .robot-nav::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .robot-nav::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .robot-nav::-webkit-scrollbar-thumb {
-            background: var(--border-color);
-            border-radius: 2px;
-        }
-
-        .robot-nav ul {
-            list-style: none;
-            padding: 0 15px;
-        }
-
-        .robot-nav ul li {
-            margin-bottom: 8px;
-            position: relative;
-        }
-
-        .robot-nav ul li::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 3px;
-            height: 0;
-            background: linear-gradient(180deg, var(--primary), var(--secondary));
-            transition: height 0.3s ease;
-            border-radius: 2px;
-        }
-
-        .robot-nav ul li:hover::before,
-        .robot-nav ul li.active::before {
-            height: 70%;
-        }
-
-        .robot-nav ul li a {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 14px 18px;
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 1rem;
-            font-weight: 500;
-            border-radius: 12px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden;
-            background: var(--glass);
-            border: 1px solid transparent;
-        }
-
-        .robot-nav ul li a::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg,
-                transparent,
-                rgba(0, 255, 255, 0.1),
-                transparent);
-            transition: left 0.5s ease;
-        }
-
-        .robot-nav ul li a:hover::before {
-            left: 100%;
-        }
-
-        .robot-nav ul li a i {
-            font-size: 1.2rem;
-            min-width: 24px;
-            text-align: center;
-            transition: all 0.3s ease;
-            color: var(--primary);
-        }
-
-        .robot-nav ul li a span {
-            position: relative;
-            z-index: 1;
-            transition: color 0.3s ease;
-        }
-
-        .robot-nav ul li a:hover {
-            background: rgba(0, 255, 255, 0.1);
-            color: var(--text-primary);
-            transform: translateX(5px);
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.2);
-        }
-
-        .robot-nav ul li a:hover i {
-            color: var(--accent);
-            transform: scale(1.1) rotate(5deg);
-        }
-
-        .robot-nav ul li.active a {
-            background: linear-gradient(135deg,
-                rgba(0, 255, 255, 0.15),
-                rgba(255, 0, 255, 0.1));
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-            box-shadow: 0 5px 20px rgba(0, 255, 255, 0.3);
-        }
-
-        .robot-nav ul li.active a i {
-            color: var(--accent);
-        }
-
-        /* Sidebar Footer */
-        .robot-footer {
-            padding: 20px;
-            text-align: center;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            background: linear-gradient(135deg, var(--glass), transparent);
-        }
-
-        .robot-footer .sys-line {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-bottom: 10px;
-            font-family: 'Space Mono', monospace;
-        }
-
-        .robot-footer .sys-line span {
-            color: var(--secondary);
-            font-weight: 700;
-        }
-
-        .core-pulse {
-            width: 12px;
-            height: 12px;
-            background: radial-gradient(circle, var(--primary), var(--primary-dark));
-            border-radius: 50%;
+        
+        .container {
+            max-width: 1200px;
             margin: 0 auto;
-            box-shadow: 0 0 20px var(--primary);
-            animation: corePulse 2s ease-in-out infinite;
+            padding: 0 20px;
         }
-
-        @keyframes corePulse {
-            0%, 100% {
-                transform: scale(1);
-                box-shadow: 0 0 20px var(--primary);
-            }
-            50% {
-                transform: scale(1.3);
-                box-shadow: 0 0 30px var(--primary), 0 0 50px rgba(0, 255, 255, 0.5);
-            }
+        
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-
-        /* =============== MAIN CONTENT AREA =============== */
-        .konten-utama {
-            flex: 1;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-            overflow-y: auto;
-            min-height: 100vh;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Header Section */
-        .header {
-            width: 100%;
-            max-width: 1200px;
-            margin-bottom: 40px;
-            position: relative;
-        }
-
-        .header-animasi {
-            position: relative;
-            height: 100px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 30px;
-            overflow: hidden;
-        }
-
-        .header-animasi::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg,
-                transparent,
-                var(--primary),
-                transparent);
-            animation: scanHeader 3s linear infinite;
-        }
-
-        @keyframes scanHeader {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-
-        #teksSelamatDatang {
-            font-family: 'Orbitron', monospace;
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
-            animation: textGlow 2s ease-in-out infinite alternate;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            position: relative;
-        }
-
-        #teksSelamatDatang::before,
-        #teksSelamatDatang::after {
-            content: "";
-            position: absolute;
-            width: 50px;
-            height: 2px;
-            background: var(--primary);
-            top: 50%;
-            animation: sideLines 2s ease-in-out infinite;
-        }
-
-        #teksSelamatDatang::before {
-            left: -70px;
-        }
-
-        #teksSelamatDatang::after {
-            right: -70px;
-        }
-
-        @keyframes sideLines {
-            0%, 100% { opacity: 0.3; width: 30px; }
-            50% { opacity: 1; width: 50px; }
-        }
-
-        @keyframes textGlow {
-            0% { filter: brightness(1) drop-shadow(0 0 10px rgba(0, 255, 255, 0.5)); }
-            100% { filter: brightness(1.2) drop-shadow(0 0 20px rgba(0, 255, 255, 0.8)); }
-        }
-
-        /* Enhanced Search Box */
-        #kotakPencarian {
-            width: 100%;
-            max-width: 600px;
-            height: 55px;
-            padding: 0 25px 0 55px;
-            border: 2px solid var(--border-color);
-            border-radius: 30px;
-            background: linear-gradient(135deg, var(--panel), var(--panel-light));
-            color: var(--text-primary);
-            font-family: 'Space Mono', monospace;
-            font-size: 16px;
-            outline: none;
-            transition: all 0.3s ease;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2300ffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: 20px center;
-            box-shadow:
-                inset 0 2px 10px rgba(0, 0, 0, 0.3),
-                0 5px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        #kotakPencarian::placeholder {
-            color: var(--text-muted);
-            font-style: italic;
-        }
-
-        #kotakPencarian:focus {
-            border-color: var(--primary);
-            box-shadow:
-                inset 0 2px 10px rgba(0, 255, 255, 0.2),
-                0 0 30px rgba(0, 255, 255, 0.3),
-                0 5px 20px rgba(0, 0, 0, 0.3);
-            transform: translateY(-2px);
-        }
-
-        /* =============== ENHANCED STATS CARDS =============== */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-            width: 100%;
-            max-width: 1200px;
-            margin: 30px 0;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, var(--panel), var(--panel-light));
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 25px;
-            text-align: center;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            box-shadow: var(--shadow-card);
-        }
-
-        .stat-card::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg,
-                rgba(0, 255, 255, 0.05),
-                transparent);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .stat-card:hover::before {
-            opacity: 1;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            border-color: var(--primary);
-            box-shadow:
-                0 15px 40px rgba(0, 255, 255, 0.2),
-                0 5px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .stat-icon {
-            width: 70px;
-            height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg,
-                rgba(0, 255, 255, 0.1),
-                rgba(255, 0, 255, 0.1));
-            border-radius: 20px;
-            margin: 0 auto 20px;
-            font-size: 2rem;
-            color: var(--primary);
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover .stat-icon {
-            transform: scale(1.1) rotate(5deg);
-            color: var(--accent);
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
-        }
-
-        .stat-content h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .stat-content .stat-value {
-            font-size: 2.2rem;
-            font-weight: 700;
-            font-family: 'Orbitron', monospace;
-            color: var(--accent);
-            margin: 0;
-            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
-        }
-
-        .stat-content .stat-description {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-top: 10px;
-        }
-
-        .connection-status {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 15px;
-        }
-
-        .status-indicator-small {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            animation: statusBlink 2s ease-in-out infinite;
-        }
-
-        .status-indicator-small.good {
-            background: var(--success);
-            box-shadow: 0 0 10px var(--success);
-        }
-
-        .status-indicator-medium {
-            background: var(--warning);
-            box-shadow: 0 0 10px var(--warning);
-        }
-
-        .status-indicator-bad {
-            background: var(--danger);
-            box-shadow: 0 0 10px var(--danger);
-        }
-
-        @keyframes statusBlink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* =============== IMPROVED DATA TABLES =============== */
-        #data2 {
-            width: 100%;
-            max-width: 100%;
-            margin: 30px 0;
-        }
-
-        .table-container {
-            width: 100%;
-            overflow-x: auto;
-            border: 1px solid var(--border-color);
-            border-radius: 15px;
-            background: var(--panel);
-            box-shadow: var(--shadow-card);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: var(--panel);
-            min-width: 800px;
-            border-radius: 15px;
-            overflow: hidden;
-        }
-
-        /* Better header styling */
-        th {
-            background: linear-gradient(135deg,
-                rgba(0, 255, 255, 0.15),
-                rgba(0, 150, 255, 0.1));
-            color: var(--primary);
-            padding: 20px 15px;
-            text-align: left;
-            font-weight: 600;
-            font-family: 'Orbitron', monospace;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-bottom: 2px solid var(--border-color);
-            position: relative;
-            white-space: nowrap;
-            font-size: 0.9rem;
-        }
-
-        th::after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 1px;
-            background: linear-gradient(90deg,
-                transparent,
-                var(--primary),
-                transparent);
-        }
-
-        /* Improved cell styling */
-        td {
-            padding: 18px 15px;
-            color: var(--text-primary);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.3s ease;
-            font-family: 'Rajdhani', sans-serif;
-            word-wrap: break-word;
-            max-width: 400px;
-            vertical-align: top;
-            line-height: 1.5;
-        }
-
-        /* Enhanced row hover effect */
-        tr:hover td {
-            background: rgba(0, 255, 136, 0.08);
-            color: var(--text-primary);
-            transform: translateX(5px);
-            transition: all 0.3s ease;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        /* Better section headers */
-        .judul-bagian {
-            background: linear-gradient(135deg,
-                rgba(0, 255, 255, 0.1),
-                rgba(255, 0, 255, 0.05));
-            color: var(--primary);
-            font-weight: 700;
-            font-size: 1.1rem;
-            padding: 20px;
-            text-align: left;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            position: relative;
-            font-family: 'Orbitron', monospace;
-            border-left: 4px solid var(--accent);
-        }
-
-        .judul-bagian i {
-            margin-right: 10px;
-            color: var(--accent);
-        }
-
-        /* Improved question column */
-        .kolom-pertanyaan {
-            text-align: left;
-            padding: 18px 15px;
-            background: rgba(0, 255, 255, 0.03);
-            border-left: 3px solid var(--primary);
-            font-weight: 500;
-            position: relative;
-            min-width: 250px;
-            line-height: 1.6;
-        }
-
-        /* Improved solution/answer columns */
-        .kolom-penyelesaian,
-        .kolom-jawaban {
-            text-align: left;
-            padding: 18px 15px;
-            line-height: 1.6;
-            font-family: 'Rajdhani', sans-serif;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            min-width: 300px;
-            background: rgba(0, 255, 136, 0.03);
-            border-left: 3px solid var(--accent);
-        }
-
-        /* =============== COPY BUTTON =============== */
-        .teks-copy {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            background: linear-gradient(135deg,
-                rgba(138, 43, 226, 0.2),
-                rgba(255, 0, 102, 0.2));
-            border: 1px solid var(--warning);
-            border-radius: 25px;
-            color: var(--text-primary);
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .teks-copy::before {
-            content: "";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: width 0.3s ease, height 0.3s ease;
-        }
-
-        .teks-copy:hover::before {
-            width: 100%;
-            height: 100%;
-        }
-
-        .teks-copy:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 170, 0, 0.3);
-            border-color: var(--accent);
-        }
-
-        .teks-copy i {
-            font-size: 1rem;
-        }
-
-        .teks-copy.disalin {
-            background: linear-gradient(135deg,
-                rgba(0, 255, 0, 0.2),
-                rgba(0, 255, 136, 0.2));
-            border-color: var(--success);
-            color: var(--success);
-        }
-
-        /* Icon styling in table cells */
-        .kolom-pertanyaan i,
-        .kolom-penyelesaian i,
-        .kolom-jawaban i {
-            font-size: 0.9rem;
-            flex-shrink: 0;
-            margin-right: 10px;
-            margin-top: 4px;
-        }
-
-        /* =============== TABLE COPY BUTTONS =============== */
-        .table-header {
+        
+        .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-            padding: 0 10px;
         }
-
-        .table-title {
-            font-family: 'Orbitron', monospace;
+        
+        .logo {
             font-size: 1.5rem;
-            color: var(--primary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-weight: bold;
         }
-
-        .table-actions {
+        
+        .nav-links {
             display: flex;
-            gap: 10px;
+            list-style: none;
         }
-
-        .table-copy-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            background: linear-gradient(135deg,
-                rgba(0, 255, 255, 0.1),
-                rgba(255, 0, 255, 0.05));
-            border: 1px solid var(--border-color);
+        
+        .nav-links li {
+            margin-left: 1.5rem;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+        
+        .nav-links a:hover {
+            opacity: 0.8;
+        }
+        
+        .main-content {
+            padding: 2rem 0;
+        }
+        
+        .card {
+            background-color: white;
             border-radius: 8px;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
         }
-
-        .table-copy-btn:hover {
-            background: rgba(0, 255, 255, 0.2);
-            color: var(--primary);
-            border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.2);
-        }
-
-        /* =============== NOT FOUND MESSAGE =============== */
-        #pesanTidakDitemukan {
-            display: none;
-            text-align: center;
-            padding: 50px;
-            background: linear-gradient(135deg,
-                rgba(255, 0, 255, 0.1),
-                rgba(255, 0, 102, 0.05));
-            border: 2px dashed var(--secondary);
-            border-radius: 20px;
-            max-width: 600px;
-            margin: 50px auto;
-            animation: errorPulse 2s ease-in-out infinite;
-        }
-
-        #pesanTidakDitemukan i {
-            font-size: 3rem;
-            color: var(--secondary);
-            margin-bottom: 20px;
-            display: block;
-        }
-
-        #pesanTidakDitemukan strong {
-            font-size: 1.8rem;
-            color: var(--text-primary);
-            display: block;
-            margin-bottom: 10px;
-            font-family: 'Orbitron', monospace;
-        }
-
-        #pesanTidakDitemukan small {
-            color: var(--text-secondary);
-            font-size: 1rem;
-        }
-
-        @keyframes errorPulse {
-            0%, 100% {
-                box-shadow: 0 0 20px rgba(255, 0, 255, 0.2);
-                transform: scale(1);
-            }
-            50% {
-                box-shadow: 0 0 40px rgba(255, 0, 255, 0.4);
-                transform: scale(1.02);
-            }
-        }
-
-        /* =============== LOADING SPINNER =============== */
-        .loading-spinner {
+        
+        .card-header {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            height: 200px;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+        
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .login-form {
+            max-width: 400px;
+            margin: 2rem auto;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-block {
+            display: block;
             width: 100%;
         }
-
+        
+        .btn-success {
+            background-color: var(--success-color);
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: var(--dark-color);
+        }
+        
+        .btn-warning:hover {
+            background-color: #e0a800;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .table th, .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .alert {
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+        
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        
+        .alert-info {
+            color: #0c5460;
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+        }
+        
+        .tab-container {
+            margin-top: 1.5rem;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 1rem;
+        }
+        
+        .tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        footer {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 1.5rem 0;
+            text-align: center;
+            margin-top: 2rem;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .logout-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+        
         .spinner {
-            width: 60px;
-            height: 60px;
-            border: 3px solid rgba(0, 255, 255, 0.2);
-            border-top: 3px solid var(--primary);
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--primary-color);
             border-radius: 50%;
+            width: 40px;
+            height: 40px;
             animation: spin 1s linear infinite;
-            position: relative;
+            margin: 0 auto 1rem;
         }
-
-        .spinner::after {
-            content: "";
-            position: absolute;
-            top: 5px;
-            left: 5px;
-            right: 5px;
-            bottom: 5px;
-            border: 3px solid rgba(255, 0, 255, 0.2);
-            border-bottom: 3px solid var(--secondary);
-            border-radius: 50%;
-            animation: spin 0.8s linear reverse infinite;
-        }
-
+        
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
-
-        /* =============== RESPONSIVE DESIGN =============== */
-        @media (max-width: 1024px) {
-            .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-                gap: 20px;
-            }
-        }
-
+        
         @media (max-width: 768px) {
-            body {
+            .header-content {
                 flex-direction: column;
+                gap: 1rem;
             }
-
-            .sidebar-future {
-                width: 100%;
-                height: auto;
-                flex-direction: row;
-                padding: 15px;
-                border-right: none;
-                border-bottom: 1px solid var(--border-color);
-            }
-
-            .sidebar-future.collapsed {
-                width: 100%;
-                height: auto;
-            }
-
-            .sidebar-toggle {
-                display: none;
-            }
-
-            .robot-header {
-                display: none;
-            }
-
-            .robot-nav {
-                flex: 1;
-                overflow-x: auto;
-                overflow-y: hidden;
-                padding: 10px 0;
-            }
-
-            .robot-nav ul {
-                display: flex;
-                flex-direction: row;
-                gap: 10px;
-                padding: 0 10px;
-            }
-
-            .robot-nav ul li a {
-                padding: 12px 15px;
-                min-width: 60px;
+            
+            .nav-links {
+                flex-wrap: wrap;
                 justify-content: center;
             }
-
-            .robot-nav ul li a span {
-                display: none;
+            
+            .nav-links li {
+                margin: 0 0.5rem;
             }
-
-            .robot-footer {
-                display: none;
+            
+            .card {
+                padding: 1rem;
             }
-
-            .konten-utama {
-                padding: 20px;
+            
+            .table {
+                font-size: 0.875rem;
             }
-
-            #teksSelamatDatang {
-                font-size: 1.8rem;
-            }
-
-            #teksSelamatDatang::before,
-            #teksSelamatDatang::after {
-                display: none;
-            }
-
-            .stats-grid {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .stat-card {
-                max-width: 100%;
-            }
-
-            .table-header {
-                flex-direction: column;
-                gap: 15px;
-                align-items: flex-start;
-            }
-
-            .table-actions {
-                width: 100%;
-                justify-content: space-between;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .konten-utama {
-                padding: 15px;
-            }
-
-            #teksSelamatDatang {
-                font-size: 1.5rem;
-            }
-
-            .stat-card {
-                padding: 25px 20px;
-            }
-
-            .stat-icon {
-                width: 60px;
-                height: 60px;
-                font-size: 2rem;
-            }
-
-            .stat-value {
-                font-size: 1.8rem;
-            }
-
-            th, td {
-                padding: 12px 8px;
-                font-size: 0.9rem;
+            
+            .table th, .table td {
+                padding: 0.5rem;
             }
         }
     </style>
 </head>
 <body>
-    <!-- SIDEBAR -->
-    <div class="sidebar-future">
-        <button class="sidebar-toggle" onclick="toggleSidebar()">
-            <i class="fas fa-chevron-left"></i>
-        </button>
-
-        <div class="robot-header">
-            <h2>TOMMY HILFIGER</h2>
-            <div class="robot-subtitle">System Active</div>
-            <div class="status-indicator">
-                <span class="dot"></span>
-                <span class="status-text">Online</span>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">Sistem Login</div>
+                <ul class="nav-links">
+                    <li><a href="#" id="homeLink">Beranda</a></li>
+                    <li><a href="#" id="bonusLink">Bonus</a></li>
+                    <li><a href="#" id="reportLink">Laporan</a></li>
+                    <li><a href="#" id="rewardLink">Hadiah</a></li>
+                </ul>
+                <div class="user-info" id="userInfo">
+                    <span id="userName">Pengguna</span>
+                    <button class="logout-btn" id="logoutBtn">Keluar</button>
+                </div>
             </div>
         </div>
+    </header>
 
-        <nav class="robot-nav">
-            <ul>
-                <li class="active"><a href="#" onclick="filterKategori('linknawala'); setActiveNav(this)">
-                    <i class="fa-solid fa-link-slash"></i>
-                    <span>Blocked Links</span>
-                </a></li>
-            </ul>
-        </nav>
-
-        <div class="robot-footer">
-            <div class="sys-line">SYS: <span>CALL ME TH</span></div>
-            <div class="core-pulse"></div>
-        </div>
-    </div>
-
-    <!-- MAIN CONTENT -->
-    <div class="konten-utama">
-        <div class="header">
-            <div class="header-animasi">
-                <h1 id="teksSelamatDatang"></h1>
-            </div>
-            <input type="text" placeholder="Search blocked links..." id="kotakPencarian" onkeyup="cariTabel()">
-        </div>
-
-        <!-- STATS CARDS -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-ban"></i>
+    <div class="container main-content">
+        <!-- Login Section -->
+        <section id="loginSection">
+            <div class="card login-form">
+                <div class="card-header">
+                    <h2 class="card-title">Login</h2>
                 </div>
-                <div class="stat-content">
-                    <h3>Total Blocked Links</h3>
-                    <p class="stat-value" id="total-links">0</p>
-                    <p class="stat-description">Links currently blocked</p>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>Last Update</h3>
-                    <p class="stat-value" id="last-update">-</p>
-                    <p class="stat-description">Data refresh time</p>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-shield-alt"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>Security Status</h3>
-                    <div class="connection-status">
-                        <span class="status-indicator-small good"></span>
-                        <span id="connection-status">Active</span>
+                <div id="loginMessage"></div>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" class="form-control" required>
                     </div>
-                    <p class="stat-description">System protection active</p>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-block">Login</button>
+                </form>
+                <div class="alert alert-info" style="margin-top: 1rem;">
+                    <strong>Informasi:</strong> Sistem ini terhubung dengan Google Sheets. Pastikan Anda memiliki kredensial yang valid.
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- LOADING SPINNER -->
-        <div id="loadingSpinner" class="loading-spinner" style="display: none;">
-            <div class="spinner"></div>
-        </div>
-
-        <!-- DATA TABLES -->
-        <div id="data2"></div>
-
-        <!-- NOT FOUND MESSAGE -->
-        <div id="pesanTidakDitemukan">
-            <i class="fas fa-exclamation-triangle"></i>
-            <strong>DATA NOT FOUND</strong>
-            <small>Try again with different keywords</small>
-        </div>
+        <!-- Dashboard Section -->
+        <section id="dashboardSection" class="hidden">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Dashboard</h2>
+                </div>
+                <p>Selamat datang, <span id="dashboardUserName">Pengguna</span>!</p>
+                <p>Berikut adalah ringkasan data Anda:</p>
+                
+                <div class="tab-container">
+                    <div class="tabs">
+                        <div class="tab active" data-tab="bonus">Bonus</div>
+                        <div class="tab" data-tab="report">Laporan</div>
+                        <div class="tab" data-tab="reward">Hadiah</div>
+                    </div>
+                    
+                    <div class="tab-content active" id="bonusTab">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Data Bonus</h3>
+                                <button class="btn" id="refreshBonus">Refresh Data</button>
+                            </div>
+                            <div id="bonusData">
+                                <div class="loading">
+                                    <div class="spinner"></div>
+                                    <p>Memuat data bonus dari Google Sheets...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="reportTab">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Data Laporan</h3>
+                                <button class="btn" id="refreshReport">Refresh Data</button>
+                            </div>
+                            <div id="reportData">
+                                <div class="loading">
+                                    <div class="spinner"></div>
+                                    <p>Memuat data laporan dari Google Sheets...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="rewardTab">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Data Hadiah</h3>
+                                <button class="btn" id="refreshReward">Refresh Data</button>
+                            </div>
+                            <div id="rewardData">
+                                <div class="loading">
+                                    <div class="spinner"></div>
+                                    <p>Memuat data hadiah dari Google Sheets...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 Sistem Login dengan Google Sheets. Semua hak dilindungi.</p>
+        </div>
+    </footer>
 
     <script>
-        // =============== GLOBAL VARIABLES ===============
-        let kategoriSekarang = 'linknawala';
-        let semuaData = {
-            linknawala: []
-        };
-        let sedangMencari = false;
-        let sidebarCollapsed = false;
+        // DOM Elements
+        const loginSection = document.getElementById('loginSection');
+        const dashboardSection = document.getElementById('dashboardSection');
+        const loginForm = document.getElementById('loginForm');
+        const loginMessage = document.getElementById('loginMessage');
+        const userName = document.getElementById('userName');
+        const dashboardUserName = document.getElementById('dashboardUserName');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const bonusData = document.getElementById('bonusData');
+        const reportData = document.getElementById('reportData');
+        const rewardData = document.getElementById('rewardData');
+        const refreshBonusBtn = document.getElementById('refreshBonus');
+        const refreshReportBtn = document.getElementById('refreshReport');
+        const refreshRewardBtn = document.getElementById('refreshReward');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const navLinks = document.querySelectorAll('.nav-links a');
 
-        // Google Apps Script URL - SESUAIKAN DENGAN SCRIPT ANDA
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwkHrgiGlxFkJHZwp-bMaRCezwCSPAdV-FyUHkX9cAEWu/exec';
+        // Konfigurasi Google Sheets
+        const SHEET_ID = '19AodSFSw4shpSZVZ4I-_sD91eU1HPITMeg4cwLiEV1c';
+        const LOGIN_SHEET_GID = '0';
+        const BONUS_SHEET_GID = '1939794661';
+        const REPORT_SHEET_GID = '1449650830';
+        const REWARD_SHEET_GID = '137758174';
 
-        // =============== INITIALIZATION ===============
-        window.onload = function() {
-            filterKategori('linknawala');
-            mulaiAnimasiTeksSelamatDatang();
-            muatSemuaData();
-            updateStats();
-        };
-
-        // =============== DATA LOADING FROM GOOGLE APPS SCRIPT ===============
-        async function muatSemuaData() {
-            tampilkanLoading(true);
-
-            try {
-                // Load data dari Google Apps Script
-                const response = await fetch(GAS_URL);
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const data = await response.json();
-
-                if (data.success) {
-                    // Format data sesuai dengan struktur yang diharapkan
-                    semuaData = {
-                        linknawala: data.linknawala || []
-                    };
-
-                    console.log('Data loaded successfully:', semuaData);
-
-                    // Render tables untuk blocked links
-                    renderAllTables();
-
-                    // Update stats
-                    updateStats();
-
-                    tampilkanNotifikasi("Blocked links data loaded successfully!", "sukses");
-                } else {
-                    throw new Error(data.error || 'Unknown error from server');
-                }
-
-            } catch (error) {
-                console.error("Error loading data:", error);
-                tampilkanNotifikasi("Failed to load data: " + error.message, "error");
-
-                // Fallback: coba load data dari CSV jika GAS gagal
-                muatDataFallback();
-            } finally {
-                tampilkanLoading(false);
-            }
-        }
-
-        function renderAllTables() {
-            // Render table untuk blocked links
-            const kategori = 'linknawala';
-            const data = semuaData[kategori];
-
-            if (data && data.length > 0) {
-                document.getElementById('data2').innerHTML = buatTabel(data, kategori);
-            } else {
-                document.getElementById('data2').innerHTML = buatPesanError(kategori, new Error('No data available'));
-            }
-        }
-
-        function updateStats() {
-            const data = semuaData['linknawala'] || [];
-            const totalLinks = data.length > 1 ? data.length - 1 : 0;
-            
-            document.getElementById('total-links').textContent = totalLinks;
-            document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
-        }
-
-        // Fallback method jika GAS tidak bekerja
-        async function muatDataFallback() {
-            try {
-                // Coba load dari CSV export
-                const gid = '1202906531';
-
-                try {
-                    const data = await ambilDataSheetDenganTimeout(gid, 5000);
-                    semuaData['linknawala'] = data;
-                } catch (error) {
-                    console.error(`Failed to load linknawala:`, error);
-                    semuaData['linknawala'] = [];
-                }
-
-                renderAllTables();
-                updateStats();
-                tampilkanNotifikasi("Data loaded with fallback method", "peringatan");
-
-            } catch (error) {
-                console.error("Fallback also failed:", error);
-            }
-        }
-
-        // Helper function untuk load data dari sheet (fallback)
-        async function ambilDataSheetDenganTimeout(gid, timeout = 5000) {
-            return new Promise((resolve, reject) => {
-                const timeoutId = setTimeout(() => {
-                    reject(new Error(`Request timeout for GID: ${gid}`));
-                }, timeout);
-
-                // Fallback method menggunakan CSV export
-                const SPREADSHEET_ID = '19AodSFSw4shpSZVZ4I-_sD91eU1HPITMeg4cwLiEV1c';
-                const csvUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${gid}`;
-
-                fetch(csvUrl)
-                    .then(response => {
-                        clearTimeout(timeoutId);
-                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                        return response.text();
-                    })
-                    .then(csvText => {
-                        const data = parseCSV(csvText);
-                        resolve(data);
-                    })
-                    .catch(error => {
-                        clearTimeout(timeoutId);
-                        reject(error);
-                    });
-            });
-        }
-
-        // Simple CSV parsing (fallback)
-        function parseCSV(csvText) {
-            if (!csvText || csvText.trim() === '') {
-                return [];
-            }
-
-            const lines = csvText.split('\n').filter(line => line.trim() !== '');
-            const result = [];
-
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
-                const row = [];
-                let current = '';
-                let inQuotes = false;
-
-                for (let j = 0; j < line.length; j++) {
-                    const char = line[j];
-
-                    if (char === '"') {
-                        if (inQuotes && j + 1 < line.length && line[j + 1] === '"') {
-                            current += '"';
-                            j++;
-                        } else {
-                            inQuotes = !inQuotes;
-                        }
-                    } else if (char === ',' && !inQuotes) {
-                        row.push(current.trim());
-                        current = '';
-                    } else {
-                        current += char;
+        // Tab functionality
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                // Update active tab
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Show active content
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === `${tabId}Tab`) {
+                        content.classList.add('active');
                     }
-                }
-
-                row.push(current.trim());
-                result.push(row);
-            }
-
-            return result;
-        }
-
-        // Error message template
-        function buatPesanError(kategori, error) {
-            const namaKategori = getNamaKategori(kategori);
-            return `
-            <div class="table-header">
-                <div class="table-title">${namaKategori}</div>
-                <div class="table-actions">
-                    <button class="table-copy-btn" onclick="muatDataKategori('${kategori}')">
-                        <i class="fas fa-redo"></i> Retry
-                    </button>
-                </div>
-            </div>
-            <div style="text-align:center;padding:40px;color:var(--danger);">
-                <i class="fas fa-exclamation-triangle" style="font-size:3rem;margin-bottom:20px;"></i>
-                <h3>Failed to load data</h3>
-                <p>${error.message || 'Unknown error occurred'}</p>
-            </div>
-            `;
-        }
-
-        // Reload specific category
-        async function muatDataKategori(kategori) {
-            try {
-                document.getElementById('data2').innerHTML = `
-                <div style="text-align:center;padding:40px;">
-                    <div class="spinner"></div>
-                    <p>Loading ${getNamaKategori(kategori)}...</p>
-                </div>
-                `;
-
-                // Reload data dari GAS
-                const response = await fetch(GAS_URL);
-                const data = await response.json();
-
-                if (data.success && data[kategori]) {
-                    semuaData[kategori] = data[kategori];
-                    document.getElementById('data2').innerHTML = buatTabel(data[kategori], kategori);
-                    updateStats();
-                    tampilkanNotifikasi(`${getNamaKategori(kategori)} data reloaded!`, "sukses");
-                } else {
-                    throw new Error('No data received');
-                }
-            } catch (error) {
-                console.error(`Error reloading ${kategori}:`, error);
-                document.getElementById('data2').innerHTML = buatPesanError(kategori, error);
-                tampilkanNotifikasi(`Failed to reload ${getNamaKategori(kategori)} data`, "error");
-            }
-        }
-
-        // Helper function to get category names
-        function getNamaKategori(kategori) {
-            const namaKategori = {
-                linknawala: 'Blocked Links'
-            };
-            return namaKategori[kategori] || kategori;
-        }
-
-        // =============== UI FUNCTIONS ===============
-        function tampilkanLoading(show) {
-            const spinner = document.getElementById('loadingSpinner');
-            spinner.style.display = show ? 'flex' : 'none';
-        }
-
-        function tampilkanNotifikasi(pesan, tipe = "info") {
-            // Create notification element
-            const notifikasi = document.createElement("div");
-            notifikasi.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 20px;
-                background: linear-gradient(135deg, var(--panel), var(--panel-light));
-                border: 1px solid var(--border-color);
-                border-radius: 10px;
-                color: var(--text-primary);
-                font-family: 'Rajdhani', sans-serif;
-                z-index: 1000;
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-                animation: slideInRight 0.3s ease;
-            `;
-
-            const icons = {
-                info: "fas fa-info-circle",
-                sukses: "fas fa-check-circle",
-                peringatan: "fas fa-exclamation-triangle",
-                error: "fas fa-times-circle"
-            };
-
-            const colors = {
-                info: "var(--primary)",
-                sukses: "var(--success)",
-                peringatan: "var(--warning)",
-                error: "var(--danger)"
-            };
-
-            notifikasi.innerHTML = `
-                <i class="${icons[tipe]}" style="color: ${colors[tipe]}; margin-right: 10px;"></i>
-                <span>${pesan}</span>
-            `;
-
-            document.body.appendChild(notifikasi);
-
-            setTimeout(() => {
-                notifikasi.style.animation = "slideOutRight 0.3s ease";
-                setTimeout(() => {
-                    if (document.body.contains(notifikasi)) {
-                        document.body.removeChild(notifikasi);
-                    }
-                }, 300);
-            }, 3000);
-        }
-
-        // =============== SEARCH FUNCTIONS ===============
-        function cariTabel() {
-            if (sedangMencari) return;
-
-            const input = document.getElementById('kotakPencarian').value.toLowerCase().trim();
-            document.getElementById('pesanTidakDitemukan').style.display = 'none';
-
-            if (input.length < 2) {
-                filterKategori('linknawala');
-                return;
-            }
-
-            sedangMencari = true;
-
-            setTimeout(() => {
-                let ditemukan = false;
-
-                // Search in blocked links
-                const data = semuaData['linknawala'];
-                if (data && data.length > 1) {
-                    const hasilFilter = filterData(data, input);
-                    if (hasilFilter.length > 1) {
-                        document.getElementById('data2').style.display = 'block';
-                        document.getElementById('data2').innerHTML = buatTabel(hasilFilter, 'linknawala');
-                        ditemukan = true;
-                    }
-                }
-
-                if (!ditemukan && input.length > 0) {
-                    document.getElementById('pesanTidakDitemukan').style.display = 'block';
-                }
-
-                sedangMencari = false;
-            }, 300);
-        }
-
-        function filterData(data, query) {
-            if (!query || !data || data.length === 0) return data;
-
-            const filtered = [data[0]]; // Include header
-            const searchTerms = query.split(' ').filter(term => term.length > 0);
-
-            for (let i = 1; i < data.length; i++) {
-                const row = data[i];
-                if (!row) continue;
-
-                const rowText = row.join(' ').toLowerCase();
-                const allTermsFound = searchTerms.every(term => rowText.includes(term));
-
-                if (allTermsFound) {
-                    filtered.push(row);
-                }
-            }
-            return filtered;
-        }
-
-        // =============== TABLE CREATION ===============
-        function buatTabel(data, kategori) {
-            if (!data || data.length < 2) {
-                return `
-                <div class="table-header">
-                    <div class="table-title">${getNamaKategori(kategori)}</div>
-                    <div class="table-actions">
-                        <button class="table-copy-btn" onclick="muatDataKategori('${kategori}')">
-                            <i class="fas fa-redo"></i> Reload Data
-                        </button>
-                    </div>
-                </div>
-                <div style="text-align:center;padding:40px;color:var(--text-muted);">
-                    <i class="fas fa-database" style="font-size:3rem;margin-bottom:20px;"></i>
-                    <h3>No Data Available</h3>
-                    <p>No data found for this category</p>
-                </div>`;
-            }
-
-            let tableHTML = `
-            <div class="table-header">
-                <div class="table-title">${getNamaKategori(kategori)}</div>
-                <div class="table-actions">
-                    <button class="table-copy-btn" onclick="salinTabel('${kategori}')">
-                        <i class="fas fa-copy"></i> Copy Data
-                    </button>
-                    <button class="table-copy-btn" onclick="eksporKeFile('${kategori}')">
-                        <i class="fas fa-download"></i> Export
-                    </button>
-                    <button class="table-copy-btn" onclick="muatDataKategori('${kategori}')">
-                        <i class="fas fa-redo"></i> Reload
-                    </button>
-                </div>
-            </div>
-            <div class="table-container"><table>`;
-
-            // SAMA UNTUK SEMUA KATEGORI - Standard table structure
-            tableHTML += '<tr>';
-            if (data[0]) {
-                data[0].forEach(header => {
-                    tableHTML += `<th>${escapeHTML(header)}</th>`;
                 });
-                tableHTML += '<th>Actions</th>';
-                tableHTML += '</tr>';
+            });
+        });
 
-                for (let i = 1; i < data.length; i++) {
-                    if (!data[i]) continue;
-
-                    tableHTML += '<tr>';
-                    data[i].forEach((cell, cellIndex) => {
-                        const cellContent = escapeHTML(cell) || '-';
-                        // Jika ini adalah kolom pertama, berikan styling khusus
-                        if (cellIndex === 0) {
-                            tableHTML += `<td class="kolom-pertanyaan">
-                                <div style="display: flex; align-items: flex-start; gap: 10px;">
-                                    <i class="fas fa-link" style="color: var(--primary); margin-top: 2px;"></i>
-                                    <div>${cellContent}</div>
-                                </div>
-                            </td>`;
-                        } 
-                        // Jika ini adalah kolom kedua, berikan styling khusus
-                        else if (cellIndex === 1) {
-                            tableHTML += `<td class="kolom-penyelesaian">
-                                <div style="display: flex; align-items: flex-start; gap: 10px;">
-                                    <i class="fas fa-exclamation-triangle" style="color: var(--accent); margin-top: 2px;"></i>
-                                    <div>${cellContent}</div>
-                                </div>
-                            </td>`;
-                        }
-                        // Untuk kolom lainnya
-                        else {
-                            tableHTML += `<td>${cellContent}</td>`;
+        // Navigation functionality
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.id.replace('Link', 'Tab');
+                const targetTab = document.getElementById(targetId);
+                
+                if (targetTab) {
+                    // Update active tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    document.querySelector(`.tab[data-tab="${targetId.replace('Tab', '")}"]`).classList.add('active');
+                    
+                    // Show active content
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === targetId) {
+                            content.classList.add('active');
                         }
                     });
-                    
-                    // Tambahkan sel kosong jika data memiliki kolom lebih sedikit dari header
-                    while (data[i].length < data[0].length) {
-                        tableHTML += '<td>-</td>';
-                    }
-                    
-                    // Tombol actions
-                    const firstCell = escapeSpecialChars(data[i][0] || '');
-                    const secondCell = escapeSpecialChars(data[i][1] || '');
-                    
-                    tableHTML += `
-                    <td style="vertical-align: middle; text-align: center;">
-                        <span class="teks-copy" onclick="salinKeClipboard('${secondCell}', this, () => tampilkanNotifikasi('Data copied!', 'sukses'))"
-                            style="font-size: 0.9em; padding: 8px 15px; cursor: pointer;"
-                            title="Copy Data to Clipboard">
-                            <i class="fas fa-copy" style="margin-right: 5px;"></i>COPY
-                        </span>
-                    </td>`;
-                    tableHTML += '</tr>';
                 }
-            }
-
-            if (!tableHTML.includes('<tr>') || tableHTML.match(/<tr>/g).length <= 2) {
-                tableHTML += '<tr><td colspan="4" style="text-align:center;padding:40px;color:#ff3366;">No data available for this category</td></tr>';
-            }
-
-            tableHTML += '</table></div>';
-
-            return tableHTML;
-        }
-
-        // =============== UTILITY FUNCTIONS ===============
-        function escapeHTML(str) {
-            if (!str) return '';
-            return str.toString()
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;')
-                .replace(/\n/g, '<br>');
-        }
-
-        function escapeSpecialChars(text) {
-            if (!text) return '';
-            return text.toString()
-                .replace(/\\/g, '\\\\')
-                .replace(/'/g, "\\'")
-                .replace(/"/g, '\\"')
-                .replace(/\n/g, '\\n')
-                .replace(/\r/g, '\\r')
-                .replace(/\t/g, '\\t');
-        }
-
-        // =============== COPY FUNCTIONS ===============
-        function salinTabel(kategori) {
-            const data = semuaData[kategori];
-            if (!data || data.length === 0) {
-                tampilkanNotifikasi("No data to copy", "peringatan");
-                return;
-            }
-
-            const csvData = data.map(row =>
-                row.map(cell => `"${(cell || '').replace(/"/g, '""')}"`).join(',')
-            ).join('\n');
-
-            salinKeClipboard(csvData, null, () => {
-                tampilkanNotifikasi("Table data copied to clipboard!", "sukses");
             });
-        }
+        });
 
-        function salinKeClipboard(text, element, callback) {
-            const textarea = document.createElement('textarea');
-            textarea.value = text
-                .replace(/\\'/g, "'")
-                .replace(/\\"/g, '"')
-                .replace(/\\n/g, '\n')
-                .replace(/\\r/g, '\r')
-                .replace(/\\t/g, '\t')
-                .replace(/\\\\/g, '\\');
+        // Login form submission
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
             
-            textarea.style.position = 'fixed';
-            document.body.appendChild(textarea);
-            textarea.select();
-
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            // Tampilkan loading
+            showMessage('Memeriksa kredensial...', 'info');
+            
             try {
-                if (navigator.clipboard) {
-                    navigator.clipboard.writeText(textarea.value).then(() => {
-                        if (element) tampilkanFeedbackSalin(element, true);
-                        if (callback) callback();
-                    }).catch(() => {
-                        fallbackSalin(textarea, element, callback);
+                // Ambil data login dari Google Sheets
+                const loginData = await fetchSheetData(LOGIN_SHEET_GID);
+                
+                // Cari user yang sesuai
+                const user = loginData.find(u => 
+                    u.username === username && u.password === password
+                );
+                
+                if (user) {
+                    // Login berhasil
+                    showMessage('Login berhasil!', 'success');
+                    login(user);
+                } else {
+                    // Login gagal
+                    showMessage('Username atau password salah!', 'danger');
+                }
+            } catch (error) {
+                console.error('Error saat login:', error);
+                showMessage('Terjadi kesalahan saat menghubungi server. Silakan coba lagi.', 'danger');
+            }
+        });
+
+        // Logout functionality
+        logoutBtn.addEventListener('click', () => {
+            logout();
+        });
+
+        // Refresh buttons
+        refreshBonusBtn.addEventListener('click', () => loadBonusData());
+        refreshReportBtn.addEventListener('click', () => loadReportData());
+        refreshRewardBtn.addEventListener('click', () => loadRewardData());
+
+        // Show message function
+        function showMessage(message, type) {
+            loginMessage.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+        }
+
+        // Fetch data from Google Sheets
+        async function fetchSheetData(sheetGid) {
+            // Format URL untuk mengambil data sebagai CSV
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${sheetGid}`;
+            
+            try {
+                const response = await fetch(url);
+                const csvText = await response.text();
+                
+                // Parse CSV to JSON
+                const lines = csvText.split('\n');
+                const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+                
+                const data = [];
+                for (let i = 1; i < lines.length; i++) {
+                    if (lines[i].trim() === '') continue;
+                    
+                    const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
+                    const row = {};
+                    
+                    headers.forEach((header, index) => {
+                        row[header] = values[index] || '';
                     });
-                } else {
-                    fallbackSalin(textarea, element, callback);
+                    
+                    data.push(row);
                 }
-            } catch (err) {
-                console.error("Copy failed:", err);
-                if (element) tampilkanFeedbackSalin(element, false);
-            } finally {
-                document.body.removeChild(textarea);
+                
+                return data;
+            } catch (error) {
+                console.error('Error fetching sheet data:', error);
+                throw error;
             }
         }
 
-        function fallbackSalin(textarea, element, callback) {
+        // Login function
+        function login(user) {
+            // Simpan informasi user (dalam implementasi nyata, gunakan session atau token)
+            localStorage.setItem('loggedInUser', JSON.stringify(user));
+            
+            // Update UI
+            userName.textContent = user.name || user.username;
+            dashboardUserName.textContent = user.name || user.username;
+            
+            // Tampilkan dashboard dan sembunyikan form login
+            loginSection.classList.add('hidden');
+            dashboardSection.classList.remove('hidden');
+            
+            // Muat data dari Google Sheets
+            loadBonusData();
+            loadReportData();
+            loadRewardData();
+        }
+
+        // Logout function
+        function logout() {
+            // Hapus informasi user
+            localStorage.removeItem('loggedInUser');
+            
+            // Reset form
+            loginForm.reset();
+            
+            // Tampilkan form login dan sembunyikan dashboard
+            loginSection.classList.remove('hidden');
+            dashboardSection.classList.add('hidden');
+            
+            // Hapus pesan
+            loginMessage.innerHTML = '';
+        }
+
+        // Load bonus data
+        async function loadBonusData() {
+            bonusData.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Memuat data bonus dari Google Sheets...</p>
+                </div>
+            `;
+            
             try {
-                const success = document.execCommand('copy');
-                if (element) tampilkanFeedbackSalin(element, success);
-                if (callback && success) callback();
-            } catch (err) {
-                console.error("Fallback copy failed:", err);
-                if (element) tampilkanFeedbackSalin(element, false);
-            }
-        }
-
-        function tampilkanFeedbackSalin(element, isSuccess) {
-            const originalHTML = element.innerHTML;
-
-            element.innerHTML = isSuccess
-                ? '<i class="fas fa-check"></i> Copied!'
-                : '<i class="fas fa-times"></i> Error!';
-            element.classList.add('disalin');
-
-            setTimeout(() => {
-                element.innerHTML = originalHTML;
-                element.classList.remove('disalin');
-            }, 2000);
-        }
-
-        function eksporKeFile(kategori) {
-            const data = semuaData[kategori] || [];
-            if (data.length === 0) {
-                tampilkanNotifikasi("No data to export", "peringatan");
-                return;
-            }
-
-            const csvData = data.map(row =>
-                row.map(cell => `"${(cell || '').replace(/"/g, '""')}"`).join(',')
-            ).join('\n');
-
-            const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-
-            link.setAttribute('href', url);
-            link.setAttribute('download', `${kategori}_${new Date().toISOString().slice(0, 10)}.csv`);
-            link.style.visibility = 'hidden';
-
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            tampilkanNotifikasi(`Data exported as ${kategori}.csv`, "sukses");
-        }
-
-        // =============== NAVIGATION FUNCTIONS ===============
-        function filterKategori(kategori) {
-            kategoriSekarang = kategori;
-            tampilkanKotakPencarian();
-            sembunyikanSemuaElement();
-
-            document.getElementById('data2').style.display = 'none';
-
-            const data = semuaData[kategori];
-            if (data && data.length > 1) {
-                document.getElementById('data2').style.display = 'block';
-                document.getElementById('data2').innerHTML = buatTabel(data, kategori);
-            }
-
-            document.getElementById('pesanTidakDitemukan').style.display = 'none';
-        }
-
-        function sembunyikanSemuaElement() {
-            document.getElementById('teksSelamatDatang').style.display = 'none';
-            document.getElementById('pesanTidakDitemukan').style.display = 'none';
-        }
-
-        function tampilkanKotakPencarian() {
-            document.getElementById('kotakPencarian').style.display = 'block';
-            document.getElementById('kotakPencarian').focus();
-        }
-
-        // =============== SIDEBAR TOGGLE ===============
-        function toggleSidebar() {
-            const sidebar = document.querySelector('.sidebar-future');
-            const toggleIcon = document.querySelector('.sidebar-toggle i');
-
-            sidebarCollapsed = !sidebarCollapsed;
-
-            if (sidebarCollapsed) {
-                sidebar.classList.add('collapsed');
-                toggleIcon.classList.remove('fa-chevron-left');
-                toggleIcon.classList.add('fa-chevron-right');
-            } else {
-                sidebar.classList.remove('collapsed');
-                toggleIcon.classList.remove('fa-chevron-right');
-                toggleIcon.classList.add('fa-chevron-left');
-            }
-        }
-
-        // =============== ACTIVE NAVIGATION ===============
-        function setActiveNav(element) {
-            document.querySelectorAll('.robot-nav ul li').forEach(li => {
-                li.classList.remove('active');
-            });
-            element.parentElement.classList.add('active');
-        }
-
-        // =============== WELCOME TEXT ANIMATION ===============
-        function mulaiAnimasiTeksSelamatDatang() {
-            const teksSelamatDatang = document.getElementById('teksSelamatDatang');
-            const texts = ["Blocked Links Dashboard"];
-            let count = 0;
-            let index = 0;
-            let isDeleting = false;
-            let speed = 1000;
-
-            function type() {
-                const currentText = texts[count];
-
-                if (isDeleting) {
-                    teksSelamatDatang.textContent = currentText.substring(0, index - 1);
-                    index--;
-                    speed = 50;
+                const data = await fetchSheetData(BONUS_SHEET_GID);
+                
+                if (data && data.length > 0) {
+                    let html = '<table class="table"><thead><tr>';
+                    
+                    // Buat header dari kunci objek pertama
+                    Object.keys(data[0]).forEach(key => {
+                        html += `<th>${key}</th>`;
+                    });
+                    
+                    html += '</tr></thead><tbody>';
+                    
+                    // Isi data
+                    data.forEach(row => {
+                        html += '<tr>';
+                        Object.values(row).forEach(value => {
+                            html += `<td>${value}</td>`;
+                        });
+                        html += '</tr>';
+                    });
+                    
+                    html += '</tbody></table>';
+                    bonusData.innerHTML = html;
                 } else {
-                    teksSelamatDatang.textContent = currentText.substring(0, index + 1);
-                    index++;
-                    speed = 150;
+                    bonusData.innerHTML = '<p>Tidak ada data bonus yang tersedia.</p>';
                 }
-
-                if (!isDeleting && index === currentText.length) {
-                    isDeleting = true;
-                    speed = 2000;
-                } else if (isDeleting && index === 0) {
-                    isDeleting = false;
-                    count = (count + 1) % texts.length;
-                    speed = 500;
-                }
-
-                setTimeout(type, speed);
+            } catch (error) {
+                console.error('Error loading bonus data:', error);
+                bonusData.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>Error:</strong> Gagal memuat data bonus. Pastikan koneksi internet Anda stabil.
+                    </div>
+                `;
             }
-
-            type();
         }
 
-        // Add CSS animations for notifications
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideInRight {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
+        // Load report data
+        async function loadReportData() {
+            reportData.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Memuat data laporan dari Google Sheets...</p>
+                </div>
+            `;
+            
+            try {
+                const data = await fetchSheetData(REPORT_SHEET_GID);
+                
+                if (data && data.length > 0) {
+                    let html = '<table class="table"><thead><tr>';
+                    
+                    // Buat header dari kunci objek pertama
+                    Object.keys(data[0]).forEach(key => {
+                        html += `<th>${key}</th>`;
+                    });
+                    
+                    html += '</tr></thead><tbody>';
+                    
+                    // Isi data
+                    data.forEach(row => {
+                        html += '<tr>';
+                        Object.values(row).forEach(value => {
+                            html += `<td>${value}</td>`;
+                        });
+                        html += '</tr>';
+                    });
+                    
+                    html += '</tbody></table>';
+                    reportData.innerHTML = html;
+                } else {
+                    reportData.innerHTML = '<p>Tidak ada data laporan yang tersedia.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading report data:', error);
+                reportData.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>Error:</strong> Gagal memuat data laporan. Pastikan koneksi internet Anda stabil.
+                    </div>
+                `;
             }
+        }
 
-            @keyframes slideOutRight {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(100%); opacity: 0; }
+        // Load reward data
+        async function loadRewardData() {
+            rewardData.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Memuat data hadiah dari Google Sheets...</p>
+                </div>
+            `;
+            
+            try {
+                const data = await fetchSheetData(REWARD_SHEET_GID);
+                
+                if (data && data.length > 0) {
+                    let html = '<table class="table"><thead><tr>';
+                    
+                    // Buat header dari kunci objek pertama
+                    Object.keys(data[0]).forEach(key => {
+                        html += `<th>${key}</th>`;
+                    });
+                    
+                    html += '</tr></thead><tbody>';
+                    
+                    // Isi data
+                    data.forEach(row => {
+                        html += '<tr>';
+                        Object.values(row).forEach(value => {
+                            html += `<td>${value}</td>`;
+                        });
+                        html += '</tr>';
+                    });
+                    
+                    html += '</tbody></table>';
+                    rewardData.innerHTML = html;
+                } else {
+                    rewardData.innerHTML = '<p>Tidak ada data hadiah yang tersedia.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading reward data:', error);
+                rewardData.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>Error:</strong> Gagal memuat data hadiah. Pastikan koneksi internet Anda stabil.
+                    </div>
+                `;
             }
-        `;
-        document.head.appendChild(style);
+        }
+
+        // Check if user is already logged in
+        function checkLoginStatus() {
+            const loggedInUser = localStorage.getItem('loggedInUser');
+            
+            if (loggedInUser) {
+                const user = JSON.parse(loggedInUser);
+                login(user);
+            }
+        }
+
+        // Initialize the application
+        checkLoginStatus();
     </script>
 </body>
 </html>
