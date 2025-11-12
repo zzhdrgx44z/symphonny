@@ -1611,8 +1611,8 @@ transform: translateY(-2px);
 // =============== GLOBAL VARIABLES ===============
 let kategoriSekarang = '';
 let semuaData = {
-datalogin: [],
-linknawala: []
+    datalogin: [],
+    linknawala: []
 };
 let sedangMencari = false;
 let sidebarCollapsed = false;
@@ -1623,983 +1623,983 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbwkHrgiGlxFkJHZwp-bMaRC
 
 // =============== INITIALIZATION ===============
 window.onload = function() {
-tampilkanMenuUtama();
-mulaiAnimasiTeksSelamatDatang();
-muatSemuaData();
-updateConnectionStatus();
-setInterval(updateConnectionStatus, 5000);
+    tampilkanMenuUtama();
+    mulaiAnimasiTeksSelamatDatang();
+    muatSemuaData();
+    updateConnectionStatus();
+    setInterval(updateConnectionStatus, 5000);
 };
 
 // =============== ALL DATA VIEW FUNCTIONS ===============
 function tampilkanSemuaData() {
-kategoriSekarang = 'all';
-sembunyikanSemuaElement();
+    kategoriSekarang = 'all';
+    sembunyikanSemuaElement();
 
-document.getElementById('viewToggle').style.display = 'flex';
-document.getElementById('allDataContainer').style.display = 'block';
-document.getElementById('kotakPencarian').style.display = 'block';
+    document.getElementById('viewToggle').style.display = 'flex';
+    document.getElementById('allDataContainer').style.display = 'block';
+    document.getElementById('kotakPencarian').style.display = 'block';
 
-renderAllDataView();
+    renderAllDataView();
 }
 
 function renderAllDataView() {
-const container = document.getElementById('allDataContainer');
-let totalRecords = 0;
+    const container = document.getElementById('allDataContainer');
+    let totalRecords = 0;
 
-// Hitung total records
-Object.values(semuaData).forEach(data => {
-if (data && data.length > 1) {
-totalRecords += data.length - 1; // Exclude header
-}
-});
+    // Hitung total records
+    Object.values(semuaData).forEach(data => {
+        if (data && data.length > 1) {
+            totalRecords += data.length - 1; // Exclude header
+        }
+    });
 
-let html = `
-<div class="all-data-header">
-<h2>COMPLETE DATA OVERVIEW</h2>
-<p>Total ${totalRecords} records across all categories</p>
-</div>
+    let html = `
+    <div class="all-data-header">
+        <h2>COMPLETE DATA OVERVIEW</h2>
+        <p>Total ${totalRecords} records across all categories</p>
+    </div>
 
-<div class="all-data-stats">
-<div class="stat-card">
-<div class="stat-number">${Object.keys(semuaData).length}</div>
-<div class="stat-label">Categories</div>
-</div>
-<div class="stat-card">
-<div class="stat-number">${totalRecords}</div>
-<div class="stat-label">Total Records</div>
-</div>
-<div class="stat-card">
-<div class="stat-number">${new Date().getFullYear()}</div>
-<div class="stat-label">Current Year</div>
-</div>
-</div>`;
+    <div class="all-data-stats">
+        <div class="stat-card">
+            <div class="stat-number">${Object.keys(semuaData).length}</div>
+            <div class="stat-label">Categories</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">${totalRecords}</div>
+            <div class="stat-label">Total Records</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">${new Date().getFullYear()}</div>
+            <div class="stat-label">Current Year</div>
+        </div>
+    </div>`;
 
-if (currentView === 'table') {
-html += renderAllDataTableView();
-} else {
-html += renderAllDataCardView();
-}
+    if (currentView === 'table') {
+        html += renderAllDataTableView();
+    } else {
+        html += renderAllDataCardView();
+    }
 
-container.innerHTML = html;
+    container.innerHTML = html;
 }
 
 function renderAllDataTableView() {
-let html = `
-<div class="full-table-container">
-<table class="full-table">
-<thead>
-<tr>
-<th>No</th>
-<th>Category</th>
-<th>Title/Question</th>
-<th>Description/Answer</th>
-<th>Details</th>
-<th>Actions</th>
-</tr>
-</thead>
-<tbody>`;
+    let html = `
+    <div class="full-table-container">
+        <table class="full-table">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Category</th>
+                    <th>Title/Question</th>
+                    <th>Description/Answer</th>
+                    <th>Details</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>`;
 
-let rowNumber = 1;
+    let rowNumber = 1;
 
-// Loop melalui semua kategori
-Object.entries(semuaData).forEach(([kategori, data]) => {
-if (!data || data.length < 2) return;
+    // Loop melalui semua kategori
+    Object.entries(semuaData).forEach(([kategori, data]) => {
+        if (!data || data.length < 2) return;
 
-const categoryName = getNamaKategori(kategori);
+        const categoryName = getNamaKategori(kategori);
 
-// Loop melalui data setiap kategori (skip header)
-for (let i = 1; i < data.length; i++) {
-const row = data[i];
-if (!row || row.every(cell => !cell || cell.trim() === '')) continue;
+        // Loop melalui data setiap kategori (skip header)
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i];
+            if (!row || row.every(cell => !cell || cell.trim() === '')) continue;
 
-const title = escapeHTML(row[0] || '');
-const description = escapeHTML(row[1] || '');
-const details = escapeHTML(row[2] || '');
-const additional = escapeHTML(row[3] || '');
+            const title = escapeHTML(row[0] || '');
+            const description = escapeHTML(row[1] || '');
+            const details = escapeHTML(row[2] || '');
+            const additional = escapeHTML(row[3] || '');
 
-html += `
-<tr>
-<td style="font-weight: bold; color: var(--accent);">${rowNumber++}</td>
-<td><span class="category-badge">${categoryName}</span></td>
-<td>
-<div style="font-weight: 600; margin-bottom: 5px;">${title}</div>
-</td>
-<td>
-<div style="max-height: 100px; overflow-y: auto;">
-${description || '<span style="color: var(--text-muted); font-style: italic;">No description</span>'}
-</div>
-</td>
-<td>
-<div style="max-height: 100px; overflow-y: auto;">
-${details || '<span style="color: var(--text-muted); font-style: italic;">No details</span>'}
-</div>
-</td>
-<td>
-<div class="action-buttons">
-<button class="btn-small" onclick="salinKeClipboard('${escapeSpecialChars(description)}', null, () => tampilkanNotifikasi('Data copied!', 'sukses'))">
-<i class="fas fa-copy"></i>
-</button>
-<button class="btn-small" onclick="filterKategori('${kategori}')">
-<i class="fas fa-external-link-alt"></i>
-</button>
-</div>
-</td>
-</tr>`;
-}
-});
+            html += `
+            <tr>
+                <td style="font-weight: bold; color: var(--accent);">${rowNumber++}</td>
+                <td><span class="category-badge">${categoryName}</span></td>
+                <td>
+                    <div style="font-weight: 600; margin-bottom: 5px;">${title}</div>
+                </td>
+                <td>
+                    <div style="max-height: 100px; overflow-y: auto;">
+                        ${description || '<span style="color: var(--text-muted); font-style: italic;">No description</span>'}
+                    </div>
+                </td>
+                <td>
+                    <div style="max-height: 100px; overflow-y: auto;">
+                        ${details || '<span style="color: var(--text-muted); font-style: italic;">No details</span>'}
+                    </div>
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-small" onclick="salinKeClipboard('${escapeSpecialChars(description)}', null, () => tampilkanNotifikasi('Data copied!', 'sukses'))">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="btn-small" onclick="filterKategori('${kategori}')">
+                            <i class="fas fa-external-link-alt"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
+        }
+    });
 
-if (rowNumber === 1) {
-html += `
-<tr>
-<td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
-<i class="fas fa-database" style="font-size: 3rem; margin-bottom: 20px; display: block;"></i>
-No data available
-</td>
-</tr>`;
-}
+    if (rowNumber === 1) {
+        html += `
+        <tr>
+            <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                <i class="fas fa-database" style="font-size: 3rem; margin-bottom: 20px; display: block;"></i>
+                No data available
+            </td>
+        </tr>`;
+    }
 
-html += `</tbody></table></div>`;
+    html += `</tbody></table></div>`;
 
-return html;
+    return html;
 }
 
 function renderAllDataCardView() {
-let html = '<div class="kontainer-kartu">';
+    let html = '<div class="kontainer-kartu">';
 
-Object.entries(semuaData).forEach(([kategori, data]) => {
-if (!data || data.length < 2) return;
+    Object.entries(semuaData).forEach(([kategori, data]) => {
+        if (!data || data.length < 2) return;
 
-const categoryName = getNamaKategori(kategori);
-const recordCount = data.length - 1;
+        const categoryName = getNamaKategori(kategori);
+        const recordCount = data.length - 1;
 
-html += `
-<div class="kartu" onclick="filterKategori('${kategori}')">
-<div class="ikon-kartu">
-<i class="fas fa-database"></i>
-</div>
-<h2>${categoryName}</h2>
-<p>${recordCount} records available</p>
-<div style="margin-top: 15px; font-size: 0.9rem; color: var(--accent);">
-Click to view details
-</div>
-</div>`;
-});
+        html += `
+        <div class="kartu" onclick="filterKategori('${kategori}')">
+            <div class="ikon-kartu">
+                <i class="fas fa-database"></i>
+            </div>
+            <h2>${categoryName}</h2>
+            <p>${recordCount} records available</p>
+            <div style="margin-top: 15px; font-size: 0.9rem; color: var(--accent);">
+                Click to view details
+            </div>
+        </div>`;
+    });
 
-html += '</div>';
-return html;
+    html += '</div>';
+    return html;
 }
 
 function setTableView(view) {
-currentView = view;
+    currentView = view;
 
-// Update toggle buttons
-document.querySelectorAll('.toggle-btn').forEach(btn => {
-btn.classList.remove('active');
-});
-event.target.classList.add('active');
+    // Update toggle buttons
+    document.querySelectorAll('.toggle-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
 
-renderAllDataView();
+    renderAllDataView();
 }
 
 function sembunyikanSemuaElement() {
-document.getElementById('kontainerKartu').style.display = 'none';
-document.getElementById('teksSelamatDatang').style.display = 'none';
-document.querySelectorAll('#data1, #data2').forEach(el => {
-el.style.display = 'none';
-});
-document.getElementById('pesanTidakDitemukan').style.display = 'none';
-document.getElementById('viewToggle').style.display = 'none';
-document.getElementById('allDataContainer').style.display = 'none';
+    document.getElementById('kontainerKartu').style.display = 'none';
+    document.getElementById('teksSelamatDatang').style.display = 'none';
+    document.querySelectorAll('#data1, #data2').forEach(el => {
+        el.style.display = 'none';
+    });
+    document.getElementById('pesanTidakDitemukan').style.display = 'none';
+    document.getElementById('viewToggle').style.display = 'none';
+    document.getElementById('allDataContainer').style.display = 'none';
 }
 
 // =============== SIDEBAR TOGGLE ===============
 function toggleSidebar() {
-const sidebar = document.querySelector('.sidebar-future');
-const mainContent = document.querySelector('.konten-utama');
-const toggleIcon = document.querySelector('.sidebar-toggle i');
+    const sidebar = document.querySelector('.sidebar-future');
+    const mainContent = document.querySelector('.konten-utama');
+    const toggleIcon = document.querySelector('.sidebar-toggle i');
 
-sidebarCollapsed = !sidebarCollapsed;
+    sidebarCollapsed = !sidebarCollapsed;
 
-if (sidebarCollapsed) {
-sidebar.classList.add('collapsed');
-toggleIcon.classList.remove('fa-chevron-left');
-toggleIcon.classList.add('fa-chevron-right');
-} else {
-sidebar.classList.remove('collapsed');
-toggleIcon.classList.remove('fa-chevron-right');
-toggleIcon.classList.add('fa-chevron-left');
-}
+    if (sidebarCollapsed) {
+        sidebar.classList.add('collapsed');
+        toggleIcon.classList.remove('fa-chevron-left');
+        toggleIcon.classList.add('fa-chevron-right');
+    } else {
+        sidebar.classList.remove('collapsed');
+        toggleIcon.classList.remove('fa-chevron-right');
+        toggleIcon.classList.add('fa-chevron-left');
+    }
 }
 
 // =============== DATA LOADING FROM GOOGLE APPS SCRIPT ===============
 async function muatSemuaData() {
-tampilkanLoading(true);
+    tampilkanLoading(true);
 
-try {
-// Load data dari Google Apps Script
-const response = await fetch(GAS_URL);
+    try {
+        // Load data dari Google Apps Script
+        const response = await fetch(GAS_URL);
 
-if (!response.ok) {
-throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-}
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
 
-const data = await response.json();
+        const data = await response.json();
 
-if (data.success) {
-// Format data sesuai dengan struktur yang diharapkan
-semuaData = {
-datalogin: data.datalogin || [],
-linknawala: data.linknawala || []
-};
+        if (data.success) {
+            // Format data sesuai dengan struktur yang diharapkan
+            semuaData = {
+                datalogin: data.datalogin || [],
+                linknawala: data.linknawala || []
+            };
 
-console.log('Data loaded successfully:', semuaData);
+            console.log('Data loaded successfully:', semuaData);
 
-// Render tables untuk setiap kategori
-renderAllTables();
+            // Render tables untuk setiap kategori
+            renderAllTables();
 
-tampilkanNotifikasi("All data loaded successfully!", "sukses");
-} else {
-throw new Error(data.error || 'Unknown error from server');
-}
+            tampilkanNotifikasi("All data loaded successfully!", "sukses");
+        } else {
+            throw new Error(data.error || 'Unknown error from server');
+        }
 
-} catch (error) {
-console.error("Error loading data:", error);
-tampilkanNotifikasi("Failed to load data: " + error.message, "error");
+    } catch (error) {
+        console.error("Error loading data:", error);
+        tampilkanNotifikasi("Failed to load data: " + error.message, "error");
 
-// Fallback: coba load data dari CSV jika GAS gagal
-muatDataFallback();
-} finally {
-tampilkanLoading(false);
-}
+        // Fallback: coba load data dari CSV jika GAS gagal
+        muatDataFallback();
+    } finally {
+        tampilkanLoading(false);
+    }
 }
 
 function renderAllTables() {
-// Render table untuk setiap kategori
-const categories = ['datalogin', 'linknawala'];
+    // Render table untuk setiap kategori
+    const categories = ['datalogin', 'linknawala'];
 
-categories.forEach((kategori, index) => {
-const elementId = `data${index + 1}`;
-const data = semuaData[kategori];
+    categories.forEach((kategori, index) => {
+        const elementId = `data${index + 1}`;
+        const data = semuaData[kategori];
 
-if (data && data.length > 0) {
-document.getElementById(elementId).innerHTML = buatTabel(data, kategori);
-} else {
-document.getElementById(elementId).innerHTML = buatPesanError(kategori, new Error('No data available'));
-}
-});
+        if (data && data.length > 0) {
+            document.getElementById(elementId).innerHTML = buatTabel(data, kategori);
+        } else {
+            document.getElementById(elementId).innerHTML = buatPesanError(kategori, new Error('No data available'));
+        }
+    });
 }
 
 // Fallback method jika GAS tidak bekerja
 async function muatDataFallback() {
-try {
-// Coba load dari CSV export
-const sheetData = {
-datalogin: '0',
-linknawala: '1202906531'
-};
+    try {
+        // Coba load dari CSV export
+        const sheetData = {
+            datalogin: '0',
+            linknawala: '1202906531'
+        };
 
-for (const [sheetName, gid] of Object.entries(sheetData)) {
-try {
-const data = await ambilDataSheetDenganTimeout(gid, 5000);
-semuaData[sheetName] = data;
-} catch (error) {
-console.error(`Failed to load ${sheetName}:`, error);
-semuaData[sheetName] = [];
-}
-}
+        for (const [sheetName, gid] of Object.entries(sheetData)) {
+            try {
+                const data = await ambilDataSheetDenganTimeout(gid, 5000);
+                semuaData[sheetName] = data;
+            } catch (error) {
+                console.error(`Failed to load ${sheetName}:`, error);
+                semuaData[sheetName] = [];
+            }
+        }
 
-renderAllTables();
-tampilkanNotifikasi("Data loaded with fallback method", "peringatan");
+        renderAllTables();
+        tampilkanNotifikasi("Data loaded with fallback method", "peringatan");
 
-} catch (error) {
-console.error("Fallback also failed:", error);
-}
+    } catch (error) {
+        console.error("Fallback also failed:", error);
+    }
 }
 
 // Helper function untuk load data dari sheet (fallback)
 async function ambilDataSheetDenganTimeout(gid, timeout = 5000) {
-return new Promise((resolve, reject) => {
-const timeoutId = setTimeout(() => {
-reject(new Error(`Request timeout for GID: ${gid}`));
-}, timeout);
+    return new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+            reject(new Error(`Request timeout for GID: ${gid}`));
+        }, timeout);
 
-// Fallback method menggunakan CSV export
-const SPREADSHEET_ID = '19AodSFSw4shpSZVZ4I-_sD91eU1HPITMeg4cwLiEV1c';
-const csvUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${gid}`;
+        // Fallback method menggunakan CSV export
+        const SPREADSHEET_ID = '19AodSFSw4shpSZVZ4I-_sD91eU1HPITMeg4cwLiEV1c';
+        const csvUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${gid}`;
 
-fetch(csvUrl)
-.then(response => {
-clearTimeout(timeoutId);
-if (!response.ok) throw new Error(`HTTP ${response.status}`);
-return response.text();
-})
-.then(csvText => {
-const data = parseCSV(csvText);
-resolve(data);
-})
-.catch(error => {
-clearTimeout(timeoutId);
-reject(error);
-});
-});
+        fetch(csvUrl)
+            .then(response => {
+                clearTimeout(timeoutId);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return response.text();
+            })
+            .then(csvText => {
+                const data = parseCSV(csvText);
+                resolve(data);
+            })
+            .catch(error => {
+                clearTimeout(timeoutId);
+                reject(error);
+            });
+    });
 }
 
 // Simple CSV parsing (fallback)
 function parseCSV(csvText) {
-if (!csvText || csvText.trim() === '') {
-return [];
-}
+    if (!csvText || csvText.trim() === '') {
+        return [];
+    }
 
-const lines = csvText.split('\n').filter(line => line.trim() !== '');
-const result = [];
+    const lines = csvText.split('\n').filter(line => line.trim() !== '');
+    const result = [];
 
-for (let i = 0; i < lines.length; i++) {
-const line = lines[i];
-const row = [];
-let current = '';
-let inQuotes = false;
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const row = [];
+        let current = '';
+        let inQuotes = false;
 
-for (let j = 0; j < line.length; j++) {
-const char = line[j];
+        for (let j = 0; j < line.length; j++) {
+            const char = line[j];
 
-if (char === '"') {
-if (inQuotes && j + 1 < line.length && line[j + 1] === '"') {
-current += '"';
-j++;
-} else {
-inQuotes = !inQuotes;
-}
-} else if (char === ',' && !inQuotes) {
-row.push(current.trim());
-current = '';
-} else {
-current += char;
-}
-}
+            if (char === '"') {
+                if (inQuotes && j + 1 < line.length && line[j + 1] === '"') {
+                    current += '"';
+                    j++;
+                } else {
+                    inQuotes = !inQuotes;
+                }
+            } else if (char === ',' && !inQuotes) {
+                row.push(current.trim());
+                current = '';
+            } else {
+                current += char;
+            }
+        }
 
-row.push(current.trim());
-result.push(row);
-}
+        row.push(current.trim());
+        result.push(row);
+    }
 
-return result;
+    return result;
 }
 
 // Error message template
 function buatPesanError(kategori, error) {
-const namaKategori = getNamaKategori(kategori);
-return `
-<div class="table-header">
-<div class="table-title">${namaKategori}</div>
-<div class="table-actions">
-<button class="table-copy-btn" onclick="muatDataKategori('${kategori}')">
-<i class="fas fa-redo"></i> Retry
-</button>
-</div>
-</div>
-<div style="text-align:center;padding:40px;color:var(--danger);">
-<i class="fas fa-exclamation-triangle" style="font-size:3rem;margin-bottom:20px;"></i>
-<h3>Failed to load data</h3>
-<p>${error.message || 'Unknown error occurred'}</p>
-</div>
-`;
+    const namaKategori = getNamaKategori(kategori);
+    return `
+    <div class="table-header">
+        <div class="table-title">${namaKategori}</div>
+        <div class="table-actions">
+            <button class="table-copy-btn" onclick="muatDataKategori('${kategori}')">
+                <i class="fas fa-redo"></i> Retry
+            </button>
+        </div>
+    </div>
+    <div style="text-align:center;padding:40px;color:var(--danger);">
+        <i class="fas fa-exclamation-triangle" style="font-size:3rem;margin-bottom:20px;"></i>
+        <h3>Failed to load data</h3>
+        <p>${error.message || 'Unknown error occurred'}</p>
+    </div>
+    `;
 }
 
 // Reload specific category
 async function muatDataKategori(kategori) {
-try {
-const elementId = `data${['datalogin', 'linknawala'].indexOf(kategori) + 1}`;
-document.getElementById(elementId).innerHTML = `
-<div style="text-align:center;padding:40px;">
-<div class="spinner"></div>
-<p>Loading ${getNamaKategori(kategori)}...</p>
-</div>
-`;
+    try {
+        const elementId = `data${['datalogin', 'linknawala'].indexOf(kategori) + 1}`;
+        document.getElementById(elementId).innerHTML = `
+        <div style="text-align:center;padding:40px;">
+            <div class="spinner"></div>
+            <p>Loading ${getNamaKategori(kategori)}...</p>
+        </div>
+        `;
 
-// Reload data dari GAS
-const response = await fetch(GAS_URL);
-const data = await response.json();
+        // Reload data dari GAS
+        const response = await fetch(GAS_URL);
+        const data = await response.json();
 
-if (data.success && data[kategori]) {
-semuaData[kategori] = data[kategori];
-document.getElementById(elementId).innerHTML = buatTabel(data[kategori], kategori);
-tampilkanNotifikasi(`${getNamaKategori(kategori)} data reloaded!`, "sukses");
-} else {
-throw new Error('No data received');
-}
-} catch (error) {
-console.error(`Error reloading ${kategori}:`, error);
-document.getElementById(elementId).innerHTML = buatPesanError(kategori, error);
-tampilkanNotifikasi(`Failed to reload ${getNamaKategori(kategori)} data`, "error");
-}
+        if (data.success && data[kategori]) {
+            semuaData[kategori] = data[kategori];
+            document.getElementById(elementId).innerHTML = buatTabel(data[kategori], kategori);
+            tampilkanNotifikasi(`${getNamaKategori(kategori)} data reloaded!`, "sukses");
+        } else {
+            throw new Error('No data received');
+        }
+    } catch (error) {
+        console.error(`Error reloading ${kategori}:`, error);
+        document.getElementById(elementId).innerHTML = buatPesanError(kategori, error);
+        tampilkanNotifikasi(`Failed to reload ${getNamaKategori(kategori)} data`, "error");
+    }
 }
 
 // Helper function to get category names
 function getNamaKategori(kategori) {
-const namaKategori = {
-datalogin: 'Auth Data',
-linknawala: 'Blocked Links'
-};
-return namaKategori[kategori] || kategori;
+    const namaKategori = {
+        datalogin: 'Auth Data',
+        linknawala: 'Blocked Links'
+    };
+    return namaKategori[kategori] || kategori;
 }
 
 // =============== UI FUNCTIONS ===============
 function tampilkanLoading(show) {
-const spinner = document.getElementById('loadingSpinner');
-spinner.style.display = show ? 'flex' : 'none';
+    const spinner = document.getElementById('loadingSpinner');
+    spinner.style.display = show ? 'flex' : 'none';
 }
 
 function tampilkanNotifikasi(pesan, tipe = "info") {
-// Create notification element
-const notifikasi = document.createElement("div");
-notifikasi.style.cssText = `
-position: fixed;
-top: 20px;
-right: 20px;
-padding: 15px 20px;
-background: linear-gradient(135deg, var(--panel), var(--panel-light));
-border: 1px solid var(--border-color);
-border-radius: 10px;
-color: var(--text-primary);
-font-family: 'Rajdhani', sans-serif;
-z-index: 1000;
-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-animation: slideInRight 0.3s ease;
-`;
+    // Create notification element
+    const notifikasi = document.createElement("div");
+    notifikasi.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background: linear-gradient(135deg, var(--panel), var(--panel-light));
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        color: var(--text-primary);
+        font-family: 'Rajdhani', sans-serif;
+        z-index: 1000;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        animation: slideInRight 0.3s ease;
+    `;
 
-const icons = {
-info: "fas fa-info-circle",
-sukses: "fas fa-check-circle",
-peringatan: "fas fa-exclamation-triangle",
-error: "fas fa-times-circle"
-};
+    const icons = {
+        info: "fas fa-info-circle",
+        sukses: "fas fa-check-circle",
+        peringatan: "fas fa-exclamation-triangle",
+        error: "fas fa-times-circle"
+    };
 
-const colors = {
-info: "var(--primary)",
-sukses: "var(--success)",
-peringatan: "var(--warning)",
-error: "var(--danger)"
-};
+    const colors = {
+        info: "var(--primary)",
+        sukses: "var(--success)",
+        peringatan: "var(--warning)",
+        error: "var(--danger)"
+    };
 
-notifikasi.innerHTML = `
-<i class="${icons[tipe]}" style="color: ${colors[tipe]}; margin-right: 10px;"></i>
-<span>${pesan}</span>
-`;
+    notifikasi.innerHTML = `
+        <i class="${icons[tipe]}" style="color: ${colors[tipe]}; margin-right: 10px;"></i>
+        <span>${pesan}</span>
+    `;
 
-document.body.appendChild(notifikasi);
+    document.body.appendChild(notifikasi);
 
-setTimeout(() => {
-notifikasi.style.animation = "slideOutRight 0.3s ease";
-setTimeout(() => {
-if (document.body.contains(notifikasi)) {
-document.body.removeChild(notifikasi);
-}
-}, 300);
-}, 3000);
+    setTimeout(() => {
+        notifikasi.style.animation = "slideOutRight 0.3s ease";
+        setTimeout(() => {
+            if (document.body.contains(notifikasi)) {
+                document.body.removeChild(notifikasi);
+            }
+        }, 300);
+    }, 3000);
 }
 
 // =============== SEARCH FUNCTIONS ===============
 function cariTabel() {
-if (sedangMencari) return;
+    if (sedangMencari) return;
 
-const input = document.getElementById('kotakPencarian').value.toLowerCase().trim();
-document.getElementById('pesanTidakDitemukan').style.display = 'none';
+    const input = document.getElementById('kotakPencarian').value.toLowerCase().trim();
+    document.getElementById('pesanTidakDitemukan').style.display = 'none';
 
-if (input.length < 2) {
-if (kategoriSekarang === 'all') {
-renderAllDataView();
-} else {
-tampilkanSemuaTabel();
-}
-return;
-}
+    if (input.length < 2) {
+        if (kategoriSekarang === 'all') {
+            renderAllDataView();
+        } else {
+            tampilkanSemuaTabel();
+        }
+        return;
+    }
 
-sedangMencari = true;
+    sedangMencari = true;
 
-setTimeout(() => {
-let ditemukan = false;
+    setTimeout(() => {
+        let ditemukan = false;
 
-if (kategoriSekarang === 'all') {
-// Search in all data view
-const filteredData = {};
-Object.keys(semuaData).forEach(kategori => {
-const data = semuaData[kategori];
-if (data && data.length > 1) {
-const hasilFilter = filterData(data, input);
-if (hasilFilter.length > 1) {
-filteredData[kategori] = hasilFilter;
-ditemukan = true;
-}
-}
-});
+        if (kategoriSekarang === 'all') {
+            // Search in all data view
+            const filteredData = {};
+            Object.keys(semuaData).forEach(kategori => {
+                const data = semuaData[kategori];
+                if (data && data.length > 1) {
+                    const hasilFilter = filterData(data, input);
+                    if (hasilFilter.length > 1) {
+                        filteredData[kategori] = hasilFilter;
+                        ditemukan = true;
+                    }
+                }
+            });
 
-if (ditemukan) {
-renderFilteredAllDataView(filteredData);
-}
-} else {
-// Search in individual categories
-document.querySelectorAll('#data1, #data2').forEach(el => {
-el.style.display = 'none';
-});
+            if (ditemukan) {
+                renderFilteredAllDataView(filteredData);
+            }
+        } else {
+            // Search in individual categories
+            document.querySelectorAll('#data1, #data2').forEach(el => {
+                el.style.display = 'none';
+            });
 
-const categories = ['datalogin', 'linknawala'];
-categories.forEach((kategori, index) => {
-const data = semuaData[kategori];
-if (data && data.length > 1) {
-const hasilFilter = filterData(data, input);
-if (hasilFilter.length > 1) {
-const elementId = `data${index + 1}`;
-document.getElementById(elementId).style.display = 'block';
-document.getElementById(elementId).innerHTML = buatTabel(hasilFilter, kategori);
-ditemukan = true;
-}
-}
-});
-}
+            const categories = ['datalogin', 'linknawala'];
+            categories.forEach((kategori, index) => {
+                const data = semuaData[kategori];
+                if (data && data.length > 1) {
+                    const hasilFilter = filterData(data, input);
+                    if (hasilFilter.length > 1) {
+                        const elementId = `data${index + 1}`;
+                        document.getElementById(elementId).style.display = 'block';
+                        document.getElementById(elementId).innerHTML = buatTabel(hasilFilter, kategori);
+                        ditemukan = true;
+                    }
+                }
+            });
+        }
 
-if (!ditemukan && input.length > 0) {
-document.getElementById('pesanTidakDitemukan').style.display = 'block';
-}
+        if (!ditemukan && input.length > 0) {
+            document.getElementById('pesanTidakDitemukan').style.display = 'block';
+        }
 
-sedangMencari = false;
-}, 300);
+        sedangMencari = false;
+    }, 300);
 }
 
 function renderFilteredAllDataView(filteredData) {
-const container = document.getElementById('allDataContainer');
-let totalRecords = 0;
+    const container = document.getElementById('allDataContainer');
+    let totalRecords = 0;
 
-Object.values(filteredData).forEach(data => {
-if (data && data.length > 1) {
-totalRecords += data.length - 1;
-}
-});
+    Object.values(filteredData).forEach(data => {
+        if (data && data.length > 1) {
+            totalRecords += data.length - 1;
+        }
+    });
 
-let html = `
-<div class="all-data-header">
-<h2>SEARCH RESULTS</h2>
-<p>Found ${totalRecords} records matching your search</p>
-</div>`;
+    let html = `
+    <div class="all-data-header">
+        <h2>SEARCH RESULTS</h2>
+        <p>Found ${totalRecords} records matching your search</p>
+    </div>`;
 
-// Simpan filtered data sementara untuk render
-const tempSemuaData = {...semuaData};
-Object.keys(semuaData).forEach(kategori => {
-if (filteredData[kategori]) {
-semuaData[kategori] = filteredData[kategori];
-}
-});
+    // Simpan filtered data sementara untuk render
+    const tempSemuaData = {...semuaData};
+    Object.keys(semuaData).forEach(kategori => {
+        if (filteredData[kategori]) {
+            semuaData[kategori] = filteredData[kategori];
+        }
+    });
 
-html += renderAllDataTableView();
+    html += renderAllDataTableView();
 
-// Kembalikan data asli
-semuaData = tempSemuaData;
+    // Kembalikan data asli
+    semuaData = tempSemuaData;
 
-container.innerHTML = html;
+    container.innerHTML = html;
 }
 
 function filterData(data, query) {
-if (!query || !data || data.length === 0) return data;
+    if (!query || !data || data.length === 0) return data;
 
-const filtered = [data[0]]; // Include header
-const searchTerms = query.split(' ').filter(term => term.length > 0);
+    const filtered = [data[0]]; // Include header
+    const searchTerms = query.split(' ').filter(term => term.length > 0);
 
-for (let i = 1; i < data.length; i++) {
-const row = data[i];
-if (!row) continue;
+    for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        if (!row) continue;
 
-const rowText = row.join(' ').toLowerCase();
-const allTermsFound = searchTerms.every(term => rowText.includes(term));
+        const rowText = row.join(' ').toLowerCase();
+        const allTermsFound = searchTerms.every(term => rowText.includes(term));
 
-if (allTermsFound) {
-filtered.push(row);
-}
-}
-return filtered;
+        if (allTermsFound) {
+            filtered.push(row);
+        }
+    }
+    return filtered;
 }
 
 function tampilkanSemuaTabel() {
-const categories = ['datalogin', 'linknawala'];
-categories.forEach((kategori, index) => {
-const elementId = `data${index + 1}`;
-const data = semuaData[kategori];
+    const categories = ['datalogin', 'linknawala'];
+    categories.forEach((kategori, index) => {
+        const elementId = `data${index + 1}`;
+        const data = semuaData[kategori];
 
-if (data && data.length > 1) {
-document.getElementById(elementId).style.display = 'block';
-}
-});
+        if (data && data.length > 1) {
+            document.getElementById(elementId).style.display = 'block';
+        }
+    });
 }
 
 // =============== TABLE CREATION ===============
 function buatTabel(data, kategori) {
-if (!data || data.length < 2) {
-return `
-<div class="table-header">
-<div class="table-title">${getNamaKategori(kategori)}</div>
-<div class="table-actions">
-<button class="table-copy-btn" onclick="muatDataKategori('${kategori}')">
-<i class="fas fa-redo"></i> Reload Data
-</button>
-</div>
-</div>
-<div style="text-align:center;padding:40px;color:var(--text-muted);">
-<i class="fas fa-database" style="font-size:3rem;margin-bottom:20px;"></i>
-<h3>No Data Available</h3>
-<p>No data found for this category</p>
-</div>`;
-}
+    if (!data || data.length < 2) {
+        return `
+        <div class="table-header">
+            <div class="table-title">${getNamaKategori(kategori)}</div>
+            <div class="table-actions">
+                <button class="table-copy-btn" onclick="muatDataKategori('${kategori}')">
+                    <i class="fas fa-redo"></i> Reload Data
+                </button>
+            </div>
+        </div>
+        <div style="text-align:center;padding:40px;color:var(--text-muted);">
+            <i class="fas fa-database" style="font-size:3rem;margin-bottom:20px;"></i>
+            <h3>No Data Available</h3>
+            <p>No data found for this category</p>
+        </div>`;
+    }
 
-let tableHTML = `
-<div class="table-header">
-<div class="table-title">${getNamaKategori(kategori)}</div>
-<div class="table-actions">
-<button class="table-copy-btn" onclick="salinTabel('${kategori}')">
-<i class="fas fa-copy"></i> Copy Data
-</button>
-<button class="table-copy-btn" onclick="eksporKeFile('${kategori}')">
-<i class="fas fa-download"></i> Export
-</button>
-<button class="table-copy-btn" onclick="muatDataKategori('${kategori}')">
-<i class="fas fa-redo"></i> Reload
-</button>
-</div>
-</div>
-<div class="table-container"><table>`;
+    let tableHTML = `
+    <div class="table-header">
+        <div class="table-title">${getNamaKategori(kategori)}</div>
+        <div class="table-actions">
+            <button class="table-copy-btn" onclick="salinTabel('${kategori}')">
+                <i class="fas fa-copy"></i> Copy Data
+            </button>
+            <button class="table-copy-btn" onclick="eksporKeFile('${kategori}')">
+                <i class="fas fa-download"></i> Export
+            </button>
+            <button class="table-copy-btn" onclick="muatDataKategori('${kategori}')">
+                <i class="fas fa-redo"></i> Reload
+            </button>
+        </div>
+    </div>
+    <div class="table-container"><table>`;
 
-// Handle different table structures based on category
-if (kategori === 'linknawala') {
-tableHTML += `
-<tr>
-<th style="width: 35%; font-size: 1.3em; padding: 20px 15px;">Issue / Problem</th>
-<th style="width: 35%; font-size: 1 em; padding: 20px 15px;">Solution / Resolution</th>
-<th style="width: 10%; font-size: 1.3em; padding: 20px 15px;">Action</th>
-</tr>`;
+    // Handle different table structures based on category
+    if (kategori === 'linknawala') {
+        tableHTML += `
+        <tr>
+            <th style="width: 35%; font-size: 1.3em; padding: 20px 15px;">Issue / Problem</th>
+            <th style="width: 35%; font-size: 1 em; padding: 20px 15px;">Solution / Resolution</th>
+            <th style="width: 10%; font-size: 1.3em; padding: 20px 15px;">Action</th>
+        </tr>`;
 
-let currentTitle = '';
-for (let i = 1; i < data.length; i++) {
-const row = data[i];
-if (!row || row.length < 3) continue;
+        let currentTitle = '';
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i];
+            if (!row || row.length < 3) continue;
 
-const title = (row[0] || '').toString().trim();
-const issue = (row[1] || '').toString().trim();
-const solution = (row[2] || '').toString().trim();
+            const title = (row[0] || '').toString().trim();
+            const issue = (row[1] || '').toString().trim();
+            const solution = (row[2] || '').toString().trim();
 
-if (!title && !issue && !solution) continue;
+            if (!title && !issue && !solution) continue;
 
-if (title && title !== currentTitle) {
-tableHTML += `
-<tr>
-<td colspan="3" class="judul-bagian" style="font-size: 1.4em; padding: 25px 20px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: white;">
-<i class="fas fa-folder-open" style="margin-right: 15px; font-size: 1.2em;"></i>
-${escapeHTML(title)}
-</td>
-</tr>`;
-currentTitle = title;
-}
+            if (title && title !== currentTitle) {
+                tableHTML += `
+                <tr>
+                    <td colspan="3" class="judul-bagian" style="font-size: 1.4em; padding: 25px 20px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: white;">
+                        <i class="fas fa-folder-open" style="margin-right: 15px; font-size: 1.2em;"></i>
+                        ${escapeHTML(title)}
+                    </td>
+                </tr>`;
+                currentTitle = title;
+            }
 
-if (issue || solution) {
-const escapedSolution = escapeSpecialChars(solution);
-const modifiedIssue = escapeHTML(issue).replace(/\n/g, "<br>");
-const modifiedSolution = escapeHTML(solution).replace(/\n/g, "<br>");
+            if (issue || solution) {
+                const escapedSolution = escapeSpecialChars(solution);
+                const modifiedIssue = escapeHTML(issue).replace(/\n/g, "<br>");
+                const modifiedSolution = escapeHTML(solution).replace(/\n/g, "<br>");
 
-tableHTML += `
-<tr style="border-bottom: 2px solid #e0e0e0;">
-<td class="kolom-pertanyaan" style="font-size: 1.2em; padding: 25px 20px; line-height: 1.6; vertical-align: top;">
-<div style="display: flex; align-items: flex-start; gap: 15px;">
-<i class="fas fa-question-circle" style="color: var(--primary); margin-top: 4px; font-size: 1.3em;"></i>
-<div style="flex: 1;">${modifiedIssue || '<span style="color: #999; font-style: italic;">No issue description</span>'}</div>
-</div>
-</td>
-<td class="kolom-penyelesaian" style="font-size: 1.2em; padding: 25px 20px; line-height: 1.6; vertical-align: top;">
-<div style="display: flex; align-items: flex-start; gap: 15px;">
-<i class="fas fa-check-circle" style="color: var(--accent); margin-top: 4px; font-size: 1.3em;"></i>
-<div style="flex: 1;">${modifiedSolution || '<span style="color: #999; font-style: italic;">No solution provided</span>'}</div>
-</div>
-</td>
-<td style="vertical-align: middle; text-align: center; padding: 25px 15px;">
-<span class="teks-copy" onclick="salinPenyelesaian('${escapedSolution}', this)"
-style="font-size: 1.1em; padding: 12px 20px; cursor: pointer; background: var(--primary); color: white; border-radius: 8px; display: inline-block; transition: all 0.3s ease;"
-onmouseover="this.style.background='var(--accent)'; this.style.transform='scale(1.05)'"
-onmouseout="this.style.background='var(--primary)'; this.style.transform='scale(1)'"
-title="Copy Solution to Clipboard">
-<i class="fas fa-copy" style="margin-right: 8px;"></i>COPY
-</span>
-</td>
-</tr>`;
-}
-}
+                tableHTML += `
+                <tr style="border-bottom: 2px solid #e0e0e0;">
+                    <td class="kolom-pertanyaan" style="font-size: 1.2em; padding: 25px 20px; line-height: 1.6; vertical-align: top;">
+                        <div style="display: flex; align-items: flex-start; gap: 15px;">
+                            <i class="fas fa-question-circle" style="color: var(--primary); margin-top: 4px; font-size: 1.3em;"></i>
+                            <div style="flex: 1;">${modifiedIssue || '<span style="color: #999; font-style: italic;">No issue description</span>'}</div>
+                        </div>
+                    </td>
+                    <td class="kolom-penyelesaian" style="font-size: 1.2em; padding: 25px 20px; line-height: 1.6; vertical-align: top;">
+                        <div style="display: flex; align-items: flex-start; gap: 15px;">
+                            <i class="fas fa-check-circle" style="color: var(--accent); margin-top: 4px; font-size: 1.3em;"></i>
+                            <div style="flex: 1;">${modifiedSolution || '<span style="color: #999; font-style: italic;">No solution provided</span>'}</div>
+                        </div>
+                    </td>
+                    <td style="vertical-align: middle; text-align: center; padding: 25px 15px;">
+                        <span class="teks-copy" onclick="salinPenyelesaian('${escapedSolution}', this)"
+                            style="font-size: 1.1em; padding: 12px 20px; cursor: pointer; background: var(--primary); color: white; border-radius: 8px; display: inline-block; transition: all 0.3s ease;"
+                            onmouseover="this.style.background='var(--accent)'; this.style.transform='scale(1.05)'"
+                            onmouseout="this.style.background='var(--primary)'; this.style.transform='scale(1)'"
+                            title="Copy Solution to Clipboard">
+                            <i class="fas fa-copy" style="margin-right: 8px;"></i>COPY
+                        </span>
+                    </td>
+                </tr>`;
+            }
+        }
 
-} else {
-// Default table structure untuk kategori lainnya
-tableHTML += '<tr>';
-if (data[0]) {
-data[0].forEach(header => {
-tableHTML += `<th>${escapeHTML(header)}</th>`;
-});
-tableHTML += '</tr>';
+    } else {
+        // Default table structure untuk kategori lainnya
+        tableHTML += '<tr>';
+        if (data[0]) {
+            data[0].forEach(header => {
+                tableHTML += `<th>${escapeHTML(header)}</th>`;
+            });
+            tableHTML += '</tr>';
 
-for (let i = 1; i < data.length; i++) {
-if (!data[i]) continue;
+            for (let i = 1; i < data.length; i++) {
+                if (!data[i]) continue;
 
-tableHTML += '<tr>';
-data[i].forEach(cell => {
-tableHTML += `<td>${escapeHTML(cell) || '-'}</td>`;
-});
-tableHTML += '</tr>';
-}
-}
-}
+                tableHTML += '<tr>';
+                data[i].forEach(cell => {
+                    tableHTML += `<td>${escapeHTML(cell) || '-'}</td>`;
+                });
+                tableHTML += '</tr>';
+            }
+        }
+    }
 
-if (!tableHTML.includes('<tr>') || tableHTML.match(/<tr>/g).length <= 2) {
-tableHTML += '<tr><td colspan="4" style="text-align:center;padding:40px;color:#ff3366;">No data available for this category</td></tr>';
-}
+    if (!tableHTML.includes('<tr>') || tableHTML.match(/<tr>/g).length <= 2) {
+        tableHTML += '<tr><td colspan="4" style="text-align:center;padding:40px;color:#ff3366;">No data available for this category</td></tr>';
+    }
 
-tableHTML += '</table></div>';
+    tableHTML += '</table></div>';
 
-return tableHTML;
+    return tableHTML;
 }
 
 // =============== UTILITY FUNCTIONS ===============
 function escapeHTML(str) {
-if (!str) return '';
-return str.toString()
-.replace(/&/g, '&amp;')
-.replace(/</g, '&lt;')
-.replace(/>/g, '&gt;')
-.replace(/"/g, '&quot;')
-.replace(/'/g, '&#39;');
+    if (!str) return '';
+    return str.toString()
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 function escapeSpecialChars(text) {
-if (!text) return '';
-return text.toString()
-.replace(/\\/g, '\\\\')
-.replace(/'/g, "\\'")
-.replace(/"/g, '\\"')
-.replace(/\n/g, '\\n')
-.replace(/\r/g, '\\r')
-.replace(/\t/g, '\\t');
+    if (!text) return '';
+    return text.toString()
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/"/g, '\\"')
+        .replace(/\n/g, '\\n')
+        .replace(/\r/g, '\\r')
+        .replace(/\t/g, '\\t');
 }
 
 // =============== COPY FUNCTIONS ===============
 function salinPenyelesaian(text, element) {
-const unescaped = text
-.replace(/\\'/g, "'")
-.replace(/\\"/g, '"')
-.replace(/\\n/g, '\n')
-.replace(/\\r/g, '\r')
-.replace(/\\t/g, '\t')
-.replace(/\\\\/g, '\\');
+    const unescaped = text
+        .replace(/\\'/g, "'")
+        .replace(/\\"/g, '"')
+        .replace(/\\n/g, '\n')
+        .replace(/\\r/g, '\r')
+        .replace(/\\t/g, '\t')
+        .replace(/\\\\/g, '\\');
 
-salinKeClipboard(unescaped, element);
+    salinKeClipboard(unescaped, element);
 }
 
 function salinTabel(kategori) {
-const data = semuaData[kategori];
-if (!data || data.length === 0) {
-tampilkanNotifikasi("No data to copy", "peringatan");
-return;
-}
+    const data = semuaData[kategori];
+    if (!data || data.length === 0) {
+        tampilkanNotifikasi("No data to copy", "peringatan");
+        return;
+    }
 
-const csvData = data.map(row =>
-row.map(cell => `"${(cell || '').replace(/"/g, '""')}"`).join(',')
-).join('\n');
+    const csvData = data.map(row =>
+        row.map(cell => `"${(cell || '').replace(/"/g, '""')}"`).join(',')
+    ).join('\n');
 
-salinKeClipboard(csvData, null, () => {
-tampilkanNotifikasi("Table data copied to clipboard!", "sukses");
-});
+    salinKeClipboard(csvData, null, () => {
+        tampilkanNotifikasi("Table data copied to clipboard!", "sukses");
+    });
 }
 
 function salinKeClipboard(text, element, callback) {
-const textarea = document.createElement('textarea');
-textarea.value = text;
-textarea.style.position = 'fixed';
-document.body.appendChild(textarea);
-textarea.select();
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    document.body.appendChild(textarea);
+    textarea.select();
 
-try {
-if (navigator.clipboard) {
-navigator.clipboard.writeText(text).then(() => {
-if (element) tampilkanFeedbackSalin(element, true);
-if (callback) callback();
-}).catch(() => {
-fallbackSalin(textarea, element, callback);
-});
-} else {
-fallbackSalin(textarea, element, callback);
-}
-} catch (err) {
-console.error("Copy failed:", err);
-if (element) tampilkanFeedbackSalin(element, false);
-} finally {
-document.body.removeChild(textarea);
-}
+    try {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(() => {
+                if (element) tampilkanFeedbackSalin(element, true);
+                if (callback) callback();
+            }).catch(() => {
+                fallbackSalin(textarea, element, callback);
+            });
+        } else {
+            fallbackSalin(textarea, element, callback);
+        }
+    } catch (err) {
+        console.error("Copy failed:", err);
+        if (element) tampilkanFeedbackSalin(element, false);
+    } finally {
+        document.body.removeChild(textarea);
+    }
 }
 
 function fallbackSalin(textarea, element, callback) {
-try {
-const success = document.execCommand('copy');
-if (element) tampilkanFeedbackSalin(element, success);
-if (callback && success) callback();
-} catch (err) {
-console.error("Fallback copy failed:", err);
-if (element) tampilkanFeedbackSalin(element, false);
-}
+    try {
+        const success = document.execCommand('copy');
+        if (element) tampilkanFeedbackSalin(element, success);
+        if (callback && success) callback();
+    } catch (err) {
+        console.error("Fallback copy failed:", err);
+        if (element) tampilkanFeedbackSalin(element, false);
+    }
 }
 
 function tampilkanFeedbackSalin(element, isSuccess) {
-const originalHTML = element.innerHTML;
+    const originalHTML = element.innerHTML;
 
-element.innerHTML = isSuccess
-? '<i class="fas fa-check"></i> Copied!'
-: '<i class="fas fa-times"></i> Error!';
-element.classList.add('disalin');
+    element.innerHTML = isSuccess
+        ? '<i class="fas fa-check"></i> Copied!'
+        : '<i class="fas fa-times"></i> Error!';
+    element.classList.add('disalin');
 
-setTimeout(() => {
-element.innerHTML = originalHTML;
-element.classList.remove('disalin');
-}, 2000);
+    setTimeout(() => {
+        element.innerHTML = originalHTML;
+        element.classList.remove('disalin');
+    }, 2000);
 }
 
 function eksporKeFile(kategori) {
-const data = semuaData[kategori] || [];
-if (data.length === 0) {
-tampilkanNotifikasi("No data to export", "peringatan");
-return;
-}
+    const data = semuaData[kategori] || [];
+    if (data.length === 0) {
+        tampilkanNotifikasi("No data to export", "peringatan");
+        return;
+    }
 
-const csvData = data.map(row =>
-row.map(cell => `"${(cell || '').replace(/"/g, '""')}"`).join(',')
-).join('\n');
+    const csvData = data.map(row =>
+        row.map(cell => `"${(cell || '').replace(/"/g, '""')}"`).join(',')
+    ).join('\n');
 
-const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
-const link = document.createElement('a');
-const url = URL.createObjectURL(blob);
+    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
 
-link.setAttribute('href', url);
-link.setAttribute('download', `${kategori}_${new Date().toISOString().slice(0, 10)}.csv`);
-link.style.visibility = 'hidden';
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${kategori}_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.style.visibility = 'hidden';
 
-document.body.appendChild(link);
-link.click();
-document.body.removeChild(link);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 
-tampilkanNotifikasi(`Data exported as ${kategori}.csv`, "sukses");
+    tampilkanNotifikasi(`Data exported as ${kategori}.csv`, "sukses");
 }
 
 // =============== NAVIGATION FUNCTIONS ===============
 function filterKategori(kategori) {
-kategoriSekarang = kategori;
-tampilkanKotakPencarian();
-sembunyikanSemuaElement();
+    kategoriSekarang = kategori;
+    tampilkanKotakPencarian();
+    sembunyikanSemuaElement();
 
-document.querySelectorAll('#data1, #data2').forEach(el => {
-el.style.display = 'none';
-});
+    document.querySelectorAll('#data1, #data2').forEach(el => {
+        el.style.display = 'none';
+    });
 
-const data = semuaData[kategori];
-if (data && data.length > 1) {
-const elementId = `data${['datalogin', 'linknawala'].indexOf(kategori) + 1}`;
-document.getElementById(elementId).style.display = 'block';
-document.getElementById(elementId).innerHTML = buatTabel(data, kategori);
-}
+    const data = semuaData[kategori];
+    if (data && data.length > 1) {
+        const elementId = `data${['datalogin', 'linknawala'].indexOf(kategori) + 1}`;
+        document.getElementById(elementId).style.display = 'block';
+        document.getElementById(elementId).innerHTML = buatTabel(data, kategori);
+    }
 
-document.getElementById('pesanTidakDitemukan').style.display = 'none';
+    document.getElementById('pesanTidakDitemukan').style.display = 'none';
 }
 
 function tampilkanMenuUtama() {
-kategoriSekarang = '';
-sembunyikanKotakPencarian();
-sembunyikanSemuaElement();
+    kategoriSekarang = '';
+    sembunyikanKotakPencarian();
+    sembunyikanSemuaElement();
 
-document.getElementById('kontainerKartu').style.display = 'grid';
-document.getElementById('teksSelamatDatang').style.display = 'block';
-document.getElementById('pesanTidakDitemukan').style.display = 'none';
+    document.getElementById('kontainerKartu').style.display = 'grid';
+    document.getElementById('teksSelamatDatang').style.display = 'block';
+    document.getElementById('pesanTidakDitemukan').style.display = 'none';
 }
 
 function tampilkanKotakPencarian() {
-document.getElementById('kotakPencarian').style.display = 'block';
-document.getElementById('kotakPencarian').focus();
+    document.getElementById('kotakPencarian').style.display = 'block';
+    document.getElementById('kotakPencarian').focus();
 }
 
 function sembunyikanKotakPencarian() {
-document.getElementById('kotakPencarian').style.display = 'none';
-document.getElementById('kotakPencarian').value = '';
+    document.getElementById('kotakPencarian').style.display = 'none';
+    document.getElementById('kotakPencarian').value = '';
 }
 
 // =============== ACTIVE NAVIGATION ===============
 function setActiveNav(element) {
-document.querySelectorAll('.robot-nav ul li').forEach(li => {
-li.classList.remove('active');
-});
-element.parentElement.classList.add('active');
+    document.querySelectorAll('.robot-nav ul li').forEach(li => {
+        li.classList.remove('active');
+    });
+    element.parentElement.classList.add('active');
 }
 
 // =============== WELCOME TEXT ANIMATION ===============
 function mulaiAnimasiTeksSelamatDatang() {
-const teksSelamatDatang = document.getElementById('teksSelamatDatang');
-const texts = ["Welcome to Tommy Dashboard"];
-let count = 0;
-let index = 0;
-let isDeleting = false;
-let speed = 1000;
+    const teksSelamatDatang = document.getElementById('teksSelamatDatang');
+    const texts = ["Welcome to Tommy Dashboard"];
+    let count = 0;
+    let index = 0;
+    let isDeleting = false;
+    let speed = 1000;
 
-function type() {
-const currentText = texts[count];
+    function type() {
+        const currentText = texts[count];
 
-if (isDeleting) {
-teksSelamatDatang.textContent = currentText.substring(0, index - 1);
-index--;
-speed = 50;
-} else {
-teksSelamatDatang.textContent = currentText.substring(0, index + 1);
-index++;
-speed = 150;
-}
+        if (isDeleting) {
+            teksSelamatDatang.textContent = currentText.substring(0, index - 1);
+            index--;
+            speed = 50;
+        } else {
+            teksSelamatDatang.textContent = currentText.substring(0, index + 1);
+            index++;
+            speed = 150;
+        }
 
-if (!isDeleting && index === currentText.length) {
-isDeleting = true;
-speed = 2000;
-} else if (isDeleting && index === 0) {
-isDeleting = false;
-count = (count + 1) % texts.length;
-speed = 500;
-}
+        if (!isDeleting && index === currentText.length) {
+            isDeleting = true;
+            speed = 2000;
+        } else if (isDeleting && index === 0) {
+            isDeleting = false;
+            count = (count + 1) % texts.length;
+            speed = 500;
+        }
 
-setTimeout(type, speed);
-}
+        setTimeout(type, speed);
+    }
 
-type();
+    type();
 }
 
 // =============== CONNECTION STATUS UPDATE ===============
 function updateConnectionStatus() {
-const statusElement = document.getElementById('connection-status');
-const indicator = document.querySelector('.status-indicator-small');
-const latency = Math.floor(Math.random() * 100) + 50;
+    const statusElement = document.getElementById('connection-status');
+    const indicator = document.querySelector('.status-indicator-small');
+    const latency = Math.floor(Math.random() * 100) + 50;
 
-statusElement.textContent = `${latency} ms`;
+    statusElement.textContent = `${latency} ms`;
 
-indicator.className = 'status-indicator-small';
-if (latency < 100) {
-indicator.classList.add('good');
-} else if (latency < 200) {
-indicator.classList.add('status-indicator-medium');
-} else {
-indicator.classList.add('status-indicator-bad');
-}
+    indicator.className = 'status-indicator-small';
+    if (latency < 100) {
+        indicator.classList.add('good');
+    } else if (latency < 200) {
+        indicator.classList.add('status-indicator-medium');
+    } else {
+        indicator.classList.add('status-indicator-bad');
+    }
 }
 
 // Add CSS animations for notifications
 const style = document.createElement('style');
 style.textContent = `
-@keyframes slideInRight {
-from { transform: translateX(100%); opacity: 0; }
-to { transform: translateX(0); opacity: 1; }
-}
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
 
-@keyframes slideOutRight {
-from { transform: translateX(0); opacity: 1; }
-to { transform: translateX(100%); opacity: 0; }
-}
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
 `;
 document.head.appendChild(style);
 </script>
