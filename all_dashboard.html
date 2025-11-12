@@ -499,6 +499,19 @@
             line-height: 1.5;
         }
 
+        /* =============== HIDE UNWANTED CATEGORIES =============== */
+        /* Hide specific navigation items */
+        .robot-nav ul li a[onclick*="hadiah"],
+        .robot-nav ul li a[onclick*="bonus"],
+        .robot-nav ul li a[onclick*="report"] {
+            display: none !important;
+        }
+
+        /* Hide specific table categories */
+        #data3, #data4, #data5 {
+            display: none !important;
+        }
+
         /* =============== PRESERVE COLUMN SIZES FOR NAWALA & DATALOGIN =============== */
         /* Ensure nawala and datalogin tables maintain their structure */
         .table-container table th:nth-child(1),
@@ -777,6 +790,69 @@
                 font-size: 0.9rem;
             }
         }
+
+        /* =============== DATA STATISTICS =============== */
+        .data-stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: linear-gradient(135deg, var(--panel), var(--panel-light));
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 15px;
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+            font-family: 'Orbitron', monospace;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        /* =============== DATA REFRESH CONTROLS =============== */
+        .refresh-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .refresh-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border: none;
+            border-radius: 8px;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.4);
+        }
+
+        .last-updated {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -813,7 +889,7 @@
                     <i class="fa-solid fa-link-slash"></i>
                     <span>Blocked Links</span>
                 </a></li>
-                <!-- Bonus, Report, dan Hadiah telah dihapus sesuai permintaan -->
+                <!-- Hadiah, Bonus, dan Report telah dihapus sesuai permintaan -->
             </ul>
         </nav>
 
@@ -857,6 +933,38 @@
                     <span class="auto-update">Auto update every 5 seconds</span>
                 </div>
             </div>
+
+            <div class="info-card">
+                <div class="card-icon">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Data Status</h3>
+                    <div class="connection-status">
+                        <span class="status-indicator-small" id="data-status-indicator"></span>
+                        <span id="data-status">Loading...</span>
+                    </div>
+                    <span class="auto-update" id="data-count">0 records loaded</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- REFRESH CONTROLS -->
+        <div class="refresh-controls">
+            <button class="refresh-btn" onclick="muatSemuaData()">
+                <i class="fas fa-sync-alt"></i> Refresh Data
+            </button>
+            <button class="refresh-btn" onclick="eksporSemuaData()">
+                <i class="fas fa-download"></i> Export All
+            </button>
+            <div class="last-updated" id="lastUpdated">
+                Last updated: Never
+            </div>
+        </div>
+
+        <!-- DATA STATISTICS -->
+        <div class="data-stats" id="dataStats" style="display: none;">
+            <!-- Stats will be populated by JavaScript -->
         </div>
 
         <!-- CARDS CONTAINER -->
@@ -938,9 +1046,26 @@
         };
         let sedangMencari = false;
         let sidebarCollapsed = false;
+        let dataTerakhirDiperbarui = null;
 
         // Google Apps Script URL - SESUAIKAN DENGAN SCRIPT ANDA
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbwkHrgiGlxFkJHZwp-bMaRCezwCSPAdV-FyUHkX9cAEWu/exec';
+
+        // Fallback data jika GAS tidak tersedia
+        const FALLBACK_DATA = {
+            datalogin: [
+                ['Username', 'Password', 'Keterangan'],
+                ['admin', 'password123', 'Admin utama'],
+                ['user1', 'userpass456', 'User biasa'],
+                ['operator', 'op123!!', 'Operator sistem']
+            ],
+            linknawala: [
+                ['URL', 'Deskripsi', 'Alasan Diblokir'],
+                ['http://malicious-site.com', 'Situs berbahaya', 'Phishing'],
+                ['http://spam-website.org', 'Situs spam', 'Spam dan penipuan'],
+                ['http://fake-login.net', 'Halaman login palsu', 'Pencurian data']
+            ]
+        };
 
         // =============== INITIALIZATION ===============
         window.onload = function() {
@@ -949,15 +1074,25 @@
             muatSemuaData();
             updateConnectionStatus();
             setInterval(updateConnectionStatus, 5000);
+            
+            // Auto-refresh data setiap 2 menit
+            setInterval(muatSemuaData, 120000);
         };
 
         // =============== DATA LOADING FROM GOOGLE APPS SCRIPT ===============
         async function muatSemuaData() {
             tampilkanLoading(true);
+            updateDataStatus('Loading data...', 'medium');
 
             try {
-                // Load data dari Google Apps Script
-                const response = await fetch(GAS_URL);
+                // Load data dari Google Apps Script dengan timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                
+                const response = await fetch(GAS_URL, { 
+                    signal: controller.signal 
+                });
+                clearTimeout(timeoutId);
 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -970,14 +1105,15 @@
                     semuaData = {
                         datalogin: data.datalogin || [],
                         linknawala: data.linknawala || []
-                        // Bonus, report, dan hadiah telah dihapus sesuai permintaan
                     };
 
                     console.log('Data loaded successfully:', semuaData);
-
+                    dataTerakhirDiperbarui = new Date();
+                    
                     // Render tables untuk setiap kategori
                     renderAllTables();
-
+                    updateDataStatistics();
+                    updateDataStatus('Data loaded successfully', 'good');
                     tampilkanNotifikasi("All data loaded successfully!", "sukses");
                 } else {
                     throw new Error(data.error || 'Unknown error from server');
@@ -985,18 +1121,31 @@
 
             } catch (error) {
                 console.error("Error loading data:", error);
-                tampilkanNotifikasi("Failed to load data: " + error.message, "error");
+                
+                if (error.name === 'AbortError') {
+                    tampilkanNotifikasi("Request timeout, using fallback data", "peringatan");
+                } else {
+                    tampilkanNotifikasi("Failed to load data: " + error.message, "error");
+                }
 
-                // Fallback: coba load data dari CSV jika GAS gagal
-                muatDataFallback();
+                // Fallback: gunakan data lokal jika GAS gagal
+                gunakanDataFallback();
+                updateDataStatus('Using fallback data', 'medium');
             } finally {
                 tampilkanLoading(false);
+                updateLastUpdated();
             }
+        }
+
+        function gunakanDataFallback() {
+            semuaData = JSON.parse(JSON.stringify(FALLBACK_DATA));
+            renderAllTables();
+            updateDataStatistics();
         }
 
         function renderAllTables() {
             // Render table untuk setiap kategori
-            const categories = ['datalogin', 'linknawala']; // Hanya datalogin dan linknawala
+            const categories = ['datalogin', 'linknawala'];
 
             categories.forEach((kategori, index) => {
                 const elementId = `data${index + 1}`;
@@ -1010,100 +1159,77 @@
             });
         }
 
-        // Fallback method jika GAS tidak bekerja
-        async function muatDataFallback() {
-            try {
-                // Coba load dari CSV export
-                const sheetData = {
-                    datalogin: '0',
-                    linknawala: '1202906531'
-                    // Bonus, report, dan hadiah telah dihapus sesuai permintaan
-                };
-
-                for (const [sheetName, gid] of Object.entries(sheetData)) {
-                    try {
-                        const data = await ambilDataSheetDenganTimeout(gid, 5000);
-                        semuaData[sheetName] = data;
-                    } catch (error) {
-                        console.error(`Failed to load ${sheetName}:`, error);
-                        semuaData[sheetName] = [];
-                    }
+        function updateDataStatistics() {
+            const statsContainer = document.getElementById('dataStats');
+            let totalRecords = 0;
+            
+            Object.values(semuaData).forEach(data => {
+                if (data && data.length > 1) {
+                    totalRecords += data.length - 1; // Exclude header
                 }
-
-                renderAllTables();
-                tampilkanNotifikasi("Data loaded with fallback method", "peringatan");
-
-            } catch (error) {
-                console.error("Fallback also failed:", error);
-            }
-        }
-
-        // Helper function untuk load data dari sheet (fallback)
-        async function ambilDataSheetDenganTimeout(gid, timeout = 5000) {
-            return new Promise((resolve, reject) => {
-                const timeoutId = setTimeout(() => {
-                    reject(new Error(`Request timeout for GID: ${gid}`));
-                }, timeout);
-
-                // Fallback method menggunakan CSV export
-                const SPREADSHEET_ID = '19AodSFSw4shpSZVZ4I-_sD91eU1HPITMeg4cwLiEV1c';
-                const csvUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${gid}`;
-
-                fetch(csvUrl)
-                    .then(response => {
-                        clearTimeout(timeoutId);
-                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                        return response.text();
-                    })
-                    .then(csvText => {
-                        const data = parseCSV(csvText);
-                        resolve(data);
-                    })
-                    .catch(error => {
-                        clearTimeout(timeoutId);
-                        reject(error);
-                    });
             });
+            
+            const dataloginCount = semuaData.datalogin && semuaData.datalogin.length > 1 ? semuaData.datalogin.length - 1 : 0;
+            const linknawalaCount = semuaData.linknawala && semuaData.linknawala.length > 1 ? semuaData.linknawala.length - 1 : 0;
+            
+            statsContainer.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-value">${totalRecords}</div>
+                    <div class="stat-label">Total Records</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${dataloginCount}</div>
+                    <div class="stat-label">Auth Data</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${linknawalaCount}</div>
+                    <div class="stat-label">Blocked Links</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${Object.keys(semuaData).length}</div>
+                    <div class="stat-label">Categories</div>
+                </div>
+            `;
+            
+            statsContainer.style.display = 'flex';
+            
+            // Update data count in info card
+            document.getElementById('data-count').textContent = `${totalRecords} records loaded`;
         }
 
-        // Simple CSV parsing (fallback)
-        function parseCSV(csvText) {
-            if (!csvText || csvText.trim() === '') {
-                return [];
+        function updateDataStatus(status, indicatorType) {
+            const statusElement = document.getElementById('data-status');
+            const indicator = document.getElementById('data-status-indicator');
+            
+            statusElement.textContent = status;
+            indicator.className = 'status-indicator-small';
+            
+            if (indicatorType === 'good') {
+                indicator.classList.add('good');
+            } else if (indicatorType === 'medium') {
+                indicator.classList.add('medium');
+            } else {
+                indicator.classList.add('bad');
             }
+        }
 
-            const lines = csvText.split('\n').filter(line => line.trim() !== '');
-            const result = [];
-
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
-                const row = [];
-                let current = '';
-                let inQuotes = false;
-
-                for (let j = 0; j < line.length; j++) {
-                    const char = line[j];
-
-                    if (char === '"') {
-                        if (inQuotes && j + 1 < line.length && line[j + 1] === '"') {
-                            current += '"';
-                            j++;
-                        } else {
-                            inQuotes = !inQuotes;
-                        }
-                    } else if (char === ',' && !inQuotes) {
-                        row.push(current.trim());
-                        current = '';
-                    } else {
-                        current += char;
-                    }
+        function updateLastUpdated() {
+            const element = document.getElementById('lastUpdated');
+            if (dataTerakhirDiperbarui) {
+                const now = new Date();
+                const diffMs = now - dataTerakhirDiperbarui;
+                const diffMins = Math.floor(diffMs / 60000);
+                
+                if (diffMins < 1) {
+                    element.textContent = 'Last updated: Just now';
+                } else if (diffMins === 1) {
+                    element.textContent = 'Last updated: 1 minute ago';
+                } else {
+                    element.textContent = `Last updated: ${diffMins} minutes ago`;
                 }
-
-                row.push(current.trim());
-                result.push(row);
+            } else {
+                element.textContent = 'Last updated: Never';
             }
-
-            return result;
         }
 
         // Error message template
@@ -1144,6 +1270,7 @@
                 if (data.success && data[kategori]) {
                     semuaData[kategori] = data[kategori];
                     document.getElementById(elementId).innerHTML = buatTabel(data[kategori], kategori);
+                    updateDataStatistics();
                     tampilkanNotifikasi(`${getNamaKategori(kategori)} data reloaded!`, "sukses");
                 } else {
                     throw new Error('No data received');
@@ -1350,6 +1477,7 @@
 
                     const username = row[0] || '';
                     const password = row[1] || '';
+                    const keterangan = row[2] || '';
 
                     if (!username && !password) continue;
 
@@ -1357,8 +1485,15 @@
 
                     tableHTML += `
                     <tr>
-                        <td>${escapeHTML(username)}</td>
-                        <td>${escapeHTML(password)}</td>
+                        <td>
+                            <div style="font-weight: 600;">${escapeHTML(username)}</div>
+                            ${keterangan ? `<div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">${escapeHTML(keterangan)}</div>` : ''}
+                        </td>
+                        <td>
+                            <div class="password-field" style="font-family: 'Courier New', monospace; letter-spacing: 2px;">
+                                ${escapeHTML(password)}
+                            </div>
+                        </td>
                         <td style="vertical-align: middle; text-align: center;">
                             <span class="teks-copy" onclick="salinKeClipboard('${escapedPassword}', this)">
                                 <i class="fas fa-copy"></i> Copy
@@ -1381,6 +1516,7 @@
 
                     const url = row[0] || '';
                     const description = row[1] || '';
+                    const reason = row[2] || '';
 
                     if (!url && !description) continue;
 
@@ -1388,7 +1524,10 @@
 
                     tableHTML += `
                     <tr>
-                        <td>${escapeHTML(url)}</td>
+                        <td>
+                            <div style="font-weight: 600; color: var(--danger);">${escapeHTML(url)}</div>
+                            ${reason ? `<div style="font-size: 0.8rem; color: var(--warning); margin-top: 5px;">${escapeHTML(reason)}</div>` : ''}
+                        </td>
                         <td>${escapeHTML(description)}</td>
                         <td style="vertical-align: middle; text-align: center;">
                             <span class="teks-copy" onclick="salinKeClipboard('${escapedDescription}', this)">
@@ -1523,6 +1662,35 @@
             tampilkanNotifikasi(`Data exported as ${kategori}.csv`, "sukses");
         }
 
+        function eksporSemuaData() {
+            let allData = [];
+            
+            Object.entries(semuaData).forEach(([kategori, data]) => {
+                if (data && data.length > 0) {
+                    allData.push(`=== ${getNamaKategori(kategori).toUpperCase()} ===`);
+                    data.forEach(row => {
+                        allData.push(row.join(','));
+                    });
+                    allData.push(''); // Empty line between categories
+                }
+            });
+            
+            const csvData = allData.join('\n');
+            const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', `all_data_${new Date().toISOString().slice(0, 10)}.csv`);
+            link.style.visibility = 'hidden';
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            tampilkanNotifikasi(`All data exported successfully!`, "sukses");
+        }
+
         // =============== NAVIGATION FUNCTIONS ===============
         function filterKategori(kategori) {
             kategoriSekarang = kategori;
@@ -1579,6 +1747,7 @@
         function sembunyikanSemuaElement() {
             document.getElementById('kontainerKartu').style.display = 'none';
             document.getElementById('teksSelamatDatang').style.display = 'none';
+            document.getElementById('dataStats').style.display = 'none';
         }
 
         // =============== SIDEBAR TOGGLE ===============
