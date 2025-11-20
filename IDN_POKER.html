@@ -1,0 +1,1859 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard IDN POKER</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0a0e27;
+            --secondary-color: #1e2139;
+            --accent-color: #f9d71c;
+            --accent-color-2: #ff6b00;
+            --accent-color-3: #00d4ff;
+            --accent-color-4: #ff00ff;
+            --text-color: #e0e0e0;
+            --card-bg: rgba(30, 33, 57, 0.7);
+            --card-border: rgba(249, 215, 28, 0.3);
+            --glow-color: rgba(249, 215, 28, 0.5);
+            --neon-blue: #00d4ff;
+            --neon-purple: #9d00ff;
+            --neon-pink: #ff00aa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Orbitron', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap');
+
+        body {
+            background: linear-gradient(135deg, #0a0e27 0%, #1e2139 50%, #2d1b69 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Efek partikel latar belakang */
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px;
+            background: rgba(10, 14, 39, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(10px);
+            animation: fadeInDown 1s ease-out;
+        }
+        
+        /* Menu Pencarian */
+        .search-container {
+            position: relative;
+            max-width: 600px;
+            margin: 30px auto 0;
+            z-index: 10;
+        }
+        
+        .search-box {
+            position: relative;
+            width: 100%;
+            height: 60px;
+            border-radius: 50px;
+            overflow: hidden;
+            background: rgba(30, 33, 57, 0.8);
+            border: 2px solid var(--card-border);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .search-box:hover, .search-box:focus-within {
+            box-shadow: 0 0 20px var(--glow-color);
+            border-color: var(--accent-color);
+            transform: translateY(-3px);
+        }
+        
+        .search-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 0 60px 0 25px;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 1.1rem;
+            color: var(--text-color);
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .search-input::placeholder {
+            color: rgba(224, 224, 224, 0.6);
+        }
+        
+        .search-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 60px;
+            height: 100%;
+            background: linear-gradient(135deg, var(--accent-color-2), var(--accent-color));
+            border: none;
+            border-radius: 0 50px 50px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-size: 1.4rem;
+            transition: all 0.3s ease;
+        }
+        
+        .search-btn:hover {
+            background: linear-gradient(135deg, var(--accent-color), var(--accent-color-2));
+        }
+        
+        .search-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* Efek animasi untuk input pencarian */
+        .search-input:focus + .search-btn {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(249, 215, 28, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(249, 215, 28, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(249, 215, 28, 0); }
+        }
+        
+        /* Hasil Pencarian */
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            max-height: 300px;
+            overflow-y: auto;
+            background: rgba(30, 33, 57, 0.95);
+            border-radius: 0 0 20px 20px;
+            border: 1px solid var(--card-border);
+            border-top: none;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            display: none;
+        }
+        
+        .search-results.active {
+            display: block;
+            animation: fadeInDown 0.3s ease-out;
+        }
+        
+        .search-result-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(249, 215, 28, 0.1);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .search-result-item:hover {
+            background: rgba(249, 215, 28, 0.1);
+            padding-left: 25px;
+        }
+        
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .search-result-title {
+            color: var(--accent-color);
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .search-result-desc {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+        
+        /* Efek cahaya untuk header */
+        header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(249,215,28,0.1) 0%, rgba(249,215,28,0) 70%);
+            animation: rotate 20s linear infinite;
+            z-index: -1;
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        h1 {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: var(--accent-color);
+            text-shadow: 0 0 15px var(--glow-color);
+            letter-spacing: 4px;
+            position: relative;
+            display: inline-block;
+            font-weight: 900;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 15px var(--glow-color), 0 0 20px var(--glow-color); }
+            to { text-shadow: 0 0 20px var(--glow-color), 0 0 30px var(--glow-color), 0 0 40px var(--accent-color); }
+        }
+        
+        .jackpot-announcement {
+            background: linear-gradient(45deg, var(--accent-color-2), var(--accent-color));
+            color: var(--primary-color);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 25px 0;
+            font-weight: bold;
+            font-size: 1.5rem;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(255, 107, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 107, 0, 0.5); }
+            50% { transform: scale(1.03); box-shadow: 0 0 30px rgba(255, 107, 0, 0.7); }
+            100% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 107, 0, 0.5); }
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-color);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.7;
+            position: relative;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--card-border);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 1s ease-out;
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+        }
+        
+        /* Efek hover untuk kartu */
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            background: rgba(30, 33, 57, 0.9);
+            border-color: var(--accent-color);
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 30px), calc(100% - 30px) 100%, 0 100%);
+        }
+        
+        /* Efek cahaya untuk kartu */
+        .card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top left, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 60%);
+            z-index: -1;
+        }
+        
+        .card h2 {
+            color: var(--accent-color);
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--card-border);
+            text-align: center;
+            font-size: 1.8rem;
+            position: relative;
+            font-weight: 700;
+        }
+        
+        .card h3 {
+            color: var(--accent-color);
+            margin: 20px 0 15px;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .card p {
+            line-height: 1.7;
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+        
+        .card ul {
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card li {
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+        
+        .hand-ranking, .jackpot-info, .poker-glossary {
+            grid-column: 1 / -1;
+        }
+        
+        .hand-cards, .jackpot-prizes, .glossary-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .hand, .jackpot-prize, .glossary-item {
+            background: rgba(30, 33, 57, 0.8);
+            border-radius: 15px;
+            padding: 25px;
+            width: 240px;
+            text-align: center;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--card-border);
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%);
+        }
+        
+        /* Efek hover untuk item kartu */
+        .hand:hover, .jackpot-prize:hover, .glossary-item:hover {
+            transform: translateY(-10px) scale(1.02);
+            background: rgba(30, 33, 57, 0.95);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            border-color: var(--accent-color);
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 25px), calc(100% - 25px) 100%, 0 100%);
+        }
+        
+        /* Efek cahaya untuk item kartu */
+        .hand::before, .jackpot-prize::before, .glossary-item::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(249,215,28,0.1) 0%, rgba(249,215,28,0) 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .hand:hover::before, .jackpot-prize:hover::before, .glossary-item:hover::before {
+            opacity: 1;
+        }
+        
+        .hand h3, .jackpot-prize h3, .glossary-item h3 {
+            color: var(--accent-color);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .card-images {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .card-img {
+            width: 50px;
+            height: 70px;
+            background: white;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            font-weight: bold;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease;
+        }
+        
+        /* Efek hover untuk kartu gambar */
+        .card-img:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-img.hearts, .card-img.diamonds {
+            color: #e53935;
+        }
+        
+        .card-img.spades, .card-img.clubs {
+            color: #333;
+        }
+        
+        .multiplier {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin: 15px 0;
+            text-shadow: 0 0 10px var(--glow-color);
+        }
+        
+        .game-flow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 50px 0;
+            position: relative;
+        }
+        
+        .flow-step {
+            text-align: center;
+            width: 22%;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .flow-step .step-circle {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, var(--accent-color), var(--accent-color-2));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 1.5rem;
+            box-shadow: 0 0 20px var(--glow-color);
+            transition: all 0.3s ease;
+        }
+        
+        /* Efek hover untuk langkah alur permainan */
+        .flow-step:hover .step-circle {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px var(--accent-color);
+        }
+        
+        .flow-step h3 {
+            color: var(--accent-color);
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .flow-step p {
+            font-size: 1rem;
+        }
+        
+        .flow-connector {
+            position: absolute;
+            top: 45px;
+            left: 15%;
+            width: 70%;
+            height: 3px;
+            background: linear-gradient(90deg, rgba(249,215,28,0.3), rgba(249,215,28,0.7), rgba(249,215,28,0.3));
+            z-index: 1;
+        }
+        
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            font-size: 1rem;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 500;
+            clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+        }
+        
+        /* Efek animasi untuk tombol aksi */
+        .action-btn::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .action-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .fold {
+            background: linear-gradient(135deg, #e53935, #d32f2f);
+            color: white;
+        }
+        
+        .check {
+            background: linear-gradient(135deg, #43a047, #388e3c);
+            color: white;
+        }
+        
+        .bet {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+        }
+        
+        .raise {
+            background: linear-gradient(135deg, #1e88e5, #1976d2);
+            color: white;
+        }
+        
+        .buy-jackpot {
+            background: linear-gradient(135deg, var(--accent-color-2), var(--accent-color));
+            color: var(--primary-color);
+            font-weight: bold;
+            box-shadow: 0 0 15px var(--glow-color);
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        .image-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+        
+        .gallery-item {
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+        
+        /* Efek hover untuk item galeri */
+        .gallery-item:hover {
+            transform: scale(1.05);
+        }
+        
+        .gallery-img {
+            width: 240px;
+            height: 180px;
+            border-radius: 15px;
+            object-fit: cover;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            display: block;
+        }
+        
+        .gallery-img:hover {
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+        
+        .img-caption {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 1.1rem;
+            color: var(--text-color);
+            width: 100%;
+        }
+        
+        /* Modal Zoom di Samping */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-content-container {
+            display: flex;
+            height: 100%;
+            align-items: center;
+            padding: 0 50px;
+        }
+        
+        .modal-content {
+            max-width: 70%;
+            max-height: 80%;
+            border-radius: 15px;
+            box-shadow: 0 0 30px var(--glow-color);
+            margin-right: 30px;
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-sidebar {
+            flex: 1;
+            color: white;
+            padding: 30px;
+            background: var(--card-bg);
+            border-radius: 15px;
+            max-width: 400px;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+        }
+        
+        .modal-sidebar h3 {
+            color: var(--accent-color);
+            margin-bottom: 20px;
+            font-size: 1.6rem;
+            font-weight: 600;
+        }
+        
+        .modal-sidebar p {
+            line-height: 1.7;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+        
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: var(--accent-color);
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            z-index: 1001;
+        }
+        
+        .close:hover {
+            color: #fff;
+            transform: scale(1.2);
+        }
+        
+        .zoom-controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 1001;
+        }
+        
+        .zoom-btn {
+            background: var(--accent-color);
+            color: var(--primary-color);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .zoom-btn:hover {
+            background: var(--accent-color);
+            transform: scale(1.1);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 30px;
+            color: var(--text-color);
+            font-size: 1rem;
+            background: var(--card-bg);
+            border-radius: 15px;
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Fallback untuk gambar yang tidak bisa dimuat */
+        .image-fallback {
+            width: 240px;
+            height: 180px;
+            border-radius: 15px;
+            background: var(--card-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-color);
+            font-size: 1rem;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--card-border);
+        }
+
+        /* Responsif untuk modal */
+        @media (max-width: 768px) {
+            .modal-content-container {
+                flex-direction: column;
+                padding: 20px;
+            }
+            
+            .modal-content {
+                max-width: 100%;
+                max-height: 50%;
+                margin-right: 0;
+                margin-bottom: 20px;
+            }
+            
+            .modal-sidebar {
+                max-width: 100%;
+            }
+        }
+
+        .glossary-item {
+            text-align: left;
+            width: 100%;
+            max-width: 380px;
+        }
+        
+        .glossary-item h3 {
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--card-border);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .jackpot-prize {
+            width: 300px;
+        }
+        
+        .jackpot-prize .multiplier {
+            font-size: 2.5rem;
+        }
+        
+        .jackpot-example {
+            background: rgba(249, 215, 28, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            border-left: 5px solid var(--accent-color);
+        }
+        
+        /* Efek neon untuk elemen penting */
+        .neon-text {
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue), 0 0 30px var(--neon-blue);
+        }
+        
+        .neon-border {
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 10px var(--neon-blue), inset 0 0 10px rgba(0, 212, 255, 0.2);
+        }
+        
+        /* Efek hologram untuk kartu */
+        .hologram {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hologram::before {
+            content: "";
+            position: absolute;
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
+            background: linear-gradient(
+                45deg,
+                transparent 30%,
+                rgba(255, 255, 255, 0.1) 50%,
+                transparent 70%
+            );
+            transform: rotate(45deg);
+            transition: all 0.6s;
+            z-index: 1;
+        }
+        
+        .hologram:hover::before {
+            animation: hologramShine 0.6s ease-in-out;
+        }
+        
+        @keyframes hologramShine {
+            0% {
+                top: -100%;
+                left: -100%;
+            }
+            100% {
+                top: 100%;
+                left: 100%;
+            }
+        }
+        
+        /* Efek 3D untuk kartu */
+        .card-3d {
+            perspective: 1000px;
+        }
+        
+        .card-3d-inner {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        
+        .card-3d:hover .card-3d-inner {
+            transform: rotateY(10deg) rotateX(-10deg);
+        }
+        
+        /* Efek gradient animasi */
+        .gradient-animation {
+            background: linear-gradient(270deg, var(--accent-color), var(--accent-color-2), var(--accent-color-3), var(--accent-color-4));
+            background-size: 800% 800%;
+            animation: gradientShift 8s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* Efek glitch */
+        .glitch {
+            position: relative;
+            color: white;
+            font-size: 2em;
+            letter-spacing: 0.5em;
+            animation: glitch-skew 1s infinite linear alternate-reverse;
+        }
+        
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .glitch::before {
+            animation: glitch-1 0.5s infinite linear alternate-reverse;
+            color: var(--neon-blue);
+            z-index: -1;
+        }
+        
+        .glitch::after {
+            animation: glitch-2 0.5s infinite linear alternate-reverse;
+            color: var(--neon-pink);
+            z-index: -2;
+        }
+        
+        @keyframes glitch-1 {
+            0% { clip: rect(42px, 9999px, 44px, 0); }
+            5% { clip: rect(12px, 9999px, 59px, 0); }
+            10% { clip: rect(48px, 9999px, 29px, 0); }
+            15% { clip: rect(42px, 9999px, 73px, 0); }
+            20% { clip: rect(63px, 9999px, 27px, 0); }
+            25% { clip: rect(34px, 9999px, 55px, 0); }
+            30% { clip: rect(86px, 9999px, 73px, 0); }
+            35% { clip: rect(20px, 9999px, 20px, 0); }
+            40% { clip: rect(26px, 9999px, 60px, 0); }
+            45% { clip: rect(25px, 9999px, 66px, 0); }
+            50% { clip: rect(57px, 9999px, 98px, 0); }
+            55% { clip: rect(5px, 9999px, 46px, 0); }
+            60% { clip: rect(82px, 9999px, 31px, 0); }
+            65% { clip: rect(54px, 9999px, 27px, 0); }
+            70% { clip: rect(28px, 9999px, 99px, 0); }
+            75% { clip: rect(45px, 9999px, 69px, 0); }
+            80% { clip: rect(23px, 9999px, 85px, 0); }
+            85% { clip: rect(54px, 9999px, 84px, 0); }
+            90% { clip: rect(45px, 9999px, 47px, 0); }
+            95% { clip: rect(37px, 9999px, 20px, 0); }
+            100% { clip: rect(4px, 9999px, 91px, 0); }
+        }
+        
+        @keyframes glitch-2 {
+            0% { clip: rect(65px, 9999px, 100px, 0); }
+            5% { clip: rect(52px, 9999px, 74px, 0); }
+            10% { clip: rect(79px, 9999px, 85px, 0); }
+            15% { clip: rect(75px, 9999px, 5px, 0); }
+            20% { clip: rect(67px, 9999px, 61px, 0); }
+            25% { clip: rect(14px, 9999px, 79px, 0); }
+            30% { clip: rect(1px, 9999px, 66px, 0); }
+            35% { clip: rect(86px, 9999px, 30px, 0); }
+            40% { clip: rect(23px, 9999px, 98px, 0); }
+            45% { clip: rect(85px, 9999px, 72px, 0); }
+            50% { clip: rect(71px, 9999px, 75px, 0); }
+            55% { clip: rect(2px, 9999px, 48px, 0); }
+            60% { clip: rect(30px, 9999px, 16px, 0); }
+            65% { clip: rect(59px, 9999px, 50px, 0); }
+            70% { clip: rect(41px, 9999px, 62px, 0); }
+            75% { clip: rect(2px, 9999px, 82px, 0); }
+            80% { clip: rect(47px, 9999px, 73px, 0); }
+            85% { clip: rect(3px, 9999px, 27px, 0); }
+            90% { clip: rect(26px, 9999px, 55px, 0); }
+            95% { clip: rect(42px, 9999px, 97px, 0); }
+            100% { clip: rect(38px, 9999px, 49px, 0); }
+        }
+        
+        @keyframes glitch-skew {
+            0% { transform: skew(0deg); }
+            20% { transform: skew(2deg); }
+            40% { transform: skew(-2deg); }
+            60% { transform: skew(1deg); }
+            80% { transform: skew(-1deg); }
+            100% { transform: skew(0deg); }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particles-canvas"></canvas>
+    
+    <div class="container">
+        <header>
+            <h1 class="glitch" data-text="IDN POKER"><i class="fas fa-crown"></i> IDN POKER <i class="fas fa-crown"></i></h1>
+            
+            <!-- Menu Pencarian -->
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" class="search-input" placeholder="Cari informasi tentang poker..." id="searchInput">
+                    <button class="search-btn" id="searchBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <div class="search-results" id="searchResults"></div>
+            </div>
+            
+            <div class="jackpot-announcement gradient-animation">
+                <i class="fas fa-coins"></i> Texas Holdem adalah versi utama poker. Setiap pemain diberikan dua kartu awal Hole Cards dan lima kartu ditempatkan menghadap ke atas di atas meja. Tujuannya adalah untuk membuat lima kartu terbaik menggunakan kombinasi dua kartu Anda dan lima kartu di atas meja! <i class="fas fa-coins"></i>
+            </div>
+            <p class="subtitle">Buatlah kombinasi lima kartu terbaik! Pemain bertaruh dalam putaran, dan Anda dapat Fold, Check, Bet, atau Raise berdasarkan seberapa kuat menurut Anda tangan Anda. Permainan berakhir ketika seseorang memiliki tangan terbaik atau semua pemain lainnya Fold. Ini adalah perpaduan keterampilan dan keberuntungan, yang membuatnya menyenangkan untuk dimainkan semua orang.</p>
+        </header>
+        
+        <div class="dashboard">
+            <div class="card hologram">
+                <h2><i class="fas fa-gamepad"></i> Cara Bermain</h2>
+                <p>Setiap pemain dibagikan 2 kartu tertutup. Kartu-kartu ini akan ditutup hingga ronde pertaruhan berakhir, yang disebut Showdown.</p>
+                <p>Pemain bergiliran bergerak searah jarum jam untuk memasang taruhan. Dimulai dari sebelah kiri posisi Dealer, lalu Big Blind, lalu Small Blind.</p>
+                <p>Permainan akan bergerak berdasarkan beberapa tahapan: Pre flop, Flop, Turn, dan River hingga lima kartu terpampang di tengah meja.</p>
+                <p>Pemain dengan kombinasi 5 kartu terbaik akan memenangkan Pot.</p>
+                
+                <div class="actions">
+                    <button class="action-btn fold"><i class="fas fa-times"></i> Fold</button>
+                    <button class="action-btn check"><i class="fas fa-check"></i> Check</button>
+                    <button class="action-btn bet"><i class="fas fa-coins"></i> Bet</button>
+                    <button class="action-btn raise"><i class="fas fa-arrow-up"></i> Raise</button>
+                    <button class="action-btn buy-jackpot"><i class="fas fa-trophy"></i> Beli Jackpot</button>
+                </div>
+            </div>
+            
+            <div class="card card-3d">
+                <div class="card-3d-inner">
+                    <h2><i class="fas fa-list-ol"></i> Tahapan Permainan</h2>
+                    <ul>
+                        <li><strong>Pre-flop:</strong> Setelah semua pemain menerima 2 kartu hole, putaran pertaruhan pertama dimulai.</li>
+                        <li><strong>Flop:</strong> Tiga kartu komunitas pertama dibagikan terbuka di tengah meja.</li>
+                        <li><strong>Turn:</strong> Kartu komunitas keempat dibagikan.</li>
+                        <li><strong>River:</strong> Kartu komunitas kelima dan terakhir dibagikan.</li>
+                        <li><strong>Showdown:</strong> Jika masih ada lebih dari satu pemain setelah putaran taruhan terakhir, mereka menunjukkan kartu mereka untuk menentukan pemenang.</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card jackpot-info">
+                <h2 class="neon-text"><i class="fas fa-trophy"></i> 🎰 SISTEM JACKPOT POKER 🎰</h2>
+                
+                <div class="jackpot-example">
+                    <h3>Contoh Perhitungan Jackpot:</h3>
+                    <p>Player membeli Jackpot dengan nilai nominal 1000 chip. Dalam kurun waktu tersebut pemain berhasil membuat kombinasi kartu Royal Flush (x 10.000). Maka hadiah Jackpot yang akan diberikan adalah 100.000 chip.</p>
+                </div>
+                
+                <h3>Harga Pembelian Jackpot:</h3>
+                <ul>
+                    <li><strong>Meja VIP:</strong> 500 chips, 1000 chips, dan 2000 chips</li>
+                    <li><strong>Meja Non-VIP:</strong> 50 chips, 100 chips, dan 200 chips</li>
+                </ul>
+                
+                <h3>Syarat Memenangkan Jackpot:</h3>
+                <ul>
+                    <li>Jackpot tidak harus dibeli di setiap periode permainan</li>
+                    <li>Untuk memenangkan Jackpot dalam suatu periode, pemain harus menyelesaikan permainan dalam periode tersebut</li>
+                    <li>Pemain yang tersisa di akhir periode minimal 2 pemain</li>
+                    <li>Jika semua pemain Fold, Jackpot tidak akan diberikan</li>
+                </ul>
+                
+                <h3>Hadiah Jackpot Terbesar dalam Poker:</h3>
+                <div class="jackpot-prizes">
+                    <div class="jackpot-prize gradient-animation">
+                        <h3><i class="fas fa-gem"></i> #1 Super Royal Flush</h3>
+                        <div class="multiplier">X 30,000</div>
+                        <p>Kombinasi kartu tertinggi dengan jackpot terbesar</p>
+                    </div>
+                    <div class="jackpot-prize">
+                        <h3><i class="fas fa-crown"></i> #2 Royal Flush</h3>
+                        <div class="multiplier">X 10,000</div>
+                        <p>10, J, Q, K, A dengan jenis sama</p>
+                    </div>
+                    <div class="jackpot-prize">
+                        <h3><i class="fas fa-fire"></i> #3 Straight Flush</h3>
+                        <div class="multiplier">X 1,200</div>
+                        <p>5 kartu berurutan dengan jenis sama</p>
+                    </div>
+                    <div class="jackpot-prize">
+                        <h3><i class="fas fa-dice"></i> #4 Empat Sejenis</h3>
+                        <div class="multiplier">X 250</div>
+                        <p>4 kartu dengan nilai sama</p>
+                    </div>
+                    <div class="jackpot-prize">
+                        <h3><i class="fas fa-handshake"></i> #5 Full House</h3>
+                        <div class="multiplier">X 10</div>
+                        <p>3 kartu sama + 2 kartu sama</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card hand-ranking">
+                <h2><i class="fas fa-sort-amount-down"></i> Kombinasi Kartu Terbaik</h2>
+                <p>Berikut adalah urutan kombinasi kartu dari yang tertinggi hingga terendah:</p>
+                
+                <div class="hand-cards">
+                    <div class="hand hologram">
+                        <h3><i class="fas fa-gem"></i> Royal Flush</h3>
+                        <div class="card-images">
+                            <div class="card-img clubs">A♠</div>
+                            <div class="card-img clubs">K♠</div>
+                            <div class="card-img clubs">Q♠</div>
+                            <div class="card-img clubs">J♠</div>
+                            <div class="card-img clubs">10♠</div>
+                        </div>
+                        <p>5 kartu berurutan dengan jenis sama dari 10 sampai A</p>
+                    </div>
+                    
+                    <div class="hand hologram">
+                        <h3><i class="fas fa-fire"></i> Straight Flush</h3>
+                        <div class="card-images">
+                            <div class="card-img clubs">9♠</div>
+                            <div class="card-img clubs">8♠</div>
+                            <div class="card-img clubs">7♠</div>
+                            <div class="card-img clubs">6♠</div>
+                            <div class="card-img clubs">5♠</div>
+                        </div>
+                        <p>5 kartu berurutan dengan jenis sama</p>
+                    </div>
+                    
+                    <div class="hand hologram">
+                        <h3><i class="fas fa-dice"></i> Empat sejenis</h3>
+                        <div class="card-images">
+                            <div class="card-img clubs">8♠</div>
+                            <div class="card-img hearts">8♥</div>
+                            <div class="card-img clubs">8♣</div>
+                            <div class="card-img hearts">8♦</div>
+                            <div class="card-img clubs">5♠</div>
+                        </div>
+                        <p>4 kartu dengan nilai sama</p>
+                    </div>
+                    
+                    <div class="hand hologram">
+                        <h3><i class="fas fa-handshake"></i> Full House</h3>
+                        <div class="card-images">
+                            <div class="card-img clubs">Q♠</div>
+                            <div class="card-img hearts">Q♥</div>
+                            <div class="card-img clubs">Q♣</div>
+                            <div class="card-img hearts">j♦</div>
+                            <div class="card-img clubs">J♠ </div>
+                        </div>
+                        <p>3 kartu dengan nilai sama dan 2 kartu dengan nilai sama lainnya</p>
+                    </div>
+                    
+                    <div class="hand hologram">
+                        <h3><i class="fas fa-tint"></i> Flush</h3>
+                        <div class="card-images">
+                            <div class="card-img hearts">9♥</div>
+                            <div class="card-img hearts">J♥</div>
+                            <div class="card-img hearts">2♥</div>
+                            <div class="card-img hearts">6♥</div>
+                            <div class="card-img hearts">Q♥</div>
+                        </div>
+                        <p>5 kartu dengan jenis sama</p>
+                    </div>
+
+                    <div class="hand hologram">
+                        <h3><i class="fas fa-tint"></i> Straight</h3>
+                        <div class="card-images">
+                            <div class="card-img clubs">9♠</div>
+                            <div class="card-img hearts">8♥</div>
+                            <div class="card-img clubs">7♣</div>
+                            <div class="card-img clubs">6♠</div>
+                            <div class="card-img clubs">5♠</div>
+                        </div>
+                        <p>kombinasi 5 kartu yang berurutan nilainya, tidak peduli jenisnya</p>
+                    </div>
+
+                    <div class="hand hologram">
+                        <h3><i class="fas fa-dice-three"></i> Tiga sejenis</h3>
+                        <div class="card-images">
+                            <div class="card-img clubs">8♠</div>
+                            <div class="card-img hearts">8♥</div>
+                            <div class="card-img clubs">8♣</div>
+                            <div class="card-img clubs">Q♠</div>
+                            <div class="card-img clubs">5♠</div>
+                        </div>
+                        <p>kombinasi 5 kartu yang berisi tiga kartu dengan nilai yang sama, ditambah dua kartu lainnya (yang tidak membentuk pasangan atau kombinasi lebih tinggi).</p>
+                    </div>
+
+                    <div class="hand hologram">
+                        <h3><i class="fas fa-arrow-up"></i> Dua Pasang</h3>
+                        <div class="card-images">
+                            <div class="card-img clubs">K♠</div>
+                            <div class="card-img hearts">K♥</div>
+                            <div class="card-img clubs">8♣</div>
+                            <div class="card-img hearts">8♦</div>
+                            <div class="card-img clubs">5♠</div>
+                        </div>
+                        <p>Dua Pasang berarti kamu memiliki dua pasang kartu bernilai sama, ditambah satu kartu kicker (kartu kelima yang tidak punya pasangan)</p>
+                    </div>  
+
+                <div class="hand hologram">
+                        <h3><i class="fas fa-user-friends"></i> Satu Pasang</h3>
+                        <div class="card-images">
+                            <div class="card-img clubs">K♠</div>
+                            <div class="card-img hearts">6♥</div>
+                            <div class="card-img clubs">8♣</div>
+                            <div class="card-img hearts">A♦</div>
+                            <div class="card-img clubs">A♠</div>   
+                        </div>
+                        <p>Satu Pasang" (One Pair) adalah salah satu kombinasi tangan paling dasar dalam Texas Hold'em Poker — dan juga salah yang paling sering muncul</p>
+                    </div>
+
+                <div class="hand hologram">
+                        <h3><i class="fas fa-star"></i> Kartu Tinggi</h3>
+                        <div class="card-images">
+                            <div class="card-img clubs">5♠</div>
+                            <div class="card-img hearts">6♥</div>
+                            <div class="card-img clubs">8♣</div>
+                            <div class="card-img hearts">J♦</div>
+                            <div class="card-img clubs">A♠</div>   
+                        </div>
+                        <p>Karena tidak ada kombinasi, urutan dibandingkan kartu per kartu, dari tertinggi ke terendah Artinya, hanya menang jika lawan juga punya High Card dan kartumu lebih tinggi</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card poker-glossary">
+                <h2><i class="fas fa-book"></i> 📚 Kamus Istilah Poker</h2>
+                <div class="glossary-items">
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-eye-slash"></i> Kartu Hole</h3>
+                        <p>Hole Cards adalah kartu yang dibagikan tertutup dan pemain tidak perlu mengungkapkannya sebelum showdown.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-times-circle"></i> Fold</h3>
+                        <p>Folding berarti melepaskan kartu Anda dan menyerahkan pot kepada pemain lain. Tindakan ini biasanya dilakukan untuk menghindari menambahkan taruhan lebih lanjut ke dalam pot.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-check-circle"></i> Check</h3>
+                        <p>Check berarti menahan diri dari memasang taruhan saat giliran Anda untuk bertindak. Namun, Anda tidak selalu bisa melakukan check. Jika pemain lain sudah memasang taruhan sebelum giliran Anda, Anda harus memilih antara call, fold, atau raise.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-arrow-up"></i> Raise</h3>
+                        <p>Raise artinya menaikkan jumlah taruhan melebihi pemain sebelumnya. Saat kamu melakukan raise, pemain lain harus memilih untuk menyamakan taruhanmu (call) atau menaikkan lagi (raise).</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-coins"></i> Taruhan</h3>
+                        <p>Bet adalah taruhan awal yang ditempatkan pada awal putaran taruhan. Pemain pertama yang bertindak memiliki dua opsi: check atau bet. Setelah seseorang bertaruh, Anda memiliki tiga opsi: raise, call, atau fold. Anda tidak dapat bertaruh setelah seseorang sudah bertaruh. Untuk mencocokkan taruhan disebut call, dan untuk meningkatkan taruhan disebut raise.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-user-tie"></i> Dealer</h3>
+                        <p>Posisi ini menentukan pemain pertama yang mulai bertaruh dengan small blind dan big blind. Pemain yang berada tepat di kiri dealer akan menerima kartu pertama. Dealer button dan blinds umumnya bergerak searah jarum jam di sekitar meja setelah setiap tangan.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-coins"></i> Big Blind</h3>
+                        <p>Pemain kedua di kiri dealer; pemain di kiri small blind. Pemain ini diharuskan untuk meletakkan taruhan sebelum pemain melihat kartu mereka, yang setara dengan taruhan kecil di meja.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-coins"></i> Small Blind</h3>
+                        <p>Pemain pertama duduk di sebelah kiri dealer. Pemain ini wajib memasang taruhan sebelum pemain melihat kartunya, setara dengan setengah dari batas kecil taruhan di meja.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-clock"></i> Preflop</h3>
+                        <p>Preflop berarti "sebelum gagal". Babak preflop adalah tempat para pemain menerima Kartu Lubang mereka.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-layer-group"></i> Flop</h3>
+                        <p>Kegagalan dalam poker mengacu pada tiga kartu komunitas pertama yang dibagikan menghadap ke atas di atas meja.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-redo"></i> Turn</h3>
+                        <p>Setelah ronde pertaruhan gagal, kartu lain dibakar dari dek dan kartu komunitas keempat dibagikan menghadap ke atas di atas meja.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-water"></i> River</h3>
+                        <p>Kartu komunitas tunggal terakhir (disebut sungai atau jalan kelima) kemudian dibagikan, diikuti dengan ronde pertaruhan keempat dan pertarungan.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-eye"></i> Showdown</h3>
+                        <p>Showdown adalah aksi setelah river ketika pemain yang tersisa memperlihatkan kartu hole mereka untuk menentukan pemenang.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-piggy-bank"></i> Pot</h3>
+                        <p>Pot dalam poker merujuk pada jumlah total uang yang telah dipertaruhkan pemain dalam satu tangan tertentu. Ini adalah hadiah yang diperebutkan oleh para pemain.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-eye-slash"></i> Blind</h3>
+                        <p>Blind adalah taruhan paksa yang harus diletakkan oleh dua pemain (small blind dan big blind) sebelum kartu dibagikan. Dua jenis blinds adalah: 1. Small Blind: Pemain yang berada tepat di kiri dealer (atau button) meletakkan taruhan ini. Small blind biasanya setengah dari ukuran big blind. 2. Big Blind: Pemain yang berada dua kursi di kiri dealer meletakkan taruhan ini. Big blind biasanya sama dengan taruhan minimum untuk permainan. Blinds berputar mengelilingi meja setiap tangan, memastikan bahwa setiap orang berkontribusi ke dalam pot secara teratur.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-chart-line"></i> Jackpot Progresif</h3>
+                        <p>Jackpot progresif adalah total jackpot yang tersedia dalam permainan. Nilai jackpot progresif akan bertambah dan berkurang seiring berjalannya permainan.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-chair"></i> Kursi Terbuka</h3>
+                        <p>Ini adalah kursi kosong yang tersedia untuk pemain. Anda dapat mengklik kursi ini untuk membeli masuk ke dalam permainan.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-coins"></i> Chip</h3>
+                        <p>Chips adalah koin khusus yang digunakan sebagai pengganti uang tunai selama permainan. Setiap chip memiliki nilai tertentu yang disepakati sebelum permainan dimulai. Pemain menggunakan chips untuk bertaruh, menaikkan taruhan (raise), atau mencocokkan taruhan pemain lain (call).</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-layer-group"></i> Kartu Komunitas</h3>
+                        <p>Cards on the table (sering disebut community cards) merujuk pada kartu yang dibagikan terbuka di tengah meja dan tersedia untuk semua pemain guna dipadukan dengan kartu hole mereka untuk membentuk tangan terbaik. Dibagikan dalam 3 tahap: 1. Flop: Tiga kartu community pertama dibagikan sekaligus. 2. Turn: Kartu community keempat. 3. River: Kartu community kelima dan terakhir.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-clock"></i> Timer Giliran Pemain</h3>
+                        <p>Timer giliran pemain adalah jam hitung mundur yang digunakan untuk membatasi waktu yang dimiliki pemain untuk membuat keputusan selama giliran mereka. Timer ini membantu menjaga kelancaran permainan dengan mencegah pemain mengambil terlalu lama untuk bertindak. Pemain harus membuat langkah seperti bertaruh, menaikkan taruhan, mencocokkan taruhan, mengecek, atau melipat sebelum timer habis. Jika timer habis dan pemain belum membuat keputusan, tangan pemain dapat secara otomatis dilipat.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-fist-raised"></i> Kekuatan Nilai Tangan</h3>
+                        <p>Kekuatan nilai tangan merujuk pada seberapa kuat atau lemah tangan pemain dibandingkan dengan tangan lain yang mungkin ada dalam permainan. Itu ditentukan oleh kombinasi kartu yang dipegang pemain (tangan mereka) dan bagaimana kartu-kartu itu berperingkat sesuai dengan peringkat tangan poker. Semakin kuat tangan, semakin besar peluang untuk menang.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-coins"></i> Total Taruhan Pemain</h3>
+                        <p>Total taruhan per pemain merujuk pada jumlah total chip atau uang yang telah dipertaruhkan oleh pemain selama satu tangan atau putaran. Ini termasuk semua taruhan yang telah mereka buat, seperti taruhan awal, taruhan tambahan (raise), dan pencocokan taruhan (call) selama giliran mereka.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-ticket-alt"></i> Beli Jackpot</h3>
+                        <p>Pemain dapat membeli tiket jackpot sesuai dengan harga yang terdaftar di setiap periode (50, 100, 200). Jackpot akan dibayarkan sesuai dengan ketentuan pembayaran jackpot jika pemain berhasil membuat kombinasi kartu tertentu dalam periode tersebut.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-chart-line"></i> Panel Kenaikan Taruhan</h3>
+                        <p>Raise panel adalah fitur yang memungkinkan pemain memilih jumlah yang ingin mereka tambahkan pada taruhan mereka. Fitur ini membantu memperlancar proses meningkatkan taruhan dengan menyediakan opsi atau slider untuk memilih jumlah kenaikan taruhan.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-fire"></i> All In</h3>
+                        <p>All In merujuk pada situasi di mana seorang pemain mempertaruhkan semua chip yang tersisa dalam satu taruhan. Ini berarti pemain tersebut memasukkan semua chip mereka ke dalam pot dan tidak dapat melakukan taruhan atau kenaikan taruhan lebih lanjut dalam tangan tersebut.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-gem"></i> Royal Flush</h3>
+                        <p>Kartu dengan peringkat tertinggi dalam poker, terdiri dari lima kartu berurutan dengan jenis yang sama, dari 10 hingga As (10, J, Q, K, A).</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-fire"></i> Straight Flush</h3>
+                        <p>Lima kartu berturut-turut dengan jenis yang sama, tetapi tidak termasuk urutan 10 sampai As.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-dice"></i> Empat Sejenis</h3>
+                        <p>Empat kartu dengan nilai yang sama dan satu kartu yang tidak berhubungan (dikenal sebagai kicker).</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-handshake"></i> Full House</h3>
+                        <p>Tiga kartu dengan peringkat yang sama dan dua kartu dengan peringkat yang lain.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-tint"></i> Flush</h3>
+                        <p>Lima kartu dengan jenis yang sama, tetapi tidak berurutan. Kuat, tapi kurang dari Full House</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-arrows-alt-h"></i> Straight</h3>
+                        <p>Lima kartu berurutan dengan jenis apa pun. Kuat, tapi kurang dari Flush.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-dice-three"></i> Tiga Sejenis</h3>
+                        <p>Tiga kartu dengan nilai yang sama dan dua kartu yang tidak berhubungan. Kuat, tetapi kurang dari Straight.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-users"></i> Dua Pasang</h3>
+                        <p>Dua kartu dengan peringkat yang sama, dua kartu dengan peringkat yang berbeda, dan satu kartu yang tidak berhubungan. Kuat, tapi kurang dari Three of a Kind.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-user-friends"></i> Satu Pasang</h3>
+                        <p>Dua kartu dengan nilai yang sama dan tiga kartu yang tidak berhubungan. Dasar tapi umum; lebih lemah dari Dua Pasang.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-star"></i> Kartu Tinggi</h3>
+                        <p>Tangan tanpa pasangan atau tangan yang lebih baik; nilai kartu tertinggi di tangan menentukan peringkatnya. Tangan terlemah; hanya digunakan ketika tidak ada tangan lain yang dibuat.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-shopping-cart"></i> Pembelian Chip</h3>
+                        <p>Buy-In adalah jumlah saldo yang dikonversi menjadi chip sesuai dengan batas minimum dan maksimum jenis meja.</p>
+                    </div>
+                    <div class="glossary-item hologram">
+                        <h3><i class="fas fa-clock"></i> Periode</h3>
+                        <p>Satu putaran permainan dalam permainan Texas Poker, dimulai dari fase awal pembagian kartu dan taruhan dan diakhiri dengan penentuan pemenang.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-flow">
+            <div class="flow-connector"></div>
+            
+            <div class="flow-step">
+                <div class="step-circle gradient-animation">1</div>
+                <h3>Pre-flop</h3>
+                <p>2 kartu hole dibagikan</p>
+            </div>
+            
+            <div class="flow-step">
+                <div class="step-circle gradient-animation">2</div>
+                <h3>Flop</h3>
+                <p>3 kartu komunitas</p>
+            </div>
+            
+            <div class="flow-step">
+                <div class="step-circle gradient-animation">3</div>
+                <h3>Turn</h3>
+                <p>Kartu keempat</p>
+            </div>
+            
+            <div class="flow-step">
+                <div class="step-circle gradient-animation">4</div>
+                <h3>River</h3>
+                <p>Kartu kelima</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2><i class="fas fa-images"></i> Galeri Poker</h2>
+            <p>Klik gambar untuk memperbesar dan melihat detail</p>
+            <div class="image-gallery">
+                <div class="gallery-item">
+                    <img src="https://i.postimg.cc/k5RNctWB/G4m-J2BCSQ6O68av-Od-UOm-Lg.png" alt="Meja Poker" class="gallery-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="image-fallback" style="display: none;">
+                        <div><i class="fas fa-table"></i> Meja Poker<br><small>Gambar tidak tersedia</small></div>
+                    </div>
+                    <div class="img-caption">Meja Poker</div>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://i.postimg.cc/Gp6KwjbK/kp-WLa-Bi-JR-y-Dcf3Zbnw3JQ.png" alt="Chip Poker" class="gallery-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="image-fallback" style="display: none;">
+                        <div><i class="fas fa-coins"></i> Chip Poker<br><small>Gambar tidak tersedia</small></div>
+                    </div>
+                    <div class="img-caption">Chip Poker</div>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://i.postimg.cc/nLm77ftL/7Ep-Lojt-GSA2g-OWBh51N1xw.png" alt="Kartu Remi" class="gallery-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="image-fallback" style="display: none;">
+                        <div><i class="fas fa-layer-group"></i> Kartu Remi<br><small>Gambar tidak tersedia</small></div>
+                    </div>
+                    <div class="img-caption">Kartu Remi</div>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://i.postimg.cc/W4mzTNvG/Of-Xb-LM5l-Qd-Cw-WYb-Bz-Lsx-RA.png" alt="Permainan Poker" class="gallery-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="image-fallback" style="display: none;">
+                        <div><i class="fas fa-users"></i> Permainan Poker<br><small>Gambar tidak tersedia</small></div>
+                    </div>
+                    <div class="img-caption">Permainan Poker</div>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://i.postimg.cc/FHyNJTBK/r-UTh-Pf-IJTC-l-RVY9Jt-Tz-Ng.png" alt="Pemain Poker" class="gallery-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="image-fallback" style="display: none;">
+                        <div><i class="fas fa-user"></i> Pemain Poker<br><small>Gambar tidak tersedia</small></div>
+                    </div>
+                    <div class="img-caption">Pemain Poker</div>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://i.postimg.cc/Yq9hwB0n/Il9Oith-WRY2q-Bmo-M-e-Wpg.png" alt="Kartu Poker" class="gallery-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="image-fallback" style="display: none;">
+                        <div><i class="fas fa-layer-group"></i> Kartu Poker<br><small>Gambar tidak tersedia</small></div>
+                    </div>
+                    <div class="img-caption">Kartu Poker</div>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://i.postimg.cc/JnHCQKzq/t13OT1wj-Rc6r-XVIp-Ln-UKrw.png" alt="Turnamen Poker" class="gallery-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="image-fallback" style="display: none;">
+                        <div><i class="fas fa-trophy"></i> Turnamen Poker<br><small>Gambar tidak tersedia</small></div>
+                    </div>
+                    <div class="img-caption">Turnamen Poker</div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p><i class="fas fa-copyright"></i> Dashboard IDN POKER | Kombinasi keterampilan dan keberuntungan | Jackpot Terbesar dalam Poker!</p>
+        </footer>
+    </div>
+
+    <!-- Modal untuk Zoom Gambar di Samping -->
+    <div id="imageModal" class="modal">
+        <span class="close">&times;</span>
+        <div class="modal-content-container">
+            <img class="modal-content" id="zoomedImage">
+            <div class="modal-sidebar">
+                <h3 id="modalTitle">Detail Gambar</h3>
+                <p id="modalDescription">Klik gambar untuk melihat detail lebih lanjut tentang permainan poker Texas Hold'em.</p>
+                <div class="zoom-controls">
+                    <button class="zoom-btn" id="zoomIn"><i class="fas fa-search-plus"></i></button>
+                    <button class="zoom-btn" id="zoomOut"><i class="fas fa-search-minus"></i></button>
+                    <button class="zoom-btn" id="resetZoom"><i class="fas fa-undo"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variabel untuk kontrol zoom
+        let currentScale = 1;
+        const scaleStep = 0.2;
+        const minScale = 0.5;
+        const maxScale = 3;
+        
+        // Elemen modal dan gambar
+        const modal = document.getElementById("imageModal");
+        const zoomedImg = document.getElementById("zoomedImage");
+        const modalTitle = document.getElementById("modalTitle");
+        const modalDescription = document.getElementById("modalDescription");
+        const closeBtn = document.getElementsByClassName("close")[0];
+        const zoomInBtn = document.getElementById("zoomIn");
+        const zoomOutBtn = document.getElementById("zoomOut");
+        const resetZoomBtn = document.getElementById("resetZoom");
+        
+        // Elemen pencarian
+        const searchInput = document.getElementById("searchInput");
+        const searchBtn = document.getElementById("searchBtn");
+        const searchResults = document.getElementById("searchResults");
+        
+        // Data untuk setiap gambar
+        const imageData = {
+            "Meja Poker": {
+                description: "Meja poker profesional dengan layout standar untuk permainan Texas Hold'em. Meja ini dilengkapi dengan area untuk kartu komunitas di tengah dan posisi untuk setiap pemain."
+            },
+            "Chip Poker": {
+                description: "Chip poker berwarna-warni yang digunakan sebagai alat taruhan dalam permainan. Setiap warna mewakili nilai yang berbeda."
+            },
+            "Kartu Remi": {
+                description: "Kartu remi standar yang digunakan dalam permainan poker. Setiap pemain menerima 2 kartu hole dan 5 kartu komunitas dibagikan di tengah meja."
+            },
+            "Permainan Poker": {
+                description: "Suasana permainan poker Texas Hold'em yang sedang berlangsung. Pemain sedang menganalisis kartu mereka dan membuat keputusan taruhan."
+            },
+            "Pemain Poker": {
+                description: "Pemain poker profesional yang sedang berkonsentrasi dalam permainan. Ekspresi wajah dan bahasa tubuh penting dalam membaca strategi lawan."
+            },
+            "Kartu Poker": {
+                description: "Kombinasi kartu poker yang kuat. Dalam Texas Hold'em, pemain berusaha membuat kombinasi 5 kartu terbaik dari 7 kartu yang tersedia."
+            },
+            "Turnamen Poker": {
+                description: "Turnamen poker besar dengan banyak peserta. Turnamen biasanya memiliki buy-in tertentu dan hadiah yang besar untuk pemenang."
+            }
+        };
+        
+        // Data pencarian
+        const searchData = [
+            {
+                title: "Cara Bermain Poker",
+                description: "Panduan lengkap cara bermain Texas Hold'em Poker untuk pemula",
+                section: "cara-bermain"
+            },
+            {
+                title: "Kombinasi Kartu Poker",
+                description: "Urutan kombinasi kartu dari Royal Flush hingga High Card",
+                section: "hand-ranking"
+            },
+            {
+                title: "Sistem Jackpot Poker",
+                description: "Informasi lengkap tentang jackpot dan cara memenangkannya",
+                section: "jackpot-info"
+            },
+            {
+                title: "Tahapan Permainan",
+                description: "Penjelasan tentang setiap tahapan dalam permainan poker",
+                section: "tahapan-permainan"
+            },
+            {
+                title: "Istilah Poker",
+                description: "Kamus istilah yang sering digunakan dalam permainan poker",
+                section: "poker-glossary"
+            },
+            {
+                title: "Royal Flush",
+                description: "Kombinasi kartu tertinggi dalam poker",
+                section: "hand-ranking"
+            },
+            {
+                title: "Straight Flush",
+                description: "Kombinasi lima kartu berurutan dengan jenis yang sama",
+                section: "hand-ranking"
+            },
+            {
+                title: "Full House",
+                description: "Kombinasi tiga kartu dengan nilai sama dan dua kartu dengan nilai sama",
+                section: "hand-ranking"
+            },
+            {
+                title: "Beli Jackpot",
+                description: "Cara membeli jackpot dan syarat untuk memenangkannya",
+                section: "jackpot-info"
+            },
+            {
+                title: "Kartu Hole",
+                description: "Kartu yang dibagikan tertutup dan pemain tidak perlu mengungkapkannya sebelum showdown",
+                section: "poker-glossary"
+            },
+            {
+                title: "Fold",
+                description: "Melepaskan kartu Anda dan menyerahkan pot kepada pemain lain",
+                section: "poker-glossary"
+            },
+            {
+                title: "Check",
+                description: "Menahan diri dari memasang taruhan saat giliran Anda untuk bertindak",
+                section: "poker-glossary"
+            },
+            {
+                title: "Raise",
+                description: "Menaikkan jumlah taruhan melebihi pemain sebelumnya",
+                section: "poker-glossary"
+            },
+            {
+                title: "All In",
+                description: "Mempertaruhkan semua chip yang tersisa dalam satu taruhan",
+                section: "poker-glossary"
+            }
+        ];
+        
+        // Fungsi untuk membuka modal dengan gambar
+        function openModal(imgSrc, imgAlt) {
+            modal.style.display = "block";
+            zoomedImg.src = imgSrc;
+            currentScale = 1;
+            zoomedImg.style.transform = `scale(${currentScale})`;
+            
+            // Set judul dan deskripsi berdasarkan alt text gambar
+            modalTitle.textContent = imgAlt;
+            modalDescription.textContent = imageData[imgAlt]?.description || "Deskripsi untuk gambar ini tidak tersedia.";
+        }
+        
+        // Fungsi untuk menutup modal
+        function closeModal() {
+            modal.style.display = "none";
+        }
+        
+        // Fungsi untuk memperbesar gambar
+        function zoomIn() {
+            if (currentScale < maxScale) {
+                currentScale += scaleStep;
+                zoomedImg.style.transform = `scale(${currentScale})`;
+            }
+        }
+        
+        // Fungsi untuk memperkecil gambar
+        function zoomOut() {
+            if (currentScale > minScale) {
+                currentScale -= scaleStep;
+                zoomedImg.style.transform = `scale(${currentScale})`;
+            }
+        }
+        
+        // Fungsi untuk mereset zoom
+        function resetZoom() {
+            currentScale = 1;
+            zoomedImg.style.transform = `scale(${currentScale})`;
+        }
+        
+        // Fungsi untuk menampilkan hasil pencarian
+        function showSearchResults(query) {
+            // Kosongkan hasil pencarian sebelumnya
+            searchResults.innerHTML = '';
+            
+            // Jika query kosong, sembunyikan hasil pencarian
+            if (!query.trim()) {
+                searchResults.classList.remove('active');
+                return;
+            }
+            
+            // Filter data berdasarkan query
+            const filteredResults = searchData.filter(item => 
+                item.title.toLowerCase().includes(query.toLowerCase()) || 
+                item.description.toLowerCase().includes(query.toLowerCase())
+            );
+            
+            // Jika tidak ada hasil, tampilkan pesan
+            if (filteredResults.length === 0) {
+                searchResults.innerHTML = `
+                    <div class="search-result-item">
+                        <div class="search-result-title">Tidak ada hasil</div>
+                        <div class="search-result-desc">Coba kata kunci lain untuk pencarian</div>
+                    </div>
+                `;
+            } else {
+                // Tampilkan hasil pencarian
+                filteredResults.forEach(item => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'search-result-item';
+                    resultItem.innerHTML = `
+                        <div class="search-result-title">${item.title}</div>
+                        <div class="search-result-desc">${item.description}</div>
+                    `;
+                    
+                    // Tambahkan event listener untuk item hasil pencarian
+                    resultItem.addEventListener('click', () => {
+                        // Scroll ke bagian yang relevan
+                        const targetSection = document.querySelector(`.${item.section}`);
+                        if (targetSection) {
+                            targetSection.scrollIntoView({ behavior: 'smooth' });
+                        }
+                        
+                        // Tutup hasil pencarian
+                        searchResults.classList.remove('active');
+                        searchInput.value = '';
+                    });
+                    
+                    searchResults.appendChild(resultItem);
+                });
+            }
+            
+            // Tampilkan hasil pencarian
+            searchResults.classList.add('active');
+        }
+        
+        // Event listener untuk input pencarian
+        searchInput.addEventListener('input', (e) => {
+            showSearchResults(e.target.value);
+        });
+        
+        // Event listener untuk tombol pencarian
+        searchBtn.addEventListener('click', () => {
+            showSearchResults(searchInput.value);
+        });
+        
+        // Event listener untuk menekan Enter di input pencarian
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                showSearchResults(searchInput.value);
+            }
+        });
+        
+        // Event listener untuk menutup hasil pencarian saat klik di luar
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !searchResults.contains(e.target) && !searchBtn.contains(e.target)) {
+                searchResults.classList.remove('active');
+            }
+        });
+        
+        // Event listener untuk gambar di galeri
+        document.querySelectorAll('.gallery-img').forEach(img => {
+            img.addEventListener('click', function() {
+                if (this.style.display !== 'none') {
+                    openModal(this.src, this.alt);
+                }
+            });
+        });
+        
+        // Event listener untuk tombol close
+        closeBtn.addEventListener('click', closeModal);
+        
+        // Event listener untuk tombol zoom
+        zoomInBtn.addEventListener('click', zoomIn);
+        zoomOutBtn.addEventListener('click', zoomOut);
+        resetZoomBtn.addEventListener('click', resetZoom);
+        
+        // Tutup modal jika klik di luar gambar
+        window.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+        
+        // Interaksi tombol aksi
+        document.querySelectorAll('.action-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const action = this.textContent.trim();
+                if (action.includes('Beli Jackpot')) {
+                    alert('🎰 Pilih nominal Jackpot yang ingin Anda beli:\n\nMeja VIP: 500, 1000, atau 2000 chips\nMeja Non-VIP: 50, 100, atau 200 chips');
+                } else {
+                    alert(`Anda memilih: ${action}`);
+                }
+            });
+        });
+        
+        // Zoom dengan scroll mouse
+        zoomedImg.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            if (e.deltaY < 0) {
+                zoomIn();
+            } else {
+                zoomOut();
+            }
+        });
+        
+        // Animasi untuk kartu jackpot
+        document.querySelectorAll('.jackpot-prize').forEach((prize, index) => {
+            prize.style.animationDelay = `${index * 0.3}s`;
+        });
+        
+        // Efek partikel latar belakang
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        const particles = [];
+        const particleCount = 100;
+        
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = Math.random() * 1 - 0.5;
+                this.speedY = Math.random() * 1 - 0.5;
+                this.opacity = Math.random() * 0.5 + 0.2;
+            }
+            
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                
+                if (this.x > canvas.width) {
+                    this.x = 0;
+                } else if (this.x < 0) {
+                    this.x = canvas.width;
+                }
+                
+                if (this.y > canvas.height) {
+                    this.y = 0;
+                } else if (this.y < 0) {
+                    this.y = canvas.height;
+                }
+            }
+            
+            draw() {
+                ctx.fillStyle = `rgba(249, 215, 28, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        function init() {
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+        
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        init();
+        animate();
+        
+        // Responsif untuk canvas
+        window.addEventListener('resize', function() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
