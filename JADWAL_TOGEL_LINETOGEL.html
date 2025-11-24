@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Teko:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* CSS tetap sama seperti sebelumnya */
         :root {
             --primary: #001122;
             --secondary: #003333;
@@ -1186,12 +1187,6 @@
     <!-- NOISE EFFECT -->
     <div class="noise"></div>
 
-    <!-- NOTIFICATION SOUND -->
-    <audio id="notification-sound" preload="auto">
-        <source src="https://www.myinstants.com/media/sounds/ding-sound-effect.mp3" type="audio/mpeg">
-        Browser Anda tidak mendukung elemen audio.
-    </audio>
-
     <!-- SPAM NOTIFICATION -->
     <div class="spam-notification" id="spam-notification">
         <i class="fas fa-exclamation-triangle"></i>
@@ -1382,6 +1377,7 @@
         let soundNotificationsEnabled = true;
         let spamModeEnabled = false;
         let matrixRainEnabled = true;
+        let audioContext = null;
         let audioUnlocked = false;
 
         // ========== DOM ELEMENTS ==========
@@ -1399,7 +1395,6 @@
         const scheduleSearchInput = document.getElementById('schedule-search');
         const matrixRain = document.getElementById('matrix-rain');
         const toggleMatrixBtn = document.getElementById('toggle-matrix');
-        const notificationSound = document.getElementById('notification-sound');
 
         // Kontrol notifikasi
         const enableBrowserNotifBtn = document.getElementById('enable-browser-notif');
@@ -1419,6 +1414,103 @@
             name: schedule.pasaran,
             time: `Tutup Pasaran Pukul ${schedule.jamBetclosed} WIB Dan Keluaran Nomor Result Pukul ${schedule.jamResult} WIB.`
         }));
+
+        // ========== SOUND FUNCTIONS ==========
+        // Inisialisasi Audio Context
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            return audioContext;
+        }
+
+        // Buat suara alarm yang keren
+        function playNotificationSound() {
+            if (!soundEnabled || !soundNotificationsEnabled) {
+                return;
+            }
+
+            try {
+                const context = initAudio();
+                
+                // Mainkan beberapa suara sekaligus untuk efek yang lebih keren
+                playBeepSound(800, 0.3, 0.1);
+                setTimeout(() => playBeepSound(1000, 0.2, 0.05), 100);
+                setTimeout(() => playBeepSound(1200, 0.1, 0.03), 200);
+                
+                // Tambahkan efek suara digital
+                setTimeout(() => playDigitalBeep(), 300);
+                
+            } catch (error) {
+                console.error('Error playing sound:', error);
+            }
+        }
+
+        // Suara beep dasar
+        function playBeepSound(frequency, volume, duration) {
+            const context = initAudio();
+            const oscillator = context.createOscillator();
+            const gainNode = context.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(context.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0, context.currentTime);
+            gainNode.gain.linearRampToValueAtTime(volume, context.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, context.currentTime + duration);
+            
+            oscillator.start(context.currentTime);
+            oscillator.stop(context.currentTime + duration);
+        }
+
+        // Suara digital yang lebih futuristik
+        function playDigitalBeep() {
+            const context = initAudio();
+            const oscillator = context.createOscillator();
+            const gainNode = context.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(context.destination);
+            
+            // Buat efek sweep frequency
+            oscillator.frequency.setValueAtTime(200, context.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(800, context.currentTime + 0.1);
+            oscillator.frequency.exponentialRampToValueAtTime(200, context.currentTime + 0.2);
+            
+            oscillator.type = 'sawtooth';
+            
+            gainNode.gain.setValueAtTime(0, context.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.2, context.currentTime + 0.05);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.3);
+            
+            oscillator.start(context.currentTime);
+            oscillator.stop(context.currentTime + 0.3);
+        }
+
+        // Suara alarm khusus untuk result
+        function playResultAlarm() {
+            if (!soundEnabled || !soundNotificationsEnabled) {
+                return;
+            }
+
+            try {
+                const context = initAudio();
+                
+                // Sequence alarm yang lebih dramatis
+                playBeepSound(600, 0.4, 0.2);
+                setTimeout(() => playBeepSound(800, 0.3, 0.15), 200);
+                setTimeout(() => playBeepSound(1000, 0.5, 0.25), 400);
+                setTimeout(() => playBeepSound(1200, 0.6, 0.3), 700);
+                setTimeout(() => playDigitalBeep(), 1000);
+                setTimeout(() => playBeepSound(400, 0.4, 0.2), 1300);
+                
+            } catch (error) {
+                console.error('Error playing result alarm:', error);
+            }
+        }
 
         // ========== FUNCTIONS ==========
         // Update jam live
@@ -1573,50 +1665,14 @@
             });
         }
 
-        // Fungsi untuk membuka kunci audio (diperlukan untuk kebijakan autoplay browser)
-        function unlockAudio() {
-            if (audioUnlocked) return;
-            
-            notificationSound.play().then(() => {
-                notificationSound.pause();
-                notificationSound.currentTime = 0;
-                audioUnlocked = true;
-                console.log('Audio context unlocked');
-            }).catch(error => {
-                console.error('Failed to unlock audio:', error);
-            });
-        }
-
-        // Mainkan suara notifikasi
-        function playNotificationSound() {
-            if (!soundEnabled || !soundNotificationsEnabled) {
-                return;
-            }
-
-            // Coba mainkan suara
-            notificationSound.currentTime = 0;
-            notificationSound.play().catch(error => {
-                console.error('Error playing sound:', error);
-                // Coba buka kunci audio dan mainkan lagi
-                if (!audioUnlocked) {
-                    unlockAudio();
-                    // Coba mainkan lagi setelah interaksi pengguna
-                    setTimeout(() => {
-                        notificationSound.currentTime = 0;
-                        notificationSound.play().catch(e => console.error('Still failed to play sound:', e));
-                    }, 100);
-                }
-            });
-        }
-
         // Trigger alarm
         function triggerAlarm(pasaran) {
             console.log(`Alarm triggered for: ${pasaran}`);
             alarmText.textContent = `RESULT ${pasaran} telah keluar!`;
             alarmModal.style.display = 'flex';
 
-            // Mainkan suara notifikasi
-            playNotificationSound();
+            // Mainkan suara alarm khusus result
+            playResultAlarm();
 
             // Notifikasi browser
             if (Notification.permission === 'granted' && browserNotificationsEnabled) {
@@ -1957,7 +2013,12 @@
 
         // Event listener untuk membuka kunci audio pada interaksi pertama
         document.body.addEventListener('click', () => {
-            unlockAudio();
+            if (!audioUnlocked) {
+                initAudio();
+                // Mainkan suara tes kecil untuk membuka kunci audio
+                playBeepSound(300, 0.1, 0.1);
+                audioUnlocked = true;
+            }
         }, { once: true });
 
         // Tutup dropdown ketika klik di luar
@@ -1987,6 +2048,9 @@
         if ('Notification' in window) {
             Notification.requestPermission();
         }
+
+        // Inisialisasi audio context
+        initAudio();
     </script>
 </body>
 </html>
