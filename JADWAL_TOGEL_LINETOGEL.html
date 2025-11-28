@@ -646,6 +646,12 @@
             animation: pulse 2s infinite;
         }
 
+        .schedule-card.result-alarm {
+            background: rgba(255, 152, 0, 0.1);
+            border-color: #ff9800;
+            animation: alarmPulse 0.5s infinite;
+        }
+
         .card-header {
             display: flex;
             justify-content: space-between;
@@ -1079,6 +1085,21 @@
             }
         }
 
+        @keyframes alarmPulse {
+            0%, 100% {
+                box-shadow:
+                    0 8px 32px 0 rgba(255, 152, 0, 0.3),
+                    0 0 30px rgba(255, 152, 0, 0.2);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow:
+                    0 8px 32px 0 rgba(255, 152, 0, 0.5),
+                    0 0 50px rgba(255, 152, 0, 0.4);
+                transform: scale(1.02);
+            }
+        }
+
         @keyframes blink {
             0%, 100% {
                 opacity: 1;
@@ -1292,12 +1313,12 @@
                         <div class="action-title" id="sound-title">Suara Aktif</div>
                         <div class="action-desc">Atur notifikasi suara</div>
                     </div>
-                    <div class="action-card" onclick="spamNotifications()">
+                    <div class="action-card" onclick="toggleAlarmMode()">
                         <div class="action-icon">
-                            <i class="fas fa-bomb"></i>
+                            <i class="fas fa-alarm-clock" id="alarm-icon"></i>
                         </div>
-                        <div class="action-title">Spam Mode</div>
-                        <div class="action-desc">Aktifkan notifikasi spam</div>
+                        <div class="action-title" id="alarm-title">Alarm Aktif</div>
+                        <div class="action-desc">Aktif/nonaktif alarm result</div>
                     </div>
                     <div class="action-card" onclick="exportSchedule()">
                         <div class="action-icon">
@@ -1481,6 +1502,7 @@
 
         // ========== GLOBAL VARIABLES ==========
         let soundEnabled = true;
+        let alarmEnabled = true; // Tambahkan variabel untuk mengontrol alarm
         let browserNotificationsEnabled = true;
         let desktopNotificationsEnabled = false;
         let effectsEnabled = true;
@@ -1490,6 +1512,8 @@
         let spamInterval = null;
         let audioContext = null;
         let audioUnlocked = false;
+        let alarmCheckInterval = null;
+        let triggeredAlarms = new Set(); // Untuk melacak alarm yang sudah dipicu
 
         // ========== DOM ELEMENTS ==========
         const liveClock = document.getElementById('live-clock');
@@ -1543,14 +1567,101 @@
         function playAlarmSound() {
             if (!soundEnabled) return;
             
-            const frequencies = [600, 800, 1000, 1200];
-            frequencies.forEach((freq, index) => {
-                setTimeout(() => playSound(freq, 300), index * 200);
+            // Main alarm sound - lebih panjang dan berulang
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    const frequencies = [600, 800, 1000, 1200, 1000, 800];
+                    frequencies.forEach((freq, index) => {
+                        setTimeout(() => playSound(freq, 200), index * 100);
+                    });
+                }, i * 1000);
+            }
+        }
+
+        // ========== ALARM FUNCTIONS ==========
+        function checkResultTime() {
+            if (!alarmEnabled) return;
+            
+            const now = new Date();
+            const currentTime = now.getHours() * 60 + now.getMinutes();
+            const currentSeconds = now.getSeconds();
+            
+            // Hanya cek pada detik 0 (setiap menit tepat)
+            if (currentSeconds !== 0) return;
+            
+            scheduleData.forEach(schedule => {
+                const [resultHour, resultMinute] = schedule.jamResult.split(':').map(Number);
+                const resultTime = resultHour * 60 + resultMinute;
+                
+                // Buat key unik untuk alarm
+                const alarmKey = `${schedule.pasaran}-${resultHour}:${resultMinute}`;
+                
+                // Jika waktu saat ini sama dengan waktu result dan alarm belum dipicu
+                if (currentTime === resultTime && !triggeredAlarms.has(alarmKey)) {
+                    triggeredAlarms.add(alarmKey);
+                    triggerAlarm(schedule);
+                    
+                    // Hapus dari triggeredAlarms setelah 1 menit untuk mencegah trigger berulang
+                    setTimeout(() => {
+                        triggeredAlarms.delete(alarmKey);
+                    }, 60000);
+                }
             });
         }
 
+        function triggerAlarm(schedule) {
+            if (!alarmEnabled) return;
+            
+            console.log(`🔔 ALARM: Result ${schedule.pasaran} telah keluar!`);
+            
+            // Tampilkan modal
+            showModal(schedule.pasaran);
+            
+            // Tampilkan notifikasi
+            showNotification('⏰ RESULT TELAH KELUAR!', `Result ${schedule.pasaran} telah keluar pada pukul ${schedule.jamResult} WIB!`, 10000);
+            
+            // Mainkan suara alarm
+            playAlarmSound();
+            
+            // Tambahkan efek visual pada card yang sesuai
+            highlightResultCard(schedule.pasaran);
+        }
+
+        function highlightResultCard(pasaranName) {
+            const cards = document.querySelectorAll('.schedule-card');
+            cards.forEach(card => {
+                const pasaranElement = card.querySelector('.pasaran-name');
+                if (pasaranElement && pasaranElement.textContent === pasaranName) {
+                    // Tambahkan class khusus untuk alarm
+                    card.classList.add('result-alarm');
+                    
+                    // Hentikan animasi setelah 10 detik
+                    setTimeout(() => {
+                        card.classList.remove('result-alarm');
+                    }, 10000);
+                }
+            });
+        }
+
+        function toggleAlarmMode() {
+            alarmEnabled = !alarmEnabled;
+            const alarmIcon = document.getElementById('alarm-icon');
+            const alarmTitle = document.getElementById('alarm-title');
+            
+            if (alarmEnabled) {
+                alarmIcon.className = 'fas fa-alarm-clock';
+                alarmTitle.textContent = 'Alarm Aktif';
+                showNotification('🔔 Alarm Diaktifkan', 'Alarm result akan berbunyi saat waktu result tiba');
+                playSound(1000, 100);
+            } else {
+                alarmIcon.className = 'fas fa-bell-slash';
+                alarmTitle.textContent = 'Alarm Nonaktif';
+                showNotification('🔕 Alarm Dinonaktifkan', 'Alarm result telah dinonaktifkan');
+            }
+        }
+
         // ========== UTILITY FUNCTIONS ==========
-        function showNotification(title, message, duration = 3000) {
+        function showNotification(title, message, duration = 5000) {
             notificationMessage.textContent = message;
             notification.classList.add('show');
             
@@ -1860,7 +1971,6 @@
             });
             
             updateStats();
-            setAlarms();
         }
 
         function updateStats() {
@@ -1879,33 +1989,6 @@
             document.getElementById('active-count').textContent = activeCount;
             document.getElementById('upcoming-count').textContent = upcomingCount;
             document.getElementById('completed-count').textContent = completedCount;
-        }
-
-        function setAlarms() {
-            // Clear existing alarms
-            alarmTimeouts.forEach(timeout => clearTimeout(timeout));
-            alarmTimeouts = [];
-            
-            const now = new Date();
-            const currentTime = now.getHours() * 60 + now.getMinutes();
-            
-            scheduleData.forEach(schedule => {
-                const status = getStatus(schedule);
-                if (status === 'upcoming') {
-                    const [resultHour, resultMinute] = schedule.jamResult.split(':').map(Number);
-                    const resultTime = resultHour * 60 + resultMinute;
-                    
-                    let timeDiff = resultTime - currentTime;
-                    if (timeDiff < 0) timeDiff += 1440; // Tambah 24 jam jika sudah lewat
-                    
-                    const timeoutId = setTimeout(() => {
-                        showModal(schedule.pasaran);
-                        showNotification('⏰ Result Tiba!', `Result ${schedule.pasaran} telah keluar!`);
-                    }, timeDiff * 60 * 1000);
-                    
-                    alarmTimeouts.push(timeoutId);
-                }
-            });
         }
 
         // ========== TAB FUNCTIONS ==========
@@ -2076,6 +2159,7 @@
 
         function resetSettings() {
             soundEnabled = true;
+            alarmEnabled = true;
             browserNotificationsEnabled = true;
             desktopNotificationsEnabled = false;
             effectsEnabled = true;
@@ -2085,6 +2169,8 @@
             // Update UI
             document.getElementById('sound-icon').className = 'fas fa-volume-up';
             document.getElementById('sound-title').textContent = 'Suara Aktif';
+            document.getElementById('alarm-icon').className = 'fas fa-alarm-clock';
+            document.getElementById('alarm-title').textContent = 'Alarm Aktif';
             document.getElementById('browser-status').textContent = 'Aktif';
             document.getElementById('desktop-status').textContent = 'Nonaktif';
             document.getElementById('effects-status').textContent = 'Aktif';
@@ -2181,6 +2267,9 @@
             // Update schedules every minute
             setInterval(renderSchedules, 60000);
             
+            // Check for result times every second (untuk akurasi yang lebih baik)
+            alarmCheckInterval = setInterval(checkResultTime, 1000);
+            
             // Create bubbles periodically
             setInterval(createBubble, 2000);
             
@@ -2195,5 +2284,3 @@
     </script>
 </body>
 </html>
-
-
