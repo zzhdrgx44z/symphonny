@@ -805,6 +805,114 @@
             animation: shimmer 3s infinite;
         }
 
+        /* Mode Selector Styles */
+        .mode-section {
+            margin: 25px 0;
+        }
+
+        .mode-section-title {
+            font-size: 1.1rem;
+            color: var(--text);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mode-section-title i {
+            color: var(--cyan);
+        }
+
+        .mode-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .mode-btn {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 15px;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mode-btn::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient1);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 188, 212, 0.25);
+        }
+
+        .mode-btn:hover::before {
+            opacity: 0.1;
+        }
+
+        .mode-btn.active {
+            background: var(--gradient1);
+            color: white;
+            border-color: transparent;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 188, 212, 0.4);
+        }
+
+        .mode-btn.active::before {
+            opacity: 1;
+        }
+
+        .mode-icon {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .mode-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .mode-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            opacity: 0.8;
+        }
+
+        /* Mode-specific colors */
+        .mode-btn.standard .mode-icon { color: #00bcd4; }
+        .mode-btn.gentle .mode-icon { color: #4caf50; }
+        .mode-btn.emergency .mode-icon { color: #ff5722; }
+        .mode-btn.vibrate .mode-icon { color: #9c27b0; }
+        .mode-btn.melodic .mode-icon { color: #ffc107; }
+        .mode-btn.silent .mode-icon { color: #78909c; }
+
+        .mode-btn.active.standard { background: var(--gradient1); }
+        .mode-btn.active.gentle { background: linear-gradient(135deg, #4caf50 0%, #45a049 100%); }
+        .mode-btn.active.emergency { background: linear-gradient(135deg, #ff5722 0%, #e64a19 100%); }
+        .mode-btn.active.vibrate { background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%); }
+        .mode-btn.active.melodic { background: linear-gradient(135deg, #ffc107 0%, #ffa000 100%); }
+        .mode-btn.active.silent { background: linear-gradient(135deg, #78909c 0%, #546e7a 100%); }
+
         /* Stats Section */
         .stats-section {
             display: grid;
@@ -1147,6 +1255,10 @@
             .filter-buttons {
                 justify-content: center;
             }
+
+            .mode-selector {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            }
         }
 
         @media (max-width: 768px) {
@@ -1196,6 +1308,33 @@
                 width: 100%;
                 justify-content: center;
             }
+
+            .mode-selector {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .mode-btn {
+                padding: 12px;
+            }
+
+            .mode-icon {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .mode-selector {
+                grid-template-columns: 1fr;
+            }
+            
+            .tab-navigation {
+                flex-direction: column;
+            }
+            
+            .tab-btn {
+                width: 100%;
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -1224,12 +1363,12 @@
     <!-- MODAL -->
     <div class="modal" id="alarm-modal">
         <div class="modal-content">
-            <div class="modal-icon">
+            <div class="modal-icon" id="modal-icon">
                 <i class="fas fa-bell"></i>
             </div>
-            <h2 class="modal-title">Waktu Result Tiba!</h2>
+            <h2 class="modal-title" id="modal-title">Waktu Result Tiba!</h2>
             <p class="modal-text" id="modal-text">Result pasaran telah keluar</p>
-            <button class="modal-btn" onclick="closeModal()">Tutup</button>
+            <button class="modal-btn" onclick="closeModal()">Tutup Alarm</button>
         </div>
     </div>
     
@@ -1250,6 +1389,9 @@
         <div class="tab-navigation">
             <button class="tab-btn active" onclick="switchTab('schedule')">
                 <i class="fas fa-calendar-alt"></i> Jadwal
+            </button>
+            <button class="tab-btn" onclick="switchTab('alarm-mode')">
+                <i class="fas fa-bell"></i> Mode Alarm
             </button>
             <button class="tab-btn" onclick="switchTab('stats')">
                 <i class="fas fa-chart-bar"></i> Statistik
@@ -1320,12 +1462,12 @@
                         <div class="action-title" id="alarm-title">Alarm Aktif</div>
                         <div class="action-desc">Aktif/nonaktif alarm result</div>
                     </div>
-                    <div class="action-card" onclick="exportSchedule()">
+                    <div class="action-card" onclick="stopAllAlarms()">
                         <div class="action-icon">
-                            <i class="fas fa-download"></i>
+                            <i class="fas fa-stop-circle"></i>
                         </div>
-                        <div class="action-title">Export</div>
-                        <div class="action-desc">Unduh jadwal</div>
+                        <div class="action-title">Stop Alarm</div>
+                        <div class="action-desc">Hentikan semua alarm</div>
                     </div>
                 </div>
             </div>
@@ -1333,6 +1475,131 @@
             <!-- SCHEDULE GRID -->
             <div class="schedule-grid" id="schedule-grid">
                 <!-- Cards will be generated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- ALARM MODE TAB -->
+        <div class="tab-content" id="alarm-mode-tab">
+            <div class="controls-section">
+                <h3 style="margin-bottom: 25px; color: var(--text); text-align: center;">
+                    <i class="fas fa-sliders-h" style="color: var(--cyan); margin-right: 10px;"></i>
+                    Pengaturan Mode Alarm
+                </h3>
+
+                <!-- Mode Alarm -->
+                <div class="mode-section">
+                    <div class="mode-section-title">
+                        <i class="fas fa-music"></i>
+                        Pilih Mode Alarm
+                    </div>
+                    <div class="mode-selector">
+                        <button class="mode-btn standard active" onclick="setAlarmMode('standard')" id="mode-standard">
+                            <div class="mode-icon">
+                                <i class="fas fa-bell"></i>
+                            </div>
+                            <div class="mode-name">Standard</div>
+                            <div class="mode-desc">Alarm standar</div>
+                        </button>
+                        <button class="mode-btn gentle" onclick="setAlarmMode('gentle')" id="mode-gentle">
+                            <div class="mode-icon">
+                                <i class="fas fa-volume-down"></i>
+                            </div>
+                            <div class="mode-name">Lembut</div>
+                            <div class="mode-desc">Nada halus</div>
+                        </button>
+                        <button class="mode-btn emergency" onclick="setAlarmMode('emergency')" id="mode-emergency">
+                            <div class="mode-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="mode-name">Darurat</div>
+                            <div class="mode-desc">Sirene urgent</div>
+                        </button>
+                        <button class="mode-btn vibrate" onclick="setAlarmMode('vibrate')" id="mode-vibrate">
+                            <div class="mode-icon">
+                                <i class="fas fa-vibration"></i>
+                            </div>
+                            <div class="mode-name">Getar</div>
+                            <div class="mode-desc">Efek getaran</div>
+                        </button>
+                        <button class="mode-btn melodic" onclick="setAlarmMode('melodic')" id="mode-melodic">
+                            <div class="mode-icon">
+                                <i class="fas fa-music"></i>
+                            </div>
+                            <div class="mode-name">Melodi</div>
+                            <div class="mode-desc">Nada musik</div>
+                        </button>
+                        <button class="mode-btn silent" onclick="setAlarmMode('silent')" id="mode-silent">
+                            <div class="mode-icon">
+                                <i class="fas fa-bell-slash"></i>
+                            </div>
+                            <div class="mode-name">Diam</div>
+                            <div class="mode-desc">Tanpa suara</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Durasi Alarm -->
+                <div class="mode-section">
+                    <div class="mode-section-title">
+                        <i class="fas fa-clock"></i>
+                        Durasi Alarm
+                    </div>
+                    <div class="mode-selector">
+                        <button class="mode-btn active" onclick="setAlarmDuration(10)" id="duration-10">
+                            <div class="mode-icon">
+                                <i class="fas fa-hourglass-start"></i>
+                            </div>
+                            <div class="mode-name">10 Detik</div>
+                            <div class="mode-desc">Cepat</div>
+                        </button>
+                        <button class="mode-btn" onclick="setAlarmDuration(30)" id="duration-30">
+                            <div class="mode-icon">
+                                <i class="fas fa-hourglass-half"></i>
+                            </div>
+                            <div class="mode-name">30 Detik</div>
+                            <div class="mode-desc">Standar</div>
+                        </button>
+                        <button class="mode-btn" onclick="setAlarmDuration(60)" id="duration-60">
+                            <div class="mode-icon">
+                                <i class="fas fa-hourglass-end"></i>
+                            </div>
+                            <div class="mode-name">1 Menit</div>
+                            <div class="mode-desc">Panjang</div>
+                        </button>
+                        <button class="mode-btn" onclick="setAlarmDuration(0)" id="duration-infinite">
+                            <div class="mode-icon">
+                                <i class="fas fa-infinity"></i>
+                            </div>
+                            <div class="mode-name">Terus</div>
+                            <div class="mode-desc">Sampai dimatikan</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions" style="margin-top: 30px;">
+                    <div class="action-card" onclick="testCurrentMode()">
+                        <div class="action-icon">
+                            <i class="fas fa-play-circle"></i>
+                        </div>
+                        <div class="action-title">Test Mode</div>
+                        <div class="action-desc">Uji mode saat ini</div>
+                    </div>
+                    <div class="action-card" onclick="saveAlarmSettings()">
+                        <div class="action-icon">
+                            <i class="fas fa-save"></i>
+                        </div>
+                        <div class="action-title">Simpan</div>
+                        <div class="action-desc">Simpan pengaturan</div>
+                    </div>
+                    <div class="action-card" onclick="resetAlarmSettings()">
+                        <div class="action-icon">
+                            <i class="fas fa-undo"></i>
+                        </div>
+                        <div class="action-title">Reset</div>
+                        <div class="action-desc">Kembali ke default</div>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -1502,18 +1769,22 @@
 
         // ========== GLOBAL VARIABLES ==========
         let soundEnabled = true;
-        let alarmEnabled = true; // Tambahkan variabel untuk mengontrol alarm
+        let alarmEnabled = true;
         let browserNotificationsEnabled = true;
         let desktopNotificationsEnabled = false;
         let effectsEnabled = true;
         let currentFilter = 'all';
         let selectedPasaran = null;
         let alarmTimeouts = [];
-        let spamInterval = null;
+        let activeAlarms = new Set();
         let audioContext = null;
         let audioUnlocked = false;
         let alarmCheckInterval = null;
-        let triggeredAlarms = new Set(); // Untuk melacak alarm yang sudah dipicu
+        let triggeredAlarms = new Set();
+
+        // ========== PENGATURAN MODE ALARM ==========
+        let currentAlarmMode = 'standard';
+        let alarmDuration = 30; // detik
 
         // ========== DOM ELEMENTS ==========
         const liveClock = document.getElementById('live-clock');
@@ -1540,8 +1811,8 @@
             return audioContext;
         }
 
-        function playSound(frequency = 800, duration = 200) {
-            if (!soundEnabled) return;
+        function playSound(frequency = 800, duration = 200, volume = 0.3, type = 'sine') {
+            if (!soundEnabled || volume === 0) return null;
             
             try {
                 const context = initAudio();
@@ -1552,33 +1823,223 @@
                 gainNode.connect(context.destination);
                 
                 oscillator.frequency.value = frequency;
-                oscillator.type = 'sine';
+                oscillator.type = type;
                 
-                gainNode.gain.setValueAtTime(0.3, context.currentTime);
+                gainNode.gain.setValueAtTime(volume, context.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, context.currentTime + duration / 1000);
                 
                 oscillator.start(context.currentTime);
                 oscillator.stop(context.currentTime + duration / 1000);
+                
+                return oscillator;
             } catch (error) {
                 console.error('Error playing sound:', error);
+                return null;
             }
         }
 
-        function playAlarmSound() {
+        // ========== ALARM MODE FUNCTIONS ==========
+        function playAlarmSound(pasaranName = '') {
             if (!soundEnabled) return;
             
-            // Main alarm sound - lebih panjang dan berulang
-            for (let i = 0; i < 3; i++) {
+            const alarmKey = `alarm-${pasaranName}-${Date.now()}`;
+            activeAlarms.add(alarmKey);
+            
+            let alarmInterval;
+            
+            switch(currentAlarmMode) {
+                case 'standard':
+                    alarmInterval = setInterval(() => {
+                        if (!activeAlarms.has(alarmKey)) {
+                            clearInterval(alarmInterval);
+                            return;
+                        }
+                        // Pattern: urgent beeps
+                        playSound(800, 200, 0.4);
+                        setTimeout(() => playSound(1000, 200, 0.4), 300);
+                        setTimeout(() => playSound(600, 300, 0.4), 600);
+                    }, 1500);
+                    break;
+                    
+                case 'gentle':
+                    alarmInterval = setInterval(() => {
+                        if (!activeAlarms.has(alarmKey)) {
+                            clearInterval(alarmInterval);
+                            return;
+                        }
+                        // Pattern: soft chimes
+                        playSound(523, 400, 0.2, 'sine'); // C
+                        setTimeout(() => playSound(659, 400, 0.2, 'sine'), 500); // E
+                        setTimeout(() => playSound(784, 400, 0.2, 'sine'), 1000); // G
+                    }, 2000);
+                    break;
+                    
+                case 'emergency':
+                    alarmInterval = setInterval(() => {
+                        if (!activeAlarms.has(alarmKey)) {
+                            clearInterval(alarmInterval);
+                            return;
+                        }
+                        // Pattern: emergency siren
+                        for (let i = 0; i < 3; i++) {
+                            setTimeout(() => {
+                                playSound(1000, 100, 0.6);
+                            }, i * 200);
+                        }
+                    }, 1000);
+                    break;
+                    
+                case 'vibrate':
+                    alarmInterval = setInterval(() => {
+                        if (!activeAlarms.has(alarmKey)) {
+                            clearInterval(alarmInterval);
+                            return;
+                        }
+                        // Pattern: vibration-like pulses
+                        playSound(200, 50, 0.3);
+                        setTimeout(() => playSound(200, 50, 0.3), 100);
+                        setTimeout(() => playSound(200, 50, 0.3), 200);
+                    }, 500);
+                    break;
+                    
+                case 'melodic':
+                    alarmInterval = setInterval(() => {
+                        if (!activeAlarms.has(alarmKey)) {
+                            clearInterval(alarmInterval);
+                            return;
+                        }
+                        // Pattern: melodic sequence
+                        const melody = [523, 587, 659, 698, 784, 880, 988, 1047]; // C scale
+                        melody.forEach((note, index) => {
+                            setTimeout(() => {
+                                playSound(note, 150, 0.4, 'sine');
+                            }, index * 150);
+                        });
+                    }, 3000);
+                    break;
+                    
+                case 'silent':
+                    // No sound
+                    break;
+            }
+            
+            if (alarmInterval) {
+                alarmTimeouts.push({
+                    key: alarmKey,
+                    interval: alarmInterval,
+                    pasaran: pasaranName,
+                    mode: currentAlarmMode
+                });
+            }
+            
+            // Auto stop jika durasi terbatas
+            if (alarmDuration > 0) {
                 setTimeout(() => {
-                    const frequencies = [600, 800, 1000, 1200, 1000, 800];
-                    frequencies.forEach((freq, index) => {
-                        setTimeout(() => playSound(freq, 200), index * 100);
-                    });
-                }, i * 1000);
+                    stopAlarm(alarmKey);
+                }, alarmDuration * 1000);
+            }
+            
+            return alarmKey;
+        }
+
+        function setAlarmMode(mode) {
+            currentAlarmMode = mode;
+            
+            // Update UI buttons
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`mode-${mode}`).classList.add('active');
+            
+            showNotification('🔔 Mode Alarm Diubah', `Mode alarm diubah ke: ${getModeDisplayName(mode)}`);
+            playSound(800, 100, 0.2);
+        }
+
+        function setAlarmDuration(duration) {
+            alarmDuration = duration;
+            
+            // Update UI buttons
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                if (btn.id.startsWith('duration-')) {
+                    btn.classList.remove('active');
+                }
+            });
+            document.getElementById(`duration-${duration}`).classList.add('active');
+            
+            showNotification('⏱️ Durasi Diubah', `Durasi alarm: ${getDurationDisplay(duration)}`);
+        }
+
+        function getModeDisplayName(mode) {
+            const names = {
+                'standard': 'Standard',
+                'gentle': 'Lembut',
+                'emergency': 'Darurat',
+                'vibrate': 'Getar',
+                'melodic': 'Melodi',
+                'silent': 'Diam'
+            };
+            return names[mode] || mode;
+        }
+
+        function getDurationDisplay(duration) {
+            if (duration === 0) return 'Sampai Dimatikan';
+            if (duration === 10) return '10 Detik';
+            if (duration === 30) return '30 Detik';
+            if (duration === 60) return '1 Menit';
+            return `${duration} Detik`;
+        }
+
+        // ========== TEST FUNCTIONS ==========
+        function testCurrentMode() {
+            const testPasaran = "TEST MODE - " + getModeDisplayName(currentAlarmMode).toUpperCase();
+            showModal(testPasaran);
+            showNotification('🔔 Test Mode Alarm', `Menguji mode: ${getModeDisplayName(currentAlarmMode)}`);
+        }
+
+        function testAlarm() {
+            const testPasaran = "TEST ALARM";
+            showModal(testPasaran);
+            showNotification('🔔 Test Alarm', 'Menguji notifikasi alarm standar');
+            playAlarmSound(testPasaran);
+        }
+
+        // ========== SETTINGS MANAGEMENT ==========
+        function saveAlarmSettings() {
+            const settings = {
+                mode: currentAlarmMode,
+                duration: alarmDuration
+            };
+            localStorage.setItem('oceanAlarmSettings', JSON.stringify(settings));
+            showNotification('💾 Pengaturan Tersimpan', 'Mode alarm telah disimpan');
+            playSound(1000, 100, 0.2);
+        }
+
+        function loadAlarmSettings() {
+            const saved = localStorage.getItem('oceanAlarmSettings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                currentAlarmMode = settings.mode || 'standard';
+                alarmDuration = settings.duration || 30;
+                
+                // Update UI
+                setAlarmMode(currentAlarmMode);
+                setAlarmDuration(alarmDuration);
             }
         }
 
-        // ========== ALARM FUNCTIONS ==========
+        function resetAlarmSettings() {
+            currentAlarmMode = 'standard';
+            alarmDuration = 30;
+            
+            setAlarmMode('standard');
+            setAlarmDuration(30);
+            
+            localStorage.removeItem('oceanAlarmSettings');
+            showNotification('🔄 Pengaturan Direset', 'Mode alarm dikembalikan ke default');
+            playSound(800, 100, 0.2);
+        }
+
+        // ========== ALARM TRIGGER FUNCTION ==========
         function checkResultTime() {
             if (!alarmEnabled) return;
             
@@ -1586,9 +2047,7 @@
             const currentTime = now.getHours() * 60 + now.getMinutes();
             const currentSeconds = now.getSeconds();
             
-            // Hanya cek pada detik 0 (setiap menit tepat)
-            if (currentSeconds !== 0) return;
-            
+            // Cek setiap detik untuk akurasi yang lebih baik
             scheduleData.forEach(schedule => {
                 const [resultHour, resultMinute] = schedule.jamResult.split(':').map(Number);
                 const resultTime = resultHour * 60 + resultMinute;
@@ -1597,7 +2056,7 @@
                 const alarmKey = `${schedule.pasaran}-${resultHour}:${resultMinute}`;
                 
                 // Jika waktu saat ini sama dengan waktu result dan alarm belum dipicu
-                if (currentTime === resultTime && !triggeredAlarms.has(alarmKey)) {
+                if (currentTime === resultTime && currentSeconds === 0 && !triggeredAlarms.has(alarmKey)) {
                     triggeredAlarms.add(alarmKey);
                     triggerAlarm(schedule);
                     
@@ -1620,8 +2079,8 @@
             // Tampilkan notifikasi
             showNotification('⏰ RESULT TELAH KELUAR!', `Result ${schedule.pasaran} telah keluar pada pukul ${schedule.jamResult} WIB!`, 10000);
             
-            // Mainkan suara alarm
-            playAlarmSound();
+            // Mainkan suara alarm berdasarkan mode
+            playAlarmSound(schedule.pasaran);
             
             // Tambahkan efek visual pada card yang sesuai
             highlightResultCard(schedule.pasaran);
@@ -1632,32 +2091,14 @@
             cards.forEach(card => {
                 const pasaranElement = card.querySelector('.pasaran-name');
                 if (pasaranElement && pasaranElement.textContent === pasaranName) {
-                    // Tambahkan class khusus untuk alarm
                     card.classList.add('result-alarm');
                     
-                    // Hentikan animasi setelah 10 detik
+                    // Hentikan efek setelah 10 detik
                     setTimeout(() => {
                         card.classList.remove('result-alarm');
                     }, 10000);
                 }
             });
-        }
-
-        function toggleAlarmMode() {
-            alarmEnabled = !alarmEnabled;
-            const alarmIcon = document.getElementById('alarm-icon');
-            const alarmTitle = document.getElementById('alarm-title');
-            
-            if (alarmEnabled) {
-                alarmIcon.className = 'fas fa-alarm-clock';
-                alarmTitle.textContent = 'Alarm Aktif';
-                showNotification('🔔 Alarm Diaktifkan', 'Alarm result akan berbunyi saat waktu result tiba');
-                playSound(1000, 100);
-            } else {
-                alarmIcon.className = 'fas fa-bell-slash';
-                alarmTitle.textContent = 'Alarm Nonaktif';
-                showNotification('🔕 Alarm Dinonaktifkan', 'Alarm result telah dinonaktifkan');
-            }
         }
 
         // ========== UTILITY FUNCTIONS ==========
@@ -1680,130 +2121,78 @@
         }
 
         function showModal(pasaran) {
-            modalText.textContent = `Result ${pasaran} telah keluar!`;
+            const modalIcon = document.getElementById('modal-icon');
+            const modalTitle = document.getElementById('modal-title');
+            
+            // Update modal berdasarkan mode
+            switch(currentAlarmMode) {
+                case 'standard':
+                    modalIcon.innerHTML = '<i class="fas fa-bell"></i>';
+                    modalTitle.textContent = '⏰ Waktu Result Tiba!';
+                    break;
+                case 'gentle':
+                    modalIcon.innerHTML = '<i class="fas fa-volume-down"></i>';
+                    modalTitle.textContent = '🔔 Result Telah Keluar';
+                    break;
+                case 'emergency':
+                    modalIcon.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                    modalTitle.textContent = '🚨 RESULT DARURAT!';
+                    break;
+                case 'vibrate':
+                    modalIcon.innerHTML = '<i class="fas fa-vibration"></i>';
+                    modalTitle.textContent = '📳 Result Siap!';
+                    break;
+                case 'melodic':
+                    modalIcon.innerHTML = '<i class="fas fa-music"></i>';
+                    modalTitle.textContent = '🎵 Result Telah Keluar';
+                    break;
+                case 'silent':
+                    modalIcon.innerHTML = '<i class="fas fa-eye"></i>';
+                    modalTitle.textContent = '👁️ Result Telah Keluar';
+                    break;
+            }
+            
+            modalText.textContent = `Result ${pasaran} telah keluar pada pukul ${getCurrentTime()} WIB!`;
             alarmModal.style.display = 'flex';
-            playAlarmSound();
+            
+            // Mainkan alarm sound
+            playAlarmSound(pasaran);
         }
 
         function closeModal() {
             alarmModal.style.display = 'none';
+            stopAllAlarms();
         }
 
-        // ========== COPY FUNCTION ==========
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                showNotification('✅ Berhasil Disalin!', 'Teks telah disalin ke clipboard');
-                playSound(1200, 150);
-            }).catch(err => {
-                console.error('Gagal menyalin teks: ', err);
-                // Fallback untuk browser lama
-                const textArea = document.createElement('textarea');
-                textArea.value = text;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                showNotification('✅ Berhasil Disalin!', 'Teks telah disalin ke clipboard');
-                playSound(1200, 150);
-            });
-        }
-
-        // ========== DROPDOWN FUNCTIONS ==========
-        function renderDropdownItems(items = scheduleData) {
-            dropdownList.innerHTML = '';
-            
-            items.forEach(schedule => {
-                const item = document.createElement('div');
-                item.className = 'dropdown-item';
-                
-                // Store schedule data as a data attribute
-                item.dataset.schedule = JSON.stringify(schedule);
-                
-                item.innerHTML = `
-                    <div class="dropdown-item-content">
-                        <div class="dropdown-item-name">${schedule.pasaran}</div>
-                        <div class="dropdown-item-time">Tutup Pasaran Pukul ${schedule.jamBetclosed} WIB Dan Keluaran Nomor Result Pukul ${schedule.jamResult} WIB.</div>
-                    </div>
-                    <div class="dropdown-item-actions">
-                        <button class="dropdown-item-btn copy" onclick="copyPasaranData(this)">
-                            <i class="fas fa-copy"></i> Copy
-                        </button>
-                        <button class="dropdown-item-btn select" onclick="selectPasaranFromItem(this)">
-                            <i class="fas fa-check"></i> Pilih
-                        </button>
-                    </div>
-                `;
-                
-                dropdownList.appendChild(item);
-            });
-        }
-
-        function copyPasaranData(button) {
-            const item = button.closest('.dropdown-item');
-            const schedule = JSON.parse(item.dataset.schedule);
-            const copyText = `${schedule.pasaran}\nTutup Pasaran Pukul ${schedule.jamBetclosed} WIB Dan Keluaran Nomor Result Pukul ${schedule.jamResult} WIB.`;
-            copyToClipboard(copyText);
-        }
-
-        function selectPasaranFromItem(button) {
-            const item = button.closest('.dropdown-item');
-            const schedule = JSON.parse(item.dataset.schedule);
-            selectPasaran(schedule);
-        }
-
-        function selectPasaran(schedule) {
-            selectedPasaran = schedule;
-            selectedPasaranText.textContent = schedule.pasaran;
-            dropdownTrigger.classList.remove('active');
-            dropdownMenu.classList.remove('active');
-            
-            // Update search input
-            searchInput.value = schedule.pasaran;
-            
-            // Filter and render schedules
-            renderSchedules();
-            
-            // Scroll to selected card
-            setTimeout(() => {
-                const cards = document.querySelectorAll('.schedule-card');
-                cards.forEach(card => {
-                    const pasaranName = card.querySelector('.pasaran-name');
-                    if (pasaranName && pasaranName.textContent === schedule.pasaran) {
-                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        // Add highlight effect
-                        card.style.animation = 'pulse 1s ease 3';
-                        setTimeout(() => {
-                            card.style.animation = '';
-                        }, 3000);
-                    }
-                });
-            }, 100);
-            
-            showNotification('✅ Pasaran Dipilih', `${schedule.pasaran} - ${schedule.category}`);
-        }
-
-        function toggleDropdown() {
-            const isOpen = dropdownMenu.classList.contains('active');
-            
-            if (isOpen) {
-                dropdownTrigger.classList.remove('active');
-                dropdownMenu.classList.remove('active');
+        function stopAlarm(alarmKey = null) {
+            if (alarmKey) {
+                activeAlarms.delete(alarmKey);
+                const alarmIndex = alarmTimeouts.findIndex(a => a.key === alarmKey);
+                if (alarmIndex !== -1) {
+                    clearInterval(alarmTimeouts[alarmIndex].interval);
+                    alarmTimeouts.splice(alarmIndex, 1);
+                }
             } else {
-                dropdownTrigger.classList.add('active');
-                dropdownMenu.classList.add('active');
-                dropdownSearchInput.value = '';
-                renderDropdownItems();
-                dropdownSearchInput.focus();
+                activeAlarms.clear();
+                alarmTimeouts.forEach(alarm => {
+                    clearInterval(alarm.interval);
+                });
+                alarmTimeouts = [];
             }
         }
 
-        function filterDropdownItems() {
-            const searchTerm = dropdownSearchInput.value.toLowerCase();
-            const filteredItems = scheduleData.filter(schedule => 
-                schedule.pasaran.toLowerCase().includes(searchTerm) ||
-                schedule.category.toLowerCase().includes(searchTerm)
-            );
-            renderDropdownItems(filteredItems);
+        function stopAllAlarms() {
+            stopAlarm();
+            showNotification('🔇 Alarm Dihentikan', 'Semua alarm telah dihentikan');
+            playSound(400, 100, 0.2);
+        }
+
+        function getCurrentTime() {
+            const now = new Date();
+            return now.toLocaleTimeString('id-ID', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
         }
 
         // ========== SCHEDULE FUNCTIONS ==========
@@ -1991,6 +2380,122 @@
             document.getElementById('completed-count').textContent = completedCount;
         }
 
+        // ========== DROPDOWN FUNCTIONS ==========
+        function renderDropdownItems(items = scheduleData) {
+            dropdownList.innerHTML = '';
+            
+            items.forEach(schedule => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item';
+                
+                // Store schedule data as a data attribute
+                item.dataset.schedule = JSON.stringify(schedule);
+                
+                item.innerHTML = `
+                    <div class="dropdown-item-content">
+                        <div class="dropdown-item-name">${schedule.pasaran}</div>
+                        <div class="dropdown-item-time">Tutup Pasaran Pukul ${schedule.jamBetclosed} WIB Dan Keluaran Nomor Result Pukul ${schedule.jamResult} WIB.</div>
+                    </div>
+                    <div class="dropdown-item-actions">
+                        <button class="dropdown-item-btn copy" onclick="copyPasaranData(this)">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                        <button class="dropdown-item-btn select" onclick="selectPasaranFromItem(this)">
+                            <i class="fas fa-check"></i> Pilih
+                        </button>
+                    </div>
+                `;
+                
+                dropdownList.appendChild(item);
+            });
+        }
+
+        function copyPasaranData(button) {
+            const item = button.closest('.dropdown-item');
+            const schedule = JSON.parse(item.dataset.schedule);
+            const copyText = `${schedule.pasaran}\nTutup Pasaran Pukul ${schedule.jamBetclosed} WIB Dan Keluaran Nomor Result Pukul ${schedule.jamResult} WIB.`;
+            copyToClipboard(copyText);
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification('✅ Berhasil Disalin!', 'Teks telah disalin ke clipboard');
+                playSound(1200, 150, 0.2);
+            }).catch(err => {
+                console.error('Gagal menyalin teks: ', err);
+                // Fallback untuk browser lama
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showNotification('✅ Berhasil Disalin!', 'Teks telah disalin ke clipboard');
+                playSound(1200, 150, 0.2);
+            });
+        }
+
+        function selectPasaranFromItem(button) {
+            const item = button.closest('.dropdown-item');
+            const schedule = JSON.parse(item.dataset.schedule);
+            selectPasaran(schedule);
+        }
+
+        function selectPasaran(schedule) {
+            selectedPasaran = schedule;
+            selectedPasaranText.textContent = schedule.pasaran;
+            dropdownTrigger.classList.remove('active');
+            dropdownMenu.classList.remove('active');
+            
+            // Update search input
+            searchInput.value = schedule.pasaran;
+            
+            // Filter and render schedules
+            renderSchedules();
+            
+            // Scroll to selected card
+            setTimeout(() => {
+                const cards = document.querySelectorAll('.schedule-card');
+                cards.forEach(card => {
+                    const pasaranName = card.querySelector('.pasaran-name');
+                    if (pasaranName && pasaranName.textContent === schedule.pasaran) {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Add highlight effect
+                        card.style.animation = 'pulse 1s ease 3';
+                        setTimeout(() => {
+                            card.style.animation = '';
+                        }, 3000);
+                    }
+                });
+            }, 100);
+            
+            showNotification('✅ Pasaran Dipilih', `${schedule.pasaran} - ${schedule.category}`);
+        }
+
+        function toggleDropdown() {
+            const isOpen = dropdownMenu.classList.contains('active');
+            
+            if (isOpen) {
+                dropdownTrigger.classList.remove('active');
+                dropdownMenu.classList.remove('active');
+            } else {
+                dropdownTrigger.classList.add('active');
+                dropdownMenu.classList.add('active');
+                dropdownSearchInput.value = '';
+                renderDropdownItems();
+                dropdownSearchInput.focus();
+            }
+        }
+
+        function filterDropdownItems() {
+            const searchTerm = dropdownSearchInput.value.toLowerCase();
+            const filteredItems = scheduleData.filter(schedule => 
+                schedule.pasaran.toLowerCase().includes(searchTerm) ||
+                schedule.category.toLowerCase().includes(searchTerm)
+            );
+            renderDropdownItems(filteredItems);
+        }
+
         // ========== TAB FUNCTIONS ==========
         function switchTab(tabName) {
             // Update tab buttons
@@ -2027,11 +2532,6 @@
         }
 
         // ========== ACTION FUNCTIONS ==========
-        function testAlarm() {
-            showModal('TEST ALARM');
-            showNotification('🔔 Test Alarm', 'Notifikasi alarm sedang diuji');
-        }
-
         function toggleSound() {
             soundEnabled = !soundEnabled;
             const soundIcon = document.getElementById('sound-icon');
@@ -2041,7 +2541,7 @@
                 soundIcon.className = 'fas fa-volume-up';
                 soundTitle.textContent = 'Suara Aktif';
                 showNotification('🔊 Suara Diaktifkan', 'Notifikasi suara telah diaktifkan');
-                playSound(1000, 100);
+                playSound(1000, 100, 0.2);
             } else {
                 soundIcon.className = 'fas fa-volume-mute';
                 soundTitle.textContent = 'Suara Nonaktif';
@@ -2049,57 +2549,25 @@
             }
         }
 
-        function spamNotifications() {
-            if (spamInterval) {
-                clearInterval(spamInterval);
-                spamInterval = null;
-                showNotification('✋ Spam Mode Dihentikan', 'Notifikasi spam telah dihentikan');
-                return;
+        function toggleAlarmMode() {
+            alarmEnabled = !alarmEnabled;
+            const alarmIcon = document.getElementById('alarm-icon');
+            const alarmTitle = document.getElementById('alarm-title');
+            
+            if (alarmEnabled) {
+                alarmIcon.className = 'fas fa-alarm-clock';
+                alarmTitle.textContent = 'Alarm Aktif';
+                showNotification('🔔 Alarm Diaktifkan', 'Alarm result akan berbunyi saat waktu result tiba');
+                playSound(1000, 100, 0.2);
+            } else {
+                alarmIcon.className = 'fas fa-bell-slash';
+                alarmTitle.textContent = 'Alarm Nonaktif';
+                showNotification('🔕 Alarm Dinonaktifkan', 'Alarm result telah dinonaktifkan');
+                // Stop semua alarm saat dinonaktifkan
+                stopAllAlarms();
             }
-            
-            showNotification('💣 Spam Mode Diaktifkan', 'Notifikasi spam telah diaktifkan');
-            
-            const messages = [
-                '⚠️ WAKTU HAMPIR HABIS!',
-                '🎯 RESULT AKAN SEGERA KELUAR!',
-                '💸 JACKPOT BESAR MENANTI!',
-                '🚀 PASANG SEKARANG!',
-                '🏆 MENANG BESAR HARI INI!',
-                '⚡ CEPAT! WAKTU TERBATAS!',
-                '🎊 ANGKA HOKI SIAP!',
-                '💎 KESEMPATAN EMAS!',
-                '🔥 HOT NUMBER HARI INI!',
-                '🌟 LUCKY DRAW SEKARANG!'
-            ];
-            
-            let counter = 0;
-            spamInterval = setInterval(() => {
-                const message = messages[Math.floor(Math.random() * messages.length)];
-                showNotification('🚨 SPAM NOTIFICATION', `${message} [${++counter}]`);
-                
-                if (counter >= 10) {
-                    clearInterval(spamInterval);
-                    spamInterval = null;
-                    showNotification('✋ Spam Mode Selesai', 'Notifikasi spam telah selesai');
-                }
-            }, 2000);
         }
 
-        function exportSchedule() {
-            const dataStr = JSON.stringify(scheduleData, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
-            const exportFileDefaultName = `togel-schedule-${new Date().toISOString().split('T')[0]}.json`;
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-            
-            showNotification('📥 Jadwal Diunduh', 'File jadwal telah berhasil diunduh');
-        }
-
-        // ========== SETTINGS FUNCTIONS ==========
         function toggleBrowserNotif() {
             browserNotificationsEnabled = !browserNotificationsEnabled;
             const status = document.getElementById('browser-status');
@@ -2240,6 +2708,9 @@
 
         // ========== INITIALIZATION ==========
         function init() {
+            // Load saved settings
+            loadAlarmSettings();
+            
             // Request notification permission
             if ('Notification' in window && Notification.permission === 'default') {
                 Notification.requestPermission();
@@ -2249,7 +2720,7 @@
             document.addEventListener('click', () => {
                 if (!audioUnlocked) {
                     initAudio();
-                    playSound(400, 50);
+                    playSound(400, 50, 0.1);
                     audioUnlocked = true;
                 }
             }, { once: true });
@@ -2267,7 +2738,7 @@
             // Update schedules every minute
             setInterval(renderSchedules, 60000);
             
-            // Check for result times every second (untuk akurasi yang lebih baik)
+            // Check for result times every second
             alarmCheckInterval = setInterval(checkResultTime, 1000);
             
             // Create bubbles periodically
