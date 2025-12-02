@@ -1113,6 +1113,104 @@
             box-shadow: 0 5px 15px rgba(0, 188, 212, 0.3);
         }
 
+        /* ========== ADDITIONAL STYLES ========== */
+
+        /* Time badge in pasaran name */
+        .time-badge {
+            display: inline-block;
+            background: rgba(0, 188, 212, 0.2);
+            color: var(--cyan);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            margin-left: 8px;
+            vertical-align: middle;
+            border: 1px solid rgba(0, 188, 212, 0.3);
+        }
+
+        /* Time zone indicator */
+        .time-zone {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            margin-left: 5px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Time subtext */
+        .time-subtext {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* No results message */
+        .no-results {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 60px 40px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        /* Category-specific colors */
+        .schedule-card.category-indonesia::before {
+            background: linear-gradient(135deg, #FF5722 0%, #E64A19 100%);
+        }
+
+        .schedule-card.category-international::before {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        }
+
+        .schedule-card.category-thailand::before {
+            background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
+        }
+
+        .schedule-card.category-usa::before {
+            background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+        }
+
+        .schedule-card.category-cambodia::before {
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+        }
+
+        /* Keyboard shortcuts hint */
+        .keyboard-hint {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            z-index: 100;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+
+        .keyboard-hint:hover {
+            opacity: 1;
+        }
+
+        .keyboard-shortcut {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin: 0 3px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+
         /* Animations */
         @keyframes floatUp {
             0% {
@@ -1320,6 +1418,22 @@
             .mode-icon {
                 font-size: 1.5rem;
             }
+            
+            .time-badge {
+                display: block;
+                margin: 5px 0 0 0;
+                width: fit-content;
+            }
+            
+            .time-zone {
+                display: block;
+                margin: 3px 0 0 0;
+                width: fit-content;
+            }
+            
+            .keyboard-hint {
+                display: none;
+            }
         }
 
         @media (max-width: 480px) {
@@ -1437,6 +1551,9 @@
                     <button class="filter-btn" onclick="filterSchedules('upcoming')">
                         <i class="fas fa-hourglass-half"></i> Akan Datang
                     </button>
+                    <button class="filter-btn" onclick="filterSchedules('passed')">
+                        <i class="fas fa-check-circle"></i> Selesai
+                    </button>
                 </div>
                 
                 <!-- QUICK ACTIONS -->
@@ -1469,7 +1586,23 @@
                         <div class="action-title">Stop Alarm</div>
                         <div class="action-desc">Hentikan semua alarm</div>
                     </div>
+                    <div class="action-card" onclick="exportScheduleData()">
+                        <div class="action-icon">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <div class="action-title">Export Data</div>
+                        <div class="action-desc">Simpan jadwal ke file</div>
+                    </div>
+                    <div class="action-card" onclick="document.getElementById('import-file').click()">
+                        <div class="action-icon">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <div class="action-title">Import Data</div>
+                        <div class="action-desc">Tambah jadwal dari file</div>
+                    </div>
                 </div>
+                
+                <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importScheduleData(event)">
             </div>
             
             <!-- SCHEDULE GRID -->
@@ -1599,6 +1732,20 @@
                         <div class="action-title">Reset</div>
                         <div class="action-desc">Kembali ke default</div>
                     </div>
+                    <div class="action-card" onclick="backupSettings()">
+                        <div class="action-icon">
+                            <i class="fas fa-copy"></i>
+                        </div>
+                        <div class="action-title">Backup</div>
+                        <div class="action-desc">Backup pengaturan</div>
+                    </div>
+                    <div class="action-card" onclick="restoreSettings()">
+                        <div class="action-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <div class="action-title">Restore</div>
+                        <div class="action-desc">Pulihkan pengaturan</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1634,6 +1781,20 @@
                     <div class="stat-value" id="completed-count">0</div>
                     <div class="stat-label">Selesai Hari Ini</div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div class="stat-value" id="alarm-count">0</div>
+                    <div class="stat-label">Alarm Aktif</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <div class="stat-value" id="link-clicks">0</div>
+                    <div class="stat-label">Klik Link</div>
+                </div>
             </div>
         </div>
         
@@ -1663,6 +1824,13 @@
                         <div class="action-title">Efek Visual</div>
                         <div class="action-desc" id="effects-status">Aktif</div>
                     </div>
+                    <div class="action-card" onclick="toggleDarkMode()">
+                        <div class="action-icon">
+                            <i class="fas fa-moon"></i>
+                        </div>
+                        <div class="action-title">Mode Gelap</div>
+                        <div class="action-desc" id="darkmode-status">Aktif</div>
+                    </div>
                     <div class="action-card" onclick="resetSettings()">
                         <div class="action-icon">
                             <i class="fas fa-undo"></i>
@@ -1670,6 +1838,22 @@
                         <div class="action-title">Reset</div>
                         <div class="action-desc">Kembali ke default</div>
                     </div>
+                    <div class="action-card" onclick="clearAllData()">
+                        <div class="action-icon">
+                            <i class="fas fa-trash"></i>
+                        </div>
+                        <div class="action-title">Hapus Data</div>
+                        <div class="action-desc">Hapus semua data lokal</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px; text-align: center;">
+                    <button onclick="testSound()" style="padding: 10px 20px; background: var(--gradient1); border: none; border-radius: 10px; color: white; cursor: pointer; margin-right: 10px;">
+                        <i class="fas fa-volume-up"></i> Test Suara
+                    </button>
+                    <button onclick="testAllFeatures()" style="padding: 10px 20px; background: var(--gradient3); border: none; border-radius: 10px; color: white; cursor: pointer;">
+                        <i class="fas fa-vial"></i> Test Semua Fitur
+                    </button>
                 </div>
             </div>
         </div>
@@ -1695,6 +1879,18 @@
                 </div>
             </div>
         </footer>
+    </div>
+    
+    <!-- KEYBOARD SHORTCUTS HINT -->
+    <div class="keyboard-hint">
+        <div style="margin-bottom: 8px;">
+            <i class="fas fa-keyboard"></i> <strong>Keyboard Shortcuts:</strong>
+        </div>
+        <div style="font-size: 0.8rem;">
+            <span class="keyboard-shortcut">Ctrl</span> + <span class="keyboard-shortcut">F</span> - Cari pasaran<br>
+            <span class="keyboard-shortcut">Esc</span> - Tutup modal/dropdown<br>
+            <span class="keyboard-shortcut">Ctrl</span> + <span class="keyboard-shortcut">S</span> - Simpan pengaturan
+        </div>
     </div>
     
     <script>
@@ -1773,6 +1969,7 @@
         let browserNotificationsEnabled = true;
         let desktopNotificationsEnabled = false;
         let effectsEnabled = true;
+        let darkModeEnabled = true;
         let currentFilter = 'all';
         let selectedPasaran = null;
         let alarmTimeouts = [];
@@ -1781,6 +1978,7 @@
         let audioUnlocked = false;
         let alarmCheckInterval = null;
         let triggeredAlarms = new Set();
+        let linkClickCount = 0;
 
         // ========== PENGATURAN MODE ALARM ==========
         let currentAlarmMode = 'standard';
@@ -1803,12 +2001,33 @@
         const dropdownSearchInput = document.getElementById('dropdown-search-input');
         const selectedPasaranText = document.getElementById('selected-pasaran');
 
-        // ========== SOUND FUNCTIONS ==========
+        // ========== SOUND SYSTEM IMPROVEMENT ==========
         function initAudio() {
             if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    console.log('AudioContext created successfully');
+                } catch (e) {
+                    console.error('Web Audio API is not supported in this browser:', e);
+                    return null;
+                }
             }
             return audioContext;
+        }
+
+        function unlockAudio() {
+            if (!audioContext) return;
+            
+            if (audioContext.state === 'suspended') {
+                audioContext.resume().then(() => {
+                    console.log('AudioContext resumed');
+                    audioUnlocked = true;
+                    // Mainkan suara test kecil untuk konfirmasi
+                    playSound(800, 100, 0.1);
+                }).catch(e => {
+                    console.error('Failed to resume AudioContext:', e);
+                });
+            }
         }
 
         function playSound(frequency = 800, duration = 200, volume = 0.3, type = 'sine') {
@@ -1816,6 +2035,13 @@
             
             try {
                 const context = initAudio();
+                if (!context) return null;
+                
+                // Pastikan context dalam state running
+                if (context.state !== 'running') {
+                    context.resume().catch(e => console.error('Cannot resume audio:', e));
+                }
+                
                 const oscillator = context.createOscillator();
                 const gainNode = context.createGain();
                 
@@ -1825,11 +2051,14 @@
                 oscillator.frequency.value = frequency;
                 oscillator.type = type;
                 
-                gainNode.gain.setValueAtTime(volume, context.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, context.currentTime + duration / 1000);
+                // Atur volume dengan envelope yang lebih baik
+                const now = context.currentTime;
+                gainNode.gain.setValueAtTime(0.001, now);
+                gainNode.gain.exponentialRampToValueAtTime(volume, now + 0.01);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration / 1000);
                 
-                oscillator.start(context.currentTime);
-                oscillator.stop(context.currentTime + duration / 1000);
+                oscillator.start(now);
+                oscillator.stop(now + duration / 1000);
                 
                 return oscillator;
             } catch (error) {
@@ -1838,9 +2067,8 @@
             }
         }
 
-        // ========== ALARM MODE FUNCTIONS ==========
         function playAlarmSound(pasaranName = '') {
-            if (!soundEnabled) return;
+            if (!soundEnabled || !alarmEnabled) return;
             
             const alarmKey = `alarm-${pasaranName}-${Date.now()}`;
             activeAlarms.add(alarmKey);
@@ -1854,7 +2082,6 @@
                             clearInterval(alarmInterval);
                             return;
                         }
-                        // Pattern: urgent beeps
                         playSound(800, 200, 0.4);
                         setTimeout(() => playSound(1000, 200, 0.4), 300);
                         setTimeout(() => playSound(600, 300, 0.4), 600);
@@ -1867,10 +2094,9 @@
                             clearInterval(alarmInterval);
                             return;
                         }
-                        // Pattern: soft chimes
-                        playSound(523, 400, 0.2, 'sine'); // C
-                        setTimeout(() => playSound(659, 400, 0.2, 'sine'), 500); // E
-                        setTimeout(() => playSound(784, 400, 0.2, 'sine'), 1000); // G
+                        playSound(523, 400, 0.2, 'sine');
+                        setTimeout(() => playSound(659, 400, 0.2, 'sine'), 500);
+                        setTimeout(() => playSound(784, 400, 0.2, 'sine'), 1000);
                     }, 2000);
                     break;
                     
@@ -1880,13 +2106,15 @@
                             clearInterval(alarmInterval);
                             return;
                         }
-                        // Pattern: emergency siren
-                        for (let i = 0; i < 3; i++) {
+                        // Sirene naik-turun
+                        let freq = 800;
+                        for (let i = 0; i < 4; i++) {
                             setTimeout(() => {
-                                playSound(1000, 100, 0.6);
+                                playSound(freq, 200, 0.5);
                             }, i * 200);
+                            freq = freq === 800 ? 1200 : 800;
                         }
-                    }, 1000);
+                    }, 1500);
                     break;
                     
                 case 'vibrate':
@@ -1895,9 +2123,9 @@
                             clearInterval(alarmInterval);
                             return;
                         }
-                        // Pattern: vibration-like pulses
+                        // Pola getar
                         playSound(200, 50, 0.3);
-                        setTimeout(() => playSound(200, 50, 0.3), 100);
+                        setTimeout(() => playSound(150, 50, 0.3), 100);
                         setTimeout(() => playSound(200, 50, 0.3), 200);
                     }, 500);
                     break;
@@ -1908,18 +2136,18 @@
                             clearInterval(alarmInterval);
                             return;
                         }
-                        // Pattern: melodic sequence
-                        const melody = [523, 587, 659, 698, 784, 880, 988, 1047]; // C scale
+                        // Melodi sederhana
+                        const melody = [523, 587, 659, 698, 784, 880, 988, 1047];
                         melody.forEach((note, index) => {
                             setTimeout(() => {
-                                playSound(note, 150, 0.4, 'sine');
-                            }, index * 150);
+                                playSound(note, 200, 0.3, 'sine');
+                            }, index * 200);
                         });
-                    }, 3000);
+                    }, 2000);
                     break;
                     
                 case 'silent':
-                    // No sound
+                    // Tidak ada suara
                     break;
             }
             
@@ -1942,178 +2170,23 @@
             return alarmKey;
         }
 
-        function setAlarmMode(mode) {
-            currentAlarmMode = mode;
-            
-            // Update UI buttons
-            document.querySelectorAll('.mode-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            document.getElementById(`mode-${mode}`).classList.add('active');
-            
-            showNotification('🔔 Mode Alarm Diubah', `Mode alarm diubah ke: ${getModeDisplayName(mode)}`);
-            playSound(800, 100, 0.2);
-        }
-
-        function setAlarmDuration(duration) {
-            alarmDuration = duration;
-            
-            // Update UI buttons
-            document.querySelectorAll('.mode-btn').forEach(btn => {
-                if (btn.id.startsWith('duration-')) {
-                    btn.classList.remove('active');
-                }
-            });
-            document.getElementById(`duration-${duration}`).classList.add('active');
-            
-            showNotification('⏱️ Durasi Diubah', `Durasi alarm: ${getDurationDisplay(duration)}`);
-        }
-
-        function getModeDisplayName(mode) {
-            const names = {
-                'standard': 'Standard',
-                'gentle': 'Lembut',
-                'emergency': 'Darurat',
-                'vibrate': 'Getar',
-                'melodic': 'Melodi',
-                'silent': 'Diam'
-            };
-            return names[mode] || mode;
-        }
-
-        function getDurationDisplay(duration) {
-            if (duration === 0) return 'Sampai Dimatikan';
-            if (duration === 10) return '10 Detik';
-            if (duration === 30) return '30 Detik';
-            if (duration === 60) return '1 Menit';
-            return `${duration} Detik`;
-        }
-
-        // ========== TEST FUNCTIONS ==========
-        function testCurrentMode() {
-            const testPasaran = "TEST MODE - " + getModeDisplayName(currentAlarmMode).toUpperCase();
-            showModal(testPasaran);
-            showNotification('🔔 Test Mode Alarm', `Menguji mode: ${getModeDisplayName(currentAlarmMode)}`);
-        }
-
-        function testAlarm() {
-            const testPasaran = "TEST ALARM";
-            showModal(testPasaran);
-            showNotification('🔔 Test Alarm', 'Menguji notifikasi alarm standar');
-            playAlarmSound(testPasaran);
-        }
-
-        // ========== SETTINGS MANAGEMENT ==========
-        function saveAlarmSettings() {
-            const settings = {
-                mode: currentAlarmMode,
-                duration: alarmDuration
-            };
-            localStorage.setItem('oceanAlarmSettings', JSON.stringify(settings));
-            showNotification('💾 Pengaturan Tersimpan', 'Mode alarm telah disimpan');
-            playSound(1000, 100, 0.2);
-        }
-
-        function loadAlarmSettings() {
-            const saved = localStorage.getItem('oceanAlarmSettings');
-            if (saved) {
-                const settings = JSON.parse(saved);
-                currentAlarmMode = settings.mode || 'standard';
-                alarmDuration = settings.duration || 30;
-                
-                // Update UI
-                setAlarmMode(currentAlarmMode);
-                setAlarmDuration(alarmDuration);
-            }
-        }
-
-        function resetAlarmSettings() {
-            currentAlarmMode = 'standard';
-            alarmDuration = 30;
-            
-            setAlarmMode('standard');
-            setAlarmDuration(30);
-            
-            localStorage.removeItem('oceanAlarmSettings');
-            showNotification('🔄 Pengaturan Direset', 'Mode alarm dikembalikan ke default');
-            playSound(800, 100, 0.2);
-        }
-
-        // ========== ALARM TRIGGER FUNCTION ==========
-        function checkResultTime() {
-            if (!alarmEnabled) return;
-            
-            const now = new Date();
-            const currentTime = now.getHours() * 60 + now.getMinutes();
-            const currentSeconds = now.getSeconds();
-            
-            // Cek setiap detik untuk akurasi yang lebih baik
-            scheduleData.forEach(schedule => {
-                const [resultHour, resultMinute] = schedule.jamResult.split(':').map(Number);
-                const resultTime = resultHour * 60 + resultMinute;
-                
-                // Buat key unik untuk alarm
-                const alarmKey = `${schedule.pasaran}-${resultHour}:${resultMinute}`;
-                
-                // Jika waktu saat ini sama dengan waktu result dan alarm belum dipicu
-                if (currentTime === resultTime && currentSeconds === 0 && !triggeredAlarms.has(alarmKey)) {
-                    triggeredAlarms.add(alarmKey);
-                    triggerAlarm(schedule);
-                    
-                    // Hapus dari triggeredAlarms setelah 1 menit untuk mencegah trigger berulang
-                    setTimeout(() => {
-                        triggeredAlarms.delete(alarmKey);
-                    }, 60000);
-                }
-            });
-        }
-
-        function triggerAlarm(schedule) {
-            if (!alarmEnabled) return;
-            
-            console.log(`🔔 ALARM: Result ${schedule.pasaran} telah keluar!`);
-            
-            // Tampilkan modal
-            showModal(schedule.pasaran);
-            
-            // Tampilkan notifikasi
-            showNotification('⏰ RESULT TELAH KELUAR!', `Result ${schedule.pasaran} telah keluar pada pukul ${schedule.jamResult} WIB!`, 10000);
-            
-            // Mainkan suara alarm berdasarkan mode
-            playAlarmSound(schedule.pasaran);
-            
-            // Tambahkan efek visual pada card yang sesuai
-            highlightResultCard(schedule.pasaran);
-        }
-
-        function highlightResultCard(pasaranName) {
-            const cards = document.querySelectorAll('.schedule-card');
-            cards.forEach(card => {
-                const pasaranElement = card.querySelector('.pasaran-name');
-                if (pasaranElement && pasaranElement.textContent === pasaranName) {
-                    card.classList.add('result-alarm');
-                    
-                    // Hentikan efek setelah 10 detik
-                    setTimeout(() => {
-                        card.classList.remove('result-alarm');
-                    }, 10000);
-                }
-            });
-        }
-
         // ========== UTILITY FUNCTIONS ==========
         function showNotification(title, message, duration = 5000) {
             notificationMessage.textContent = message;
             notification.classList.add('show');
             
+            // Mainkan suara notifikasi jika suara aktif
+            if (soundEnabled && currentAlarmMode !== 'silent') {
+                playSound(800, 100, 0.2);
+            }
+            
+            // Browser notifications
             if (browserNotificationsEnabled && 'Notification' in window && Notification.permission === 'granted') {
                 new Notification(title, {
                     body: message,
                     icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iOCIgZmlsbD0iIzAwYmNkNCIvPgo8cGF0aCBkPSJNMzIgMTZWMzJIMTZWMzZIMzJWNTJIMzZWMzZINTJWMzJIMzZWMjBIMzJWMTZaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K'
                 });
             }
-            
-            playSound(1000, 100);
             
             setTimeout(() => {
                 notification.classList.remove('show');
@@ -2156,7 +2229,15 @@
             alarmModal.style.display = 'flex';
             
             // Mainkan alarm sound
-            playAlarmSound(pasaran);
+            const alarmKey = playAlarmSound(pasaran);
+            
+            // Auto close modal jika durasi terbatas
+            if (alarmDuration > 0) {
+                setTimeout(() => {
+                    closeModal();
+                    stopAlarm(alarmKey);
+                }, alarmDuration * 1000 + 1000);
+            }
         }
 
         function closeModal() {
@@ -2245,6 +2326,11 @@
             const card = document.createElement('div');
             card.className = `schedule-card ${status === 'active' ? 'active' : ''}`;
             card.style.animationDelay = `${index * 0.05}s`;
+            card.dataset.pasaran = schedule.pasaran;
+            
+            // Tambahkan class berdasarkan kategori
+            const categoryClass = schedule.category.toLowerCase().replace(/[^a-z0-9]/g, '-');
+            card.classList.add(`category-${categoryClass}`);
             
             let linksHTML = '';
             if (schedule.linkSitus || schedule.linkStreaming) {
@@ -2252,15 +2338,18 @@
                 <div class="links-section">
                     <div class="link-buttons">
                         ${schedule.linkSitus ? `
-                        <a href="${schedule.linkSitus}" target="_blank" class="link-btn">
+                        <a href="${schedule.linkSitus}" target="_blank" class="link-btn" onclick="event.stopPropagation(); trackLinkClick('${schedule.pasaran}', 'situs')">
                             <i class="fas fa-globe"></i> Situs
                         </a>
                         ` : ''}
                         ${schedule.linkStreaming ? `
-                        <a href="${schedule.linkStreaming}" target="_blank" class="link-btn">
+                        <a href="${schedule.linkStreaming}" target="_blank" class="link-btn" onclick="event.stopPropagation(); trackLinkClick('${schedule.pasaran}', 'streaming')">
                             <i class="fas fa-video"></i> Live
                         </a>
                         ` : ''}
+                        <button class="link-btn" onclick="event.stopPropagation(); setReminder('${schedule.pasaran}')">
+                            <i class="fas fa-bell"></i> Ingatkan
+                        </button>
                     </div>
                 </div>
                 `;
@@ -2272,9 +2361,13 @@
             card.innerHTML = `
                 <div class="card-header">
                     <div class="pasaran-info">
-                        <div class="pasaran-name">${schedule.pasaran}</div>
+                        <div class="pasaran-name">
+                            ${schedule.pasaran}
+                            <span class="time-badge">${schedule.jamResult}</span>
+                        </div>
                         <div class="pasaran-category">
                             <i class="fas fa-globe"></i> ${schedule.category}
+                            <span class="time-zone">WIB</span>
                         </div>
                     </div>
                     <div class="status-badge ${status}">
@@ -2284,22 +2377,34 @@
                 <div class="time-section">
                     <div class="time-box">
                         <div class="time-label">
-                            <i class="fas fa-lock"></i> Betclosed
+                            <i class="fas fa-lock"></i> Tutup Taruhan
                         </div>
                         <div class="time-value">${schedule.jamBetclosed}</div>
+                        <div class="time-subtext">WIB</div>
                     </div>
                     <div class="time-box">
                         <div class="time-label">
-                            <i class="fas fa-trophy"></i> Result
+                            <i class="fas fa-trophy"></i> Keluaran Result
                         </div>
                         <div class="time-value">${schedule.jamResult}</div>
+                        <div class="time-subtext">WIB</div>
                     </div>
                 </div>
                 ${linksHTML}
                 <div class="countdown-timer">
-                    ${countdownText}
+                    <i class="fas fa-clock"></i>
+                    <span id="countdown-${schedule.pasaran.replace(/[^a-zA-Z0-9]/g, '-')}">${countdownText}</span>
                 </div>
             `;
+            
+            // Tambahkan event listener untuk klik card
+            card.addEventListener('click', () => {
+                selectPasaran(schedule);
+                card.style.animation = 'pulse 1s ease 2';
+                setTimeout(() => {
+                    card.style.animation = '';
+                }, 2000);
+            });
             
             return card;
         }
@@ -2321,6 +2426,7 @@
                         const status = getStatus(schedule);
                         if (currentFilter === 'active') return status === 'active';
                         if (currentFilter === 'upcoming') return status === 'upcoming';
+                        if (currentFilter === 'passed') return status === 'passed';
                         return true;
                     });
                 }
@@ -2330,9 +2436,23 @@
                 if (searchTerm) {
                     filteredSchedules = filteredSchedules.filter(schedule =>
                         schedule.pasaran.toLowerCase().includes(searchTerm) ||
-                        schedule.category.toLowerCase().includes(searchTerm)
+                        schedule.category.toLowerCase().includes(searchTerm) ||
+                        schedule.jamBetclosed.toLowerCase().includes(searchTerm) ||
+                        schedule.jamResult.toLowerCase().includes(searchTerm)
                     );
                 }
+            }
+            
+            // Tampilkan pesan jika tidak ada hasil
+            if (filteredSchedules.length === 0) {
+                scheduleGrid.innerHTML = `
+                    <div class="no-results" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                        <i class="fas fa-search" style="font-size: 3rem; color: var(--cyan); margin-bottom: 20px;"></i>
+                        <h3 style="color: var(--text); margin-bottom: 10px;">Tidak ada hasil ditemukan</h3>
+                        <p style="color: var(--text-secondary);">Coba dengan kata kunci lain atau filter yang berbeda</p>
+                    </div>
+                `;
+                return;
             }
             
             // Sort by time
@@ -2374,15 +2494,26 @@
                 else completedCount++;
             });
             
+            // Update link clicks count
+            const clicks = JSON.parse(localStorage.getItem('linkClicks') || '[]');
+            linkClickCount = clicks.length;
+            
             document.getElementById('total-pasaran').textContent = scheduleData.length;
             document.getElementById('active-count').textContent = activeCount;
             document.getElementById('upcoming-count').textContent = upcomingCount;
             document.getElementById('completed-count').textContent = completedCount;
+            document.getElementById('alarm-count').textContent = activeAlarms.size;
+            document.getElementById('link-clicks').textContent = linkClickCount;
         }
 
         // ========== DROPDOWN FUNCTIONS ==========
         function renderDropdownItems(items = scheduleData) {
             dropdownList.innerHTML = '';
+            
+            if (items.length === 0) {
+                dropdownList.innerHTML = '<div class="dropdown-item"><div class="dropdown-item-content"><div class="dropdown-item-name">Tidak ditemukan</div><div class="dropdown-item-time">Cari dengan kata kunci lain</div></div></div>';
+                return;
+            }
             
             items.forEach(schedule => {
                 const item = document.createElement('div');
@@ -2391,17 +2522,31 @@
                 // Store schedule data as a data attribute
                 item.dataset.schedule = JSON.stringify(schedule);
                 
+                // Get status for visual indicator
+                const status = getStatus(schedule);
+                const statusColor = status === 'active' ? '#ff9800' : 
+                               status === 'upcoming' ? '#4caf50' : '#9e9e9e';
+                const statusIcon = status === 'active' ? 'fa-clock' : 
+                              status === 'upcoming' ? 'fa-hourglass-half' : 'fa-check-circle';
+                
                 item.innerHTML = `
                     <div class="dropdown-item-content">
                         <div class="dropdown-item-name">${schedule.pasaran}</div>
-                        <div class="dropdown-item-time">Tutup Pasaran Pukul ${schedule.jamBetclosed} WIB Dan Keluaran Nomor Result Pukul ${schedule.jamResult} WIB.</div>
+                        <div class="dropdown-item-time">
+                            <i class="fas ${statusIcon}" style="color: ${statusColor}; margin-right: 5px;"></i>
+                            Tutup: ${schedule.jamBetclosed} | Result: ${schedule.jamResult}
+                        </div>
+                        <div class="dropdown-item-time">
+                            <i class="fas fa-globe" style="color: var(--cyan); margin-right: 5px;"></i>
+                            ${schedule.category}
+                        </div>
                     </div>
                     <div class="dropdown-item-actions">
-                        <button class="dropdown-item-btn copy" onclick="copyPasaranData(this)">
-                            <i class="fas fa-copy"></i> Copy
+                        <button class="dropdown-item-btn copy" onclick="copyPasaranData(this)" title="Salin informasi">
+                            <i class="fas fa-copy"></i>
                         </button>
-                        <button class="dropdown-item-btn select" onclick="selectPasaranFromItem(this)">
-                            <i class="fas fa-check"></i> Pilih
+                        <button class="dropdown-item-btn select" onclick="selectPasaranFromItem(this)" title="Pilih pasaran">
+                            <i class="fas fa-check"></i>
                         </button>
                     </div>
                 `;
@@ -2491,7 +2636,9 @@
             const searchTerm = dropdownSearchInput.value.toLowerCase();
             const filteredItems = scheduleData.filter(schedule => 
                 schedule.pasaran.toLowerCase().includes(searchTerm) ||
-                schedule.category.toLowerCase().includes(searchTerm)
+                schedule.category.toLowerCase().includes(searchTerm) ||
+                schedule.jamBetclosed.toLowerCase().includes(searchTerm) ||
+                schedule.jamResult.toLowerCase().includes(searchTerm)
             );
             renderDropdownItems(filteredItems);
         }
@@ -2514,6 +2661,9 @@
             if (tabName === 'stats') {
                 updateStats();
             }
+            
+            // Mainkan efek suara
+            playSound(800, 100, 0.1);
         }
 
         // ========== FILTER FUNCTIONS ==========
@@ -2528,7 +2678,250 @@
             });
             event.target.classList.add('active');
             
+            // Reset search input
+            searchInput.value = '';
+            
             renderSchedules();
+            
+            // Mainkan efek suara
+            playSound(600, 100, 0.1);
+        }
+
+        // ========== ALARM TRIGGER FUNCTION ==========
+        function checkResultTime() {
+            if (!alarmEnabled) return;
+            
+            const now = new Date();
+            const currentTime = now.getHours() * 60 + now.getMinutes();
+            const currentSeconds = now.getSeconds();
+            
+            // Cek setiap detik untuk akurasi yang lebih baik
+            scheduleData.forEach(schedule => {
+                const [resultHour, resultMinute] = schedule.jamResult.split(':').map(Number);
+                const resultTime = resultHour * 60 + resultMinute;
+                
+                // Buat key unik untuk alarm
+                const alarmKey = `${schedule.pasaran}-${resultHour}:${resultMinute}`;
+                
+                // Jika waktu saat ini sama dengan waktu result dan alarm belum dipicu
+                if (currentTime === resultTime && currentSeconds === 0 && !triggeredAlarms.has(alarmKey)) {
+                    triggeredAlarms.add(alarmKey);
+                    triggerAlarm(schedule);
+                    
+                    // Hapus dari triggeredAlarms setelah 1 menit untuk mencegah trigger berulang
+                    setTimeout(() => {
+                        triggeredAlarms.delete(alarmKey);
+                    }, 60000);
+                }
+            });
+        }
+
+        function triggerAlarm(schedule) {
+            if (!alarmEnabled) return;
+            
+            console.log(`🔔 ALARM: Result ${schedule.pasaran} telah keluar!`);
+            
+            // Tampilkan modal
+            showModal(schedule.pasaran);
+            
+            // Tampilkan notifikasi
+            showNotification('⏰ RESULT TELAH KELUAR!', `Result ${schedule.pasaran} telah keluar pada pukul ${schedule.jamResult} WIB!`, 10000);
+            
+            // Mainkan suara alarm berdasarkan mode
+            playAlarmSound(schedule.pasaran);
+            
+            // Tambahkan efek visual pada card yang sesuai
+            highlightResultCard(schedule.pasaran);
+        }
+
+        function highlightResultCard(pasaranName) {
+            const cards = document.querySelectorAll('.schedule-card');
+            cards.forEach(card => {
+                const pasaranElement = card.querySelector('.pasaran-name');
+                if (pasaranElement && pasaranElement.textContent === pasaranName) {
+                    card.classList.add('result-alarm');
+                    
+                    // Hentikan efek setelah 10 detik
+                    setTimeout(() => {
+                        card.classList.remove('result-alarm');
+                    }, 10000);
+                }
+            });
+        }
+
+        // ========== NEW FEATURES ==========
+
+        // Fungsi untuk tracking klik link
+        function trackLinkClick(pasaranName, linkType) {
+            console.log(`Link ${linkType} diklik untuk pasaran: ${pasaranName}`);
+            playSound(1000, 100, 0.2);
+            
+            // Simpan ke localStorage
+            const clickData = {
+                pasaran: pasaranName,
+                type: linkType,
+                timestamp: new Date().toISOString()
+            };
+            
+            let clicks = JSON.parse(localStorage.getItem('linkClicks') || '[]');
+            clicks.push(clickData);
+            localStorage.setItem('linkClicks', JSON.stringify(clicks.slice(-100))); // Simpan 100 klik terakhir
+            
+            updateStats();
+        }
+
+        // Fungsi untuk set reminder
+        function setReminder(pasaranName) {
+            if (!('Notification' in window)) {
+                showNotification('⚠️ Browser Tidak Mendukung', 'Browser Anda tidak mendukung notifikasi');
+                return;
+            }
+            
+            if (Notification.permission !== 'granted') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        setReminder(pasaranName);
+                    }
+                });
+                return;
+            }
+            
+            // Cari jadwal
+            const schedule = scheduleData.find(s => s.pasaran === pasaranName);
+            if (!schedule) {
+                showNotification('❌ Error', 'Pasaran tidak ditemukan');
+                return;
+            }
+            
+            // Simpan reminder
+            const reminder = {
+                pasaran: pasaranName,
+                time: schedule.jamResult,
+                timestamp: Date.now()
+            };
+            
+            let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+            reminders.push(reminder);
+            localStorage.setItem('reminders', JSON.stringify(reminders));
+            
+            showNotification('✅ Reminder Diset', `Akan diingatkan saat ${pasaranName} result`);
+            playSound(1200, 200, 0.3);
+        }
+
+        // Fungsi untuk update countdown real-time
+        function updateAllCountdowns() {
+            scheduleData.forEach(schedule => {
+                const countdownElement = document.getElementById(`countdown-${schedule.pasaran.replace(/[^a-zA-Z0-9]/g, '-')}`);
+                if (countdownElement) {
+                    const status = getStatus(schedule);
+                    if (status === 'passed') {
+                        countdownElement.textContent = 'Selesai';
+                    } else if (status === 'active') {
+                        countdownElement.textContent = 'Sedang Berlangsung';
+                    } else {
+                        countdownElement.textContent = getCountdown(schedule);
+                    }
+                }
+            });
+        }
+
+        // Fungsi untuk export data
+        function exportScheduleData() {
+            const dataStr = JSON.stringify(scheduleData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `ocean-togel-schedule-${new Date().toISOString().split('T')[0]}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            showNotification('📊 Data Diexport', 'Jadwal berhasil diexport ke file JSON');
+            playSound(800, 200, 0.2);
+        }
+
+        // Fungsi untuk import data
+        function importScheduleData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // Validasi data
+                    if (!Array.isArray(importedData)) {
+                        throw new Error('Format data tidak valid');
+                    }
+                    
+                    // Tambahkan data baru
+                    importedData.forEach(newSchedule => {
+                        const exists = scheduleData.some(s => s.pasaran === newSchedule.pasaran);
+                        if (!exists) {
+                            scheduleData.push(newSchedule);
+                        }
+                    });
+                    
+                    renderSchedules();
+                    renderDropdownItems();
+                    showNotification('📊 Data Diimport', `${importedData.length} pasaran berhasil diimport`);
+                    playSound(1000, 200, 0.3);
+                } catch (error) {
+                    showNotification('❌ Error Import', 'Format file tidak valid');
+                    console.error('Import error:', error);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ========== ALARM MODE FUNCTIONS ==========
+        function setAlarmMode(mode) {
+            currentAlarmMode = mode;
+            
+            // Update UI buttons
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`mode-${mode}`).classList.add('active');
+            
+            showNotification('🔔 Mode Alarm Diubah', `Mode alarm diubah ke: ${getModeDisplayName(mode)}`);
+            playSound(800, 100, 0.2);
+        }
+
+        function setAlarmDuration(duration) {
+            alarmDuration = duration;
+            
+            // Update UI buttons
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                if (btn.id.startsWith('duration-')) {
+                    btn.classList.remove('active');
+                }
+            });
+            document.getElementById(`duration-${duration}`).classList.add('active');
+            
+            showNotification('⏱️ Durasi Diubah', `Durasi alarm: ${getDurationDisplay(duration)}`);
+        }
+
+        function getModeDisplayName(mode) {
+            const names = {
+                'standard': 'Standard',
+                'gentle': 'Lembut',
+                'emergency': 'Darurat',
+                'vibrate': 'Getar',
+                'melodic': 'Melodi',
+                'silent': 'Diam'
+            };
+            return names[mode] || mode;
+        }
+
+        function getDurationDisplay(duration) {
+            if (duration === 0) return 'Sampai Dimatikan';
+            if (duration === 10) return '10 Detik';
+            if (duration === 30) return '30 Detik';
+            if (duration === 60) return '1 Menit';
+            return `${duration} Detik`;
         }
 
         // ========== ACTION FUNCTIONS ==========
@@ -2540,13 +2933,109 @@
             if (soundEnabled) {
                 soundIcon.className = 'fas fa-volume-up';
                 soundTitle.textContent = 'Suara Aktif';
+                
+                // Coba unlock audio ketika diaktifkan
+                unlockAudio();
+                
                 showNotification('🔊 Suara Diaktifkan', 'Notifikasi suara telah diaktifkan');
-                playSound(1000, 100, 0.2);
+                
+                // Mainkan suara konfirmasi
+                setTimeout(() => playSound(1200, 150, 0.2), 100);
             } else {
                 soundIcon.className = 'fas fa-volume-mute';
                 soundTitle.textContent = 'Suara Nonaktif';
                 showNotification('🔇 Suara Dinonaktifkan', 'Notifikasi suara telah dinonaktifkan');
+                
+                // Hentikan semua suara saat dinonaktifkan
+                stopAllAlarms();
             }
+            
+            saveGeneralSettings();
+        }
+
+        function testSound() {
+            if (!soundEnabled) {
+                showNotification('🔇 Suara Dinonaktifkan', 'Aktifkan suara terlebih dahulu untuk test');
+                return;
+            }
+            
+            unlockAudio(); // Pastikan audio context aktif
+            
+            // Test suara sederhana
+            playSound(1000, 300, 0.3);
+            setTimeout(() => playSound(800, 300, 0.3), 400);
+            setTimeout(() => playSound(1200, 300, 0.3), 800);
+            
+            showNotification('🔊 Test Suara', 'Suara berfungsi dengan baik');
+        }
+
+        function testAlarm() {
+            if (!alarmEnabled) {
+                showNotification('🔕 Alarm Dinonaktifkan', 'Aktifkan alarm terlebih dahulu');
+                return;
+            }
+            
+            const testPasaran = "TEST ALARM";
+            
+            // Test audio context dulu
+            if (audioContext && audioContext.state === 'suspended') {
+                unlockAudio();
+            }
+            
+            showModal(testPasaran);
+            showNotification('🔔 Test Alarm', 'Menguji notifikasi alarm standar');
+        }
+
+        function testCurrentMode() {
+            const testPasaran = "TEST MODE - " + getModeDisplayName(currentAlarmMode).toUpperCase();
+            
+            // Tampilkan modal test
+            const modalIcon = document.getElementById('modal-icon');
+            const modalTitle = document.getElementById('modal-title');
+            
+            modalIcon.innerHTML = '<i class="fas fa-music"></i>';
+            modalTitle.textContent = 'Test Mode Alarm';
+            modalText.textContent = `Menguji mode: ${getModeDisplayName(currentAlarmMode)}`;
+            alarmModal.style.display = 'flex';
+            
+            // Mainkan suara alarm
+            const alarmKey = playAlarmSound(testPasaran);
+            
+            // Auto close modal setelah 3 detik
+            setTimeout(() => {
+                closeModal();
+                stopAlarm(alarmKey);
+            }, 3000);
+            
+            showNotification('🔔 Test Mode Alarm', `Menguji mode: ${getModeDisplayName(currentAlarmMode)}`);
+        }
+
+        function testAllFeatures() {
+            showNotification('🧪 Test Semua Fitur', 'Menguji semua fungsi aplikasi...');
+            
+            // Test suara
+            testSound();
+            
+            // Test notifikasi
+            setTimeout(() => {
+                showNotification('🔔 Test Notifikasi', 'Ini adalah test notifikasi');
+            }, 1000);
+            
+            // Test alarm
+            setTimeout(() => {
+                testAlarm();
+            }, 2000);
+            
+            // Test efek visual
+            setTimeout(() => {
+                const card = document.querySelector('.schedule-card');
+                if (card) {
+                    card.classList.add('result-alarm');
+                    setTimeout(() => {
+                        card.classList.remove('result-alarm');
+                    }, 3000);
+                }
+            }, 3000);
         }
 
         function toggleAlarmMode() {
@@ -2558,14 +3047,20 @@
                 alarmIcon.className = 'fas fa-alarm-clock';
                 alarmTitle.textContent = 'Alarm Aktif';
                 showNotification('🔔 Alarm Diaktifkan', 'Alarm result akan berbunyi saat waktu result tiba');
-                playSound(1000, 100, 0.2);
+                
+                // Unlock audio dan mainkan suara konfirmasi
+                unlockAudio();
+                setTimeout(() => playSound(1000, 100, 0.2), 100);
             } else {
                 alarmIcon.className = 'fas fa-bell-slash';
                 alarmTitle.textContent = 'Alarm Nonaktif';
                 showNotification('🔕 Alarm Dinonaktifkan', 'Alarm result telah dinonaktifkan');
-                // Stop semua alarm saat dinonaktifkan
+                
+                // Hentikan semua alarm saat dinonaktifkan
                 stopAllAlarms();
             }
+            
+            saveGeneralSettings();
         }
 
         function toggleBrowserNotif() {
@@ -2593,6 +3088,8 @@
                 status.textContent = 'Nonaktif';
                 showNotification('🌐 Browser Notifikasi Nonaktif', 'Notifikasi browser telah dinonaktifkan');
             }
+            
+            saveGeneralSettings();
         }
 
         function toggleDesktopNotif() {
@@ -2606,6 +3103,8 @@
                 status.textContent = 'Nonaktif';
                 showNotification('🖥️ Desktop Notifikasi Nonaktif', 'Notifikasi desktop telah dinonaktifkan');
             }
+            
+            saveGeneralSettings();
         }
 
         function toggleEffects() {
@@ -2623,6 +3122,27 @@
                 document.querySelector('.wave-container').style.display = 'none';
                 showNotification('✨ Efek Visual Nonaktif', 'Efek visual telah dinonaktifkan');
             }
+            
+            saveGeneralSettings();
+        }
+
+        function toggleDarkMode() {
+            darkModeEnabled = !darkModeEnabled;
+            const status = document.getElementById('darkmode-status');
+            
+            if (darkModeEnabled) {
+                document.documentElement.style.setProperty('--dark-blue', '#0a1929');
+                document.documentElement.style.setProperty('--text', '#ffffff');
+                status.textContent = 'Aktif';
+                showNotification('🌙 Mode Gelap Aktif', 'Tema gelap telah diaktifkan');
+            } else {
+                document.documentElement.style.setProperty('--dark-blue', '#f0f8ff');
+                document.documentElement.style.setProperty('--text', '#333333');
+                status.textContent = 'Nonaktif';
+                showNotification('☀️ Mode Terang Aktif', 'Tema terang telah diaktifkan');
+            }
+            
+            saveGeneralSettings();
         }
 
         function resetSettings() {
@@ -2631,6 +3151,7 @@
             browserNotificationsEnabled = true;
             desktopNotificationsEnabled = false;
             effectsEnabled = true;
+            darkModeEnabled = true;
             currentFilter = 'all';
             selectedPasaran = null;
             
@@ -2642,6 +3163,7 @@
             document.getElementById('browser-status').textContent = 'Aktif';
             document.getElementById('desktop-status').textContent = 'Nonaktif';
             document.getElementById('effects-status').textContent = 'Aktif';
+            document.getElementById('darkmode-status').textContent = 'Aktif';
             selectedPasaranText.textContent = 'Pilih Pasaran';
             
             // Reset filter buttons
@@ -2653,11 +3175,170 @@
             // Reset search
             searchInput.value = '';
             
+            // Reset theme
+            document.documentElement.style.setProperty('--dark-blue', '#0a1929');
+            document.documentElement.style.setProperty('--text', '#ffffff');
+            
             oceanBubbles.style.display = 'block';
             document.querySelector('.wave-container').style.display = 'block';
             
             showNotification('🔄 Pengaturan Di-reset', 'Semua pengaturan telah dikembalikan ke default');
             renderSchedules();
+            
+            saveGeneralSettings();
+        }
+
+        function clearAllData() {
+            if (confirm('Apakah Anda yakin ingin menghapus semua data lokal? Tindakan ini tidak dapat dibatalkan.')) {
+                localStorage.clear();
+                showNotification('🗑️ Data Dihapus', 'Semua data lokal telah dihapus');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            }
+        }
+
+        // ========== SETTINGS MANAGEMENT ==========
+        function saveAlarmSettings() {
+            const settings = {
+                mode: currentAlarmMode,
+                duration: alarmDuration
+            };
+            localStorage.setItem('oceanAlarmSettings', JSON.stringify(settings));
+            showNotification('💾 Pengaturan Tersimpan', 'Mode alarm telah disimpan');
+            playSound(1000, 100, 0.2);
+        }
+
+        function loadAlarmSettings() {
+            const saved = localStorage.getItem('oceanAlarmSettings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                currentAlarmMode = settings.mode || 'standard';
+                alarmDuration = settings.duration || 30;
+                
+                // Update UI
+                setAlarmMode(currentAlarmMode);
+                setAlarmDuration(alarmDuration);
+            }
+        }
+
+        function resetAlarmSettings() {
+            currentAlarmMode = 'standard';
+            alarmDuration = 30;
+            
+            setAlarmMode('standard');
+            setAlarmDuration(30);
+            
+            localStorage.removeItem('oceanAlarmSettings');
+            showNotification('🔄 Pengaturan Direset', 'Mode alarm dikembalikan ke default');
+            playSound(800, 100, 0.2);
+        }
+
+        function backupSettings() {
+            const settings = {
+                soundEnabled,
+                alarmEnabled,
+                browserNotificationsEnabled,
+                desktopNotificationsEnabled,
+                effectsEnabled,
+                darkModeEnabled,
+                currentAlarmMode,
+                alarmDuration,
+                lastBackup: new Date().toISOString()
+            };
+            
+            localStorage.setItem('oceanSettingsBackup', JSON.stringify(settings));
+            showNotification('💾 Backup Disimpan', 'Pengaturan berhasil dibackup');
+            playSound(1200, 150, 0.2);
+        }
+
+        function restoreSettings() {
+            const backup = localStorage.getItem('oceanSettingsBackup');
+            if (!backup) {
+                showNotification('❌ Tidak Ada Backup', 'Tidak ditemukan backup pengaturan');
+                return;
+            }
+            
+            const settings = JSON.parse(backup);
+            
+            soundEnabled = settings.soundEnabled || true;
+            alarmEnabled = settings.alarmEnabled || true;
+            browserNotificationsEnabled = settings.browserNotificationsEnabled || true;
+            desktopNotificationsEnabled = settings.desktopNotificationsEnabled || false;
+            effectsEnabled = settings.effectsEnabled || true;
+            darkModeEnabled = settings.darkModeEnabled !== undefined ? settings.darkModeEnabled : true;
+            currentAlarmMode = settings.currentAlarmMode || 'standard';
+            alarmDuration = settings.alarmDuration || 30;
+            
+            // Update UI
+            updateSettingsUI();
+            
+            showNotification('🔄 Settings Dipulihkan', `Backup dari ${new Date(settings.lastBackup).toLocaleDateString()}`);
+            playSound(800, 200, 0.3);
+        }
+
+        function updateSettingsUI() {
+            // Update sound icon
+            const soundIcon = document.getElementById('sound-icon');
+            const soundTitle = document.getElementById('sound-title');
+            soundIcon.className = soundEnabled ? 'fas fa-volume-up' : 'fas fa-volume-mute';
+            soundTitle.textContent = soundEnabled ? 'Suara Aktif' : 'Suara Nonaktif';
+            
+            // Update alarm icon
+            const alarmIcon = document.getElementById('alarm-icon');
+            const alarmTitle = document.getElementById('alarm-title');
+            alarmIcon.className = alarmEnabled ? 'fas fa-alarm-clock' : 'fas fa-bell-slash';
+            alarmTitle.textContent = alarmEnabled ? 'Alarm Aktif' : 'Alarm Nonaktif';
+            
+            // Update status indicators
+            document.getElementById('browser-status').textContent = browserNotificationsEnabled ? 'Aktif' : 'Nonaktif';
+            document.getElementById('desktop-status').textContent = desktopNotificationsEnabled ? 'Aktif' : 'Nonaktif';
+            document.getElementById('effects-status').textContent = effectsEnabled ? 'Aktif' : 'Nonaktif';
+            document.getElementById('darkmode-status').textContent = darkModeEnabled ? 'Aktif' : 'Nonaktif';
+            
+            // Update alarm mode
+            setAlarmMode(currentAlarmMode);
+            setAlarmDuration(alarmDuration);
+            
+            // Update theme
+            if (darkModeEnabled) {
+                document.documentElement.style.setProperty('--dark-blue', '#0a1929');
+                document.documentElement.style.setProperty('--text', '#ffffff');
+            } else {
+                document.documentElement.style.setProperty('--dark-blue', '#f0f8ff');
+                document.documentElement.style.setProperty('--text', '#333333');
+            }
+            
+            // Update effects
+            oceanBubbles.style.display = effectsEnabled ? 'block' : 'none';
+            document.querySelector('.wave-container').style.display = effectsEnabled ? 'block' : 'none';
+        }
+
+        function loadGeneralSettings() {
+            const saved = localStorage.getItem('oceanGeneralSettings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                soundEnabled = settings.soundEnabled !== undefined ? settings.soundEnabled : true;
+                alarmEnabled = settings.alarmEnabled !== undefined ? settings.alarmEnabled : true;
+                browserNotificationsEnabled = settings.browserNotificationsEnabled !== undefined ? settings.browserNotificationsEnabled : true;
+                desktopNotificationsEnabled = settings.desktopNotificationsEnabled !== undefined ? settings.desktopNotificationsEnabled : false;
+                effectsEnabled = settings.effectsEnabled !== undefined ? settings.effectsEnabled : true;
+                darkModeEnabled = settings.darkModeEnabled !== undefined ? settings.darkModeEnabled : true;
+                
+                updateSettingsUI();
+            }
+        }
+
+        function saveGeneralSettings() {
+            const settings = {
+                soundEnabled,
+                alarmEnabled,
+                browserNotificationsEnabled,
+                desktopNotificationsEnabled,
+                effectsEnabled,
+                darkModeEnabled
+            };
+            localStorage.setItem('oceanGeneralSettings', JSON.stringify(settings));
         }
 
         // ========== OCEAN EFFECTS ==========
@@ -2706,24 +3387,53 @@
             }
         });
 
+        // Audio unlock on user interaction
+        document.addEventListener('click', () => {
+            if (!audioUnlocked && audioContext && audioContext.state === 'suspended') {
+                unlockAudio();
+            }
+        });
+
+        // Tambah event listener untuk escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                dropdownTrigger.classList.remove('active');
+                dropdownMenu.classList.remove('active');
+            }
+            
+            // Shortcut Ctrl+S untuk save settings
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveAlarmSettings();
+            }
+            
+            // Shortcut Ctrl+F untuk focus search
+            if (e.ctrlKey && e.key === 'f') {
+                e.preventDefault();
+                searchInput.focus();
+            }
+            
+            // Shortcut Ctrl+T untuk test sound
+            if (e.ctrlKey && e.key === 't') {
+                e.preventDefault();
+                testSound();
+            }
+        });
+
         // ========== INITIALIZATION ==========
         function init() {
             // Load saved settings
             loadAlarmSettings();
+            loadGeneralSettings();
             
             // Request notification permission
             if ('Notification' in window && Notification.permission === 'default') {
                 Notification.requestPermission();
             }
             
-            // Initialize audio on first user interaction
-            document.addEventListener('click', () => {
-                if (!audioUnlocked) {
-                    initAudio();
-                    playSound(400, 50, 0.1);
-                    audioUnlocked = true;
-                }
-            }, { once: true });
+            // Initialize audio
+            initAudio();
             
             // Start clock
             updateClock();
@@ -2738,6 +3448,9 @@
             // Update schedules every minute
             setInterval(renderSchedules, 60000);
             
+            // Update countdowns every 30 seconds
+            setInterval(updateAllCountdowns, 30000);
+            
             // Check for result times every second
             alarmCheckInterval = setInterval(checkResultTime, 1000);
             
@@ -2748,6 +3461,18 @@
             for (let i = 0; i < 10; i++) {
                 setTimeout(createBubble, i * 200);
             }
+            
+            // Setup audio unlock after 1 second
+            setTimeout(() => {
+                if (soundEnabled && audioContext && audioContext.state === 'running') {
+                    playSound(800, 50, 0.1);
+                }
+            }, 1000);
+            
+            // Show welcome message
+            setTimeout(() => {
+                showNotification('🌊 Selamat Datang', 'Ocean Togel Schedule siap digunakan!');
+            }, 1500);
         }
 
         // Start the application
