@@ -15,6 +15,7 @@
             --brutalist-gray: #F0F0F0;
             --brutalist-dark-gray: #333333;
             --border-thick: 4px;
+            --glow-color: rgba(255, 0, 0, 0.5);
         }
 
         * {
@@ -29,7 +30,7 @@
             color: var(--brutalist-black);
             min-height: 100vh;
             overflow-x: hidden;
-            cursor: crosshair;
+            position: relative;
         }
 
         /* --- ANIMATIONS --- */
@@ -183,6 +184,58 @@
             100% { width: 100%; }
         }
 
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            25% { transform: translateY(-10px); }
+            50% { transform: translateY(0); }
+            75% { transform: translateY(-5px); }
+        }
+
+        @keyframes wave {
+            0% { transform: translateX(0) translateY(0); }
+            25% { transform: translateX(5px) translateY(-5px); }
+            50% { transform: translateX(10px) translateY(0); }
+            75% { transform: translateX(5px) translateY(5px); }
+            100% { transform: translateX(0) translateY(0); }
+        }
+
+        @keyframes rotate3d {
+            0% { transform: perspective(1000px) rotateY(0); }
+            100% { transform: perspective(1000px) rotateY(360deg); }
+        }
+
+        @keyframes textGlow {
+            0%, 100% { text-shadow: 0 0 5px var(--brutalist-red); }
+            50% { text-shadow: 0 0 20px var(--brutalist-red), 0 0 30px var(--brutalist-red); }
+        }
+
+        @keyframes borderPulse {
+            0%, 100% { border-color: var(--brutalist-black); }
+            50% { border-color: var(--brutalist-red); }
+        }
+
+        @keyframes particleFloat {
+            0% { 
+                transform: translateY(0) translateX(0) rotate(0deg); 
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% { 
+                transform: translateY(-100vh) translateX(100px) rotate(360deg); 
+                opacity: 0;
+            }
+        }
+
         /* --- LOADING SCREEN --- */
         .loading-screen {
             position: fixed;
@@ -319,6 +372,27 @@
             animation: float 3s ease-in-out infinite;
         }
 
+        /* --- PARTICLE EFFECT --- */
+        .particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: var(--brutalist-red);
+            opacity: 0.7;
+            border-radius: 50%;
+            animation: particleFloat 10s linear infinite;
+        }
+
         /* --- BRUTALIST DESIGN: Layout & Container --- */
         .container {
             max-width: 1200px;
@@ -346,6 +420,12 @@
             transform: rotate(-2deg);
             position: relative;
             animation: scaleIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.3s ease;
+        }
+
+        .logo-container:hover {
+            transform: rotate(0deg) scale(1.05);
+            box-shadow: 0 0 20px var(--glow-color);
         }
 
         .logo-container::after {
@@ -388,6 +468,7 @@
             font-weight: 500;
             outline: none;
             transition: all 0.3s ease;
+            animation: slideDown 0.8s ease 2.2s both;
         }
 
         .search-input:focus {
@@ -395,6 +476,7 @@
             color: var(--brutalist-white);
             transform: translateY(-5px);
             box-shadow: 8px 8px 0 var(--brutalist-red);
+            animation: borderPulse 1.5s infinite;
         }
 
         .search-button {
@@ -412,10 +494,12 @@
             justify-content: center;
             font-size: 1.2rem;
             transition: all 0.3s ease;
+            animation: slideRight 0.8s ease 2.3s both;
         }
 
         .search-button:hover {
-            transform: translate(2px, 2px);
+            transform: translate(2px, 2px) rotate(90deg);
+            background-color: var(--brutalist-black);
         }
 
         .search-results {
@@ -430,10 +514,12 @@
             overflow-y: auto;
             display: none;
             z-index: 100;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
 
         .search-results.active {
             display: block;
+            animation: slideDown 0.3s ease;
         }
 
         .search-result-item {
@@ -444,11 +530,30 @@
             display: flex;
             align-items: center;
             gap: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .search-result-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0;
+            background-color: var(--brutalist-red);
+            transition: width 0.3s ease;
+            z-index: -1;
         }
 
         .search-result-item:hover {
             background-color: var(--brutalist-gray);
             padding-left: 30px;
+            transform: translateX(5px);
+        }
+
+        .search-result-item:hover::before {
+            width: 5px;
         }
 
         .search-result-item:last-child {
@@ -464,6 +569,12 @@
             align-items: center;
             justify-content: center;
             font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-result-item:hover .search-result-icon {
+            transform: rotate(360deg);
+            background-color: var(--brutalist-red);
         }
 
         .search-result-content {
@@ -503,6 +614,7 @@
             position: relative;
             opacity: 0;
             animation: slideUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            overflow: hidden;
         }
 
         /* Staggered animation untuk cards */
@@ -531,9 +643,31 @@
             animation: pulse 2s infinite;
         }
 
+        .engine-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+
+        .engine-card:hover::after {
+            transform: translateX(100%);
+        }
+
         .engine-card:hover {
             transform: translateY(-15px) rotate(1deg);
             box-shadow: 15px 15px 0 var(--brutalist-red);
+            z-index: 10;
+        }
+
+        .engine-card:active {
+            transform: translateY(-10px) rotate(0.5deg);
+            box-shadow: 10px 10px 0 var(--brutalist-red);
         }
 
         .card-header {
@@ -554,6 +688,13 @@
             margin-right: 15px;
             border: 2px solid var(--brutalist-black);
             animation: float 4s ease-in-out infinite;
+            transition: all 0.3s ease;
+        }
+
+        .engine-card:hover .card-icon {
+            animation: bounce 0.5s ease infinite alternate;
+            background-color: var(--brutalist-red);
+            transform: rotate(360deg);
         }
 
         .card-title {
@@ -585,6 +726,11 @@
             font-size: 0.9rem;
             line-height: 1.4;
             color: var(--brutalist-dark-gray);
+            transition: all 0.3s ease;
+        }
+
+        .engine-card:hover .card-description {
+            color: var(--brutalist-black);
         }
 
         .card-stats {
@@ -601,11 +747,34 @@
             border: 2px solid var(--brutalist-black);
             flex: 1;
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--brutalist-black);
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            z-index: -1;
         }
 
         .engine-card:hover .stat-item {
             transform: scale(1.1);
-            background-color: var(--brutalist-black);
+            background-color: var(--brutalist-gray);
+            color: var(--brutalist-black);
+        }
+
+        .engine-card:hover .stat-item::before {
+            transform: translateY(0);
+        }
+
+        .engine-card:hover .stat-item {
             color: var(--brutalist-white);
         }
 
@@ -614,6 +783,12 @@
             font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .engine-card:hover .stat-value {
+            transform: scale(1.2);
+            animation: textGlow 1.5s infinite;
         }
 
         .stat-label {
@@ -650,6 +825,39 @@
             transition: left 0.6s ease;
         }
 
+        .card-button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+
+        .card-button:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 1;
+            }
+            20% {
+                transform: scale(25, 25);
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(40, 40);
+            }
+        }
+
         .card-button:hover {
             background-color: var(--brutalist-red);
             transform: translateY(-5px);
@@ -659,6 +867,11 @@
 
         .card-button:hover::before {
             left: 100%;
+        }
+
+        .card-button:active {
+            transform: translateY(-2px);
+            box-shadow: 2px 2px 0 var(--brutalist-black);
         }
 
         /* --- BRUTALIST DESIGN: Terminal --- */
@@ -676,6 +889,7 @@
             max-height: 200px;
             overflow-y: auto;
             display: none;
+            box-shadow: 0 0 20px var(--glow-color);
         }
 
         .terminal.active {
@@ -696,6 +910,7 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
+            animation: flicker 2s infinite;
         }
 
         .terminal-close {
@@ -718,12 +933,15 @@
             margin-bottom: 8px;
             display: flex;
             align-items: flex-start;
+            opacity: 0;
+            animation: fadeIn 0.3s ease forwards;
         }
 
         .terminal-prompt {
             color: var(--brutalist-red);
             margin-right: 10px;
             font-weight: 700;
+            animation: pulse 1.5s infinite;
         }
 
         /* --- BRUTALIST DESIGN: Status Bar --- */
@@ -742,12 +960,14 @@
             font-size: 0.9rem;
             z-index: 100;
             font-family: 'JetBrains Mono', monospace;
+            animation: slideUp 0.8s ease 2.5s both;
         }
 
         .status-item {
             display: flex;
             align-items: center;
             gap: 10px;
+            position: relative;
         }
 
         .status-indicator {
@@ -755,6 +975,11 @@
             height: 12px;
             background-color: var(--brutalist-red);
             border: 2px solid var(--brutalist-white);
+            animation: pulse 2s infinite;
+        }
+
+        .status-item:hover .status-indicator {
+            animation: shake 0.5s ease infinite;
         }
 
         /* --- BRUTALIST DESIGN: Responsive Design --- */
@@ -777,6 +1002,11 @@
             
             .loading-bar-container {
                 width: 300px;
+            }
+
+            .status-bar {
+                flex-direction: column;
+                gap: 10px;
             }
         }
     </style>
@@ -803,6 +1033,9 @@
         <div class="geometric-shape shape-3"></div>
         <div class="geometric-shape shape-4"></div>
     </div>
+
+    <!-- Particle Effect -->
+    <div class="particle-container" id="particleContainer"></div>
 
     <div class="container">
         <!-- Header -->
@@ -1192,12 +1425,47 @@
                         loadingPercentage.textContent = "SELESAI!";
                         setTimeout(() => {
                             loadingScreen.classList.add('hidden');
+                            // Initialize particles after loading
+                            initParticles();
                         }, 500);
                     }, 300);
                 } else {
                     loadingPercentage.textContent = `MEMUAT... ${Math.floor(percent)}%`;
                 }
             }, 100);
+        }
+
+        // Particle Effect
+        function initParticles() {
+            const particleContainer = document.getElementById('particleContainer');
+            const particleCount = 20;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Random position
+                const posX = Math.random() * window.innerWidth;
+                const posY = Math.random() * window.innerHeight;
+                
+                // Random size
+                const size = Math.random() * 10 + 5;
+                
+                // Random animation delay
+                const delay = Math.random() * 10;
+                
+                // Random animation duration
+                const duration = Math.random() * 10 + 10;
+                
+                particle.style.left = `${posX}px`;
+                particle.style.top = `${posY}px`;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.animationDelay = `${delay}s`;
+                particle.style.animationDuration = `${duration}s`;
+                
+                particleContainer.appendChild(particle);
+            }
         }
 
         function performSearch() {
@@ -1275,11 +1543,48 @@
                     performSearch();
                 }
             });
+
+            // --- Scroll animations ---
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all cards for scroll animation
+            document.querySelectorAll('.engine-card').forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                observer.observe(card);
+            });
         });
 
         function toggleTerminal() {
             const terminal = document.getElementById('terminal');
             terminal.classList.toggle('active');
+            
+            // Add a new line to terminal when opened
+            if (terminal.classList.contains('active')) {
+                const terminalContent = document.getElementById('terminalContent');
+                const commandLine = document.createElement('div');
+                commandLine.className = 'terminal-line';
+                commandLine.innerHTML = `
+                    <span class="terminal-prompt">></span>
+                    <span>TERMINAL DIBUKA</span>
+                `;
+                terminalContent.appendChild(commandLine);
+                terminalContent.scrollTop = terminalContent.scrollHeight;
+            }
         }
 
         function activateMachine(event, url, machineName) {
@@ -1294,6 +1599,9 @@
             // Temporarily change button text
             button.textContent = 'MEMBUKA...';
             button.disabled = true;
+            
+            // Add animation to card
+            event.currentTarget.style.animation = 'pulse 0.5s ease';
             
             // Update Terminal
             const terminalContent = document.getElementById('terminalContent');
@@ -1314,6 +1622,9 @@
                 button.textContent = originalText;
                 button.disabled = false;
                 
+                // Reset card animation
+                event.currentTarget.style.animation = '';
+                
                 // Update terminal with completion message
                 const completionLine = document.createElement('div');
                 completionLine.className = 'terminal-line';
@@ -1332,6 +1643,15 @@
                 toggleTerminal();
                 e.preventDefault();
             }
+        });
+
+        // Add glitch effect to logo on hover
+        document.querySelector('.logo-container').addEventListener('mouseenter', function() {
+            this.style.animation = 'glitch 0.3s ease';
+        });
+
+        document.querySelector('.logo-container').addEventListener('mouseleave', function() {
+            this.style.animation = '';
         });
     </script>
 </body>
