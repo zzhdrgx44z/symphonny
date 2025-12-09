@@ -1211,6 +1211,77 @@
             font-size: 0.8rem;
         }
 
+        /* Volume Control */
+        .volume-control {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 15px;
+            padding: 15px;
+            width: 200px;
+            z-index: 100;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .volume-control.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .volume-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .volume-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .volume-slider {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+            margin: 10px 0;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--cyan);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 188, 212, 0.5);
+        }
+
+        .volume-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--cyan);
+            cursor: pointer;
+            border: none;
+        }
+
+        .volume-value {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
         /* Animations */
         @keyframes floatUp {
             0% {
@@ -1431,7 +1502,7 @@
                 width: fit-content;
             }
             
-            .keyboard-hint {
+            .keyboard-hint, .volume-control {
                 display: none;
             }
         }
@@ -1474,6 +1545,16 @@
         <div class="notification-message" id="notification-message">Pesan notifikasi</div>
     </div>
     
+    <!-- VOLUME CONTROL -->
+    <div class="volume-control" id="volume-control">
+        <div class="volume-header">
+            <div class="volume-title">Volume Notifikasi</div>
+            <i class="fas fa-times" onclick="toggleVolumeControl()" style="cursor: pointer; color: var(--cyan);"></i>
+        </div>
+        <input type="range" min="0" max="100" value="70" class="volume-slider" id="volume-slider">
+        <div class="volume-value" id="volume-value">70%</div>
+    </div>
+    
     <!-- MODAL -->
     <div class="modal" id="alarm-modal">
         <div class="modal-content">
@@ -1496,6 +1577,9 @@
                     <div class="clock" id="live-clock">00:00:00</div>
                 </div>
                 <p style="color: var(--text-secondary); margin-top: 10px;">Dashboard Ocean untuk Melacak Jadwal Togel</p>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 5px;">
+                    <i class="fas fa-volume-up"></i> Sound System Premium Activated
+                </p>
             </div>
         </header>
         
@@ -1854,6 +1938,9 @@
                     <button onclick="testAllFeatures()" style="padding: 10px 20px; background: var(--gradient3); border: none; border-radius: 10px; color: white; cursor: pointer;">
                         <i class="fas fa-vial"></i> Test Semua Fitur
                     </button>
+                    <button onclick="toggleVolumeControl()" style="padding: 10px 20px; background: var(--gradient2); border: none; border-radius: 10px; color: white; cursor: pointer; margin-left: 10px;">
+                        <i class="fas fa-sliders-h"></i> Volume
+                    </button>
                 </div>
             </div>
         </div>
@@ -1889,7 +1976,8 @@
         <div style="font-size: 0.8rem;">
             <span class="keyboard-shortcut">Ctrl</span> + <span class="keyboard-shortcut">F</span> - Cari pasaran<br>
             <span class="keyboard-shortcut">Esc</span> - Tutup modal/dropdown<br>
-            <span class="keyboard-shortcut">Ctrl</span> + <span class="keyboard-shortcut">S</span> - Simpan pengaturan
+            <span class="keyboard-shortcut">Ctrl</span> + <span class="keyboard-shortcut">S</span> - Simpan pengaturan<br>
+            <span class="keyboard-shortcut">Ctrl</span> + <span class="keyboard-shortcut">V</span> - Volume control
         </div>
     </div>
     
@@ -1979,6 +2067,7 @@
         let alarmCheckInterval = null;
         let triggeredAlarms = new Set();
         let linkClickCount = 0;
+        let globalVolume = 0.7; // Default volume 70%
 
         // ========== PENGATURAN MODE ALARM ==========
         let currentAlarmMode = 'standard';
@@ -1993,6 +2082,9 @@
         const notificationMessage = document.getElementById('notification-message');
         const searchInput = document.getElementById('search-input');
         const oceanBubbles = document.getElementById('ocean-bubbles');
+        const volumeControl = document.getElementById('volume-control');
+        const volumeSlider = document.getElementById('volume-slider');
+        const volumeValue = document.getElementById('volume-value');
         
         // Dropdown elements
         const dropdownTrigger = document.getElementById('dropdown-trigger');
@@ -2001,12 +2093,12 @@
         const dropdownSearchInput = document.getElementById('dropdown-search-input');
         const selectedPasaranText = document.getElementById('selected-pasaran');
 
-        // ========== SOUND SYSTEM IMPROVEMENT ==========
+        // ========== SOUND SYSTEM PREMIUM ==========
         function initAudio() {
             if (!audioContext) {
                 try {
                     audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    console.log('AudioContext created successfully');
+                    console.log('🎵 AudioContext created successfully');
                 } catch (e) {
                     console.error('Web Audio API is not supported in this browser:', e);
                     return null;
@@ -2020,18 +2112,21 @@
             
             if (audioContext.state === 'suspended') {
                 audioContext.resume().then(() => {
-                    console.log('AudioContext resumed');
+                    console.log('🎵 AudioContext resumed');
                     audioUnlocked = true;
-                    // Mainkan suara test kecil untuk konfirmasi
-                    playSound(800, 100, 0.1);
+                    // Mainkan suara welcome
+                    playNotificationSound('welcome');
                 }).catch(e => {
                     console.error('Failed to resume AudioContext:', e);
                 });
             }
         }
 
-        function playSound(frequency = 800, duration = 200, volume = 0.3, type = 'sine') {
-            if (!soundEnabled || volume === 0) return null;
+        // Fungsi untuk memainkan suara notifikasi dengan volume global
+        function playNotificationSound(type = 'notification', customVolume = null) {
+            if (!soundEnabled || globalVolume === 0) return null;
+            
+            const volume = customVolume !== null ? customVolume : globalVolume;
             
             try {
                 const context = initAudio();
@@ -2042,23 +2137,199 @@
                     context.resume().catch(e => console.error('Cannot resume audio:', e));
                 }
                 
+                const now = context.currentTime;
                 const oscillator = context.createOscillator();
                 const gainNode = context.createGain();
                 
                 oscillator.connect(gainNode);
                 gainNode.connect(context.destination);
                 
-                oscillator.frequency.value = frequency;
-                oscillator.type = type;
-                
-                // Atur volume dengan envelope yang lebih baik
-                const now = context.currentTime;
-                gainNode.gain.setValueAtTime(0.001, now);
-                gainNode.gain.exponentialRampToValueAtTime(volume, now + 0.01);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration / 1000);
-                
-                oscillator.start(now);
-                oscillator.stop(now + duration / 1000);
+                // Sesuaikan suara berdasarkan type
+                switch(type) {
+                    case 'notification':
+                        // Suara seperti bel kecil yang lembut (freq: 800-1200)
+                        oscillator.frequency.setValueAtTime(800, now);
+                        oscillator.frequency.exponentialRampToValueAtTime(1200, now + 0.2);
+                        oscillator.type = 'sine';
+                        
+                        gainNode.gain.setValueAtTime(0.001, now);
+                        gainNode.gain.exponentialRampToValueAtTime(volume, now + 0.05);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                        
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.3);
+                        break;
+                        
+                    case 'success':
+                        // Suara sukses naik (freq: 1000-1500)
+                        oscillator.frequency.setValueAtTime(1000, now);
+                        oscillator.frequency.exponentialRampToValueAtTime(1500, now + 0.3);
+                        oscillator.type = 'sine';
+                        
+                        gainNode.gain.setValueAtTime(0.001, now);
+                        gainNode.gain.exponentialRampToValueAtTime(volume, now + 0.1);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                        
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.4);
+                        break;
+                        
+                    case 'error':
+                        // Suara error turun (freq: 1200-600)
+                        oscillator.frequency.setValueAtTime(1200, now);
+                        oscillator.frequency.exponentialRampToValueAtTime(600, now + 0.4);
+                        oscillator.type = 'sawtooth';
+                        
+                        gainNode.gain.setValueAtTime(0.001, now);
+                        gainNode.gain.exponentialRampToValueAtTime(volume * 0.8, now + 0.05);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                        
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.5);
+                        break;
+                        
+                    case 'click':
+                        // Suara klik pendek
+                        oscillator.frequency.setValueAtTime(1000, now);
+                        oscillator.type = 'sine';
+                        
+                        gainNode.gain.setValueAtTime(0.001, now);
+                        gainNode.gain.exponentialRampToValueAtTime(volume * 0.3, now + 0.01);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                        
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.05);
+                        break;
+                        
+                    case 'alarm':
+                        // Suara alarm classic dua nada
+                        oscillator.frequency.setValueAtTime(880, now); // A5
+                        oscillator.type = 'square';
+                        
+                        gainNode.gain.setValueAtTime(0.001, now);
+                        gainNode.gain.exponentialRampToValueAtTime(volume, now + 0.05);
+                        gainNode.gain.setValueAtTime(volume, now + 0.1);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                        
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.2);
+                        
+                        // Nada kedua
+                        setTimeout(() => {
+                            const oscillator2 = context.createOscillator();
+                            const gainNode2 = context.createGain();
+                            
+                            oscillator2.connect(gainNode2);
+                            gainNode2.connect(context.destination);
+                            
+                            oscillator2.frequency.setValueAtTime(1046, now + 0.3); // C6
+                            oscillator2.type = 'square';
+                            
+                            gainNode2.gain.setValueAtTime(0.001, now + 0.3);
+                            gainNode2.gain.exponentialRampToValueAtTime(volume, now + 0.35);
+                            gainNode2.gain.setValueAtTime(volume, now + 0.4);
+                            gainNode2.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                            
+                            oscillator2.start(now + 0.3);
+                            oscillator2.stop(now + 0.5);
+                        }, 100);
+                        break;
+                        
+                    case 'welcome':
+                        // Suara welcome yang friendly
+                        oscillator.frequency.setValueAtTime(659, now); // E5
+                        oscillator.frequency.exponentialRampToValueAtTime(1046, now + 0.3); // C6
+                        oscillator.type = 'sine';
+                        
+                        gainNode.gain.setValueAtTime(0.001, now);
+                        gainNode.gain.exponentialRampToValueAtTime(volume * 0.7, now + 0.1);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                        
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.4);
+                        break;
+                        
+                    case 'wave':
+                        // Suara seperti ombak (naik turun)
+                        oscillator.frequency.setValueAtTime(200, now);
+                        oscillator.frequency.exponentialRampToValueAtTime(400, now + 0.5);
+                        oscillator.frequency.exponentialRampToValueAtTime(200, now + 1);
+                        oscillator.type = 'sine';
+                        
+                        gainNode.gain.setValueAtTime(0.001, now);
+                        gainNode.gain.exponentialRampToValueAtTime(volume * 0.3, now + 0.1);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+                        
+                        oscillator.start(now);
+                        oscillator.stop(now + 1.2);
+                        break;
+                        
+                    case 'bell':
+                        // Suara bell yang lembut
+                        oscillator.frequency.setValueAtTime(1318, now); // E6
+                        oscillator.type = 'sine';
+                        
+                        gainNode.gain.setValueAtTime(0.001, now);
+                        gainNode.gain.exponentialRampToValueAtTime(volume * 0.4, now + 0.05);
+                        gainNode.gain.exponentialRampToValueAtTime(volume * 0.1, now + 0.2);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1);
+                        
+                        oscillator.start(now);
+                        oscillator.stop(now + 1);
+                        break;
+                        
+                    case 'ocean':
+                        // Suara ocean ambience
+                        const noise = context.createBufferSource();
+                        const bufferSize = 2 * context.sampleRate;
+                        const buffer = context.createBuffer(1, bufferSize, context.sampleRate);
+                        const data = buffer.getChannelData(0);
+                        
+                        for (let i = 0; i < bufferSize; i++) {
+                            data[i] = Math.random() * 2 - 1;
+                        }
+                        
+                        const filter = context.createBiquadFilter();
+                        filter.type = 'bandpass';
+                        filter.frequency.value = 200;
+                        filter.Q.value = 1;
+                        
+                        const noiseGain = context.createGain();
+                        noiseGain.gain.setValueAtTime(volume * 0.1, now);
+                        
+                        noise.buffer = buffer;
+                        noise.connect(filter);
+                        filter.connect(noiseGain);
+                        noiseGain.connect(context.destination);
+                        
+                        // LFO untuk efek wave
+                        const lfo = context.createOscillator();
+                        const lfoGain = context.createGain();
+                        
+                        lfo.frequency.value = 0.1;
+                        lfoGain.gain.value = volume * 0.05;
+                        
+                        lfo.connect(lfoGain);
+                        lfoGain.connect(noiseGain.gain);
+                        
+                        noise.start(now);
+                        lfo.start(now);
+                        noise.stop(now + 1.5);
+                        lfo.stop(now + 1.5);
+                        break;
+                        
+                    default:
+                        // Default notification sound
+                        oscillator.frequency.setValueAtTime(800, now);
+                        oscillator.type = 'sine';
+                        
+                        gainNode.gain.setValueAtTime(0.001, now);
+                        gainNode.gain.exponentialRampToValueAtTime(volume, now + 0.05);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                        
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.2);
+                }
                 
                 return oscillator;
             } catch (error) {
@@ -2067,80 +2338,98 @@
             }
         }
 
+        // Fungsi suara alarm berdasarkan mode
         function playAlarmSound(pasaranName = '') {
-            if (!soundEnabled || !alarmEnabled) return;
+            if (!soundEnabled || !alarmEnabled || globalVolume === 0) return;
             
             const alarmKey = `alarm-${pasaranName}-${Date.now()}`;
             activeAlarms.add(alarmKey);
             
             let alarmInterval;
+            const context = initAudio();
+            
+            if (!context) return null;
             
             switch(currentAlarmMode) {
                 case 'standard':
+                    // Alarm standar dengan pattern berulang
                     alarmInterval = setInterval(() => {
                         if (!activeAlarms.has(alarmKey)) {
                             clearInterval(alarmInterval);
                             return;
                         }
-                        playSound(800, 200, 0.4);
-                        setTimeout(() => playSound(1000, 200, 0.4), 300);
-                        setTimeout(() => playSound(600, 300, 0.4), 600);
-                    }, 1500);
+                        playNotificationSound('alarm');
+                    }, 800);
                     break;
                     
                 case 'gentle':
+                    // Alarm lembut seperti bell
                     alarmInterval = setInterval(() => {
                         if (!activeAlarms.has(alarmKey)) {
                             clearInterval(alarmInterval);
                             return;
                         }
-                        playSound(523, 400, 0.2, 'sine');
-                        setTimeout(() => playSound(659, 400, 0.2, 'sine'), 500);
-                        setTimeout(() => playSound(784, 400, 0.2, 'sine'), 1000);
-                    }, 2000);
-                    break;
-                    
-                case 'emergency':
-                    alarmInterval = setInterval(() => {
-                        if (!activeAlarms.has(alarmKey)) {
-                            clearInterval(alarmInterval);
-                            return;
-                        }
-                        // Sirene naik-turun
-                        let freq = 800;
-                        for (let i = 0; i < 4; i++) {
-                            setTimeout(() => {
-                                playSound(freq, 200, 0.5);
-                            }, i * 200);
-                            freq = freq === 800 ? 1200 : 800;
-                        }
+                        playNotificationSound('bell');
                     }, 1500);
                     break;
                     
-                case 'vibrate':
+                case 'emergency':
+                    // Alarm darurat dengan sirene
                     alarmInterval = setInterval(() => {
                         if (!activeAlarms.has(alarmKey)) {
                             clearInterval(alarmInterval);
                             return;
                         }
-                        // Pola getar
-                        playSound(200, 50, 0.3);
-                        setTimeout(() => playSound(150, 50, 0.3), 100);
-                        setTimeout(() => playSound(200, 50, 0.3), 200);
-                    }, 500);
+                        // Pattern sirene
+                        for (let i = 0; i < 3; i++) {
+                            setTimeout(() => {
+                                playNotificationSound('alarm');
+                            }, i * 200);
+                        }
+                    }, 1200);
+                    break;
+                    
+                case 'vibrate':
+                    // Efek getaran dengan suara rendah
+                    alarmInterval = setInterval(() => {
+                        if (!activeAlarms.has(alarmKey)) {
+                            clearInterval(alarmInterval);
+                            return;
+                        }
+                        // Pattern getar
+                        playNotificationSound('click', globalVolume * 0.5);
+                        setTimeout(() => playNotificationSound('click', globalVolume * 0.5), 50);
+                        setTimeout(() => playNotificationSound('click', globalVolume * 0.5), 100);
+                    }, 600);
                     break;
                     
                 case 'melodic':
+                    // Alarm melodi sederhana
                     alarmInterval = setInterval(() => {
                         if (!activeAlarms.has(alarmKey)) {
                             clearInterval(alarmInterval);
                             return;
                         }
-                        // Melodi sederhana
-                        const melody = [523, 587, 659, 698, 784, 880, 988, 1047];
+                        // Melodi: C - E - G - C (oktaf)
+                        const melody = [523, 659, 784, 1047]; // C5, E5, G5, C6
                         melody.forEach((note, index) => {
                             setTimeout(() => {
-                                playSound(note, 200, 0.3, 'sine');
+                                const osc = context.createOscillator();
+                                const gain = context.createGain();
+                                
+                                osc.connect(gain);
+                                gain.connect(context.destination);
+                                
+                                osc.frequency.value = note;
+                                osc.type = 'sine';
+                                
+                                const noteTime = context.currentTime;
+                                gain.gain.setValueAtTime(0.001, noteTime);
+                                gain.gain.exponentialRampToValueAtTime(globalVolume * 0.3, noteTime + 0.05);
+                                gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.3);
+                                
+                                osc.start(noteTime);
+                                osc.stop(noteTime + 0.3);
                             }, index * 200);
                         });
                     }, 2000);
@@ -2175,9 +2464,21 @@
             notificationMessage.textContent = message;
             notification.classList.add('show');
             
-            // Mainkan suara notifikasi jika suara aktif
-            if (soundEnabled && currentAlarmMode !== 'silent') {
-                playSound(800, 100, 0.2);
+            // Mainkan suara notifikasi yang sesuai
+            if (soundEnabled && currentAlarmMode !== 'silent' && globalVolume > 0) {
+                if (title.includes('✅') || title.includes('Sukses') || title.includes('Berhasil')) {
+                    playNotificationSound('success');
+                } else if (title.includes('❌') || title.includes('Error') || title.includes('Gagal')) {
+                    playNotificationSound('error');
+                } else if (title.includes('🔔') || title.includes('Alarm')) {
+                    playNotificationSound('bell');
+                } else if (title.includes('🌊') || title.includes('Selamat')) {
+                    playNotificationSound('welcome');
+                } else if (title.includes('🎵') || title.includes('Sound')) {
+                    playNotificationSound('notification');
+                } else {
+                    playNotificationSound('notification');
+                }
             }
             
             // Browser notifications
@@ -2265,7 +2566,7 @@
         function stopAllAlarms() {
             stopAlarm();
             showNotification('🔇 Alarm Dihentikan', 'Semua alarm telah dihentikan');
-            playSound(400, 100, 0.2);
+            playNotificationSound('click');
         }
 
         function getCurrentTime() {
@@ -2274,6 +2575,38 @@
                 hour: '2-digit',
                 minute: '2-digit'
             });
+        }
+
+        // ========== VOLUME CONTROL FUNCTIONS ==========
+        function toggleVolumeControl() {
+            volumeControl.classList.toggle('show');
+            if (volumeControl.classList.contains('show')) {
+                playNotificationSound('click');
+            }
+        }
+
+        function updateVolume() {
+            const value = volumeSlider.value;
+            globalVolume = value / 100;
+            volumeValue.textContent = `${value}%`;
+            
+            // Simpan pengaturan volume
+            localStorage.setItem('oceanVolume', value);
+            
+            // Test volume jika di atas 0
+            if (value > 0 && soundEnabled) {
+                playNotificationSound('click', globalVolume * 0.5);
+            }
+        }
+
+        function loadVolumeSettings() {
+            const savedVolume = localStorage.getItem('oceanVolume');
+            if (savedVolume !== null) {
+                const value = parseInt(savedVolume);
+                volumeSlider.value = value;
+                globalVolume = value / 100;
+                volumeValue.textContent = `${value}%`;
+            }
         }
 
         // ========== SCHEDULE FUNCTIONS ==========
@@ -2565,7 +2898,7 @@
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
                 showNotification('✅ Berhasil Disalin!', 'Teks telah disalin ke clipboard');
-                playSound(1200, 150, 0.2);
+                playNotificationSound('success');
             }).catch(err => {
                 console.error('Gagal menyalin teks: ', err);
                 // Fallback untuk browser lama
@@ -2576,7 +2909,7 @@
                 document.execCommand('copy');
                 document.body.removeChild(textArea);
                 showNotification('✅ Berhasil Disalin!', 'Teks telah disalin ke clipboard');
-                playSound(1200, 150, 0.2);
+                playNotificationSound('success');
             });
         }
 
@@ -2615,6 +2948,7 @@
             }, 100);
             
             showNotification('✅ Pasaran Dipilih', `${schedule.pasaran} - ${schedule.category}`);
+            playNotificationSound('success');
         }
 
         function toggleDropdown() {
@@ -2629,6 +2963,7 @@
                 dropdownSearchInput.value = '';
                 renderDropdownItems();
                 dropdownSearchInput.focus();
+                playNotificationSound('click');
             }
         }
 
@@ -2663,7 +2998,7 @@
             }
             
             // Mainkan efek suara
-            playSound(800, 100, 0.1);
+            playNotificationSound('click');
         }
 
         // ========== FILTER FUNCTIONS ==========
@@ -2684,7 +3019,7 @@
             renderSchedules();
             
             // Mainkan efek suara
-            playSound(600, 100, 0.1);
+            playNotificationSound('click');
         }
 
         // ========== ALARM TRIGGER FUNCTION ==========
@@ -2754,7 +3089,7 @@
         // Fungsi untuk tracking klik link
         function trackLinkClick(pasaranName, linkType) {
             console.log(`Link ${linkType} diklik untuk pasaran: ${pasaranName}`);
-            playSound(1000, 100, 0.2);
+            playNotificationSound('click');
             
             // Simpan ke localStorage
             const clickData = {
@@ -2805,7 +3140,7 @@
             localStorage.setItem('reminders', JSON.stringify(reminders));
             
             showNotification('✅ Reminder Diset', `Akan diingatkan saat ${pasaranName} result`);
-            playSound(1200, 200, 0.3);
+            playNotificationSound('success');
         }
 
         // Fungsi untuk update countdown real-time
@@ -2838,7 +3173,7 @@
             linkElement.click();
             
             showNotification('📊 Data Diexport', 'Jadwal berhasil diexport ke file JSON');
-            playSound(800, 200, 0.2);
+            playNotificationSound('success');
         }
 
         // Fungsi untuk import data
@@ -2867,7 +3202,7 @@
                     renderSchedules();
                     renderDropdownItems();
                     showNotification('📊 Data Diimport', `${importedData.length} pasaran berhasil diimport`);
-                    playSound(1000, 200, 0.3);
+                    playNotificationSound('success');
                 } catch (error) {
                     showNotification('❌ Error Import', 'Format file tidak valid');
                     console.error('Import error:', error);
@@ -2887,7 +3222,7 @@
             document.getElementById(`mode-${mode}`).classList.add('active');
             
             showNotification('🔔 Mode Alarm Diubah', `Mode alarm diubah ke: ${getModeDisplayName(mode)}`);
-            playSound(800, 100, 0.2);
+            playNotificationSound('notification');
         }
 
         function setAlarmDuration(duration) {
@@ -2902,6 +3237,7 @@
             document.getElementById(`duration-${duration}`).classList.add('active');
             
             showNotification('⏱️ Durasi Diubah', `Durasi alarm: ${getDurationDisplay(duration)}`);
+            playNotificationSound('click');
         }
 
         function getModeDisplayName(mode) {
@@ -2940,7 +3276,7 @@
                 showNotification('🔊 Suara Diaktifkan', 'Notifikasi suara telah diaktifkan');
                 
                 // Mainkan suara konfirmasi
-                setTimeout(() => playSound(1200, 150, 0.2), 100);
+                setTimeout(() => playNotificationSound('success'), 100);
             } else {
                 soundIcon.className = 'fas fa-volume-mute';
                 soundTitle.textContent = 'Suara Nonaktif';
@@ -2961,12 +3297,14 @@
             
             unlockAudio(); // Pastikan audio context aktif
             
-            // Test suara sederhana
-            playSound(1000, 300, 0.3);
-            setTimeout(() => playSound(800, 300, 0.3), 400);
-            setTimeout(() => playSound(1200, 300, 0.3), 800);
+            // Test semua jenis suara
+            showNotification('🔊 Test Suara', 'Menguji semua jenis suara notifikasi...');
             
-            showNotification('🔊 Test Suara', 'Suara berfungsi dengan baik');
+            playNotificationSound('notification');
+            setTimeout(() => playNotificationSound('success'), 500);
+            setTimeout(() => playNotificationSound('bell'), 1000);
+            setTimeout(() => playNotificationSound('wave'), 1500);
+            setTimeout(() => playNotificationSound('ocean'), 2000);
         }
 
         function testAlarm() {
@@ -3050,7 +3388,7 @@
                 
                 // Unlock audio dan mainkan suara konfirmasi
                 unlockAudio();
-                setTimeout(() => playSound(1000, 100, 0.2), 100);
+                setTimeout(() => playNotificationSound('success'), 100);
             } else {
                 alarmIcon.className = 'fas fa-bell-slash';
                 alarmTitle.textContent = 'Alarm Nonaktif';
@@ -3154,6 +3492,7 @@
             darkModeEnabled = true;
             currentFilter = 'all';
             selectedPasaran = null;
+            globalVolume = 0.7;
             
             // Update UI
             document.getElementById('sound-icon').className = 'fas fa-volume-up';
@@ -3165,6 +3504,11 @@
             document.getElementById('effects-status').textContent = 'Aktif';
             document.getElementById('darkmode-status').textContent = 'Aktif';
             selectedPasaranText.textContent = 'Pilih Pasaran';
+            
+            // Reset volume
+            volumeSlider.value = 70;
+            globalVolume = 0.7;
+            volumeValue.textContent = '70%';
             
             // Reset filter buttons
             document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -3186,6 +3530,7 @@
             renderSchedules();
             
             saveGeneralSettings();
+            localStorage.setItem('oceanVolume', '70');
         }
 
         function clearAllData() {
@@ -3206,7 +3551,7 @@
             };
             localStorage.setItem('oceanAlarmSettings', JSON.stringify(settings));
             showNotification('💾 Pengaturan Tersimpan', 'Mode alarm telah disimpan');
-            playSound(1000, 100, 0.2);
+            playNotificationSound('success');
         }
 
         function loadAlarmSettings() {
@@ -3231,7 +3576,7 @@
             
             localStorage.removeItem('oceanAlarmSettings');
             showNotification('🔄 Pengaturan Direset', 'Mode alarm dikembalikan ke default');
-            playSound(800, 100, 0.2);
+            playNotificationSound('notification');
         }
 
         function backupSettings() {
@@ -3244,12 +3589,13 @@
                 darkModeEnabled,
                 currentAlarmMode,
                 alarmDuration,
+                globalVolume: volumeSlider.value,
                 lastBackup: new Date().toISOString()
             };
             
             localStorage.setItem('oceanSettingsBackup', JSON.stringify(settings));
             showNotification('💾 Backup Disimpan', 'Pengaturan berhasil dibackup');
-            playSound(1200, 150, 0.2);
+            playNotificationSound('success');
         }
 
         function restoreSettings() {
@@ -3270,11 +3616,18 @@
             currentAlarmMode = settings.currentAlarmMode || 'standard';
             alarmDuration = settings.alarmDuration || 30;
             
+            // Update volume
+            if (settings.globalVolume) {
+                volumeSlider.value = settings.globalVolume;
+                globalVolume = settings.globalVolume / 100;
+                volumeValue.textContent = `${settings.globalVolume}%`;
+            }
+            
             // Update UI
             updateSettingsUI();
             
             showNotification('🔄 Settings Dipulihkan', `Backup dari ${new Date(settings.lastBackup).toLocaleDateString()}`);
-            playSound(800, 200, 0.3);
+            playNotificationSound('success');
         }
 
         function updateSettingsUI() {
@@ -3372,11 +3725,19 @@
         dropdownTrigger.addEventListener('click', toggleDropdown);
         dropdownSearchInput.addEventListener('input', filterDropdownItems);
 
+        // Volume slider event listener
+        volumeSlider.addEventListener('input', updateVolume);
+
         // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
             if (!dropdownTrigger.contains(e.target) && !dropdownMenu.contains(e.target)) {
                 dropdownTrigger.classList.remove('active');
                 dropdownMenu.classList.remove('active');
+            }
+            
+            // Close volume control when clicking outside
+            if (!volumeControl.contains(e.target) && !e.target.closest('.action-card') && volumeControl.classList.contains('show')) {
+                volumeControl.classList.remove('show');
             }
         });
 
@@ -3394,12 +3755,13 @@
             }
         });
 
-        // Tambah event listener untuk escape key
+        // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeModal();
                 dropdownTrigger.classList.remove('active');
                 dropdownMenu.classList.remove('active');
+                volumeControl.classList.remove('show');
             }
             
             // Shortcut Ctrl+S untuk save settings
@@ -3412,12 +3774,35 @@
             if (e.ctrlKey && e.key === 'f') {
                 e.preventDefault();
                 searchInput.focus();
+                playNotificationSound('click');
             }
             
             // Shortcut Ctrl+T untuk test sound
             if (e.ctrlKey && e.key === 't') {
                 e.preventDefault();
                 testSound();
+            }
+            
+            // Shortcut Ctrl+V untuk volume control
+            if (e.ctrlKey && e.key === 'v') {
+                e.preventDefault();
+                toggleVolumeControl();
+            }
+            
+            // Shortcut Ctrl+M untuk toggle sound
+            if (e.ctrlKey && e.key === 'm') {
+                e.preventDefault();
+                toggleSound();
+            }
+            
+            // Shortcut 1-6 untuk switch tabs
+            if (e.key >= '1' && e.key <= '4') {
+                e.preventDefault();
+                const tabIndex = parseInt(e.key) - 1;
+                const tabs = ['schedule', 'alarm-mode', 'stats', 'settings'];
+                if (tabIndex < tabs.length) {
+                    document.querySelectorAll('.tab-btn')[tabIndex].click();
+                }
             }
         });
 
@@ -3426,6 +3811,7 @@
             // Load saved settings
             loadAlarmSettings();
             loadGeneralSettings();
+            loadVolumeSettings();
             
             // Request notification permission
             if ('Notification' in window && Notification.permission === 'default') {
@@ -3465,13 +3851,13 @@
             // Setup audio unlock after 1 second
             setTimeout(() => {
                 if (soundEnabled && audioContext && audioContext.state === 'running') {
-                    playSound(800, 50, 0.1);
+                    playNotificationSound('welcome');
                 }
             }, 1000);
             
             // Show welcome message
             setTimeout(() => {
-                showNotification('🌊 Selamat Datang', 'Ocean Togel Schedule siap digunakan!');
+                showNotification('🌊 Selamat Datang', 'Ocean Togel Schedule dengan Sound System Premium siap digunakan!');
             }, 1500);
         }
 
@@ -3480,4 +3866,3 @@
     </script>
 </body>
 </html>
-
