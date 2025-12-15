@@ -926,6 +926,7 @@
         .mode-btn.glitch .mode-icon { color: #ff00ff; }
         .mode-btn.dubstep .mode-icon { color: #ff6600; }
         .mode-btn.quantum .mode-icon { color: #00ccff; }
+        .mode-btn.christmas .mode-icon { color: #ff0000; }
 
         .mode-btn.active.standard { background: var(--gradient1); }
         .mode-btn.active.gentle { background: linear-gradient(135deg, #33ff99 0%, #00cc66 100%); }
@@ -937,6 +938,7 @@
         .mode-btn.active.glitch { background: linear-gradient(135deg, #ff00ff 0%, #cc00cc 100%); }
         .mode-btn.active.dubstep { background: linear-gradient(135deg, #ff6600 0%, #cc5200 100%); }
         .mode-btn.active.quantum { background: linear-gradient(135deg, #00ccff 0%, #0099cc 100%); }
+        .mode-btn.active.christmas { background: linear-gradient(135deg, #ff0000 0%, #00ff00 100%); }
 
         /* Stats Section */
         .stats-section {
@@ -1568,6 +1570,11 @@
     <div class="cyber-particles" id="cyber-particles"></div>
     <div class="neon-grid" id="neon-grid"></div>
     
+    <!-- Audio untuk alarm musik Natal -->
+    <audio id="christmas-music" preload="auto" style="display: none;">
+      <source src="https://olx.recamweek.com/OLXTOTO/We%20Wish%20You%20A%20Merry%20Christmas%20-%20AndrisMusic%20(youtube).mp3" type="audio/mpeg">
+    </audio>
+    
     <!-- NOTIFICATION -->
     <div class="notification" id="notification">
         <div class="notification-header">
@@ -1610,7 +1617,7 @@
                 </div>
                 <p style="color: var(--text-secondary); margin-top: 10px;">Dashboard Cyber untuk Melacak Jadwal Togel</p>
                 <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 5px;">
-                    <i class="fas fa-volume-up"></i> Cyber Sound System Activated
+                    <i class="fas fa-volume-up"></i> Cyber Sound System dengan Musik Natal
                 </p>
             </div>
         </header>
@@ -1776,6 +1783,13 @@
                             </div>
                             <div class="mode-name">Melodi</div>
                             <div class="mode-desc">Nada musik</div>
+                        </button>
+                        <button class="mode-btn christmas" onclick="setAlarmMode('christmas')" id="mode-christmas">
+                            <div class="mode-icon">
+                                <i class="fas fa-tree"></i>
+                            </div>
+                            <div class="mode-name">Christmas</div>
+                            <div class="mode-desc">Musik Natal</div>
                         </button>
                         <button class="mode-btn silent" onclick="setAlarmMode('silent')" id="mode-silent">
                             <div class="mode-icon">
@@ -2037,7 +2051,8 @@
             <span class="keyboard-shortcut">Ctrl</span> + <span class="keyboard-shortcut">F</span> - Cari pasaran<br>
             <span class="keyboard-shortcut">Esc</span> - Tutup modal/dropdown<br>
             <span class="keyboard-shortcut">Ctrl</span> + <span class="keyboard-shortcut">S</span> - Simpan pengaturan<br>
-            <span class="keyboard-shortcut">Ctrl</span> + <span class="keyboard-shortcut">V</span> - Volume control
+            <span class="keyboard-shortcut">Ctrl</span> + <span class="keyboard-shortcut">V</span> - Volume control<br>
+            <span class="keyboard-shortcut">Ctrl</span> + <span class="keyboard-shortcut">C</span> - Test Christmas mode
         </div>
     </div>
     
@@ -2153,6 +2168,9 @@
         const dropdownList = document.getElementById('dropdown-list');
         const dropdownSearchInput = document.getElementById('dropdown-search-input');
         const selectedPasaranText = document.getElementById('selected-pasaran');
+        
+        // Christmas music element
+        const christmasMusic = document.getElementById('christmas-music');
 
         // ========== CYBER SOUND SYSTEM ==========
         function initAudio() {
@@ -2180,6 +2198,20 @@
                 }).catch(e => {
                     console.error('Failed to resume AudioContext:', e);
                 });
+            }
+            
+            // Juga unlock audio element untuk musik Natal
+            if (christmasMusic) {
+                // Untuk audio element, kita perlu interaksi user terlebih dahulu
+                // Kita akan play() kemudian pause() untuk meng-unlock
+                if (christmasMusic.paused) {
+                    christmasMusic.play().then(() => {
+                        christmasMusic.pause();
+                        christmasMusic.currentTime = 0;
+                    }).catch(e => {
+                        console.log('Christmas audio ready');
+                    });
+                }
             }
         }
 
@@ -2523,6 +2555,15 @@
                     }, 1500);
                     break;
                     
+                case 'christmas':
+                    // Mainkan musik Natal
+                    if (christmasMusic) {
+                        christmasMusic.currentTime = 0;
+                        christmasMusic.volume = globalVolume;
+                        christmasMusic.play();
+                    }
+                    break;
+                    
                 case 'matrix':
                     // Matrix alarm
                     alarmInterval = setInterval(() => {
@@ -2608,6 +2649,8 @@
                     playNotificationSound('welcome');
                 } else if (title.includes('🎵') || title.includes('Sound')) {
                     playNotificationSound('click');
+                } else if (title.includes('🎄') || title.includes('Christmas')) {
+                    playNotificationSound('success');
                 } else {
                     playNotificationSound('notification');
                 }
@@ -2651,6 +2694,10 @@
                 case 'melodic':
                     modalIcon.innerHTML = '<i class="fas fa-music"></i>';
                     modalTitle.textContent = '🎵 Result Telah Keluar';
+                    break;
+                case 'christmas':
+                    modalIcon.innerHTML = '<i class="fas fa-tree"></i>';
+                    modalTitle.textContent = '🎄 MERRY CHRISTMAS!';
                     break;
                 case 'matrix':
                     modalIcon.innerHTML = '<i class="fas fa-code"></i>';
@@ -2708,6 +2755,12 @@
                     clearInterval(alarm.interval);
                 });
                 alarmTimeouts = [];
+                
+                // Hentikan musik Natal jika sedang diputar
+                if (christmasMusic && !christmasMusic.paused) {
+                    christmasMusic.pause();
+                    christmasMusic.currentTime = 0;
+                }
             }
         }
 
@@ -2737,6 +2790,11 @@
             const value = volumeSlider.value;
             globalVolume = value / 100;
             volumeValue.textContent = `${value}%`;
+            
+            // Update volume musik Natal jika sedang diputar
+            if (christmasMusic) {
+                christmasMusic.volume = globalVolume;
+            }
             
             // Simpan pengaturan volume
             localStorage.setItem('cyberVolume', value);
@@ -3360,6 +3418,23 @@
         }
 
         // ========== ALARM MODE FUNCTIONS ==========
+        function getModeDisplayName(mode) {
+            const names = {
+                'standard': 'Standard',
+                'gentle': 'Lembut',
+                'emergency': 'Darurat',
+                'vibrate': 'Getar',
+                'melodic': 'Melodi',
+                'christmas': 'Christmas',
+                'silent': 'Diam',
+                'matrix': 'Matrix',
+                'glitch': 'Glitch',
+                'dubstep': 'Dubstep',
+                'quantum': 'Quantum'
+            };
+            return names[mode] || mode;
+        }
+
         function setAlarmMode(mode) {
             currentAlarmMode = mode;
             
@@ -3386,22 +3461,6 @@
             
             showNotification('⏱️ Durasi Diubah', `Durasi alarm: ${getDurationDisplay(duration)}`);
             playNotificationSound('click');
-        }
-
-        function getModeDisplayName(mode) {
-            const names = {
-                'standard': 'Standard',
-                'gentle': 'Lembut',
-                'emergency': 'Darurat',
-                'vibrate': 'Getar',
-                'melodic': 'Melodi',
-                'silent': 'Diam',
-                'matrix': 'Matrix',
-                'glitch': 'Glitch',
-                'dubstep': 'Dubstep',
-                'quantum': 'Quantum'
-            };
-            return names[mode] || mode;
         }
 
         function getDurationDisplay(duration) {
@@ -3500,6 +3559,35 @@
             }, 3000);
             
             showNotification('🔔 Test Mode Alarm Cyber', `Menguji mode: ${getModeDisplayName(currentAlarmMode)}`);
+        }
+
+        function testChristmasMusic() {
+            if (!soundEnabled) {
+                showNotification('🔇 Suara Dinonaktifkan', 'Aktifkan suara terlebih dahulu');
+                return;
+            }
+            
+            // Simpan mode sebelumnya
+            const previousMode = currentAlarmMode;
+            
+            // Set mode ke christmas sementara
+            currentAlarmMode = 'christmas';
+            
+            // Play Christmas music
+            if (christmasMusic) {
+                christmasMusic.currentTime = 0;
+                christmasMusic.volume = globalVolume;
+                christmasMusic.play();
+                
+                showNotification('🎄 Test Musik Natal', 'Memainkan musik Natal...');
+                
+                // Kembalikan mode setelah 5 detik
+                setTimeout(() => {
+                    christmasMusic.pause();
+                    christmasMusic.currentTime = 0;
+                    currentAlarmMode = previousMode;
+                }, 5000);
+            }
         }
 
         function testAllFeatures() {
@@ -3933,6 +4021,16 @@
             if (!audioUnlocked && audioContext && audioContext.state === 'suspended') {
                 unlockAudio();
             }
+            
+            // Juga unlock audio element untuk musik Natal pada klik pertama
+            if (christmasMusic && christmasMusic.paused) {
+                christmasMusic.play().then(() => {
+                    christmasMusic.pause();
+                    christmasMusic.currentTime = 0;
+                }).catch(e => {
+                    console.log('Christmas audio unlocked');
+                });
+            }
         });
 
         // Keyboard shortcuts
@@ -3973,6 +4071,12 @@
             if (e.ctrlKey && e.key === 'm') {
                 e.preventDefault();
                 toggleSound();
+            }
+            
+            // Shortcut Ctrl+C untuk test Christmas music
+            if (e.ctrlKey && e.key === 'c') {
+                e.preventDefault();
+                testChristmasMusic();
             }
             
             // Shortcut 1-4 untuk switch tabs
@@ -4045,7 +4149,7 @@
             
             // Show welcome message
             setTimeout(() => {
-                showNotification('⚡ Selamat Datang', 'Cyber Togel Schedule dengan Cyber Sound System siap digunakan!');
+                showNotification('⚡ Selamat Datang', 'Cyber Togel Schedule dengan Musik Natal siap digunakan! Gunakan Ctrl+C untuk test musik Natal!');
             }, 1500);
         }
 
