@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screen Recorder Lokal - Tanpa Permission Problem</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(25, 25, 35, 0.9);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        header {
+            background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        header h1 i {
+            font-size: 3rem;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .recorder-section {
+            background: rgba(30, 41, 59, 0.7);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .video-container {
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 12px;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+            margin-bottom: 25px;
+            position: relative;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #previewVideo {
+            width: 100%;
+            height: 100%;
+            display: none;
+            object-fit: contain;
+        }
+
+        .video-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #94a3b8;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .video-placeholder i {
+            font-size: 4.5rem;
+            margin-bottom: 20px;
+            color: #475569;
+        }
+
+        .recording-indicator {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            z-index: 10;
+        }
+
+        .recording-dot {
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        @media (max-width: 600px) {
+            .controls {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .btn {
+            padding: 16px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-record {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .btn-record:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            color: white;
+        }
+
+        .btn-stop:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(100, 116, 139, 0.4);
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-download:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-value {
+            font-family: 'Courier New', monospace;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #0ea5e9;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+
+        .settings-section {
+            background: rgba(30, 41, 59, 0.7);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: #0ea5e9;
+        }
+
+        .settings-group {
+            margin-bottom: 25px;
+        }
+
+        .setting-label {
+            display: block;
+            margin-bottom: 10px;
+            color: #e2e8f0;
+            font-weight: 500;
+        }
+
+        .select-control {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .select-control:focus {
+            outline: none;
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-group:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #0ea5e9;
+        }
+
+        .checkbox-group label {
+            color: #e2e8f0;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .radio-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .radio-option:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .radio-option input[type="radio"] {
+            accent-color: #0ea5e9;
+        }
+
+        .instructions {
+            background: rgba(14, 165, 233, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            border: 1px solid rgba(14, 165, 233, 0.3);
+        }
+
+        .instructions h3 {
+            color: #0ea5e9;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .instructions ol {
+            padding-left: 20px;
+            color: #e2e8f0;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+            padding-left: 5px;
+        }
+
+        .success-message {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .success-message i {
+            font-size: 1.5rem;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .error-message i {
+            font-size: 1.5rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #94a3b8;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+        }
+
+        .permission-tips {
+            background: rgba(245, 158, 11, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .permission-tips h4 {
+            color: #f59e0b;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hint-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+            border-left: 4px solid #0ea5e9;
+        }
+
+        .microphone-test {
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .test-btn {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .audio-visualizer {
+            height: 50px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            margin-top: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .audio-bar {
+            position: absolute;
+            bottom: 0;
+            width: 4px;
+            background: #8b5cf6;
+            border-radius: 2px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>
+                <i class="fas fa-video"></i>
+                Screen Recorder Lokal
+            </h1>
+            <p class="tagline">
+                Rekam layar Anda dengan mudah. File disimpan langsung di komputer Anda.
+                <br>Dioptimalkan untuk menghindari masalah permission!
+            </p>
+        </header>
+
+        <div class="main-content">
+            <!-- Left: Recorder Section -->
+            <div class="recorder-section">
+                <!-- Video Preview -->
+                <div class="video-container">
+                    <div class="recording-indicator" id="recordingIndicator">
+                        <div class="recording-dot"></div>
+                        <span>Sedang Merekam</span>
+                    </div>
+                    
+                    <video id="previewVideo" controls></video>
+                    <div class="video-placeholder" id="videoPlaceholder">
+                        <i class="fas fa-desktop"></i>
+                        <h3>Pratinjau Video</h3>
+                        <p>Video rekaman akan muncul di sini setelah selesai merekam</p>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="controls">
+                    <button id="recordBtn" class="btn btn-record">
+                        <i class="fas fa-circle"></i> Mulai Rekaman
+                    </button>
+                    <button id="stopBtn" class="btn btn-stop" disabled>
+                        <i class="fas fa-stop"></i> Hentikan
+                    </button>
+                    <button id="downloadBtn" class="btn btn-download" disabled>
+                        <i class="fas fa-download"></i> Unduh Video
+                    </button>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-panel">
+                    <div class="stat-box">
+                        <span class="stat-value" id="timerDisplay">00:00</span>
+                        <span class="stat-label">Durasi</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-value" id="fileSize">0 MB</span>
+                        <span class="stat-label">Ukuran File</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-value" id="resolution">1920x1080</span>
+                        <span class="stat-label">Resolusi</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-value" id="fpsDisplay">30</span>
+                        <span class="stat-label">FPS</span>
+                    </div>
+                </div>
+
+                <!-- Success/Error Messages -->
+                <div class="success-message" id="successMessage">
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        <strong>Berhasil!</strong>
+                        <p id="successText">Video siap diunduh</p>
+                    </div>
+                </div>
+
+                <div class="error-message" id="errorMessage">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <div>
+                        <strong>Terjadi Kesalahan</strong>
+                        <p id="errorText">Silakan coba lagi</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Settings Section -->
+            <div class="settings-section">
+                <h2 class="section-title">
+                    <i class="fas fa-sliders-h"></i> Pengaturan
+                </h2>
+
+                <!-- Recording Source -->
+                <div class="settings-group">
+                    <label class="setting-label">Sumber Rekaman</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="source" value="screen" checked>
+                            <span>Seluruh Layar</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="source" value="window">
+                            <span>Jendela Aplikasi</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="source" value="tab">
+                            <span>Tab Browser</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Video Quality -->
+                <div class="settings-group">
+                    <label class="setting-label">Kualitas Video</label>
+                    <select id="qualitySelect" class="select-control">
+                        <option value="1080p">Full HD (1920x1080)</option>
+                        <option value="720p" selected>HD (1280x720)</option>
+                        <option value="480p">SD (854x480)</option>
+                        <option value="360p">Low (640x360)</option>
+                    </select>
+                </div>
+
+                <!-- Audio Settings -->
+                <div class="settings-group">
+                    <label class="setting-label">Pengaturan Audio</label>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="systemAudio" checked>
+                        <label for="systemAudio">Rekam Audio Sistem</label>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="microphoneAudio">
+                        <label for="microphoneAudio">Rekam Mikrofon</label>
+                    </div>
+
+                    <!-- Microphone Test -->
+                    <div class="microphone-test" id="micTest" style="display: none;">
+                        <h4><i class="fas fa-microphone"></i> Test Mikrofon</h4>
+                        <p>Pastikan mikrofon berfungsi sebelum merekam</p>
+                        <button class="test-btn" id="testMicBtn">
+                            <i class="fas fa-play"></i> Test Mikrofon
+                        </button>
+                        <div class="audio-visualizer" id="audioVisualizer"></div>
+                    </div>
+                </div>
+
+                <!-- Additional Options -->
+                <div class="settings-group">
+                    <label class="setting-label">Opsi Tambahan</label>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showCursor" checked>
+                        <label for="showCursor">Tampilkan Kursor Mouse</label>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="recordWebcam">
+                        <label for="recordWebcam">Tambahkan Webcam</label>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="autoDownload" checked>
+                        <label for="autoDownload">Auto-download setelah selesai</label>
+                    </div>
+                </div>
+
+                <!-- Permission Tips -->
+                <div class="permission-tips">
+                    <h4><i class="fas fa-lightbulb"></i> Tips Agar Tidak Ditolak</h4>
+                    <div class="hint-box">
+                        <strong>✓ Gunakan HTTPS:</strong> Buka file ini melalui localhost atau server HTTPS
+                    </div>
+                    <div class="hint-box">
+                        <strong>✓ Izinkan Permission:</strong> Klik "Allow" saat browser meminta akses
+                    </div>
+                    <div class="hint-box">
+                        <strong>✓ Jangan Tutup Popup:</strong> Biarkan popup permission terbuka
+                    </div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="instructions">
+                    <h3><i class="fas fa-info-circle"></i> Petunjuk Penggunaan</h3>
+                    <ol>
+                        <li>Pilih sumber rekaman yang diinginkan</li>
+                        <li>Atur kualitas video dan audio sesuai kebutuhan</li>
+                        <li>Klik "Mulai Rekaman" dan izinkan akses ke layar</li>
+                        <li>Lakukan aktivitas yang ingin direkam</li>
+                        <li>Klik "Hentikan" untuk mengakhiri rekaman</li>
+                        <li>Unduh video dengan klik "Unduh Video"</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Screen Recorder Lokal &copy; 2023 | Dibuat dengan HTML5, CSS3, dan JavaScript</p>
+            <p style="margin-top: 10px; font-size: 0.8rem; color: #64748b;">
+                <i class="fas fa-exclamation-triangle"></i>
+                Pastikan browser Anda mendukung MediaRecorder API (Chrome 52+, Edge 79+, Firefox 66+)
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // ====================
+        // VARIABLES & ELEMENTS
+        // ====================
+        const recordBtn = document.getElementById('recordBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const previewVideo = document.getElementById('previewVideo');
+        const videoPlaceholder = document.getElementById('videoPlaceholder');
+        const recordingIndicator = document.getElementById('recordingIndicator');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const fileSizeDisplay = document.getElementById('fileSize');
+        const resolutionDisplay = document.getElementById('resolution');
+        const fpsDisplay = document.getElementById('fpsDisplay');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const successText = document.getElementById('successText');
+        const errorText = document.getElementById('errorText');
+        
+        // Settings elements
+        const qualitySelect = document.getElementById('qualitySelect');
+        const systemAudio = document.getElementById('systemAudio');
+        const microphoneAudio = document.getElementById('microphoneAudio');
+        const showCursor = document.getElementById('showCursor');
+        const recordWebcam = document.getElementById('recordWebcam');
+        const autoDownload = document.getElementById('autoDownload');
+        const micTest = document.getElementById('micTest');
+        const testMicBtn = document.getElementById('testMicBtn');
+        const audioVisualizer = document.getElementById('audioVisualizer');
+
+        // Recording variables
+        let mediaRecorder;
+        let recordedChunks = [];
+        let stream;
+        let startTime;
+        let timerInterval;
+        let isRecording = false;
+        let currentBlob = null;
+
+        // ====================
+        // HELPER FUNCTIONS
+        // ====================
+        
+        // Show success message
+        function showSuccess(message) {
+            successText.textContent = message;
+            successMessage.style.display = 'flex';
+            errorMessage.style.display = 'none';
+            
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        // Show error message
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.style.display = 'flex';
+            successMessage.style.display = 'none';
+            
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        // Format time as MM:SS
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Get resolution from quality setting
+        function getResolution(quality) {
+            const resolutions = {
+                '1080p': '1920x1080',
+                '720p': '1280x720',
+                '480p': '854x480',
+                '360p': '640x360'
+            };
+            return resolutions[quality] || '1280x720';
+        }
+
+        // Get FPS from quality setting
+        function getFPS(quality) {
+            const fpsMap = {
+                '1080p': 30,
+                '720p': 30,
+                '480p': 24,
+                '360p': 20
+            };
+            return fpsMap[quality] || 30;
+        }
+
+        // Get video constraints
+        function getVideoConstraints() {
+            const quality = qualitySelect.value;
+            const cursorSetting = showCursor.checked ? 'always' : 'never';
+            
+            const baseConstraints = {
+                cursor: cursorSetting
+            };
+
+            // Add resolution constraints
+            switch(quality) {
+                case '1080p':
+                    baseConstraints.width = { ideal: 1920 };
+                    baseConstraints.height = { ideal: 1080 };
+                    break;
+                case '720p':
+                    baseConstraints.width = { ideal: 1280 };
+                    baseConstraints.height = { ideal: 720 };
+                    break;
+                case '480p':
+                    baseConstraints.width = { ideal: 854 };
+                    baseConstraints.height = { ideal: 480 };
+                    break;
+                case '360p':
+                    baseConstraints.width = { ideal: 640 };
+                    baseConstraints.height = { ideal: 360 };
+                    break;
+            }
+
+            return baseConstraints;
+        }
+
+        // ====================
+        // PERMISSION HANDLING
+        // ====================
+        
+        // Request permission with user interaction
+        async function requestPermission() {
+            try {
+                // This must be called from a user gesture (button click)
+                const permissionStatus = await navigator.permissions.query({ 
+                    name: 'display-capture' 
+                });
+                
+                return permissionStatus.state;
+            } catch (error) {
+                // Fallback for browsers that don't support display-capture permission query
+                return 'prompt';
+            }
+        }
+
+        // ====================
+        // MICROPHONE HANDLING
+        // ====================
+        
+        // Show/hide microphone test based on checkbox
+        microphoneAudio.addEventListener('change', () => {
+            micTest.style.display = microphoneAudio.checked ? 'block' : 'none';
+        });
+
+        // Test microphone function
+        testMicBtn.addEventListener('click', async () => {
+            try {
+                const audioStream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    }
+                });
+                
+                showSuccess('Mikrofon berfungsi dengan baik!');
+                
+                // Create audio visualizer
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const analyser = audioContext.createAnalyser();
+                const microphone = audioContext.createMediaStreamSource(audioStream);
+                microphone.connect(analyser);
+                
+                // Setup visualizer
+                analyser.fftSize = 256;
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+                
+                // Clear previous bars
+                audioVisualizer.innerHTML = '';
+                
+                // Create bars
+                const barCount = 40;
+                for (let i = 0; i < barCount; i++) {
+                    const bar = document.createElement('div');
+                    bar.className = 'audio-bar';
+                    bar.style.left = `${(i / barCount) * 100}%`;
+                    audioVisualizer.appendChild(bar);
+                }
+                
+                const bars = audioVisualizer.querySelectorAll('.audio-bar');
+                
+                // Update visualizer
+                function updateVisualizer() {
+                    analyser.getByteFrequencyData(dataArray);
+                    
+                    bars.forEach((bar, i) => {
+                        const value = dataArray[i % bufferLength];
+                        const height = Math.max(2, (value / 255) * 100);
+                        bar.style.height = `${height}%`;
+                    });
+                    
+                    requestAnimationFrame(updateVisualizer);
+                }
+                
+                updateVisualizer();
+                
+                // Stop after 5 seconds
+                setTimeout(() => {
+                    audioStream.getTracks().forEach(track => track.stop());
+                    audioContext.close();
+                    showSuccess('Test mikrofon selesai');
+                }, 5000);
+                
+            } catch (error) {
+                showError('Tidak dapat mengakses mikrofon: ' + error.message);
+            }
+        });
+
+        // ====================
+        // SCREEN RECORDING
+        // ====================
+        
+        // Start recording function
+        async function startRecording() {
+            try {
+                // Check and request permission
+                const permission = await requestPermission();
+                if (permission === 'denied') {
+                    showError('Permission ditolak. Silakan izinkan akses ke layar di pengaturan browser.');
+                    return;
+                }
+
+                // Get video constraints
+                const videoConstraints = getVideoConstraints();
+                
+                // Get selected source
+                const sourceType = document.querySelector('input[name="source"]:checked').value;
+                
+                // Request screen capture
+                const displayStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: videoConstraints,
+                    audio: systemAudio.checked
+                });
+
+                // Handle audio sources
+                let audioStream;
+                let finalStream;
+                
+                if (microphoneAudio.checked && systemAudio.checked) {
+                    // Get both system and microphone audio
+                    try {
+                        audioStream = await navigator.mediaDevices.getUserMedia({
+                            audio: {
+                                echoCancellation: true,
+                                noiseSuppression: true,
+                                autoGainControl: true
+                            }
+                        });
+                        
+                        // Combine video track with both audio tracks
+                        const videoTrack = displayStream.getVideoTracks()[0];
+                        const systemAudioTrack = displayStream.getAudioTracks()[0];
+                        const microphoneTrack = audioStream.getAudioTracks()[0];
+                        
+                        finalStream = new MediaStream();
+                        finalStream.addTrack(videoTrack);
+                        if (systemAudioTrack) finalStream.addTrack(systemAudioTrack);
+                        if (microphoneTrack) finalStream.addTrack(microphoneTrack);
+                        
+                    } catch (micError) {
+                        console.warn('Tidak dapat mengakses mikrofon:', micError);
+                        finalStream = displayStream;
+                    }
+                } else if (microphoneAudio.checked && !systemAudio.checked) {
+                    // Only microphone audio
+                    try {
+                        audioStream = await navigator.mediaDevices.getUserMedia({
+                            audio: {
+                                echoCancellation: true,
+                                noiseSuppression: true,
+                                autoGainControl: true
+                            }
+                        });
+                        
+                        const videoTrack = displayStream.getVideoTracks()[0];
+                        const microphoneTrack = audioStream.getAudioTracks()[0];
+                        
+                        finalStream = new MediaStream();
+                        finalStream.addTrack(videoTrack);
+                        finalStream.addTrack(microphoneTrack);
+                        
+                    } catch (micError) {
+                        console.warn('Tidak dapat mengakses mikrofon:', micError);
+                        finalStream = displayStream;
+                    }
+                } else {
+                    // Only system audio or no audio
+                    finalStream = displayStream;
+                }
+
+                // Add webcam if enabled
+                if (recordWebcam.checked) {
+                    try {
+                        const webcamStream = await navigator.mediaDevices.getUserMedia({
+                            video: {
+                                width: { ideal: 320 },
+                                height: { ideal: 240 }
+                            }
+                        });
+                        
+                        const webcamTrack = webcamStream.getVideoTracks()[0];
+                        finalStream.addTrack(webcamTrack);
+                        
+                    } catch (webcamError) {
+                        console.warn('Tidak dapat mengakses webcam:', webcamError);
+                    }
+                }
+
+                // Store stream
+                stream = finalStream;
+
+                // Setup MediaRecorder
+                recordedChunks = [];
+                
+                // Try different mime types for compatibility
+                const mimeTypes = [
+                    'video/webm;codecs=vp9',
+                    'video/webm;codecs=vp8',
+                    'video/webm;codecs=h264',
+                    'video/webm',
+                    'video/mp4'
+                ];
+                
+                let selectedMimeType = '';
+                for (const mimeType of mimeTypes) {
+                    if (MediaRecorder.isTypeSupported(mimeType)) {
+                        selectedMimeType = mimeType;
+                        break;
+                    }
+                }
+                
+                if (!selectedMimeType) {
+                    selectedMimeType = 'video/webm';
+                }
+
+                // Create MediaRecorder
+                mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: selectedMimeType,
+                    videoBitsPerSecond: 2500000 // 2.5 Mbps
+                });
+
+                // Handle data available
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                        
+                        // Update file size display
+                        const totalSize = recordedChunks.reduce((total, chunk) => total + chunk.size, 0);
+                        fileSizeDisplay.textContent = formatFileSize(totalSize).replace(' ', '');
+                    }
+                };
+
+                // Handle recording stop
+                mediaRecorder.onstop = () => {
+                    // Create blob from recorded chunks
+                    currentBlob = new Blob(recordedChunks, { 
+                        type: mediaRecorder.mimeType 
+                    });
+                    
+                    // Create video URL
+                    const videoURL = URL.createObjectURL(currentBlob);
+                    
+                    // Update preview
+                    previewVideo.src = videoURL;
+                    previewVideo.style.display = 'block';
+                    videoPlaceholder.style.display = 'none';
+                    
+                    // Enable download button
+                    downloadBtn.disabled = false;
+                    
+                    // Auto-download if enabled
+                    if (autoDownload.checked) {
+                        downloadRecording();
+                    } else {
+                        showSuccess('Rekaman selesai! Klik "Unduh Video" untuk menyimpan.');
+                    }
+                    
+                    // Stop all tracks
+                    if (stream) {
+                        stream.getTracks().forEach(track => track.stop());
+                    }
+                };
+
+                // Handle errors
+                mediaRecorder.onerror = (event) => {
+                    console.error('MediaRecorder error:', event);
+                    showError('Terjadi kesalahan saat merekam');
+                    resetRecording();
+                };
+
+                // Start recording
+                mediaRecorder.start(1000); // Collect data every second
+
+                // Start timer
+                startTime = Date.now();
+                timerInterval = setInterval(updateTimer, 1000);
+                
+                // Update UI
+                isRecording = true;
+                recordBtn.disabled = true;
+                stopBtn.disabled = false;
+                recordingIndicator.style.display = 'flex';
+                
+                // Update resolution and FPS displays
+                resolutionDisplay.textContent = getResolution(qualitySelect.value);
+                fpsDisplay.textContent = getFPS(qualitySelect.value);
+                
+                showSuccess('Rekaman dimulai! Lakukan aktivitas yang ingin direkam.');
+
+                // Handle when user stops recording from browser dialog
+                displayStream.getVideoTracks()[0].onended = () => {
+                    stopRecording();
+                };
+
+            } catch (error) {
+                console.error('Error starting recording:', error);
+                
+                if (error.name === 'NotAllowedError') {
+                    showError('Permission ditolak. Silakan izinkan akses ke layar.');
+                } else if (error.name === 'NotFoundError') {
+                    showError('Tidak dapat menemukan sumber layar. Pastikan ada layar/window yang aktif.');
+                } else if (error.name === 'NotReadableError') {
+                    showError('Tidak dapat membaca sumber layar. Coba tutup aplikasi lain yang mungkin menggunakan kamera/layar.');
+                } else {
+                    showError('Gagal memulai rekaman: ' + error.message);
+                }
+                
+                resetRecording();
+            }
+        }
+
+        // Update timer function
+        function updateTimer() {
+            if (!isRecording) return;
+            
+            const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+            timerDisplay.textContent = formatTime(elapsedSeconds);
+        }
+
+        // Stop recording function
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                clearInterval(timerInterval);
+                isRecording = false;
+                resetRecordingUI();
+            }
+        }
+
+        // Reset recording UI
+        function resetRecordingUI() {
+            recordBtn.disabled = false;
+            stopBtn.disabled = true;
+            recordingIndicator.style.display = 'none';
+            timerDisplay.textContent = '00:00';
+        }
+
+        // Reset everything
+        function resetRecording() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            recordedChunks = [];
+            isRecording = false;
+            resetRecordingUI();
+        }
+
+        // Download recording
+        function downloadRecording() {
+            if (!currentBlob) {
+                showError('Tidak ada video untuk diunduh');
+                return;
+            }
+
+            try {
+                const url = URL.createObjectURL(currentBlob);
+                const a = document.createElement('a');
+                
+                // Determine file extension
+                const mimeType = mediaRecorder?.mimeType || 'video/webm';
+                const extension = mimeType.includes('mp4') ? 'mp4' : 'webm';
+                
+                a.href = url;
+                a.download = `rekaman-layar-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.${extension}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                // Clean up URL
+                setTimeout(() => URL.revokeObjectURL(url), 100);
+                
+                showSuccess('Video berhasil diunduh!');
+                
+            } catch (error) {
+                showError('Gagal mengunduh video: ' + error.message);
+            }
+        }
+
+        // ====================
+        // EVENT LISTENERS
+        // ====================
+        recordBtn.addEventListener('click', startRecording);
+        stopBtn.addEventListener('click', stopRecording);
+        downloadBtn.addEventListener('click', downloadRecording);
+
+        // ====================
+        // INITIALIZATION
+        // ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check for browser support
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+                showError('Browser Anda tidak mendukung fitur perekaman layar. Gunakan Chrome, Edge, atau Firefox terbaru.');
+                recordBtn.disabled = true;
+                recordBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Browser Tidak Didukung';
+            }
+            
+            // Check for MediaRecorder support
+            if (!MediaRecorder) {
+                showError('Browser Anda tidak mendukung MediaRecorder API.');
+                recordBtn.disabled = true;
+                recordBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> API Tidak Didukung';
+            }
+            
+            // Update initial resolution and FPS displays
+            resolutionDisplay.textContent = getResolution(qualitySelect.value);
+            fpsDisplay.textContent = getFPS(qualitySelect.value);
+            
+            // Show welcome message
+            setTimeout(() => {
+                showSuccess('Screen Recorder siap digunakan! Pilih pengaturan dan mulai rekam.');
+            }, 1000);
+        });
+
+        // Handle quality change
+        qualitySelect.addEventListener('change', () => {
+            resolutionDisplay.textContent = getResolution(qualitySelect.value);
+            fpsDisplay.textContent = getFPS(qualitySelect.value);
+        });
+
+        // Handle before unload (warn if recording)
+        window.addEventListener('beforeunload', (event) => {
+            if (isRecording) {
+                event.preventDefault();
+                event.returnValue = 'Anda sedang merekam. Yakin ingin meninggalkan halaman?';
+                return event.returnValue;
+            }
+        });
+    </script>
+</body>
+</html>
