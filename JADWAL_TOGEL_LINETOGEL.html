@@ -2641,8 +2641,6 @@
                 audioContext.resume().then(() => {
                     console.log('🎵 Premium Christmas AudioContext resumed');
                     audioUnlocked = true;
-                    // Mainkan suara welcome
-                    playNotificationSound('welcome');
                 }).catch(e => {
                     console.error('Failed to resume AudioContext:', e);
                 });
@@ -2663,273 +2661,10 @@
             }
         }
 
-        // Fungsi untuk memainkan suara notifikasi Natal Premium
+        // Fungsi untuk memainkan suara notifikasi Natal Premium (TIDAK DIGUNAKAN)
         function playNotificationSound(type = 'notification', customVolume = null) {
-            if (!soundEnabled || globalVolume === 0) return null;
-            
-            const volume = customVolume !== null ? customVolume : globalVolume;
-            
-            try {
-                const context = initAudio();
-                if (!context) return null;
-                
-                // Pastikan context dalam state running
-                if (context.state !== 'running') {
-                    context.resume().catch(e => console.error('Cannot resume audio:', e));
-                }
-                
-                const now = context.currentTime;
-                
-                switch(type) {
-                    case 'notification':
-                        // Premium Christmas notification jingle
-                        const osc1 = context.createOscillator();
-                        const gain1 = context.createGain();
-                        osc1.connect(gain1);
-                        gain1.connect(context.destination);
-                        
-                        // Premium Christmas melody: Jingle Bells with richer harmonics
-                        const melody = [523, 523, 523, 659, 392, 440, 523, 659, 392]; // C C C E G A C E G A
-                        melody.forEach((note, index) => {
-                            setTimeout(() => {
-                                const osc = context.createOscillator();
-                                const gain = context.createGain();
-                                
-                                osc.connect(gain);
-                                gain.connect(context.destination);
-                                
-                                osc.frequency.value = note;
-                                osc.type = 'triangle';
-                                
-                                const noteTime = context.currentTime;
-                                gain.gain.setValueAtTime(0.001, noteTime);
-                                gain.gain.exponentialRampToValueAtTime(volume * 0.4, noteTime + 0.01);
-                                gain.gain.exponentialRampToValueAtTime(volume * 0.3, noteTime + 0.3);
-                                gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.4);
-                                
-                                osc.start(noteTime);
-                                osc.stop(noteTime + 0.4);
-                            }, index * 120);
-                        });
-                        break;
-                        
-                    case 'success':
-                        // Premium Christmas success sound
-                        const osc2 = context.createOscillator();
-                        const gain2 = context.createGain();
-                        osc2.connect(gain2);
-                        gain2.connect(context.destination);
-                        
-                        // Premium We Wish You a Merry Christmas with richer harmonics
-                        const melody2 = [392, 392, 440, 440, 392, 392, 329, 329, 392]; // G G A A G G E E G
-                        melody2.forEach((note, index) => {
-                            setTimeout(() => {
-                                const osc = context.createOscillator();
-                                const gain = context.createGain();
-                                
-                                osc.connect(gain);
-                                gain.connect(context.destination);
-                                
-                                osc.frequency.value = note;
-                                osc.type = 'sine';
-                                
-                                const noteTime = context.currentTime;
-                                gain.gain.setValueAtTime(0.001, noteTime);
-                                gain.gain.exponentialRampToValueAtTime(volume * 0.3, noteTime + 0.01);
-                                gain.gain.exponentialRampToValueAtTime(volume * 0.2, noteTime + 0.4);
-                                gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.5);
-                                
-                                osc.start(noteTime);
-                                osc.stop(noteTime + 0.5);
-                            }, index * 180);
-                        });
-                        break;
-                        
-                    case 'error':
-                        // Premium Christmas error sound
-                        const osc3 = context.createOscillator();
-                        const gain3 = context.createGain();
-                        osc3.connect(gain3);
-                        gain3.connect(context.destination);
-                        
-                        osc3.frequency.setValueAtTime(300, now);
-                        osc3.frequency.exponentialRampToValueAtTime(100, now + 0.4);
-                        osc3.type = 'sawtooth';
-                        
-                        gain3.gain.setValueAtTime(0.001, now);
-                        gain3.gain.exponentialRampToValueAtTime(volume * 0.5, now + 0.01);
-                        gain3.gain.exponentialRampToValueAtTime(volume * 0.3, now + 0.2);
-                        gain3.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-                        
-                        osc3.start(now);
-                        osc3.stop(now + 0.5);
-                        break;
-                        
-                    case 'click':
-                        // Premium Christmas click sound
-                        const osc4 = context.createOscillator();
-                        const gain4 = context.createGain();
-                        osc4.connect(gain4);
-                        gain4.connect(context.destination);
-                        
-                        osc4.frequency.setValueAtTime(1800, now);
-                        osc4.type = 'triangle';
-                        
-                        gain4.gain.setValueAtTime(0.001, now);
-                        gain4.gain.exponentialRampToValueAtTime(volume * 0.3, now + 0.001);
-                        gain4.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
-                        
-                        osc4.start(now);
-                        osc4.stop(now + 0.03);
-                        break;
-                        
-                    case 'welcome':
-                        // Premium Christmas welcome sound
-                        const osc5 = context.createOscillator();
-                        const gain5 = context.createGain();
-                        osc5.connect(gain5);
-                        gain5.connect(context.destination);
-                        
-                        // Premium Joy to the World with richer harmonics
-                        osc5.frequency.setValueAtTime(392, now); // G
-                        osc5.frequency.setValueAtTime(440, now + 0.1); // A
-                        osc5.frequency.setValueAtTime(494, now + 0.2); // B
-                        osc5.frequency.setValueAtTime(523, now + 0.3); // C
-                        osc5.frequency.setValueAtTime(659, now + 0.4); // E
-                        osc5.type = 'sine';
-                        
-                        gain5.gain.setValueAtTime(0.001, now);
-                        gain5.gain.exponentialRampToValueAtTime(volume * 0.4, now + 0.1);
-                        gain5.gain.exponentialRampToValueAtTime(volume * 0.3, now + 0.3);
-                        gain5.gain.exponentialRampToValueAtTime(volume * 0.2, now + 0.5);
-                        gain5.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
-                        
-                        osc5.start(now);
-                        osc5.stop(now + 0.7);
-                        break;
-                        
-                    case 'matrix':
-                        // Premium Christmas matrix sound
-                        for (let i = 0; i < 6; i++) {
-                            const osc = context.createOscillator();
-                            const gain = context.createGain();
-                            osc.connect(gain);
-                            gain.connect(context.destination);
-                            
-                            osc.frequency.setValueAtTime(900 + Math.random() * 500, now + i * 0.06);
-                            osc.type = 'triangle';
-                            
-                            gain.gain.setValueAtTime(0.001, now + i * 0.06);
-                            gain.gain.exponentialRampToValueAtTime(volume * 0.15, now + i * 0.06 + 0.01);
-                            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.06);
-                            
-                            osc.start(now + i * 0.06);
-                            osc.stop(now + i * 0.06 + 0.12);
-                        }
-                        break;
-                        
-                    case 'glitch':
-                        // Premium Christmas glitch sound
-                        for (let i = 0; i < 10; i++) {
-                            const osc = context.createOscillator();
-                            const gain = context.createGain();
-                            osc.connect(gain);
-                            gain.connect(context.destination);
-                            
-                            osc.frequency.setValueAtTime(100 + Math.random() * 2500, now + i * 0.02);
-                            osc.type = ['triangle', 'sawtooth', 'square'][Math.floor(Math.random() * 3)];
-                            
-                            gain.gain.setValueAtTime(0.001, now + i * 0.02);
-                            gain.gain.exponentialRampToValueAtTime(volume * 0.4, now + i * 0.02 + 0.001);
-                            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.02 + 0.03);
-                            
-                            osc.start(now + i * 0.02);
-                            osc.stop(now + i * 0.02 + 0.04);
-                        }
-                        break;
-                        
-                    case 'dubstep':
-                        // Premium Christmas dubstep
-                        const osc6 = context.createOscillator();
-                        const gain6 = context.createGain();
-                        const filter = context.createBiquadFilter();
-                        
-                        osc6.connect(filter);
-                        filter.connect(gain6);
-                        gain6.connect(context.destination);
-                        
-                        osc6.frequency.setValueAtTime(60, now);
-                        osc6.frequency.exponentialRampToValueAtTime(30, now + 0.6);
-                        osc6.type = 'sawtooth';
-                        
-                        filter.type = 'lowpass';
-                        filter.frequency.setValueAtTime(200, now);
-                        filter.frequency.exponentialRampToValueAtTime(50, now + 0.6);
-                        filter.Q.setValueAtTime(15, now);
-                        
-                        gain6.gain.setValueAtTime(0.001, now);
-                        gain6.gain.exponentialRampToValueAtTime(volume * 0.6, now + 0.1);
-                        gain6.gain.exponentialRampToValueAtTime(volume * 0.4, now + 0.4);
-                        gain6.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
-                        
-                        osc6.start(now);
-                        osc6.stop(now + 0.7);
-                        break;
-                        
-                    case 'quantum':
-                        // Premium Christmas quantum sound
-                        const osc7 = context.createOscillator();
-                        const gain7 = context.createGain();
-                        const modulator = context.createOscillator();
-                        const modGain = context.createGain();
-                        
-                        osc7.connect(gain7);
-                        gain7.connect(context.destination);
-                        
-                        modulator.connect(modGain);
-                        modGain.connect(osc7.frequency);
-                        
-                        osc7.frequency.setValueAtTime(440, now);
-                        osc7.type = 'sine';
-                        
-                        modulator.frequency.setValueAtTime(25, now);
-                        modulator.type = 'sine';
-                        modGain.gain.setValueAtTime(150, now);
-                        
-                        gain7.gain.setValueAtTime(0.001, now);
-                        gain7.gain.exponentialRampToValueAtTime(volume * 0.4, now + 0.1);
-                        gain7.gain.exponentialRampToValueAtTime(volume * 0.3, now + 0.5);
-                        gain7.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
-                        
-                        osc7.start(now);
-                        modulator.start(now);
-                        osc7.stop(now + 0.9);
-                        modulator.stop(now + 0.9);
-                        break;
-                        
-                    default:
-                        // Default Premium Christmas sound
-                        const osc = context.createOscillator();
-                        const gain = context.createGain();
-                        osc.connect(gain);
-                        gain.connect(context.destination);
-                        
-                        osc.frequency.setValueAtTime(523, now); // C5
-                        osc.type = 'triangle';
-                        
-                        gain.gain.setValueAtTime(0.001, now);
-                        gain.gain.exponentialRampToValueAtTime(volume * 0.3, now + 0.01);
-                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-                        
-                        osc.start(now);
-                        osc.stop(now + 0.15);
-                }
-                
-                return true;
-            } catch (error) {
-                console.error('Error playing Premium Christmas sound:', error);
-                return null;
-            }
+            // Tidak memainkan suara sama sekali, hanya mengembalikan false
+            return false;
         }
 
         // Fungsi suara alarm berdasarkan mode Natal Premium
@@ -2952,7 +2687,7 @@
                             clearInterval(alarmInterval);
                             return;
                         }
-                        playNotificationSound('notification');
+                        playAlarmTone('standard');
                     }, 700);
                     break;
                     
@@ -2963,7 +2698,7 @@
                             clearInterval(alarmInterval);
                             return;
                         }
-                        playNotificationSound('success');
+                        playAlarmTone('gentle');
                     }, 1800);
                     break;
                     
@@ -2977,7 +2712,7 @@
                         // Pattern emergency
                         for (let i = 0; i < 4; i++) {
                             setTimeout(() => {
-                                playNotificationSound('error');
+                                playAlarmTone('emergency');
                             }, i * 120);
                         }
                     }, 1000);
@@ -2993,7 +2728,7 @@
                         // Pattern getar
                         for (let i = 0; i < 5; i++) {
                             setTimeout(() => {
-                                playNotificationSound('click', globalVolume * 0.5);
+                                playAlarmTone('vibrate', globalVolume * 0.5);
                             }, i * 60);
                         }
                     }, 500);
@@ -3006,28 +2741,7 @@
                             clearInterval(alarmInterval);
                             return;
                         }
-                        // Melodi Natal: Deck the Halls
-                        const melody = [523, 659, 784, 659, 523, 659, 784, 659]; // C E G E C E G E
-                        melody.forEach((note, index) => {
-                            setTimeout(() => {
-                                const osc = context.createOscillator();
-                                const gain = context.createGain();
-                                
-                                osc.connect(gain);
-                                gain.connect(context.destination);
-                                
-                                osc.frequency.value = note;
-                                osc.type = 'triangle';
-                                
-                                const noteTime = context.currentTime;
-                                gain.gain.setValueAtTime(0.001, noteTime);
-                                gain.gain.exponentialRampToValueAtTime(globalVolume * 0.3, noteTime + 0.01);
-                                gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.25);
-                                
-                                osc.start(noteTime);
-                                osc.stop(noteTime + 0.25);
-                            }, index * 150);
-                        });
+                        playAlarmTone('melodic');
                     }, 1800);
                     break;
                     
@@ -3047,7 +2761,7 @@
                             clearInterval(alarmInterval);
                             return;
                         }
-                        playNotificationSound('matrix');
+                        playAlarmTone('matrix');
                     }, 1200);
                     break;
                     
@@ -3058,7 +2772,7 @@
                             clearInterval(alarmInterval);
                             return;
                         }
-                        playNotificationSound('glitch');
+                        playAlarmTone('glitch');
                     }, 800);
                     break;
                     
@@ -3069,7 +2783,7 @@
                             clearInterval(alarmInterval);
                             return;
                         }
-                        playNotificationSound('dubstep');
+                        playAlarmTone('dubstep');
                     }, 2500);
                     break;
                     
@@ -3080,7 +2794,7 @@
                             clearInterval(alarmInterval);
                             return;
                         }
-                        playNotificationSound('quantum');
+                        playAlarmTone('quantum');
                     }, 1500);
                     break;
                     
@@ -3108,29 +2822,212 @@
             return alarmKey;
         }
 
+        // Fungsi untuk memainkan nada alarm
+        function playAlarmTone(mode, volume = null) {
+            if (!soundEnabled || globalVolume === 0) return;
+            
+            const vol = volume !== null ? volume : globalVolume;
+            const context = initAudio();
+            
+            if (!context) return;
+            
+            const now = context.currentTime;
+            
+            switch(mode) {
+                case 'standard':
+                    const osc1 = context.createOscillator();
+                    const gain1 = context.createGain();
+                    osc1.connect(gain1);
+                    gain1.connect(context.destination);
+                    
+                    osc1.frequency.setValueAtTime(800, now);
+                    osc1.type = 'sine';
+                    
+                    gain1.gain.setValueAtTime(0.001, now);
+                    gain1.gain.exponentialRampToValueAtTime(vol * 0.5, now + 0.01);
+                    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                    
+                    osc1.start(now);
+                    osc1.stop(now + 0.3);
+                    break;
+                    
+                case 'gentle':
+                    const osc2 = context.createOscillator();
+                    const gain2 = context.createGain();
+                    osc2.connect(gain2);
+                    gain2.connect(context.destination);
+                    
+                    osc2.frequency.setValueAtTime(600, now);
+                    osc2.type = 'triangle';
+                    
+                    gain2.gain.setValueAtTime(0.001, now);
+                    gain2.gain.exponentialRampToValueAtTime(vol * 0.3, now + 0.01);
+                    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                    
+                    osc2.start(now);
+                    osc2.stop(now + 0.5);
+                    break;
+                    
+                case 'emergency':
+                    const osc3 = context.createOscillator();
+                    const gain3 = context.createGain();
+                    osc3.connect(gain3);
+                    gain3.connect(context.destination);
+                    
+                    osc3.frequency.setValueAtTime(1000, now);
+                    osc3.type = 'sawtooth';
+                    
+                    gain3.gain.setValueAtTime(0.001, now);
+                    gain3.gain.exponentialRampToValueAtTime(vol * 0.6, now + 0.01);
+                    gain3.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                    
+                    osc3.start(now);
+                    osc3.stop(now + 0.2);
+                    break;
+                    
+                case 'vibrate':
+                    const osc4 = context.createOscillator();
+                    const gain4 = context.createGain();
+                    osc4.connect(gain4);
+                    gain4.connect(context.destination);
+                    
+                    osc4.frequency.setValueAtTime(400, now);
+                    osc4.type = 'square';
+                    
+                    gain4.gain.setValueAtTime(0.001, now);
+                    gain4.gain.exponentialRampToValueAtTime(vol * 0.4, now + 0.01);
+                    gain4.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                    
+                    osc4.start(now);
+                    osc4.stop(now + 0.1);
+                    break;
+                    
+                case 'melodic':
+                    // Melodi Natal: Deck the Halls
+                    const melody = [523, 659, 784, 659, 523, 659, 784, 659]; // C E G E C E G E
+                    melody.forEach((note, index) => {
+                        setTimeout(() => {
+                            const osc = context.createOscillator();
+                            const gain = context.createGain();
+                            
+                            osc.connect(gain);
+                            gain.connect(context.destination);
+                            
+                            osc.frequency.value = note;
+                            osc.type = 'triangle';
+                            
+                            const noteTime = context.currentTime;
+                            gain.gain.setValueAtTime(0.001, noteTime);
+                            gain.gain.exponentialRampToValueAtTime(vol * 0.3, noteTime + 0.01);
+                            gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.25);
+                            
+                            osc.start(noteTime);
+                            osc.stop(noteTime + 0.25);
+                        }, index * 150);
+                    });
+                    break;
+                    
+                case 'matrix':
+                    for (let i = 0; i < 6; i++) {
+                        const osc = context.createOscillator();
+                        const gain = context.createGain();
+                        osc.connect(gain);
+                        gain.connect(context.destination);
+                        
+                        osc.frequency.setValueAtTime(900 + Math.random() * 500, now + i * 0.06);
+                        osc.type = 'triangle';
+                        
+                        gain.gain.setValueAtTime(0.001, now + i * 0.06);
+                        gain.gain.exponentialRampToValueAtTime(vol * 0.15, now + i * 0.06 + 0.01);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.06);
+                        
+                        osc.start(now + i * 0.06);
+                        osc.stop(now + i * 0.06 + 0.12);
+                    }
+                    break;
+                    
+                case 'glitch':
+                    for (let i = 0; i < 10; i++) {
+                        const osc = context.createOscillator();
+                        const gain = context.createGain();
+                        osc.connect(gain);
+                        gain.connect(context.destination);
+                        
+                        osc.frequency.setValueAtTime(100 + Math.random() * 2500, now + i * 0.02);
+                        osc.type = ['triangle', 'sawtooth', 'square'][Math.floor(Math.random() * 3)];
+                        
+                        gain.gain.setValueAtTime(0.001, now + i * 0.02);
+                        gain.gain.exponentialRampToValueAtTime(vol * 0.4, now + i * 0.02 + 0.001);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.02 + 0.03);
+                        
+                        osc.start(now + i * 0.02);
+                        osc.stop(now + i * 0.02 + 0.04);
+                    }
+                    break;
+                    
+                case 'dubstep':
+                    const osc6 = context.createOscillator();
+                    const gain6 = context.createGain();
+                    const filter = context.createBiquadFilter();
+                    
+                    osc6.connect(filter);
+                    filter.connect(gain6);
+                    gain6.connect(context.destination);
+                    
+                    osc6.frequency.setValueAtTime(60, now);
+                    osc6.frequency.exponentialRampToValueAtTime(30, now + 0.6);
+                    osc6.type = 'sawtooth';
+                    
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(200, now);
+                    filter.frequency.exponentialRampToValueAtTime(50, now + 0.6);
+                    filter.Q.setValueAtTime(15, now);
+                    
+                    gain6.gain.setValueAtTime(0.001, now);
+                    gain6.gain.exponentialRampToValueAtTime(vol * 0.6, now + 0.1);
+                    gain6.gain.exponentialRampToValueAtTime(vol * 0.4, now + 0.4);
+                    gain6.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+                    
+                    osc6.start(now);
+                    osc6.stop(now + 0.7);
+                    break;
+                    
+                case 'quantum':
+                    const osc7 = context.createOscillator();
+                    const gain7 = context.createGain();
+                    const modulator = context.createOscillator();
+                    const modGain = context.createGain();
+                    
+                    osc7.connect(gain7);
+                    gain7.connect(context.destination);
+                    
+                    modulator.connect(modGain);
+                    modGain.connect(osc7.frequency);
+                    
+                    osc7.frequency.setValueAtTime(440, now);
+                    osc7.type = 'sine';
+                    
+                    modulator.frequency.setValueAtTime(25, now);
+                    modulator.type = 'sine';
+                    modGain.gain.setValueAtTime(150, now);
+                    
+                    gain7.gain.setValueAtTime(0.001, now);
+                    gain7.gain.exponentialRampToValueAtTime(vol * 0.4, now + 0.1);
+                    gain7.gain.exponentialRampToValueAtTime(vol * 0.3, now + 0.5);
+                    gain7.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+                    
+                    osc7.start(now);
+                    modulator.start(now);
+                    osc7.stop(now + 0.9);
+                    modulator.stop(now + 0.9);
+                    break;
+            }
+        }
+
         // ========== UTILITY FUNCTIONS ==========
         function showNotification(title, message, duration = 6000) {
             notificationMessage.textContent = message;
             notification.classList.add('show');
-            
-            // Mainkan suara notifikasi yang sesuai
-            if (soundEnabled && currentAlarmMode !== 'silent' && globalVolume > 0) {
-                if (title.includes('✅') || title.includes('Sukses') || title.includes('Berhasil')) {
-                    playNotificationSound('success');
-                } else if (title.includes('❌') || title.includes('Error') || title.includes('Gagal')) {
-                    playNotificationSound('error');
-                } else if (title.includes('🔔') || title.includes('Alarm')) {
-                    playNotificationSound('notification');
-                } else if (title.includes('⚡') || title.includes('Selamat')) {
-                    playNotificationSound('welcome');
-                } else if (title.includes('🎵') || title.includes('Sound')) {
-                    playNotificationSound('click');
-                } else if (title.includes('🎄') || title.includes('Christmas')) {
-                    playNotificationSound('success');
-                } else {
-                    playNotificationSound('notification');
-                }
-            }
             
             // Browser notifications
             if (browserNotificationsEnabled && 'Notification' in window && Notification.permission === 'granted') {
@@ -3243,7 +3140,6 @@
         function stopAllAlarms() {
             stopAlarm();
             showNotification('🔇 Alarm Dihentikan', 'Semua alarm telah dihentikan');
-            playNotificationSound('click');
         }
 
         function getCurrentTime() {
@@ -3257,9 +3153,6 @@
         // ========== VOLUME CONTROL FUNCTIONS ==========
         function toggleVolumeControl() {
             volumeControl.classList.toggle('show');
-            if (volumeControl.classList.contains('show')) {
-                playNotificationSound('click');
-            }
         }
 
         function updateVolume() {
@@ -3274,11 +3167,6 @@
             
             // Simpan pengaturan volume
             localStorage.setItem('premiumChristmasVolume', value);
-            
-            // Test volume jika di atas 0
-            if (value > 0 && soundEnabled) {
-                playNotificationSound('click', globalVolume * 0.6);
-            }
         }
 
         function loadVolumeSettings() {
@@ -3580,7 +3468,6 @@
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
                 showNotification('✅ Berhasil Disalin!', 'Teks telah disalin ke clipboard');
-                playNotificationSound('success');
             }).catch(err => {
                 console.error('Gagal menyalin teks: ', err);
                 // Fallback untuk browser lama
@@ -3591,7 +3478,6 @@
                 document.execCommand('copy');
                 document.body.removeChild(textArea);
                 showNotification('✅ Berhasil Disalin!', 'Teks telah disalin ke clipboard');
-                playNotificationSound('success');
             });
         }
 
@@ -3630,7 +3516,6 @@
             }, 100);
             
             showNotification('✅ Pasaran Dipilih', `${schedule.pasaran} - ${schedule.category}`);
-            playNotificationSound('success');
         }
 
         function toggleDropdown() {
@@ -3645,7 +3530,6 @@
                 dropdownSearchInput.value = '';
                 renderDropdownItems();
                 dropdownSearchInput.focus();
-                playNotificationSound('click');
             }
         }
 
@@ -3678,9 +3562,6 @@
             if (tabName === 'stats') {
                 updateStats();
             }
-            
-            // Mainkan efek suara
-            playNotificationSound('click');
         }
 
         // ========== FILTER FUNCTIONS ==========
@@ -3699,9 +3580,6 @@
             searchInput.value = '';
             
             renderSchedules();
-            
-            // Mainkan efek suara
-            playNotificationSound('click');
         }
 
         // ========== ALARM TRIGGER FUNCTION ==========
@@ -3771,7 +3649,6 @@
         // Fungsi untuk tracking klik link
         function trackLinkClick(pasaranName, linkType) {
             console.log(`Link ${linkType} diklik untuk pasaran: ${pasaranName}`);
-            playNotificationSound('click');
             
             // Simpan ke localStorage
             const clickData = {
@@ -3822,7 +3699,6 @@
             localStorage.setItem('reminders', JSON.stringify(reminders));
             
             showNotification('✅ Reminder Diset', `Akan diingatkan saat ${pasaranName} result`);
-            playNotificationSound('success');
         }
 
         // Fungsi untuk update countdown real-time
@@ -3855,7 +3731,6 @@
             linkElement.click();
             
             showNotification('📊 Data Diexport', 'Jadwal berhasil diexport ke file JSON');
-            playNotificationSound('success');
         }
 
         // Fungsi untuk import data
@@ -3884,7 +3759,6 @@
                     renderSchedules();
                     renderDropdownItems();
                     showNotification('📊 Data Diimport', `${importedData.length} pasaran berhasil diimport`);
-                    playNotificationSound('success');
                 } catch (error) {
                     showNotification('❌ Error Import', 'Format file tidak valid');
                     console.error('Import error:', error);
@@ -3921,7 +3795,6 @@
             document.getElementById(`mode-${mode}`).classList.add('active');
             
             showNotification('🔔 Mode Alarm Diubah', `Mode alarm diubah ke: ${getModeDisplayName(mode)}`);
-            playNotificationSound('click');
         }
 
         function setAlarmDuration(duration) {
@@ -3936,7 +3809,6 @@
             document.getElementById(`duration-${duration}`).classList.add('active');
             
             showNotification('⏱️ Durasi Diubah', `Durasi alarm: ${getDurationDisplay(duration)}`);
-            playNotificationSound('click');
         }
 
         function getDurationDisplay(duration) {
@@ -3955,19 +3827,16 @@
             
             if (soundEnabled) {
                 soundIcon.className = 'fas fa-volume-up';
-                soundTitle.textContent = 'Suara Aktif';
+                soundTitle.textContent = 'Suara Alarm Aktif';
                 
                 // Coba unlock audio ketika diaktifkan
                 unlockAudio();
                 
-                showNotification('🔊 Suara Diaktifkan', 'Notifikasi suara telah diaktifkan');
-                
-                // Mainkan suara konfirmasi
-                setTimeout(() => playNotificationSound('success'), 100);
+                showNotification('🔊 Suara Alarm Diaktifkan', 'Notifikasi suara alarm telah diaktifkan');
             } else {
                 soundIcon.className = 'fas fa-volume-mute';
-                soundTitle.textContent = 'Suara Nonaktif';
-                showNotification('🔇 Suara Dinonaktifkan', 'Notifikasi suara telah dinonaktifkan');
+                soundTitle.textContent = 'Suara Alarm Nonaktif';
+                showNotification('🔇 Suara Alarm Dinonaktifkan', 'Notifikasi suara alarm telah dinonaktifkan');
                 
                 // Hentikan semua suara saat dinonaktifkan
                 stopAllAlarms();
@@ -3977,23 +3846,7 @@
         }
 
         function testSound() {
-            if (!soundEnabled) {
-                showNotification('🔇 Suara Dinonaktifkan', 'Aktifkan suara terlebih dahulu untuk test');
-                return;
-            }
-            
-            unlockAudio(); // Pastikan audio context aktif
-            
-            // Test semua jenis suara Natal Premium
-            showNotification('🔊 Test Suara Premium Christmas', 'Menguji semua jenis suara notifikasi...');
-            
-            playNotificationSound('notification');
-            setTimeout(() => playNotificationSound('success'), 600);
-            setTimeout(() => playNotificationSound('welcome'), 1200);
-            setTimeout(() => playNotificationSound('matrix'), 1800);
-            setTimeout(() => playNotificationSound('glitch'), 2400);
-            setTimeout(() => playNotificationSound('dubstep'), 3000);
-            setTimeout(() => playNotificationSound('quantum'), 3600);
+            showNotification('🔊 Test Suara Dinonaktifkan', 'Test suara telah dinonaktifkan, hanya alarm yang berfungsi');
         }
 
         function testAlarm() {
@@ -4037,47 +3890,15 @@
             showNotification('🔔 Test Mode Alarm Premium Christmas', `Menguji mode: ${getModeDisplayName(currentAlarmMode)}`);
         }
 
-        function testChristmasMusic() {
-            if (!soundEnabled) {
-                showNotification('🔇 Suara Dinonaktifkan', 'Aktifkan suara terlebih dahulu');
-                return;
-            }
-            
-            // Simpan mode sebelumnya
-            const previousMode = currentAlarmMode;
-            
-            // Set mode ke christmas sementara
-            currentAlarmMode = 'christmas';
-            
-            // Play Christmas music
-            if (christmasMusic) {
-                christmasMusic.currentTime = 0;
-                christmasMusic.volume = globalVolume;
-                christmasMusic.play();
-                
-                showNotification('🎄 Test Musik Natal Premium', 'Memainkan musik Natal...');
-                
-                // Kembalikan mode setelah 7 detik
-                setTimeout(() => {
-                    christmasMusic.pause();
-                    christmasMusic.currentTime = 0;
-                    currentAlarmMode = previousMode;
-                }, 7000);
-            }
-        }
-
         function testAllFeatures() {
             showNotification('🧪 Test Semua Fitur Premium Christmas', 'Menguji semua fungsi aplikasi...');
             
-            // Test suara
-            testSound();
-            
-            // Test notifikasi
+            // Test notifikasi tanpa suara
             setTimeout(() => {
                 showNotification('🔔 Test Notifikasi', 'Ini adalah test notifikasi Premium Christmas');
             }, 1000);
             
-            // Test alarm
+            // Test alarm dengan suara
             setTimeout(() => {
                 testAlarm();
             }, 2000);
@@ -4106,7 +3927,6 @@
                 
                 // Unlock audio dan mainkan suara konfirmasi
                 unlockAudio();
-                setTimeout(() => playNotificationSound('success'), 100);
             } else {
                 alarmIcon.className = 'fas fa-bell-slash';
                 alarmTitle.textContent = 'Alarm Nonaktif';
@@ -4216,7 +4036,7 @@
             
             // Update UI
             document.getElementById('sound-icon').className = 'fas fa-volume-up';
-            document.getElementById('sound-title').textContent = 'Suara Aktif';
+            document.getElementById('sound-title').textContent = 'Suara Alarm Aktif';
             document.getElementById('alarm-icon').className = 'fas fa-alarm-clock';
             document.getElementById('alarm-title').textContent = 'Alarm Aktif';
             document.getElementById('browser-status').textContent = 'Aktif';
@@ -4272,7 +4092,6 @@
             };
             localStorage.setItem('premiumChristmasAlarmSettings', JSON.stringify(settings));
             showNotification('💾 Pengaturan Tersimpan', 'Mode alarm Premium Christmas telah disimpan');
-            playNotificationSound('success');
         }
 
         function loadAlarmSettings() {
@@ -4297,7 +4116,6 @@
             
             localStorage.removeItem('premiumChristmasAlarmSettings');
             showNotification('🔄 Pengaturan Direset', 'Mode alarm Premium Christmas dikembalikan ke default');
-            playNotificationSound('click');
         }
 
         function backupSettings() {
@@ -4316,7 +4134,6 @@
             
             localStorage.setItem('premiumChristmasSettingsBackup', JSON.stringify(settings));
             showNotification('💾 Backup Disimpan', 'Pengaturan Premium Christmas berhasil dibackup');
-            playNotificationSound('success');
         }
 
         function restoreSettings() {
@@ -4348,7 +4165,6 @@
             updateSettingsUI();
             
             showNotification('🔄 Settings Dipulihkan', `Backup dari ${new Date(settings.lastBackup).toLocaleDateString()}`);
-            playNotificationSound('success');
         }
 
         function updateSettingsUI() {
@@ -4356,7 +4172,7 @@
             const soundIcon = document.getElementById('sound-icon');
             const soundTitle = document.getElementById('sound-title');
             soundIcon.className = soundEnabled ? 'fas fa-volume-up' : 'fas fa-volume-mute';
-            soundTitle.textContent = soundEnabled ? 'Suara Aktif' : 'Suara Nonaktif';
+            soundTitle.textContent = soundEnabled ? 'Suara Alarm Aktif' : 'Suara Alarm Nonaktif';
             
             // Update alarm icon
             const alarmIcon = document.getElementById('alarm-icon');
@@ -4561,13 +4377,6 @@
             if (e.ctrlKey && e.key === 'f') {
                 e.preventDefault();
                 searchInput.focus();
-                playNotificationSound('click');
-            }
-            
-            // Shortcut Ctrl+T untuk test sound
-            if (e.ctrlKey && e.key === 't') {
-                e.preventDefault();
-                testSound();
             }
             
             // Shortcut Ctrl+V untuk volume control
@@ -4580,12 +4389,6 @@
             if (e.ctrlKey && e.key === 'm') {
                 e.preventDefault();
                 toggleSound();
-            }
-            
-            // Shortcut Ctrl+C untuk test Christmas music
-            if (e.ctrlKey && e.key === 'c') {
-                e.preventDefault();
-                testChristmasMusic();
             }
             
             // Shortcut 1-4 untuk switch tabs
@@ -4651,16 +4454,9 @@
                 setTimeout(createSparkle, i * 300);
             }
             
-            // Setup audio unlock after 1 second
-            setTimeout(() => {
-                if (soundEnabled && audioContext && audioContext.state === 'running') {
-                    playNotificationSound('welcome');
-                }
-            }, 1000);
-            
             // Show welcome message
             setTimeout(() => {
-                showNotification('🎄 Selamat Natal Premium', 'Premium Christmas Togel Schedule siap digunakan! Gunakan Ctrl+C untuk test musik Natal Premium!');
+                showNotification('🎄 Selamat Natal Premium', 'Premium Christmas Togel Schedule siap digunakan! Hanya alarm yang berfungsi tanpa suara tombol!');
             }, 1500);
         }
 
