@@ -716,7 +716,7 @@
             </div>
             <div class="modal-body">
                 <div class="modal-icon"><i class="fas fa-radiation-alt"></i></div>
-                <h2 style="margin-bottom:15px; font-family:'Black Ops One'; text-transform:uppercase; color:var(--ind-warn);">Air Raid Siren</h2>
+                <h2 style="margin-bottom:15px; font-family:'Black Ops One'; text-transform:uppercase; color:var(--ind-warn);">Robot Alert</h2>
                 <p id="modal-msg" style="color:#ccc; font-size:1rem;">Market result incoming. Standby.</p>
                 <button class="close-btn" onclick="closeModal()">ACKNOWLEDGE</button>
             </div>
@@ -920,7 +920,7 @@
             return audioCtx;
         }
 
-        /* --- ALARM ENGINE (AIR RAID SIREN) --- */
+        /* --- ALARM ENGINE (ROBOT BEEP - NEW SOUND) --- */
         function playAlarmTone(mode) {
             const context = initAudio();
             if (context.state === 'suspended') context.resume();
@@ -929,23 +929,42 @@
 
             switch(mode) {
                 case 'airraid':
-                    const osc = context.createOscillator();
-                    const gain = context.createGain();
+                    // Tone 1: High Pitch Alert (Square wave)
+                    const osc1 = context.createOscillator();
+                    const gain1 = context.createGain();
+                    osc1.type = 'square';
+                    osc1.frequency.setValueAtTime(1200, now); // Frekuensi tinggi
+                    gain1.gain.setValueAtTime(0.5 * masterVol, now);
+                    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                    osc1.connect(gain1);
+                    gain1.connect(context.destination);
+                    osc1.start(now);
+                    osc1.stop(now + 0.1);
 
-                    osc.type = 'sawtooth'; 
-                        
-                    osc.frequency.setValueAtTime(800, now);
-                    osc.frequency.exponentialRampToValueAtTime(100, now + 0.5);
-
-                    gain.gain.setValueAtTime(0.001, now);
-                    gain.gain.linearRampToValueAtTime(0.8 * masterVol, now + 0.05); 
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.7); 
-
-                    osc.connect(gain);
-                    gain.connect(context.destination);
-
-                    osc.start(now);
-                    osc.stop(now + 0.7);
+                    // Tone 2: Lower Pitch Confirmation (Sawtooth wave)
+                    const osc2 = context.createOscillator();
+                    const gain2 = context.createGain();
+                    osc2.type = 'sawtooth';
+                    osc2.frequency.setValueAtTime(800, now + 0.15); 
+                    gain2.gain.setValueAtTime(0.3 * masterVol, now + 0.15);
+                    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                    osc2.connect(gain2);
+                    gain2.connect(context.destination);
+                    osc2.start(now + 0.15);
+                    osc2.stop(now + 0.3);
+                    
+                    // Tone 3: Data Transmission Blip (Triangle wave)
+                    const osc3 = context.createOscillator();
+                    const gain3 = context.createGain();
+                    osc3.type = 'triangle';
+                    osc3.frequency.setValueAtTime(2000, now + 0.4); 
+                    gain3.gain.setValueAtTime(0.4 * masterVol, now + 0.4);
+                    gain3.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                    osc3.connect(gain3);
+                    gain3.connect(context.destination);
+                    osc3.start(now + 0.4);
+                    osc3.stop(now + 0.45);
+                    
                     break;
             }
         }
@@ -957,13 +976,14 @@
 
             triggered.add("main_loop");
 
+            // Ubah 2500 (2.5 detik) menjadi 1000 (1 detik) agar beep lebih cepat
             alarmIntervalId = setInterval(() => {
                 if (!triggered.has("main_loop")) {
                     clearInterval(alarmIntervalId);
                     return;
                 }
                 playAlarmTone('airraid');
-            }, 2500);
+            }, 1000); // Ulangi setiap 1 detik
             
             alarmTimeouts.push(alarmIntervalId);
         }
@@ -1290,4 +1310,3 @@
     </script>
 </body>
 </html>
-
