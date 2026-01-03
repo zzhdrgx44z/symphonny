@@ -210,7 +210,6 @@
             font-size: 0.9rem;
             font-style: italic;
         }
-        /* END BET CLOSED MONITOR STYLES */
 
         /* --- NAVIGASI SEGITIGA (CYBER) --- */
         .nav-grid {
@@ -688,8 +687,6 @@
     </style>
 </head>
 <body>
-    <audio id="christmas-music" preload="auto" style="display: none;"></audio>
-
     <!-- NOTIFIKASI -->
     <div class="toast" id="toast">
         <i class="fas fa-check-circle fa-2x"></i>
@@ -841,7 +838,7 @@
     </div>
 
     <script>
-        /* DATA (DATA LENGKAP DARI USER) */
+        /* DATA LENGKAP + HOKIDRAW LOOP FIXED */
         const scheduleData = [
             { pasaran: "TOTO MACAU PAGI", jamBetclosed: "00:00", jamResult: "00:15", linkSitus: "http://totomacau-pools.us/", linkStreaming: "https://kick.com/live-ttm4d", category: "International" },
             { pasaran: "KENTUCKY MIDDAY", jamBetclosed: "01:05", jamResult: "01:20", linkSitus: "https://www.kylottery.com/apps/draw_games/pick4/", linkStreaming: "", category: "USA" },
@@ -897,13 +894,25 @@
             { pasaran: "KING KONG4D MALAM", jamBetclosed: "23:30", jamResult: "23:45", linkSitus: "https://kingkongpools.id/", linkStreaming: "https://kick.com/king-kong-pools", category: "Indonesia" }
         ];
 
+        // Fixed Loop: Adds HOKIDRAW 00:00 to 23:00
+        for (let i = 0; i < 24; i++) {
+            const hour = i.toString().padStart(2, '0');
+            scheduleData.push({
+                pasaran: `HOKIDRAW ${hour}:00`,
+                jamBetclosed: `${hour}:00`,
+                jamResult: `${hour}:00`,
+                linkSitus: "https://hokidraw.com/",
+                linkStreaming: "https://kick.com/hokidrawlive",
+                category: "Inggris"
+            });
+        }
+
         /* VARS */
         let soundOn = true, alarmOn = true, curFilter = 'all', vol = 0.7;
-        const audioEl = document.getElementById('christmas-music');
         let audioCtx = null, triggered = new Set();
         let alarmIntervalId = null; 
         let alarmTimeouts = []; 
-        let alarmDuration = 30;
+        let alarmDuration = 30; // seconds
 
         /* LOGIC */
         function initAudio() {
@@ -1253,6 +1262,7 @@
                 const [rh, rm] = s.jamResult.split(':').map(Number);
                 const r = rh*60+rm;
                 
+                // Check exact match of hours/minutes and start of second
                 if(cur===r && now.getSeconds()===0 && !triggered.has(s.pasaran)) {
                     triggered.add(s.pasaran);
                     triggered.add("main_loop"); 
