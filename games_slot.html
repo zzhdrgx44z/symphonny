@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Games Dashboard - Multi Provider</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(to right, #4a69bd, #1e3799);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            font-size: 2.8rem;
+            color: #f6b93b;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .stat-box {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px 20px;
+            text-align: center;
+            min-width: 150px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #f6b93b;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            padding: 25px 30px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        .search-filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 15px 20px 15px 50px;
+            border: 2px solid #ddd;
+            border-radius: 50px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .search-box input:focus {
+            border-color: #4a69bd;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(74, 105, 189, 0.2);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+            font-size: 1.2rem;
+        }
+        
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .filter-select {
+            padding: 12px 20px;
+            border-radius: 50px;
+            border: 2px solid #ddd;
+            background-color: white;
+            font-size: 0.95rem;
+            cursor: pointer;
+            min-width: 180px;
+        }
+        
+        .filter-select:focus {
+            border-color: #4a69bd;
+            outline: none;
+        }
+        
+        .reset-btn {
+            padding: 12px 25px;
+            background-color: #4a69bd;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .reset-btn:hover {
+            background-color: #1e3799;
+            transform: translateY(-2px);
+        }
+        
+        .games-container {
+            padding: 30px;
+            min-height: 500px;
+        }
+        
+        .view-controls {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .view-btn {
+            padding: 10px 15px;
+            background-color: #eaeaea;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #555;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        
+        .view-btn.active {
+            background-color: #4a69bd;
+            color: white;
+        }
+        
+        .view-btn:hover {
+            background-color: #ddd;
+        }
+        
+        .view-btn.active:hover {
+            background-color: #1e3799;
+        }
+
+        /* Show All Button Style */
+        .show-all-btn {
+            padding: 10px 20px;
+            background-color: #f6b93b;
+            color: #1e3799;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            margin-right: auto;
+        }
+
+        .show-all-btn:hover {
+            background-color: #e1b12c;
+            transform: translateY(-2px);
+        }
+
+        .show-all-btn.active {
+            background-color: #e17055;
+            color: white;
+        }
+        
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 25px;
+        }
+        
+        .games-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .game-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            border: 1px solid transparent;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.15);
+            border-color: #4a69bd;
+        }
+        
+        .game-card.grid-view {
+            height: 100%;
+        }
+        
+        .game-card.list-view {
+            display: flex;
+            height: 120px;
+        }
+        
+        .game-image {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            background-color: #f5f5f5;
+            transition: transform 0.3s;
+        }
+
+        .game-card:hover .game-image {
+            transform: scale(1.05);
+        }
+        
+        .list-view .game-image {
+            width: 200px;
+            height: 100%;
+            flex-shrink: 0;
+        }
+
+        /* Provider Badge Style */
+        .provider-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            z-index: 2;
+            text-transform: uppercase;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .provider-badge.pragmatic {
+            background-color: #f6b93b; /* Kuning Emas untuk Pragmatic */
+            color: #333;
+        }
+
+        .provider-badge.pgsoft {
+            background-color: #4a69bd; /* Biru untuk PG Soft */
+            color: white;
+        }
+        
+        .game-info {
+            padding: 15px;
+        }
+        
+        .list-view .game-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .game-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 5px;
+            color: #222;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .game-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        .game-tag {
+            background-color: #eef2ff;
+            color: #4a69bd;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .game-tag.pp {
+            background-color: #ffeaa7;
+            color: #e17055;
+        }
+        
+        .game-tag.bonanza {
+            background-color: #a29bfe;
+            color: white;
+        }
+        
+        .game-tag.olympus {
+            background-color: #74b9ff;
+            color: white;
+        }
+        
+        .game-tag.bass {
+            background-color: #55efc4;
+            color: #00b894;
+        }
+        
+        .game-tag.sweet {
+            background-color: #fd79a8;
+            color: white;
+        }
+        
+        .game-tag.gates {
+            background-color: #636e72;
+            color: white;
+        }
+        
+        .game-tag.megaways {
+            background-color: #fdcb6e;
+            color: #d63031;
+        }
+        
+        .game-tag.christmas {
+            background-color: #00b894;
+            color: white;
+        }
+        
+        .game-tag.halloween {
+            background-color: #6c5ce7;
+            color: white;
+        }
+        
+        .game-tag.dice {
+            background-color: #0984e3;
+            color: white;
+        }
+        
+        .game-tag.gold {
+            background-color: #fdcb6e;
+            color: #d63031;
+        }
+        
+        /* Tags PG Soft specific */
+        .game-tag.mahjong {
+            background-color: #fab1a0;
+            color: #e17055;
+        }
+        
+        .game-tag.wins {
+            background-color: #74b9ff;
+            color: white;
+        }
+
+        .game-tag.wild {
+            background-color: #e17055;
+            color: white;
+        }
+        
+        /* Tags generic */
+        .game-tag.wonders {
+            background-color: #00cec9;
+            color: white;
+        }
+        
+        .game-tag.fortune {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 40px;
+            gap: 10px;
+        }
+        
+        .page-btn {
+            padding: 10px 15px;
+            background-color: #f1f1f1;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .page-btn:hover {
+            background-color: #ddd;
+        }
+        
+        .page-btn.active {
+            background-color: #4a69bd;
+            color: white;
+        }
+        
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #777;
+            font-size: 1.2rem;
+            grid-column: 1 / -1;
+        }
+        
+        .no-results i {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #ccc;
+        }
+        
+        footer {
+            padding: 25px 30px;
+            text-align: center;
+            background-color: #f8f9fa;
+            color: #666;
+            border-top: 1px solid #eaeaea;
+            font-size: 0.9rem;
+        }
+        
+        .footer-highlight {
+            color: #4a69bd;
+            font-weight: 600;
+        }
+
+        /* --- Styles untuk Lightbox (Zoom Image) --- */
+        .lightbox {
+            display: none; 
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .lightbox.show {
+            opacity: 1;
+        }
+
+        .lightbox-content {
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 80vh;
+            border-radius: 5px;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+            animation: zoomIn 0.3s ease;
+        }
+
+        @keyframes zoomIn {
+            from {transform: scale(0.8); opacity: 0;}
+            to {transform: scale(1); opacity: 1;}
+        }
+
+        .lightbox-caption {
+            margin: 15px auto;
+            text-align: center;
+            color: #ccc;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px black;
+            max-width: 80%;
+        }
+
+        .close-lightbox {
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+            z-index: 10000;
+        }
+
+        .close-lightbox:hover,
+        .close-lightbox:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        @media (max-width: 1100px) {
+            .games-grid {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                gap: 20px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+            
+            .search-filter-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                min-width: 100%;
+            }
+            
+            .games-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+            }
+            
+            .game-card.list-view {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .list-view .game-image {
+                width: 100%;
+                height: 140px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .stat-box {
+                min-width: 120px;
+                padding: 12px 15px;
+            }
+            
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .view-controls {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .games-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-select {
+                width: 100%;
+            }
+            
+            .stats {
+                gap: 10px;
+            }
+            
+            .stat-box {
+                min-width: calc(50% - 10px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-gamepad logo-icon"></i>
+                    <div>
+                        <h1>Games Dashboard</h1>
+                        <p>Multi-Provider Game Library</p>
+                    </div>
+                </div>
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="stat-value" id="total-games">0</div>
+                        <div class="stat-label">Total Games</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="filtered-games">0</div>
+                        <div class="stat-label">Showing</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="unique-categories">0</div>
+                        <div class="stat-label">Providers</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <div class="controls">
+            <div class="search-filter-container">
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="search-input" placeholder="Search games by name, tag, or feature...">
+                </div>
+                <div class="filters">
+                    <!-- Provider Filter Baru -->
+                    <select id="provider-filter" class="filter-select">
+                        <option value="">All Providers</option>
+                        <option value="pragmatic">Pragmatic Play</option>
+                        <option value="pgsoft">PG Soft</option>
+                    </select>
+
+                    <select id="category-filter" class="filter-select">
+                        <option value="">All Categories</option>
+                        <option value="bonanza">Bonanza Series</option>
+                        <option value="olympus">Olympus Series</option>
+                        <option value="bass">Bass Series</option>
+                        <option value="sweet">Sweet Series</option>
+                        <option value="gates">Gates Series</option>
+                        <option value="megaways">Megaways</option>
+                        <option value="mahjong">Mahjong Series</option>
+                        <option value="wonders">Wonders Series</option>
+                        <option value="fortune">Fortune Series</option>
+                        <option value="wild">Wild Series</option>
+                        <option value="christmas">Christmas</option>
+                        <option value="halloween">Halloween</option>
+                        <option value="dice">Dice Games</option>
+                        <option value="gold">Gold Series</option>
+                        <option value="wins">Wins Series</option>
+                    </select>
+                    
+                    <select id="sort-by" class="filter-select">
+                        <option value="name-asc">Name: A to Z</option>
+                        <option value="name-desc">Name: Z to A</option>
+                        <option value="newest">Newest First</option>
+                        <option value="popular">Most Popular</option>
+                    </select>
+                    
+                    <button id="reset-filters" class="reset-btn">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="games-container">
+            <div class="view-controls">
+                <button id="show-all-btn" class="show-all-btn">
+                    <i class="fas fa-layer-group"></i> Show All
+                </button>
+                
+                <button class="view-btn active" id="grid-view-btn" title="Grid View">
+                    <i class="fas fa-th"></i>
+                </button>
+                <button class="view-btn" id="list-view-btn" title="List View">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+            
+            <div id="games-display" class="games-grid">
+                <!-- Games will be loaded here -->
+            </div>
+            
+            <div class="pagination" id="pagination-container">
+                <button id="prev-page" class="page-btn" disabled>
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+                <div id="page-numbers"></div>
+                <button id="next-page" class="page-btn">
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Games Dashboard &copy; <span id="current-year">2023</span> | 
+                <span class="footer-highlight" id="game-provider">Multi-Provider</span> - 
+                <span class="footer-highlight" id="total-in-library">0</span> games in library
+            </p>
+            <p>All game images and titles are property of their respective owners.</p>
+        </footer>
+    </div>
+
+    <!-- Lightbox Modal Structure -->
+    <div id="lightbox" class="lightbox">
+        <span class="close-lightbox">&times;</span>
+        <img class="lightbox-content" id="lightbox-img">
+        <div id="lightbox-caption" class="lightbox-caption"></div>
+    </div>
+
+    <script>
+        // Data Pragmatic Play (Sebagaimana sebelumnya, dengan field provider)
+        const pragmaticGamesRaw = [
+            {name: "Fortune Of Olympus", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/FortuneofOlympus.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20olympgcl.png", provider: "pragmatic", tags: ["olympus"]},
+            {name: "Limbo+ PP", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/Limbo.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/ar1limboplus.png", provider: "pragmatic", tags: []},
+            {name: "Big Bass Splash 1000", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/BigBassSplash1000.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10bbsplashx.png", provider: "pragmatic", tags: ["bass", "splash"]},
+            {name: "Wisdom Of Athena 1000 Xmas", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/WisdomofAthena1000Xmas.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20procountxm.png", provider: "pragmatic", tags: ["athena", "christmas"]},
+            {name: "Bloody Dawn", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/BloodyDawn.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayswildb.png", provider: "pragmatic", tags: []},
+            {name: "Zeus Vs Typhon", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/ZeusvsTyphon.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysreelbtl.png", provider: "pragmatic", tags: ["olympus"]},
+            {name: "Sweet Craze", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/SweetCraze.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20chestcol.png", provider: "pragmatic", tags: ["sweet"]},
+            {name: "Gates Of Pyroth", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/GatesofPyroth.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20shmnarise.png", provider: "pragmatic", tags: ["gates"]},
+            {name: "Anaconda Gold", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/AnacondaGold.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysacnd.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Gates Of Olympus 1000", image: "https://premicloud.net/banner/image/games/slots/pragmatic/GatesofOlympus1000.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20olympx.png", provider: "pragmatic", tags: ["gates", "olympus"]},
+            {name: "Gates Of Olympus Super Scatter", image: "https://shareservice.net/banner/image/assetgames/slots/pragmatic/GatesofOlympusSuperScatter.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20olympgold.png", provider: "pragmatic", tags: ["gates", "olympus"]},
+            {name: "Gates Of Gatot Kaca Super Scatter", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/GatesofGatotKacaSuperScatter.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20olgatssc.png", provider: "pragmatic", tags: ["gates"]},
+            {name: "Mahjong Wins 3 - Black Scatter", image: "https://shareservice.net/banner/image/games/slots/pragmatic/MahjongWins3BlackScatter.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysmahwblck.png", provider: "pragmatic", tags: ["mahjong"]},
+            {name: "Starlight Princess 1000", image: "https://premicloud.net/banner/image/games/slots/pragmatic/StarlightPrincess1000.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20starlightx.png", provider: "pragmatic", tags: ["princess"]},
+            {name: "Gates Of Olympus", image: "https://media.fastchecker.us/idnsmedia/is/slots-v3/t1-pragmatic/r3r23rGates-of-Olympus.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20olympgate.png", provider: "pragmatic", tags: ["gates", "olympus"]},
+            {name: "Mahjong Wins 2", image: "https://premicloud.net/banner/image/games/slots/pragmatic/MahjongWins2.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysmahwin2.png", provider: "pragmatic", tags: ["mahjong"]},
+            {name: "Sweet Bonanza 1000", image: "https://premicloud.net/banner/image/games/slots/pragmatic/SweetBonanza1000.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20fruitswx.png", provider: "pragmatic", tags: ["sweet", "bonanza"]},
+            {name: "Starlight Princess Super Scatter", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/StarlightPrincessSuperScatter.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20starprss.png", provider: "pragmatic", tags: ["princess"]},
+            {name: "Sweet Bonanza", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs20fruitsw.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20fruitsw.png", provider: "pragmatic", tags: ["sweet", "bonanza"]},
+            {name: "Spaceman", image: "https://shareservice.net/banner/image/games/slots/pragmatic/spaceman.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/1301.png", provider: "pragmatic", tags: []},
+            {name: "Starlight Princess", image: "https://premicloud.net/banner/image/games/slots/pragmatic/Starlight-Princess.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20starlight.png", provider: "pragmatic", tags: ["princess"]},
+            {name: "Gates Of Gatot Kaca 1000", image: "https://premicloud.net/banner/image/games/slots/pragmatic/GatesofGatotKaca1000.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20gatotx.png", provider: "pragmatic", tags: ["gates"]},
+            {name: "Sugar Rush 1000", image: "https://premicloud.net/banner/image/games/slots/pragmatic/SugarRush1000.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20sugarrushx.png", provider: "pragmatic", tags: ["sugar", "rush"]},
+            {name: "Sweet Bonanza Super Scatter", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/SweetBonanzaSuperScatter.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20swbonsup.png", provider: "pragmatic", tags: ["sweet", "bonanza"]},
+            {name: "Pyramid Bonanza", image: "https://premicloud.net/banner/image/games/slots/pragmatic/pyramidbonanza.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20pbonanza.png", provider: "pragmatic", tags: ["bonanza", "pyramid"]},
+            {name: "Wisdom Of Athena 1000", image: "https://shareservice.net/banner/image/games/slots/pragmatic/Wisdom Of Athena 1000_900x900 copy.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20procountx.png", provider: "pragmatic", tags: ["athena"]},
+            {name: "Mahjong Wins - Gong Xi Fa Cai", image: "https://shareservice.net/banner/image/games/slots/pragmatic/GongXiFaCai.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysmahwgong.png", provider: "pragmatic", tags: ["mahjong"]},
+            {name: "Sweet Rush Bonanza", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/SweetRushBonanza.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20swrbon.png", provider: "pragmatic", tags: ["sweet", "bonanza", "rush"]},
+            {name: "Sweet Bonanza Xmas", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs20sbxmas.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20sbxmas.png", provider: "pragmatic", tags: ["sweet", "bonanza", "christmas"]},
+            {name: "Rujak Bonanza", image: "https://premicloud.net/banner/image/games/slots/pragmatic/RujakBonanza.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20rujakbnz.png", provider: "pragmatic", tags: ["bonanza"]},
+            {name: "Gates Of Olympus Xmas 1000", image: "https://shareservice.net/banner/image/games/slots/pragmatic/GatesofOlympusXmas1000.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20olympxmas.png", provider: "pragmatic", tags: ["gates", "olympus", "christmas"]},
+            {name: "Starlight Archer 1000", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/StarlightArcher1000.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20stararx.png", provider: "pragmatic", tags: ["princess"]},
+            {name: "Sweet Bonanza 1000 Dice", image: "https://shareservice.net/banner/image/games/slots/pragmatic/SweetBonanza1000Dice.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20swdicex.png", provider: "pragmatic", tags: ["sweet", "bonanza", "dice"]},
+            {name: "Bonanza Gold", image: "https://premicloud.net/banner/image/slot/bgAll-UBO.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20bonzgold.png", provider: "pragmatic", tags: ["bonanza", "gold"]},
+            {name: "Gates Of Gatot Kaca", image: "https://premicloud.net/banner/image/games/slots/pragmatic/vs20gatotgates.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20gatotgates.png", provider: "pragmatic", tags: ["gates"]},
+            {name: "Mahjong Wins Bonus", image: "https://premicloud.net/banner/image/games/slots/pragmatic/MahjongWinsBonus.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs1024mjwinbns.png", provider: "pragmatic", tags: ["mahjong"]},
+            {name: "Aztec Gems", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs5aztecgems.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5aztecgems.png", provider: "pragmatic", tags: []},
+            {name: "Chests Of Cai Shen 2", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/ChestsofCaiShen2.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25caishen2.png", provider: "pragmatic", tags: []},
+            {name: "Gates Of Olympus 1000 Dice", image: "https://shareservice.net/banner/image/games/slots/pragmatic/GatesofOlympus1000Dice.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20dicegatex.png", provider: "pragmatic", tags: ["gates", "olympus", "dice"]},
+            {name: "Gates Of Olympus Dice", image: "https://premicloud.net/banner/image/games/slots/pragmatic/GatesofOlympusDice.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20olympdice.png", provider: "pragmatic", tags: ["gates", "olympus", "dice"]},
+            {name: "Sugar Rush", image: "https://premicloud.net/banner/image/games/slots/pragmatic/SugarRush.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20sugarrush.png", provider: "pragmatic", tags: ["sugar", "rush"]},
+            {name: "Hammerstorm", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/Hammerstorm.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs40hmrstrm.png", provider: "pragmatic", tags: []},
+            {name: "Wild West Gold", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs40wildwest.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs40wildwest.png", provider: "pragmatic", tags: ["gold", "wildwest"]},
+            {name: "Wild West Gold Blazing Bounty", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/WildWestGoldBlazingBounty.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20wwgcluster.png", provider: "pragmatic", tags: ["gold", "wildwest"]},
+            {name: "Mahjong Wins", image: "https://premicloud.net/banner/image/games/slots/pragmatic/MahjongWins.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs1024mahjwins.png", provider: "pragmatic", tags: ["mahjong"]},
+            {name: "Pragmatic Roulette", image: "", fallback: "https://common-static.ppgames.net/game_pic/rec/325/rla.png", provider: "pragmatic", tags: ["table"]},
+            {name: "5 Lions Megaways", image: "https://premicloud.net/banner/image/slot/vswayslionsWL-UBO.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayslions.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Super Gummy Strike", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/SuperGummyStrike.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5supergummy.png", provider: "pragmatic", tags: []},
+            {name: "Aztec Gems Deluxe", image: "https://premicloud.net/banner/image/Slots/agd-All-UBO.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs9aztecgemsdx.png", provider: "pragmatic", tags: []},
+            {name: "Wisdom Of Athena", image: "https://premicloud.net/banner/image/games/slots/pragmatic/WisdomofAthena.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20procount.png", provider: "pragmatic", tags: ["athena"]},
+            {name: "Duel Of Night & Day", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/DuelofNightDay.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysyinyang.png", provider: "pragmatic", tags: []},
+            {name: "Fortune Ace Super Scatter", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/FortuneAceSuperScatter.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysfortsup.png", provider: "pragmatic", tags: []},
+            {name: "Great Rhino Megaways", image: "https://premicloud.net/banner/image/ubo_GreatRhino_thumbnaill.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysrhino.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "5 Lions Megaways 2", image: "https://shareservice.net/banner/image/games/slots/pragmatic/5LionsMegaways2.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vsways5lions2.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Wild Wild Riches Returns", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/WildWildRichesReturns.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayswwrichr.png", provider: "pragmatic", tags: []},
+            {name: "Big Bass Crash", image: "https://premicloud.net/banner/image/games/slots/pragmatic/BigBassCrash.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/1320.png", provider: "pragmatic", tags: ["bass"]},
+            {name: "Resurrecting Riches", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/ResurrectingRiches.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysresurich.png", provider: "pragmatic", tags: []},
+            {name: "Jokers Jewels", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs5joker.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5joker.png", provider: "pragmatic", tags: []},
+            {name: "Aztec Bonanza", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs7776aztec.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs7776aztec.png", provider: "pragmatic", tags: ["bonanza"]},
+            {name: "Oracle Of Gold", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/OracleofGold.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20oragold.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Candy Village", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs20candvil.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20candvil.png", provider: "pragmatic", tags: []},
+            {name: "Starlight Christmas", image: "https://premicloud.net/banner/image/games/slots/pragmatic/StarlightChristmas.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20schristmas.png", provider: "pragmatic", tags: ["princess", "christmas"]},
+            {name: "Aztec Gems Megaways", image: "https://shareservice.net/banner/image/games/slots/pragmatic/AztecGemsMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysaztec.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Big Bass Christmas - Frozen Lake", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/BigBassChristmasFrozenLake.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10bbglxmas.png", provider: "pragmatic", tags: ["bass", "christmas"]},
+            {name: "Gates Of Hades", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/GatesofHades.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20gtsofhades.png", provider: "pragmatic", tags: ["gates"]},
+            {name: "Jackpot Blaze", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/JackpotBlaze.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10jpblaze.png", provider: "pragmatic", tags: []},
+            {name: "Gates Of Aztec", image: "https://premicloud.net/banner/image/games/slots/pragmatic/GatesofAztec.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20aztecgates.png", provider: "pragmatic", tags: ["gates"]},
+            {name: "Power Of Thor Megaways", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vswayshammthor.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayshammthor.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Chests Of Cai Shen", image: "https://shareservice.net/banner/image/games/slots/pragmatic/ChestsofCaiShen.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25checaishen.png", provider: "pragmatic", tags: []},
+            {name: "Zombie School Megaways", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/ZombieSchoolMegaways.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayspompmr2.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Candy Blitz Bombs", image: "https://premicloud.net/banner/image/games/slots/pragmatic/CandyBlitzBombs.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20candybltz2.png", provider: "pragmatic", tags: []},
+            {name: "Spellmaster", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/Spellmaster.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10spellmastr.png", provider: "pragmatic", tags: []},
+            {name: "Triple Pot Gold", image: "https://shareservice.net/banner/image/assetgames/slots/pragmatic/TriplePotGold.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysasiatrzn.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Bingo Mania", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/BingoMania.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs30bingomania.png", provider: "pragmatic", tags: []},
+            {name: "Vampy Party", image: "https://shareservice.net/banner/image/games/slots/pragmatic/VampyParty.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayswbounty.png", provider: "pragmatic", tags: []},
+            {name: "Fire Stampede 2", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/FireStampede2.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysfirest2.png", provider: "pragmatic", tags: []},
+            {name: "Big Bass Bonanza 1000", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/BigBassBonanza1000.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10bbbnz1000.png", provider: "pragmatic", tags: ["bass", "bonanza"]},
+            {name: "Sweet Bonanza Dice", image: "https://premicloud.net/banner/image/games/slots/pragmatic/SweetBonanzaDice.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20bnnzdice.png", provider: "pragmatic", tags: ["sweet", "bonanza", "dice"]},
+            {name: "Santa's Great Gifts", image: "https://premicloud.net/banner/image/games/slots/pragmatic/SantasGreatGift.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20porbs.png", provider: "pragmatic", tags: ["christmas"]},
+            {name: "Lava Balls", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/LavaBalls.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayslavabls.png", provider: "pragmatic", tags: []},
+            {name: "Big Bass Halloween 3", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/BigBassHalloween3.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10bhallbnza3.png", provider: "pragmatic", tags: ["bass", "halloween"]},
+            {name: "Santa's Slay", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/SantasSlay.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10santasl.png", provider: "pragmatic", tags: ["christmas"]},
+            {name: "Mines+", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/Mines.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/ar1minehnt.png", provider: "pragmatic", tags: []},
+            {name: "Frightening Frankie", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/FrighteningFrankie.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20frankie.png", provider: "pragmatic", tags: ["halloween"]},
+            {name: "Wrath Of Nezha", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/WrathofNezha.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs40wrathnez.png", provider: "pragmatic", tags: []},
+            {name: "Mermaid's Treasure Trove", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/MermaidsTreasureTrove.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20mmdtres.png", provider: "pragmatic", tags: []},
+            {name: "Pandemic Rising", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/PandemicRising.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs40pdmrsg.png", provider: "pragmatic", tags: []},
+            {name: "Fire Strike", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs10firestrike.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10firestrike.png", provider: "pragmatic", tags: []},
+            {name: "Bigger Barn House Bonanza", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/BiggerBarnHouseBonanza.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysbbarnh.png", provider: "pragmatic", tags: ["bonanza"]},
+            {name: "Bounty Hunter PP", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/BountyHunter.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20bhunter.png", provider: "pragmatic", tags: []},
+            {name: "Power Of Ninja", image: "https://premicloud.net/banner/image/games/slots/pragmatic/PowerofNinja.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20ninjapower.png", provider: "pragmatic", tags: []},
+            {name: "Fruit Party", image: "https://premicloud.net/banner/image/Slots/UBO_149x120.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20fruitparty.png", provider: "pragmatic", tags: ["fruit"]},
+            {name: "Sugar Supreme Powernudge", image: "https://premicloud.net/banner/image/games/slots/pragmatic/SugarSupremePowernudge.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20sugarnudge.png", provider: "pragmatic", tags: ["sugar"]},
+            {name: "Fire Portals", image: "https://premicloud.net/banner/image/games/slots/pragmatic/FirePortals.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20portals.png", provider: "pragmatic", tags: []},
+            {name: "Captain Kraken Megaways", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/CaptainKrakenMegaways.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayschilhtwo.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Genie's Gem Bonanza", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/GeniesGemBonanza.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20gengembnz.png", provider: "pragmatic", tags: ["bonanza"]},
+            {name: "Hot Tuna", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/HotTuna.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10hottuna.png", provider: "pragmatic", tags: []},
+            {name: "Bee Keeper", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/BeeKeeper.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10beekeep.png", provider: "pragmatic", tags: []},
+            {name: "King Of Spear", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/KingofSpear.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20speark.png", provider: "pragmatic", tags: []},
+            {name: "Joker's Jewels Hold & Spin", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/JokersJewelsHoldSpin.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5jokjewhs.png", provider: "pragmatic", tags: []},
+            {name: "Hundreds And Thousands", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/HundredsandThousands.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs100hsandks.png", provider: "pragmatic", tags: []},
+            {name: "Wheel Of Happiness", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/WheelofHappiness.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayswildeq.png", provider: "pragmatic", tags: []},
+            {name: "Lobster House", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/LobsterHouse.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20lbstrhouse.png", provider: "pragmatic", tags: []},
+            {name: "Lucky Fortune Tree PP", image: "", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5luckycol.png", provider: "pragmatic", tags: []},
+            {name: "Pig Farm PP", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/PigFarm.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25pfarmfp.png", provider: "pragmatic", tags: []},
+            {name: "Olympus Wins PP", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/OlympusWins.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysolwfp.png", provider: "pragmatic", tags: ["olympus"]},
+            {name: "Gem Fire Fortune", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/GemFireFortune.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20gemfirefor.png", provider: "pragmatic", tags: []},
+            {name: "Gold Party 2 - After Hours", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/GoldParty2AfterHours.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25goldpartya.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Finger Lick N Free Spins", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/FingerLicknFreeSpins.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10fingerlfs.png", provider: "pragmatic", tags: []},
+            {name: "Anime Mecha Megaways", image: "https://shareservice.net/banner/image/games/slots/pragmatic/AnimeMechaMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysanime.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Lucky Phoenix PP", image: "https://landingsplash.xyz/banner/image/assetgames/slots/pragmatic/LuckyPhoenix.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5luckyphnly.png", provider: "pragmatic", tags: []},
+            {name: "888 Dragons", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs1dragon8.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs1dragon8.png", provider: "pragmatic", tags: []},
+            {name: "Rise Of Samurai", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs25samurai.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25samurai.png", provider: "pragmatic", tags: []},
+            {name: "American Blackjack PP", image: "", fallback: "https://common-static.ppgames.net/game_pic/rec/325/bjmb.png", provider: "pragmatic", tags: ["table"]},
+            {name: "Dino Drop PP", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/DinoDrop.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5tdragresk.png", provider: "pragmatic", tags: []},
+            {name: "Wolf Gold 4 Pack", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/WolfGold4Pack.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25quadwolf.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Plinko+", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/DPlinko.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/ar10plinko.png", provider: "pragmatic", tags: []},
+            {name: "Argonauts", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/Argonauts.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysargonts.png", provider: "pragmatic", tags: []},
+            {name: "Big Bass Reel Repeat", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/BigBassReelRepeat.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10bbrrp.png", provider: "pragmatic", tags: ["bass"]},
+            {name: "Ice Mints", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/IceMints.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20popbottles.png", provider: "pragmatic", tags: []},
+            {name: "Wave Master PP", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/Wave Master.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs1024wmaster.png", provider: "pragmatic", tags: []},
+            {name: "Dragon Bonus Baccarat", image: "https://landingsplash.xyz/banner/image/games/slots/pp/456x314.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/bnadvanced.png", provider: "pragmatic", tags: ["table"]},
+            {name: "Bum Bum Mania PP", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/BumBumMania.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20manisbumx.png", provider: "pragmatic", tags: []},
+            {name: "Planetons PP", image: "", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20planetox.png", provider: "pragmatic", tags: []},
+            {name: "Red Xmas Mania PP", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/RedXmasMania.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysredxmas.png", provider: "pragmatic", tags: ["christmas"]},
+            {name: "Born To BBQ PP", image: "https://premicloud.net/banner/image/assetgames/slots/slot_mania/BorntoBBQ.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20bornbbq.png", provider: "pragmatic", tags: []},
+            {name: "Mystic Wishes PP", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/MysticWishes.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs7fire88fp.png", provider: "pragmatic", tags: []},
+            {name: "Code Of Cairo PP", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/CodeofCairo.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5spjokfp.png", provider: "pragmatic", tags: []},
+            {name: "8 Dragons", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs20eightdragons.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20eightdragons.png", provider: "pragmatic", tags: []},
+            {name: "Sumo Supreme Megaways", image: "https://shareservice.net/banner/image/games/slots/pragmatic/SumoSupremeMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysmegwghts.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Brick House Bonanza", image: "https://shareservice.net/banner/image/games/slots/pragmatic/BrickHouseBonanza.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysbrickhos.png", provider: "pragmatic", tags: ["bonanza"]},
+            {name: "7 Clovers Of Fortune", image: "https://shareservice.net/banner/image/games/slots/pragmatic/7CloversofFortune.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayssevenc.png", provider: "pragmatic", tags: []},
+            {name: "Eternal Empress - Freeze Time", image: "https://shareservice.net/banner/image/games/slots/pragmatic/EternalEmpressFreezeTime.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysfreezet.png", provider: "pragmatic", tags: []},
+            {name: "Moleionaire", image: "https://shareservice.net/banner/image/games/slots/pragmatic/Moleionaire.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20clreacts.png", provider: "pragmatic", tags: []},
+            {name: "Cash Surge", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/CashSurge.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayscashsurg.png", provider: "pragmatic", tags: []},
+            {name: "Big Bass Return To The Races", image: "https://premicloud.net/banner/image/games/slots/pragmatic/BigBassReturntotheRaces.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10bbrttr.png", provider: "pragmatic", tags: ["bass"]},
+            {name: "Lucky Dog PP", image: "", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5luckydogly.png", provider: "pragmatic", tags: []},
+            {name: "Down The Rails", image: "", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20underground.png", provider: "pragmatic", tags: []},
+            {name: "Cash Bonanza", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vswaysbankbonz.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysbankbonz.png", provider: "pragmatic", tags: ["bonanza"]},
+            {name: "Devil's 13", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs13g.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs13g.png", provider: "pragmatic", tags: []},
+            {name: "Egyptian Fortunes", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs20egypttrs.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20egypttrs.png", provider: "pragmatic", tags: []},
+            {name: "The Dog House", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs20doghouse.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20doghouse.png", provider: "pragmatic", tags: []},
+            {name: "Cash Box", image: "https://premicloud.net/banner/image/games/slots/pragmatic/CashBox.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20cashmachine.png", provider: "pragmatic", tags: []},
+            {name: "Mystery Of The Orient", image: "https://premicloud.net/banner/image/games/slots/pragmatic/MysteryOfTheOrient.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysmorient.png", provider: "pragmatic", tags: []},
+            {name: "The Wild Machine", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs40madwheel.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs40madwheel.png", provider: "pragmatic", tags: []},
+            {name: "Monster Superlanche", image: "https://premicloud.net/banner/image/games/slots/pragmatic/MonsterSuperlanche.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20superlanche.png", provider: "pragmatic", tags: []},
+            {name: "Fishin Reels", image: "https://premicloud.net/banner/image/slot/ubo_vs10goldfish.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10goldfish.png", provider: "pragmatic", tags: []},
+            {name: "Robber Strike", image: "https://premicloud.net/banner/image/games/slots/pragmatic/RobberStrike.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs4096robber.png", provider: "pragmatic", tags: []},
+            {name: "The Hand Of Midas", image: "https://premicloud.net/banner/image/slot/handmidasWl-Ubo.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20midas.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "3 Dancing Monkeys", image: "https://premicloud.net/banner/image/games/slots/pragmatic/3DancingMonkeys.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysmonkey.png", provider: "pragmatic", tags: []},
+            {name: "Greek Gods", image: "https://common-static.ppgames.net/game_pic/rec/325/vs243fortseren.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs243fortseren.png", provider: "pragmatic", tags: ["olympus"]},
+            {name: "Pixie Wings", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs50pixie.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs50pixie.png", provider: "pragmatic", tags: []},
+            {name: "Golden Pig", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs25goldpig.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25goldpig.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "5 Lions Gold", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs243lionsgold.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs243lionsgold.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "3 Kingdoms - Battle Of Red Cliffs", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs25kingdoms.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25kingdoms.png", provider: "pragmatic", tags: []},
+            {name: "Mustang Gold", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs25mustang.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25mustang.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Wild Gladiator", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs25gladiator.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25gladiator.png", provider: "pragmatic", tags: []},
+            {name: "Caishens Cash", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs243caishien.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs243caishien.png", provider: "pragmatic", tags: []},
+            {name: "Voodoo Magic", image: "https://premicloud.net/banner/image/slot/vmUBO.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs40voodoo.png", provider: "pragmatic", tags: []},
+            {name: "John Hunter And The Quest For Bermuda Riches", image: "https://premicloud.net/banner/image/slot/vs20bermuda.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20bermuda.png", provider: "pragmatic", tags: []},
+            {name: "Ultra Burn Dice", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/UltraBurnDice.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5ultradice.png", provider: "pragmatic", tags: ["dice"]},
+            {name: "Multihand Blackjack", image: "", fallback: "https://common-static.ppgames.net/game_pic/rec/325/bjma.png", provider: "pragmatic", tags: ["table"]},
+            {name: "Susu & Koko Xmas PP", image: "", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20sukoxmas.png", provider: "pragmatic", tags: ["christmas"]},
+            {name: "5 Lions Reborn", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/5LionsReborn.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vsways5lionsr.png", provider: "pragmatic", tags: []},
+            {name: "Yeti Quest", image: "https://shareservice.net/banner/image/games/slots/pragmatic/YetiQuest.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20mesmult.png", provider: "pragmatic", tags: []},
+            {name: "Master Gems PP", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/MasterGems.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs1mjokfp.png", provider: "pragmatic", tags: []},
+            {name: "Empty The Bank!", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs20emptybank.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20emptybank.png", provider: "pragmatic", tags: []},
+            {name: "Lucky Dice PP", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/LuckyDice.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5luckdce88.png", provider: "pragmatic", tags: ["dice"]},
+            {name: "Angel Vs Sinner", image: "https://shareservice.net/banner/image/games/slots/pragmatic/AngelvsSinner.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs15fghtmultlv.png", provider: "pragmatic", tags: []},
+            {name: "Samurai Code", image: "https://shareservice.net/banner/image/games/slots/pragmatic/SamuraiCode.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs12scode.png", provider: "pragmatic", tags: []},
+            {name: "8 Golden Dragon Challenge", image: "https://premicloud.net/banner/image/games/slots/pragmatic/8GoldenDragonChallenge.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10gdchalleng.png", provider: "pragmatic", tags: []},
+            {name: "Dynamite Diggin Doug", image: "https://premicloud.net/banner/image/games/slots/pragmatic/DynamiteDigginDoug.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10dyndigd.png", provider: "pragmatic", tags: []},
+            {name: "Fiesta Fortune", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/FiestaFortune.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10gbseries.png", provider: "pragmatic", tags: []},
+            {name: "Mummy's Jewels", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/MummysJewels.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysmjwl.png", provider: "pragmatic", tags: []},
+            {name: "Gem Elevator", image: "https://premicloud.net/banner/image/games/slots/pragmatic/GemElevator.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20elevclust.png", provider: "pragmatic", tags: []},
+            {name: "Sleeping Dragon", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/SleepingDragon.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25sleepdrag.png", provider: "pragmatic", tags: []},
+            {name: "Dragon King Hot Pots", image: "https://shareservice.net/banner/image/games/slots/pragmatic/DragonKingHotPots.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10dkinghp.png", provider: "pragmatic", tags: []},
+            {name: "Eye Of Spartacus", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/EyeofSpartacus.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs15eyeofspart.png", provider: "pragmatic", tags: []},
+            {name: "Fortunes Of Aztec PP", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/FortunesofAztecN.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysaztecgm.png", provider: "pragmatic", tags: []},
+            {name: "Badge Blitz", image: "https://shareservice.net/banner/image/games/slots/pragmatic/BadgeBlitz.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25badge.png", provider: "pragmatic", tags: []},
+            {name: "Medusa's Stone", image: "https://premicloud.net/banner/image/games/slots/pragmatic/MedusasStone.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20medusast.png", provider: "pragmatic", tags: []},
+            {name: "Might Of Freya Megaways", image: "https://shareservice.net/banner/image/games/slots/pragmatic/MightofFreyaMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysmfreya.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Emotiwins PP", image: "https://shareservice.net/banner/image/assetgames/slots/pragmatic/Emotiwins.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10emotiwins.png", provider: "pragmatic", tags: []},
+            {name: "Starlight Wins PP", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/StarlightWins.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayssw.png", provider: "pragmatic", tags: []},
+            {name: "Greedy Fortune Pig", image: "https://shareservice.net/banner/image/games/slots/pragmatic/GreedyFortunePig.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10fortnpig.png", provider: "pragmatic", tags: []},
+            {name: "Muertos Multiplier Megaways", image: "https://premicloud.net/banner/image/games/slots/pragmatic/MuertosMultiplierMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20muertos.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Jumbo Safari", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/JumboSafari.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20jjjack.png", provider: "pragmatic", tags: []},
+            {name: "Club Tropicana - Happy Hour", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/ClubTropicanaHappyHour.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs12trpcnhour.png", provider: "pragmatic", tags: []},
+            {name: "Majestic Express - Gold Run", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/MajesticExpressGoldRun.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25goldrexp.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Alien Invaders", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/AlienInvaders.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20alieninv.png", provider: "pragmatic", tags: []},
+            {name: "777 Rush PP", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/777Rush.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5t8goldfp.png", provider: "pragmatic", tags: []},
+            {name: "Gem Trio", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/GemTrio.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs9gemtrio.png", provider: "pragmatic", tags: []},
+            {name: "Chilli Heat Spicy Spins", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/ChilliHeatSpicySpins.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10chillihmr.png", provider: "pragmatic", tags: []},
+            {name: "Temple Guardians", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/TempleGuardians.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10diamondrgh.png", provider: "pragmatic", tags: []},
+            {name: "Wealthy Frog PP", image: "https://shareservice.net/banner/image/assetgames/slots/pragmatic/WealthyFrog.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5wfrog.png", provider: "pragmatic", tags: []},
+            {name: "Revenge Of Loki Megaways", image: "https://premicloud.net/banner/image/games/slots/pragmatic/RevengeofLokiMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysloki.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Fortune Hit'n Roll", image: "https://shareservice.net/banner/image/games/slots/pragmatic/FortuneHitnRoll.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs40wildrun.png", provider: "pragmatic", tags: []},
+            {name: "Wukong Rush", image: "https://shareservice.net/banner/image/games/slots/pragmatic/MonkeyKingRush.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20mkrush.png", provider: "pragmatic", tags: []},
+            {name: "Magic Journey", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs8magicjourn.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs8magicjourn.png", provider: "pragmatic", tags: []},
+            {name: "Wild Wild Joker", image: "https://shareservice.net/banner/image/assetgames/slots/pragmatic/WildWildJoker.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayswwjoker.png", provider: "pragmatic", tags: []},
+            {name: "Joker's Jewels Hot", image: "https://shareservice.net/banner/image/games/slots/pragmatic/JokersJewelsHot.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10jokerhot.png", provider: "pragmatic", tags: []},
+            {name: "Super Joker", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs5spjoker.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5spjoker.png", provider: "pragmatic", tags: []},
+            {name: "Money Stacks Dice", image: "https://shareservice.net/banner/image/games/slots/pragmatic/MoneyStacksDice.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20msdice.png", provider: "pragmatic", tags: ["dice"]},
+            {name: "Ride The Lightning", image: "https://shareservice.net/banner/image/assetgames/slots/pragmatic/RideTheLightning.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs9ridelightng.png", provider: "pragmatic", tags: []},
+            {name: "Release The Kraken Megaways", image: "https://shareservice.net/banner/image/games/slots/pragmatic/ReleasetheKrakenMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayskrakenmw.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Floating Dragon", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs10floatdrg.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10floatdrg.png", provider: "pragmatic", tags: []},
+            {name: "Curse Of The Werewolf Megaways", image: "https://premicloud.net/banner/image/Slots/WWAll-Ubo.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayswerewolf.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Escape The Pyramid - Fire & Ice", image: "https://shareservice.net/banner/image/games/slots/pragmatic/EscapethePyramidFireIce.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10fireice.png", provider: "pragmatic", tags: []},
+            {name: "Wild Hop & Drop", image: "https://premicloud.net/banner/image/games/slots/pragmatic/WildHopDrop.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20mparty.png", provider: "pragmatic", tags: []},
+            {name: "Tree Of Riches", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs1fortunetree.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs1fortunetree.png", provider: "pragmatic", tags: []},
+            {name: "John Hunter And The Book Of Tut Megaways", image: "https://premicloud.net/banner/image/games/slots/pragmatic/TutMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaystut.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Extra Juicy Megaways", image: "https://premicloud.net/banner/image/games/slots/pragmatic/ExtraJuicyMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysxjuicy.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "The Dog House - Muttley Crew", image: "https://shareservice.net/banner/image/games/slots/pragmatic/TheDogHouseMuttleyCrew.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20dhcluster2.png", provider: "pragmatic", tags: []},
+            {name: "Rise Of Samurai Megaways", image: "https://premicloud.net/banner/image/slot/vswayssamuraiubo_thumbnaill.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayssamurai.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Wildman Super Bonanza", image: "https://premicloud.net/banner/image/games/slots/pragmatic/WildmanSuperBonanza.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20wildman.png", provider: "pragmatic", tags: ["bonanza"]},
+            {name: "John Hunter And The Aztec Treasure", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs7776secrets.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs7776secrets.png", provider: "pragmatic", tags: []},
+            {name: "Raging Waterfall Megaways", image: "https://premicloud.net/banner/image/games/slots/pragmatic/RagingWaterfallMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysmltchmgw.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Pirate Gold Deluxe", image: "https://premicloud.net/banner/image/slot/PirateGoldDeluxe_UBO.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs40pirgold.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Diamonds Of Egypt", image: "https://premicloud.net/banner/image/games/slots/pragmatic/DiamondsofEgypt.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayseternity.png", provider: "pragmatic", tags: []},
+            {name: "Pompeii Megareels Megaways", image: "https://premicloud.net/banner/image/games/slots/pragmatic/PompeiiMegareelsMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysmegareel.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Cowboys Gold", image: "https://premicloud.net/banner/image/slot/CowBoyGold_UBO.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10cowgold.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Sweet Kingdom", image: "https://premicloud.net/banner/image/games/slots/pragmatic/SweetKingdom.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20clustcol.png", provider: "pragmatic", tags: ["sweet"]},
+            {name: "Front Runner Odds On", image: "https://premicloud.net/banner/image/games/slots/pragmatic/FrontRunnerOddsOn.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10frontrun.png", provider: "pragmatic", tags: []},
+            {name: "The Big Dawgs", image: "https://premicloud.net/banner/image/games/slots/pragmatic/TheBigDawgs.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20bigdawgs.png", provider: "pragmatic", tags: []},
+            {name: "Greedy Wolf", image: "https://premicloud.net/banner/image/games/slots/pragmatic/GreedyWolf.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20wolfie.png", provider: "pragmatic", tags: []},
+            {name: "Lucky Tiger 1000 PP", image: "https://landingsplash.xyz/banner/image/assetgames/slots/pragmatic/LuckyTiger1000.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5luckyt1kly.png", provider: "pragmatic", tags: []},
+            {name: "Jelly Candy PP", image: "https://shareservice.net/banner/image/assetgames/slots/pragmatic/JellyCandy.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5jellyc.png", provider: "pragmatic", tags: []},
+            {name: "Chilli Heat Megaways", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vswayschilheat.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayschilheat.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Castle Of Fire", image: "https://premicloud.net/banner/image/games/slots/pragmatic/CastleofFire.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysexpandng.png", provider: "pragmatic", tags: []},
+            {name: "Santa", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs20santa.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20santa.png", provider: "pragmatic", tags: ["christmas"]},
+            {name: "Floating Dragon - Year Of The Snake", image: "https://shareservice.net/banner/image/games/slots/pragmatic/FloatingDragonYearoftheSnake.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10fdsnake.png", provider: "pragmatic", tags: []},
+            {name: "Leprechaun Carol", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs20leprexmas.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20leprexmas.png", provider: "pragmatic", tags: ["christmas"]},
+            {name: "Aztec Smash", image: "https://premicloud.net/banner/image/games/slots/pragmatic/AztecSmash.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20plsmcannon.png", provider: "pragmatic", tags: []},
+            {name: "Extra Juicy", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs10fruity2.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10fruity2.png", provider: "pragmatic", tags: []},
+            {name: "Pirate Gold", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs40pirate.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs40pirate.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Hercules Son Of Zeus", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs50hercules.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs50hercules.png", provider: "pragmatic", tags: ["olympus"]},
+            {name: "Lucky Dragons", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs50chinesecharms.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs50chinesecharms.png", provider: "pragmatic", tags: []},
+            {name: "Gold Rush", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs25goldrush.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25goldrush.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Gold Train", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs3train.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs3train.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Journey To The West", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs25journey.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25journey.png", provider: "pragmatic", tags: []},
+            {name: "Wild Depths", image: "https://premicloud.net/banner/image/games/slots/pragmatic/Wild%20Depths.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs40wanderw.png", provider: "pragmatic", tags: []},
+            {name: "Book Of The Fallen", image: "https://premicloud.net/banner/image/slot/vs10bookfallen.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10bookfallen.png", provider: "pragmatic", tags: []},
+            {name: "Wild West Gold Megaways", image: "https://premicloud.net/banner/image/games/slots/pragmatic/WildWestGoldMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayswildwest.png", provider: "pragmatic", tags: ["megaways", "gold", "wildwest"]},
+            {name: "Ancient Egypt Classic", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs10egyptcls.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10egyptcls.png", provider: "pragmatic", tags: []},
+            {name: "Triple Dragons", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs5trdragons.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5trdragons.png", provider: "pragmatic", tags: []},
+            {name: "Safari King", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs50safariking.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs50safariking.png", provider: "pragmatic", tags: []},
+            {name: "Wolf Gold", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs25wolfgold.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25wolfgold.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "John Hunter And Galileo's Secrets", image: "https://shareservice.net/banner/image/games/slots/pragmatic/JohnHunterandGalileosSecrets.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10booklight.png", provider: "pragmatic", tags: []},
+            {name: "Volcano Goddess", image: "https://shareservice.net/banner/image/games/slots/pragmatic/VolcanoGoddess.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysvlcgds.png", provider: "pragmatic", tags: []},
+            {name: "Bounty Gold", image: "https://premicloud.net/banner/image/slot/vs25btygold.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25btygold.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Year Of The Dragon King", image: "https://premicloud.net/banner/image/games/slots/pragmatic/YearoftheDragonKing.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20yotdk.png", provider: "pragmatic", tags: []},
+            {name: "Barnyard Megahays Megaways", image: "https://premicloud.net/banner/image/games/slots/pragmatic/BarnyardMegahaysMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysmegahays.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Gold Party", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/Gold-Party.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25goldparty.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Aladdin And The Sorcerer", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs20aladdinsorc.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20aladdinsorc.png", provider: "pragmatic", tags: []},
+            {name: "Christmas Big Bass Bonanza", image: "https://premicloud.net/banner/image/slot/vs10bxmasbnza.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10bxmasbnza.png", provider: "pragmatic", tags: ["bass", "bonanza", "christmas"]},
+            {name: "Fruits Of The Amazon", image: "https://premicloud.net/banner/image/games/slots/pragmatic/FruitsoftheAmazon.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20framazon.png", provider: "pragmatic", tags: ["fruit"]},
+            {name: "Big Bass Amazon Xtreme", image: "https://premicloud.net/banner/image/games/slots/pragmatic/BigBassAmazonXtreme.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10bbextreme.png", provider: "pragmatic", tags: ["bass"]},
+            {name: "Magic Money Maze", image: "", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10mmm.png", provider: "pragmatic", tags: []},
+            {name: "Honey Honey Honey", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs20honey.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20honey.png", provider: "pragmatic", tags: []},
+            {name: "Mysterious", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs4096mystery.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs4096mystery.png", provider: "pragmatic", tags: []},
+            {name: "John Hunter And The Tomb Of The Scarab Queen", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs25scarabqueen.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25scarabqueen.png", provider: "pragmatic", tags: []},
+            {name: "Crank It Up", image: "https://premicloud.net/banner/image/games/slots/pragmatic/CrankItUp.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20crankit.png", provider: "pragmatic", tags: []},
+            {name: "Money Stacks", image: "https://shareservice.net/banner/image/games/slots/pragmatic/MoneyBlitz.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20bblitz.png", provider: "pragmatic", tags: []},
+            {name: "Wild Pixies", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs20wildpix.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20wildpix.png", provider: "pragmatic", tags: []},
+            {name: "The Da Vinci's Treasure", image: "https://common-static.ppgames.net/game_pic/rec/325/vs25davinci.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25davinci.png", provider: "pragmatic", tags: []},
+            {name: "Peking Luck", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs25peking.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25peking.png", provider: "pragmatic", tags: []},
+            {name: "Plushie Wins PP", image: "https://shareservice.net/banner/image/assetgames/slots/pragmatic/PlushieWins.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs1dragon888.png", provider: "pragmatic", tags: []},
+            {name: "Peppe's Pepperoni Pizza Plaza", image: "https://premicloud.net/banner/image/games/slots/pragmatic/PeppesPepperoniPizzaPlaza.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaystonypzz.png", provider: "pragmatic", tags: []},
+            {name: "Hot Chilli", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs9hotroll.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs9hotroll.png", provider: "pragmatic", tags: []},
+            {name: "Triple Tigers", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs1tigers.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs1tigers.png", provider: "pragmatic", tags: []},
+            {name: "Mighty Munching Melons", image: "https://premicloud.net/banner/image/games/slots/pragmatic/MightyMunchingMelons.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20mmmelon.png", provider: "pragmatic", tags: []},
+            {name: "Fonzo's Feline Fortunes", image: "https://shareservice.net/banner/image/games/slots/pragmatic/FonzosFelineFortunes.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10fonzofff.png", provider: "pragmatic", tags: []},
+            {name: "Lucky's Wild Pub", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/LuckysWildPub.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25luckwildpb.png", provider: "pragmatic", tags: []},
+            {name: "Savannah Legend", image: "https://premicloud.net/banner/image/games/slots/pragmatic/SavannahLegend.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayssavlgnd.png", provider: "pragmatic", tags: []},
+            {name: "7 Piggies", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs7pigs.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs7pigs.png", provider: "pragmatic", tags: []},
+            {name: "Vegas Nights", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs25vegas.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25vegas.png", provider: "pragmatic", tags: []},
+            {name: "Lucky Tiger PP", image: "https://shareservice.net/banner/image/assetgames/slots/pragmatic/LuckyTiger.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5luckytigly.png", provider: "pragmatic", tags: []},
+            {name: "Wild Spells", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs25wildspells.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25wildspells.png", provider: "pragmatic", tags: []},
+            {name: "888 Bonanza", image: "https://premicloud.net/banner/image/games/slots/pragmatic/888Bonanza.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs243goldfor.png", provider: "pragmatic", tags: ["bonanza"]},
+            {name: "Diamond Strike", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs15diamond.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs15diamond.png", provider: "pragmatic", tags: []},
+            {name: "Coffee Wild", image: "https://premicloud.net/banner/image/games/slots/pragmatic/CoffeeWild.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10coffee.png", provider: "pragmatic", tags: []},
+            {name: "Disco Lady", image: "https://premicloud.net/banner/image/games/slots/pragmatic/DiscoLady.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs243discolady.png", provider: "pragmatic", tags: []},
+            {name: "Book Of Aztec King", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/BookofAztecKing.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10bookazteck.png", provider: "pragmatic", tags: []},
+            {name: "Caishens Gold", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs243fortune.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs243fortune.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Cyclops Smash", image: "https://premicloud.net/banner/image/games/slots/pragmatic/CyclopsSmash.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20earthquake.png", provider: "pragmatic", tags: []},
+            {name: "Hot To Burn - 7 Deadly Free Spins", image: "https://shareservice.net/banner/image/games/slots/pragmatic/HottoBurn7DeadlyFreeSpins.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10hottb7fs.png", provider: "pragmatic", tags: []},
+            {name: "Fruit Rainbow", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs40frrainbow.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs40frrainbow.png", provider: "pragmatic", tags: ["fruit"]},
+            {name: "Lucky Fishing Megaways", image: "https://premicloud.net/banner/image/games/slots/pragmatic/LuckyFishing.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysluckyfish.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Great Rhino", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs20rhino.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20rhino.png", provider: "pragmatic", tags: []},
+            {name: "Busy Bees", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs20bl.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20bl.png", provider: "pragmatic", tags: []},
+            {name: "Mustang Gold Megaways", image: "https://premicloud.net/banner/image/games/slots/pragmatic/MustangGoldMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysgoldcol.png", provider: "pragmatic", tags: ["megaways", "gold"]},
+            {name: "Cash Chips", image: "https://premicloud.net/banner/image/games/slots/pragmatic/CashChips.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20maskgame.png", provider: "pragmatic", tags: []},
+            {name: "Mystery Mice", image: "https://premicloud.net/banner/image/games/slots/pragmatic/Mystery Mice_900x900 copy.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20powerwild.png", provider: "pragmatic", tags: []},
+            {name: "Dwarf & Dragon", image: "https://premicloud.net/banner/image/games/slots/pragmatic/DwarfDragon.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysspltsym.png", provider: "pragmatic", tags: []},
+            {name: "Money Mouse", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs25mmouse.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25mmouse.png", provider: "pragmatic", tags: []},
+            {name: "The Great Chicken Escape", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs20chicken.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20chicken.png", provider: "pragmatic", tags: []},
+            {name: "Pot Of Fortune", image: "https://premicloud.net/banner/image/games/slots/pragmatic/PotofFortune.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20stckwldsc.png", provider: "pragmatic", tags: []},
+            {name: "Rise Of Samurai 4", image: "https://premicloud.net/banner/image/games/slots/pragmatic/RiseofSamurai4.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs15samurai4.png", provider: "pragmatic", tags: []},
+            {name: "Good Luck & Good Fortune", image: "https://premicloud.net/banner/image/games/slots/pragmatic/GoodLuckGoodFortune.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10luckfort.png", provider: "pragmatic", tags: []},
+            {name: "Lucky Ox PP", image: "https://shareservice.net/banner/image/assetgames/slots/pragmatic/LuckyOx.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10fortnhsly.png", provider: "pragmatic", tags: []},
+            {name: "Lucky New Year", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs25newyear.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25newyear.png", provider: "pragmatic", tags: []},
+            {name: "Madame Destiny", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs10madame.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10madame.png", provider: "pragmatic", tags: []},
+            {name: "Pragmatic Baccarat", image: "", fallback: "https://common-static.ppgames.net/game_pic/rec/325/bca.png", provider: "pragmatic", tags: ["table"]},
+            {name: "Aztec Powernudge", image: "https://premicloud.net/banner/image/games/slots/pragmatic/AztecPowernudge.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20sbpnudge.png", provider: "pragmatic", tags: []},
+            {name: "Starlight Princess Pachi", image: "https://premicloud.net/banner/image/games/slots/pragmatic/StarlightPrincessPachi.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysjapan.png", provider: "pragmatic", tags: ["princess"]},
+            {name: "Joker Race", image: "https://premicloud.net/banner/image/games/slots/pragmatic/JokerRace.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25jokrace.png", provider: "pragmatic", tags: []},
+            {name: "Day Of Dead", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs20daydead.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20daydead.png", provider: "pragmatic", tags: []},
+            {name: "Gems Of Serengeti", image: "https://premicloud.net/banner/image/games/slots/pragmatic/GemsofSerengeti.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20lcount.png", provider: "pragmatic", tags: []},
+            {name: "Zeus Vs Hades - Gods Of War", image: "https://premicloud.net/banner/image/games/slots/pragmatic/GodsofWar.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs15godsofwar.png", provider: "pragmatic", tags: ["olympus"]},
+            {name: "Three Star Fortune", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs10threestar.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10threestar.png", provider: "pragmatic", tags: []},
+            {name: "Great Rhino Deluxe", image: "https://premicloud.net/banner/image/Slots/ubo_greatrhino_thumbnaill.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20rhinoluxe.png", provider: "pragmatic", tags: []},
+            {name: "Great Lagoon", image: "https://premicloud.net/banner/image/games/slots/pragmatic/GreatLagoon.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25lagoon.png", provider: "pragmatic", tags: []},
+            {name: "Himalayan Wild", image: "https://shareservice.net/banner/image/games/slots/pragmatic/HimalayanWild.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5himalaw.png", provider: "pragmatic", tags: []},
+            {name: "Wild Wildebeest Wins", image: "https://premicloud.net/banner/image/games/slots/pragmatic/WildWildebeestWins.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysbufstamp.png", provider: "pragmatic", tags: []},
+            {name: "Lucky Mouse PP", image: "https://shareservice.net/banner/image/assetgames/slots/pragmatic/LuckyMouse.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10forwildly.png", provider: "pragmatic", tags: []},
+            {name: "Nile Fortune", image: "https://premicloud.net/banner/image/games/slots/pragmatic/NileFortune.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20nilefort.png", provider: "pragmatic", tags: []},
+            {name: "Irish Crown", image: "https://premicloud.net/banner/image/games/slots/pragmatic/IrishCrown.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20irishcrown.png", provider: "pragmatic", tags: []},
+            {name: "Rise Of Pyramids", image: "https://premicloud.net/banner/image/games/slots/pragmatic/RiseofPyramids.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayshexhaus.png", provider: "pragmatic", tags: []},
+            {name: "Blazing Wilds Megaways", image: "https://premicloud.net/banner/image/games/slots/pragmatic/BlazingWildMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysfirewmw.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Aztec Blaze", image: "https://premicloud.net/banner/image/games/slots/pragmatic/AztecBlaze.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25kfruit.png", provider: "pragmatic", tags: []},
+            {name: "The Tiger Warrior", image: "https://premicloud.net/banner/image/Slots/tw-All-UBO.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25tigerwar.png", provider: "pragmatic", tags: []},
+            {name: "John Hunter And The Book Of Tut", image: "https://premicloud.net/banner/image/Slots/ubo_johnhunter.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10bookoftut.png", provider: "pragmatic", tags: []},
+            {name: "Buffalo King Untamed Megaways", image: "https://premicloud.net/banner/image/games/slots/pragmatic/BuffaloKingUntamedMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysbkingasc.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Gates Of Valhalla", image: "https://premicloud.net/banner/image/games/slots/pragmatic/GatesofValhalla.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10runes.png", provider: "pragmatic", tags: ["gates"]},
+            {name: "3 Genie Wishes", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs50aladdin.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs50aladdin.png", provider: "pragmatic", tags: []},
+            {name: "Sea Fantasy", image: "https://premicloud.net/banner/image/games/slots/pragmatic/SeaFantasy.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysseastory.png", provider: "pragmatic", tags: []},
+            {name: "Gems Bonanza", image: "https://premicloud.net/banner/image/Slots/gbAllUBO.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20goldfever.png", provider: "pragmatic", tags: ["bonanza"]},
+            {name: "Shining Hot 5", image: "https://premicloud.net/banner/image/games/slots/pragmatic/ShiningHot5.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5sh.png", provider: "pragmatic", tags: []},
+            {name: "Wild Wild Riches", image: "https://premicloud.net/banner/image/Slots/AllUBO_WWR.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs576treasures.png", provider: "pragmatic", tags: []},
+            {name: "Koi Pond", image: "https://premicloud.net/banner/image/games/slots/pragmatic/KoiPond.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs243koipond.png", provider: "pragmatic", tags: []},
+            {name: "Smugglers Cove", image: "https://premicloud.net/banner/image/games/slots/pragmatic/SmugglersCove.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20smugcove.png", provider: "pragmatic", tags: []},
+            {name: "Devilicious", image: "https://premicloud.net/banner/image/games/slots/pragmatic/Devilicious.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20devilic.png", provider: "pragmatic", tags: []},
+            {name: "Holiday Ride", image: "https://premicloud.net/banner/image/games/slots/pragmatic/HolidayRide.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25holiday.png", provider: "pragmatic", tags: ["christmas"]},
+            {name: "Knight Hot Spotz", image: "https://premicloud.net/banner/image/games/slots/pragmatic/KnightHotSpotz.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25spotz.png", provider: "pragmatic", tags: []},
+            {name: "Ding Dong Christmas Bells", image: "https://premicloud.net/banner/image/games/slots/pragmatic/DingDongChristmasBells.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10ddcbells.png", provider: "pragmatic", tags: ["christmas"]},
+            {name: "Big Bass Halloween", image: "https://premicloud.net/banner/image/games/slots/pragmatic/BigBassHalloween.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10bhallbnza.png", provider: "pragmatic", tags: ["bass", "halloween"]},
+            {name: "Dance Party", image: "https://premicloud.net/banner/image/Dance-Party_UBO.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs243dancingpar.png", provider: "pragmatic", tags: []},
+            {name: "Crystal Caverns Megaways", image: "https://premicloud.net/banner/image/games/slots/pragmatic/CrystalCavernMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayscryscav.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Octobeer Fortunes", image: "https://premicloud.net/banner/image/games/slots/pragmatic/OctobeerFortunes.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20octobeer.png", provider: "pragmatic", tags: []},
+            {name: "Pirate Golden Age", image: "https://premicloud.net/banner/image/games/slots/pragmatic/PirateGoldenAge.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20mtreasure.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Colossal Cash Zone", image: "https://premicloud.net/banner/image/games/slots/pragmatic/ColossalCashZone.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20colcashzone.png", provider: "pragmatic", tags: []},
+            {name: "Rainbow Gold", image: "https://premicloud.net/banner/image/slot/vs20rainbowg.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20rainbowg.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Monkey Madness", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs9madmonkey.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs9madmonkey.png", provider: "pragmatic", tags: []},
+            {name: "Pandas Fortune", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs25pandagold.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25pandagold.png", provider: "pragmatic", tags: []},
+            {name: "5 Lions", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs243lions.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs243lions.png", provider: "pragmatic", tags: []},
+            {name: "Lobster Bob's Crazy Crab Shack", image: "https://premicloud.net/banner/image/games/slots/pragmatic/LobsterBobsCrazyCrabShack.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20lobcrab.png", provider: "pragmatic", tags: []},
+            {name: "Bigger Bass Bonanza", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs12bbb.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs12bbb.png", provider: "pragmatic", tags: ["bass", "bonanza"]},
+            {name: "Cowboy Coins", image: "https://premicloud.net/banner/image/games/slots/pragmatic/CowboyCoins.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysultrcoin.png", provider: "pragmatic", tags: []},
+            {name: "Firebird Spirit", image: "https://premicloud.net/banner/image/games/slots/pragmatic/FirebirdSpirit.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysconcoll.png", provider: "pragmatic", tags: []},
+            {name: "Lamp Of Infinity", image: "https://premicloud.net/banner/image/games/slots/pragmatic/LampofInfinity.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20lampinf.png", provider: "pragmatic", tags: []},
+            {name: "Fortune Of Giza", image: "https://premicloud.net/banner/image/slot/vs20amuleteg.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20amuleteg.png", provider: "pragmatic", tags: []},
+            {name: "Ancient Egypt", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs10egypt.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10egypt.png", provider: "pragmatic", tags: []},
+            {name: "Gold Oasis", image: "https://premicloud.net/banner/image/games/slots/pragmatic/GoldOasis.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysincwnd.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Shining Hot 100", image: "https://premicloud.net/banner/image/games/slots/pragmatic/ShiningHot100.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs100sh.png", provider: "pragmatic", tags: []},
+            {name: "The Alter Ego", image: "https://premicloud.net/banner/image/games/slots/pragmatic/TheAlterEgo.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysalterego.png", provider: "pragmatic", tags: []},
+            {name: "Heart Of Rio", image: "https://premicloud.net/banner/image/slot/vs25rio.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25rio.png", provider: "pragmatic", tags: []},
+            {name: "Super X", image: "https://premicloud.net/banner/image/slot/vs20superx.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20superx.png", provider: "pragmatic", tags: []},
+            {name: "Club Tropicana", image: "https://premicloud.net/banner/image/games/slots/pragmatic/ClubTropicana.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs12tropicana.png", provider: "pragmatic", tags: []},
+            {name: "Jane Hunter And The Mask Of Montezuma", image: "https://premicloud.net/banner/image/games/slots/pragmatic/MaskofMontezuma.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10jnmntzma.png", provider: "pragmatic", tags: []},
+            {name: "Big Burger Load It Up With Xtra Cheese", image: "https://premicloud.net/banner/image/games/slots/pragmatic/BigBurgerLoaditupwithXtraCheese.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10bburger.png", provider: "pragmatic", tags: []},
+            {name: "Gatot Kaca's Fury", image: "https://premicloud.net/banner/image/games/slots/pragmatic/GatotKacasFury.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20gatotfury.png", provider: "pragmatic", tags: []},
+            {name: "The Dog House - Royal Hunt", image: "https://shareservice.net/banner/image/assetgames/slots/pragmatic/TheDogHouseRoyalHunt.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20dhsuper.png", provider: "pragmatic", tags: []},
+            {name: "Release The Bison", image: "https://premicloud.net/banner/image/games/slots/pragmatic/ReleasetheBison.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20bison.png", provider: "pragmatic", tags: []},
+            {name: "Hot Safari", image: "https://premicloud.net/banner/image/idngoal/newslotsidngoal/17363.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25safari.png", provider: "pragmatic", tags: []},
+            {name: "Spartan King", image: "https://premicloud.net/banner/image/slot/skAll-UBO.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs40spartaking.png", provider: "pragmatic", tags: []},
+            {name: "Gears Of Horus", image: "https://premicloud.net/banner/image/games/slots/pragmatic/GearsofHorus.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20clustext.png", provider: "pragmatic", tags: []},
+            {name: "Tiny Toads", image: "https://premicloud.net/banner/image/games/slots/pragmatic/TinyToads.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs50fatfrogs.png", provider: "pragmatic", tags: []},
+            {name: "Magician's Secrets", image: "https://premicloud.net/banner/image/games/slots/pragmatic/MagiciansSecrets.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs4096magician.png", provider: "pragmatic", tags: []},
+            {name: "Pyramid King", image: "https://premicloud.net/banner/image/Slots/ubo_pyramidking_thumbnaill.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25pyramid.png", provider: "pragmatic", tags: []},
+            {name: "Juicy Fruits", image: "https://premicloud.net/banner/image/slot/ubo_vs50juicyfr.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs50juicyfr.png", provider: "pragmatic", tags: ["fruit"]},
+            {name: "Piggy Bank Bills", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs9piggybank.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs9piggybank.png", provider: "pragmatic", tags: []},
+            {name: "The Wild Gang", image: "https://premicloud.net/banner/image/games/slots/pragmatic/TheWildGang.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayswildgang.png", provider: "pragmatic", tags: []},
+            {name: "Fire Archer", image: "https://premicloud.net/banner/image/games/slots/pragmatic/FireArcher.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25archer.png", provider: "pragmatic", tags: []},
+            {name: "Floating Dragon - Dragon Boat Festival", image: "https://premicloud.net/banner/image/games/slots/pragmatic/DragonBoatFestival.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10fdrasbf.png", provider: "pragmatic", tags: []},
+            {name: "Piggy Bankers", image: "https://premicloud.net/banner/image/games/slots/pragmatic/PiggyBankers.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20piggybank.png", provider: "pragmatic", tags: []},
+            {name: "Shining Hot 40", image: "https://premicloud.net/banner/image/games/slots/pragmatic/ShiningHot40.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs40sh.png", provider: "pragmatic", tags: []},
+            {name: "Bull Fiesta", image: "https://premicloud.net/banner/image/games/slots/pragmatic/BullFiesta.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25bullfiesta.png", provider: "pragmatic", tags: []},
+            {name: "Big Bass Day At The Races", image: "https://premicloud.net/banner/image/games/slots/pragmatic/BigBassDayattheRaces.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10bbbnz.png", provider: "pragmatic", tags: ["bass"]},
+            {name: "Queenie", image: "https://premicloud.net/banner/image/games/slots/pragmatic/Queenie.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs243queenie.png", provider: "pragmatic", tags: []},
+            {name: "Cheeky Emperor", image: "https://premicloud.net/banner/image/games/slots/pragmatic/CheekyEmperor.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs243ckemp.png", provider: "pragmatic", tags: []},
+            {name: "Bigger Bass Blizzard - Christmas Catch", image: "https://premicloud.net/banner/image/games/slots/pragmatic/BiggerBassBlizzardChristmasCatch.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs12bbbxmas.png", provider: "pragmatic", tags: ["bass", "christmas"]},
+            {name: "Striking Hot 5", image: "https://premicloud.net/banner/image/games/slots/pragmatic/StrikingHot5.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5strh.png", provider: "pragmatic", tags: []},
+            {name: "Dwarven Gold Deluxe", image: "https://premicloud.net/banner/image/games/slots/pragmatic/Dwarven-Gold-Deluxe.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25dwarves_new.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Mustang Trail", image: "https://premicloud.net/banner/image/games/slots/pragmatic/MustangTrail.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10trail.png", provider: "pragmatic", tags: []},
+            {name: "Eye Of The Storm", image: "https://premicloud.net/banner/image/slot/EOTSWL-UBO.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10eyestorm.png", provider: "pragmatic", tags: []},
+            {name: "Buffalo King Megaways", image: "https://premicloud.net/banner/image/slot/vswaysbufkingWL-UBO.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysbufking.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Hot To Burn Hold And Spin", image: "https://premicloud.net/banner/image/slot/HotToBurn_149x120.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20hburnhs.png", provider: "pragmatic", tags: []},
+            {name: "The Amazing Money Machine", image: "https://premicloud.net/banner/image/slot/vs10ammubo_thumbnaill.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10amm.png", provider: "pragmatic", tags: []},
+            {name: "Black Bull", image: "https://premicloud.net/banner/image/games/slots/pragmatic/BlackBull.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20trswild2.png", provider: "pragmatic", tags: []},
+            {name: "Leprechaun Song", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs20leprechaun.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20leprechaun.png", provider: "pragmatic", tags: []},
+            {name: "Vegas Magic", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs20vegasmagic.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20vegasmagic.png", provider: "pragmatic", tags: []},
+            {name: "Hercules And Pegasus", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs20hercpeg.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20hercpeg.png", provider: "pragmatic", tags: ["olympus"]},
+            {name: "Bigger Bass Splash", image: "https://premicloud.net/banner/image/games/slots/pragmatic/BiggerBassSplash.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs12bgrbspl.png", provider: "pragmatic", tags: ["bass", "splash"]},
+            {name: "Drago - Jewels Of Fortune", image: "https://premicloud.net/banner/image/ubo_drago_thumbnaill.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs1600drago.png", provider: "pragmatic", tags: []},
+            {name: "5 Lions Dance", image: "https://premicloud.net/banner/image/Slots/5LionDance_UBO.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs1024lionsd.png", provider: "pragmatic", tags: []},
+            {name: "Cyber Heist", image: "https://premicloud.net/banner/image/games/slots/pragmatic/CyberHeist.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20cbrhst.png", provider: "pragmatic", tags: []},
+            {name: "Raging Bull", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs243chargebull.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs243chargebull.png", provider: "pragmatic", tags: []},
+            {name: "Wheel O'Gold", image: "https://premicloud.net/banner/image/games/slots/pragmatic/WheelOGold.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20multiup.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Super 7s", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs5super7.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5super7.png", provider: "pragmatic", tags: []},
+            {name: "Star Bounty", image: "https://premicloud.net/banner/image/games/slots/pragmatic/vswayshive.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayshive.png", provider: "pragmatic", tags: []},
+            {name: "Master Chens Fortune", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs9chen.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs9chen.png", provider: "pragmatic", tags: []},
+            {name: "Asgard", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs25asgard.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25asgard.png", provider: "pragmatic", tags: []},
+            {name: "North Guardians", image: "https://premicloud.net/banner/image/games/slots/pragmatic/The%20Great%20Stickup.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs50northgard.png", provider: "pragmatic", tags: []},
+            {name: "Fu Fu Fu", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs1fufufu.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs1fufufu.png", provider: "pragmatic", tags: []},
+            {name: "John Hunter & The Book Of Tut Respin", image: "https://premicloud.net/banner/image/games/slots/pragmatic/JohnHuntertheBookofTutRespin.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10tut.png", provider: "pragmatic", tags: []},
+            {name: "Fruit Party Dice", image: "https://shareservice.net/banner/image/assetgames/slots/pragmatic/FruitPartyDice.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20fpartydice.png", provider: "pragmatic", tags: ["fruit", "dice"]},
+            {name: "Big Bass Secrets Of The Golden Lake", image: "https://premicloud.net/banner/image/games/slots/pragmatic/BigBassSecretsoftheGL.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10bblotgl.png", provider: "pragmatic", tags: ["bass", "gold"]},
+            {name: "The Dog House - Dog Or Alive", image: "https://premicloud.net/banner/image/games/slots/pragmatic/TheDogHouseDogorAlive.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20doghouse2.png", provider: "pragmatic", tags: []},
+            {name: "Beware The Deep Megaways", image: "https://premicloud.net/banner/image/games/slots/pragmatic/BewareTheDeepMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysbewaretd.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Ultra Hold And Spin", image: "https://premicloud.net/banner/image/Slots/uhsWL-UBO.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5ultra.png", provider: "pragmatic", tags: []},
+            {name: "Little Gem", image: "https://premicloud.net/banner/image/games/slots/pragmatic/LittleGem.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5littlegem.png", provider: "pragmatic", tags: []},
+            {name: "5 Frozen Charms Megaways", image: "https://premicloud.net/banner/image/games/slots/pragmatic/5FrozenCharmsMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayscharms.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Money Stacks Megaways", image: "https://shareservice.net/banner/image/games/slots/pragmatic/MoneyStacksMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysbblitz.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Heroic Spins", image: "https://premicloud.net/banner/image/games/slots/pragmatic/HeroicSpins.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20shootstars.png", provider: "pragmatic", tags: []},
+            {name: "Santas Wonderland", image: "https://premicloud.net/banner/image/slot/vs20santawonder.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20santawonder.png", provider: "pragmatic", tags: ["christmas"]},
+            {name: "The Ultimate 5", image: "https://premicloud.net/banner/image/games/slots/pragmatic/TheUltimate5.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20ultim5.png", provider: "pragmatic", tags: []},
+            {name: "Wild Walker", image: "https://premicloud.net/banner/image/Slots/WildWalker_AllUBO.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25walker.png", provider: "pragmatic", tags: []},
+            {name: "Golden Ox", image: "https://premicloud.net/banner/image/slot/goldenoxAll-Ubo.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25gldox.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Hot Fiesta", image: "https://premicloud.net/banner/image/slot/vs25hotfiestaubo_thumbnaill.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25hotfiesta.png", provider: "pragmatic", tags: []},
+            {name: "Fruity Treats", image: "https://premicloud.net/banner/image/games/slots/pragmatic/FruityTreats.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20fortbon.png", provider: "pragmatic", tags: ["fruit"]},
+            {name: "Candy Blitz", image: "https://premicloud.net/banner/image/games/slots/pragmatic/CandyBlitz.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20candyblitz.png", provider: "pragmatic", tags: []},
+            {name: "Kingdom Of Asgard", image: "https://premicloud.net/banner/image/games/slots/pragmatic/KingdomofAsgard.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20asgard.png", provider: "pragmatic", tags: []},
+            {name: "Lady Godiva", image: "https://premicloud.net/banner/image/idngoal/newslotsidngoal/17360.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20godiva.png", provider: "pragmatic", tags: []},
+            {name: "Fire Hot 5", image: "https://premicloud.net/banner/image/games/slots/pragmatic/FireHot5.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5firehot.png", provider: "pragmatic", tags: []},
+            {name: "Fruit Party 2", image: "https://premicloud.net/banner/image/slot/vs20fparty2.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20fparty2.png", provider: "pragmatic", tags: ["fruit"]},
+            {name: "Moonshot", image: "https://premicloud.net/banner/image/games/slots/pragmatic/Moonshot.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs1024moonsh.png", provider: "pragmatic", tags: []},
+            {name: "Blitz Super Wheel", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/BlitzSuperWheel.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20lightblitz.png", provider: "pragmatic", tags: []},
+            {name: "Joker's Jewels Wild", image: "https://premicloud.net/banner/image/games/slots/pragmatic/JokersJewelsWild.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5jjwild.png", provider: "pragmatic", tags: []},
+            {name: "Infective Wild", image: "https://premicloud.net/banner/image/games/slots/pragmatic/InfectiveWild.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs40infwild.png", provider: "pragmatic", tags: []},
+            {name: "Joker's Jewels Cash", image: "https://shareservice.net/banner/image/assetgames/slots/pragmatic/JokersJewelsCash.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5jokerjc.png", provider: "pragmatic", tags: []},
+            {name: "Rise Of Giza PowerNudge", image: "https://premicloud.net/banner/image/slot/vs10nudgeit.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10nudgeit.png", provider: "pragmatic", tags: []},
+            {name: "Mining Rush", image: "https://premicloud.net/banner/image/games/slots/pragmatic/MiningRush.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20minerush.png", provider: "pragmatic", tags: []},
+            {name: "Joker's Jewels Dice", image: "https://premicloud.net/banner/image/games/slots/pragmatic/JokersJewelsDice.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5jokerdice.png", provider: "pragmatic", tags: ["dice"]},
+            {name: "Big Bass Halloween 2", image: "https://shareservice.net/banner/image/games/slots/pragmatic/BigBassHalloween2.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10bhallbnza2.png", provider: "pragmatic", tags: ["bass", "halloween"]},
+            {name: "Aztec Treasure Hunt", image: "https://premicloud.net/banner/image/games/slots/pragmatic/AztecTreasureHunt.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20trswild3.png", provider: "pragmatic", tags: []},
+            {name: "Lobster Bob's Sea Food And Win It", image: "https://premicloud.net/banner/image/games/slots/pragmatic/LobsterBobsSeaFoodandWinIt.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20lobseafd.png", provider: "pragmatic", tags: []},
+            {name: "Forge Of Olympus", image: "https://premicloud.net/banner/image/games/slots/pragmatic/ForgeofOlympus.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20forge.png", provider: "pragmatic", tags: ["olympus"]},
+            {name: "Congo Cash", image: "https://premicloud.net/banner/image/slot/congocashAll-Ubo.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs432congocash.png", provider: "pragmatic", tags: []},
+            {name: "Release The Kraken", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs20kraken.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20kraken.png", provider: "pragmatic", tags: []},
+            {name: "Monkey Warrior", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs243mwarrior.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs243mwarrior.png", provider: "pragmatic", tags: []},
+            {name: "Big Bass Vegas Double Down Deluxe", image: "https://shareservice.net/banner/image/games/slots/pragmatic/BigBassVegasDoubleDownDeluxe.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10bbdoubled.png", provider: "pragmatic", tags: ["bass"]},
+            {name: "Forging Wilds", image: "https://premicloud.net/banner/image/games/slots/pragmatic/ForgingWilds.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20forgewilds.png", provider: "pragmatic", tags: []},
+            {name: "Ice Lobster", image: "https://premicloud.net/banner/image/games/slots/pragmatic/IceLobster.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20stickypos.png", provider: "pragmatic", tags: []},
+            {name: "Zombie Train", image: "https://premicloud.net/banner/image/games/slots/pragmatic/TraintoSeoul.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs15seoultrain.png", provider: "pragmatic", tags: []},
+            {name: "Mystic Chief", image: "https://premicloud.net/banner/image/games/slots/pragmatic/vswayswest.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayswest.png", provider: "pragmatic", tags: []},
+            {name: "The Magic Cauldron - Enchanted Brew", image: "https://premicloud.net/banner/image/slot/vs20magicpotubo_thumbnaill.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20magicpot.png", provider: "pragmatic", tags: []},
+            {name: "Queen Of Gods", image: "https://premicloud.net/banner/image/games/slots/pragmatic/QueenofGods.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10egrich.png", provider: "pragmatic", tags: []},
+            {name: "Wild West Duels", image: "https://premicloud.net/banner/image/games/slots/pragmatic/WildWestDuels.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20pistols.png", tags: ["wildwest"]},
+            {name: "Wildies", image: "https://premicloud.net/banner/image/games/slots/pragmatic/Wildies.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25wildies.png", provider: "pragmatic", tags: []},
+            {name: "Oodles Of Noodles", image: "https://shareservice.net/banner/image/games/slots/pragmatic/OodlesofNoodles.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10noodles.png", provider: "pragmatic", tags: []},
+            {name: "Congo Cash XL", image: "https://shareservice.net/banner/image/games/slots/pragmatic/CongoCashXL.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayscongcash.png", provider: "pragmatic", tags: []},
+            {name: "Candy Jar Clusters", image: "https://premicloud.net/banner/image/games/slots/pragmatic/CandyJarCluster.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20cjcluster.png", provider: "pragmatic", tags: []},
+            {name: "Cosmic Cash", image: "https://premicloud.net/banner/image/games/slots/pragmatic/CosmicCash.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs40cosmiccash.png", provider: "pragmatic", tags: []},
+            {name: "Fangtastic Freespins", image: "https://shareservice.net/banner/image/games/slots/pragmatic/FangtasticFreespins.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10fangfree.png", provider: "pragmatic", tags: []},
+            {name: "Bomb Bonanza", image: "https://premicloud.net/banner/image/games/slots/pragmatic/BombBonanza.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25bomb.png", provider: "pragmatic", tags: ["bonanza"]},
+            {name: "Madame Destiny Megaways", image: "https://premicloud.net/banner/image/Slots/uboMadameDestiny_149x120.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysmadame.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Candy Corner", image: "https://shareservice.net/banner/image/games/slots/pragmatic/CandyCorner.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20fourmc.png", provider: "pragmatic", tags: []},
+            {name: "Emerald King Rainbow Road", image: "https://premicloud.net/banner/image/slot/EmeraldKingRainbowRoad_UBO.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20ekingrr.png", provider: "pragmatic", tags: []},
+            {name: "Gods Of Giza", image: "https://premicloud.net/banner/image/games/slots/pragmatic/GodsofGiza.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10gizagods.png", provider: "pragmatic", tags: ["gates"]},
+            {name: "Old Gold Miner Megaways", image: "https://premicloud.net/banner/image/games/slots/pragmatic/OldGoldMinerMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysoldminer.png", provider: "pragmatic", tags: ["megaways", "gold"]},
+            {name: "Spellbinding Mystery", image: "https://premicloud.net/banner/image/games/slots/pragmatic/SpellbindingMysteryE.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20splmystery.png", provider: "pragmatic", tags: []},
+            {name: "Treasure Horse", image: "https://premicloud.net/banner/image/slot/MahjongWays.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs18mashang.png", provider: "pragmatic", tags: []},
+            {name: "Phoenix Forge", image: "https://premicloud.net/banner/image/slot/vs20phoenixf.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20phoenixf.png", provider: "pragmatic", tags: []},
+            {name: "Wild Celebrity Bus Megaways", image: "https://premicloud.net/banner/image/games/slots/pragmatic/WildCelebrityBusMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysrsm.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Snakes & Ladders 2 - Snake Eyes", image: "https://premicloud.net/banner/image/games/slots/pragmatic/SnakesLadders2SnakeEyes.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10snakeladd.png", provider: "pragmatic", tags: []},
+            {name: "Vampires VS Wolves", image: "https://shareservice.net/banner/image/games/slots/pragmatic/vs10vampwolf.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10vampwolf.png", provider: "pragmatic", tags: []},
+            {name: "Penguins Christmas Party Time", image: "https://shareservice.net/banner/image/games/slots/pragmatic/PenguinsChristmasPartyTime.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25xmasparty.png", provider: "pragmatic", tags: ["christmas"]},
+            {name: "Big Bass Christmas Bash", image: "https://premicloud.net/banner/image/games/slots/pragmatic/BigBassChristmasBash.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10bbsplxmas.png", provider: "pragmatic", tags: ["bass", "christmas"]},
+            {name: "Grace Of Ebisu", image: "https://premicloud.net/banner/image/games/slots/pragmatic/GraceofEbisu.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20olympgrace.png", provider: "pragmatic", tags: []},
+            {name: "Lucky Grace And Charm", image: "https://premicloud.net/banner/image/slot/vs10luckcharm.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10luckcharm.png", provider: "pragmatic", tags: []},
+            {name: "Starz Megaways", image: "https://premicloud.net/banner/image/Slots/Starz-Megaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs117649starz.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Hockey Attack", image: "https://premicloud.net/banner/image/slot/vs88hockattack.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs88hockattack.png", provider: "pragmatic", tags: []},
+            {name: "Ripe Rewards", image: "https://premicloud.net/banner/image/games/slots/pragmatic/RipeRewards.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs40stckwldlvl.png", provider: "pragmatic", tags: []},
+            {name: "Strawberry Cocktail", image: "https://premicloud.net/banner/image/games/slots/pragmatic/StrawberryCocktail.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10strawberry.png", provider: "pragmatic", tags: []},
+            {name: "5 Rabbits Megaways", image: "https://premicloud.net/banner/image/games/slots/pragmatic/5RabbitsMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysrabbits.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Bandit Megaways", image: "https://shareservice.net/banner/image/assetgames/slots/pragmatic/BanditMegaways.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysbandit.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "John Hunter And The Mayan Gods", image: "https://premicloud.net/banner/image/slot/jhubo_thumbnaill.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10mayangods.png", provider: "pragmatic", tags: []},
+            {name: "Big Bass Xmas Xtreme", image: "https://shareservice.net/banner/image/games/slots/pragmatic/BigBassXmasXtreme.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10bbxext.png", provider: "pragmatic", tags: ["bass", "christmas"]},
+            {name: "Big Bass Floats My Boat", image: "https://premicloud.net/banner/image/games/slots/pragmatic/BigBassFloatsMyBoat.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10bbfloats.png", provider: "pragmatic", tags: ["bass"]},
+            {name: "Big Bass Bonanza - Keeping It Reel", image: "https://premicloud.net/banner/image/games/slots/pragmatic/BigBassBonanzaKeepingItReel.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10bbkir.png", provider: "pragmatic", tags: ["bass", "bonanza"]},
+            {name: "Goblin Heist Powernudge", image: "https://premicloud.net/banner/image/games/slots/pragmatic/GoblinHeistPowernudge.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20gobnudge.png", provider: "pragmatic", tags: []},
+            {name: "Tic Tac Take", image: "https://premicloud.net/banner/image/games/slots/pragmatic/TicTacTake.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10tictac.png", provider: "pragmatic", tags: []},
+            {name: "Snakes And Ladders Megadice", image: "https://premicloud.net/banner/image/games/slots/pragmatic/SnakesLaddersMegadice.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10snakeladd.png", provider: "pragmatic", tags: ["dice"]},
+            {name: "Diamond Cascade", image: "https://premicloud.net/banner/image/games/slots/pragmatic/DiamondCascade.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs50dmdcascade.png", provider: "pragmatic", tags: []},
+            {name: "PIZZA! PIZZA? PIZZA!", image: "https://premicloud.net/banner/image/games/slots/pragmatic/PIZZAPIZZAPIZZA.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayspizza.png", provider: "pragmatic", tags: []},
+            {name: "Fire Strike 2", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/FireStrike2.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10firestrike2.png", provider: "pragmatic", tags: []},
+            {name: "Christmas Carol Megaways", image: "https://premicloud.net/banner/image/slot/ChristmasCarol_UBO.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20xmascarol.png", provider: "pragmatic", tags: ["megaways", "christmas"]},
+            {name: "Panda Fortune 2", image: "https://shareservice.net/banner/image/games/slots/pragmatic/PandaTemple.png", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs25pandatemple.png", provider: "pragmatic", tags: []},
+            {name: "Peak Power", image: "https://premicloud.net/banner/image/games/slots/pragmatic/PeakPower.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10powerlines.png", provider: "pragmatic", tags: []},
+            {name: "Mahjong Panda", image: "https://premicloud.net/banner/image/games/slots/pragmatic/MahjongPanda.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs1024mahjpanda.png", provider: "pragmatic", tags: ["mahjong"]},
+            {name: "Fortune Ace", image: "https://premicloud.net/banner/image/games/slots/pragmatic/FortuneAce.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs1024fortune.png", provider: "pragmatic", tags: []},
+            {name: "Wild Wild Bananas", image: "https://premicloud.net/banner/image/games/slots/pragmatic/WildWildBananas.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayswwhex.png", provider: "pragmatic", tags: []},
+            {name: "Hot To Burn Multiplier", image: "https://shareservice.net/banner/image/games/slots/pragmatic/HottoBurnMultiplier.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs5hotbmult.png", provider: "pragmatic", tags: []},
+            {name: "Dragon Gold 88", image: "https://shareservice.net/banner/image/games/slots/pragmatic/DragonGold88.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10dgold88.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Big Bass Boxing Bonus Round", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/BigBassBoxingBonusRound.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs10bbbbrnd.png", provider: "pragmatic", tags: ["bass"]},
+            {name: "Witch Heart Megaways", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/WitchHeartMegaways.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswayswildbrst.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Fury Of Odin Megaways", image: "https://premicloud.net/banner/image/games/slots/pragmatic/FuryofOdinMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysfuryodin.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Waves Of Poseidon", image: "https://premicloud.net/banner/image/assetgames/slots/pragmatic/WavesofPoseidon.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20bigmass.png", provider: "pragmatic", tags: []},
+            {name: "The Dog House Megaways", image: "https://premicloud.net/banner/image/Slots/TheDogHouseMegaways_UBO.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vswaysdogs.png", provider: "pragmatic", tags: ["megaways"]},
+            {name: "Rabbit Garden", image: "https://premicloud.net/banner/image/games/slots/pragmatic/RabbitGarden.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20goldclust.png", provider: "pragmatic", tags: ["gold"]},
+            {name: "Mammoth Gold Megaways", image: "https://premicloud.net/banner/image/games/slots/pragmatic/MammothGoldMegaways.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20mammoth.png", provider: "pragmatic", tags: ["megaways", "gold"]},
+            {name: "Mochimon", image: "https://premicloud.net/banner/image/games/slots/pragmatic/Mochimon.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/vs20mochimon.png", provider: "pragmatic", tags: []}
+        ];
+
+        // Data PG Soft (Sesuai daftar yang Anda berikan)
+        const pgSoftGamesRaw = [
+            {name: "Mythical Guardians", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/MythicalGuardians.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1849515.png", provider: "pgsoft", tags: ["wonders"]},
+            {name: "Poker Kingdom Win", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/PokerKingdomWin.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_2009635.png", provider: "pgsoft", tags: []},
+            {name: "Alibaba's Cave Of Fortune", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/AlibabasCaveofFortune.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1940257.png", provider: "pgsoft", tags: []},
+            {name: "Skylight Wonders", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/SkylightWonders.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_2012025.png", provider: "pgsoft", tags: ["wonders"]},
+            {name: "Mahjong Ways", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/MahjongWays.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_65.png", provider: "pgsoft", tags: ["mahjong", "wins"]},
+            {name: "Mahjong Ways 2", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/MahjongWays2.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_74.png", provider: "pgsoft", tags: ["mahjong", "wins"]},
+            {name: "Wild Bounty Showdown", image: "https://premicloud.net/banner/image/games/slots/pgs/WildBountyShowdown.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_135.png", provider: "pgsoft", tags: []},
+            {name: "Wild Bandito", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/WildBandito.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_104.png", provider: "pgsoft", tags: ["wild"]},
+            {name: "Lucky Neko", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/LuckyNeko.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_89.png", provider: "pgsoft", tags: []},
+            {name: "Treasures of Aztec", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/TreasureOfAztec.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_87.png", provider: "pgsoft", tags: []},
+            {name: "Ways of Qilin", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/WaysOfQilin.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_106.png", provider: "pgsoft", tags: []},
+            {name: "Wild Ape", image: "https://premicloud.net/banner/image/games/slots/pgs/WildApe.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1508783.png", provider: "pgsoft", tags: []},
+            {name: "Pinata Wins", image: "https://premicloud.net/banner/image/games/slots/pgs/PinataWins.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1492288.png", provider: "pgsoft", tags: []},
+            {name: "Gemstones Gold", image: "https://premicloud.net/banner/image/games/slots/pgs/GemstonesGold.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1671262.png", provider: "pgsoft", tags: ["gold"]},
+            {name: "Cocktail Nights", image: "https://premicloud.net/banner/image/slot/pgs_cocktail-nite.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_117.png", provider: "pgsoft", tags: []},
+            {name: "Anubis Wrath", image: "https://shareservice.net/banner/image/games/slots/pgs/AnubisWrath.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1623475.png", provider: "pgsoft", tags: []},
+            {name: "Geisha's Revenge", image: "https://shareservice.net/banner/image/games/slots/pgs/GeishasRevenge.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1702123.png", provider: "pgsoft", tags: []},
+            {name: "Mafia Mayhem", image: "https://premicloud.net/banner/image/games/slots/pgs/MafiaMayhem.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1580541.png", provider: "pgsoft", tags: []},
+            {name: "Dragon Hatch 2", image: "https://premicloud.net/banner/image/games/slots/pgs/DragonHatch2.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1451122.png", provider: "pgsoft", tags: []},
+            {name: "Mr. Treasure's Fortune", image: "https://shareservice.net/banner/image/assetgames/slots/pgs/MrTreasuresFortune.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1799745.png", provider: "pgsoft", tags: []},
+            {name: "Speed Winner", image: "https://premicloud.net/banner/image/games/slots/pgs/SpeedWinner.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_127.png", provider: "pgsoft", tags: []},
+            {name: "The Great Icescape", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/TheGreatIcescape.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_53.png", provider: "pgsoft", tags: []},
+            {name: "Kraken Gold Rush", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/KrakenGoldRush.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1929177.png", provider: "pgsoft", tags: []},
+            {name: "Jurassic Kingdom", image: "https://premicloud.net/banner/image/games/slots/pgs/JurassicKingdom.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_110.png", provider: "pgsoft", tags: []},
+            {name: "Midas Fortune", image: "https://premicloud.net/banner/image/games/slots/pgs/MidasFortune.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1402846.png", provider: "pgsoft", tags: []},
+            {name: "Yakuza Honor", image: "https://shareservice.net/banner/image/games/slots/pgs/YakuzaHonor.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1760238.png", provider: "pgsoft", tags: []},
+            {name: "Dreams Of Macau", image: "https://premicloud.net/banner/image/games/slots/pgs/DreamsOfMacau.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_79.png", provider: "pgsoft", tags: []},
+            {name: "Caishen Wins", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/CaishenWins.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_71.png", provider: "pgsoft", tags: ["wins"]},
+            {name: "Asgardian Rising", image: "https://premicloud.net/banner/image/games/slots/pgs/AsgardianRising.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1340277.png", provider: "pgsoft", tags: []},
+            {name: "Fortune Dragon PGS", image: "https://premicloud.net/banner/image/games/slots/pgs/FortuneDragon.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1695365.png", provider: "pgsoft", tags: []},
+            {name: "Legend Of Perseus", image: "https://premicloud.net/banner/image/games/slots/pgs/LegendofPerseus.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_128.png", provider: "pgsoft", tags: []},
+            {name: "Ganesha Fortune", image: "https://premicloud.net/banner/image/games/slots/pgs/GaneshaFortune.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_75.png", provider: "pgsoft", tags: []},
+            {name: "Grimms Bounty: Hansel & Gretel", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/GrimmsBountyHanselGretel.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1903012.png", provider: "pgsoft", tags: []},
+            {name: "Dragon's Treasure Quest", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/DragonsTreasureQuest.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1897678.png", provider: "pgsoft", tags: []},
+            {name: "Dead Man's Riches", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/DeadMansRiches.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1865521.png", provider: "pgsoft", tags: []},
+            {name: "Rio Fantasia", image: "https://shareservice.net/banner/image/games/slots/pgs/RioFantasia.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1786529.png", provider: "pgsoft", tags: []},
+            {name: "Jewels Of Prosperity", image: "https://premicloud.net/banner/image/games/slots/pgs/JewelsOfProsperity.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_88.png", provider: "pgsoft", tags: []},
+            {name: "Chocolate Deluxe", image: "https://shareservice.net/banner/image/games/slots/pgs/ChocolateDeluxe.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1666445.png", provider: "pgsoft", tags: []},
+            {name: "Fortune Snake", image: "https://shareservice.net/banner/image/games/slots/pgs/FortuneSnake.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1879752.png", provider: "pgsoft", tags: []},
+            {name: "Knockout Riches", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/KnockoutRiches.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1881268.png", provider: "pgsoft", tags: []},
+            {name: "Pharaoh Royals", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/PharaohRoyals.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1964781.png", provider: "pgsoft", tags: []},
+            {name: "Cash Mania", image: "https://premicloud.net/banner/image/games/slots/pgs/CashMania.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1682240.png", provider: "pgsoft", tags: []},
+            {name: "Majestic Empire", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/MajesticEmpire.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1971587.png", provider: "pgsoft", tags: []},
+            {name: "Honey Trap of Diao Chan", image: "https://premicloud.net/banner/image/games/slots/pgs/PGsoft/DewaTangkas/HoneyTrapOfDiaoChan.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1.png", provider: "pgsoft", tags: []},
+            {name: "Gem Saviour", image: "https://premicloud.net/banner/image/games/slots/pgs/GemSaviour.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_2.png", provider: "pgsoft", tags: []},
+            {name: "Galaxy Miner", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/GalaxyMiner.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1918451.png", provider: "pgsoft", tags: []},
+            {name: "Fruity Candy", image: "https://premicloud.net/banner/image/games/slots/pgs/FruityCandy.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1397455.png", provider: "pgsoft", tags: ["sweet"]},
+            {name: "Chicky Run", image: "https://shareservice.net/banner/image/games/slots/pgs/ChickyRun.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1738001.png", provider: "pgsoft", tags: []},
+            {name: "Reel Love", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/ReelLove.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_20.png", provider: "pgsoft", tags: []},
+            {name: "Jack The Giant Hunter", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/JacktheGiantHunter.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1834850.png", provider: "pgsoft", tags: []},
+            {name: "Ganesha Gold", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/GaneshaGoldnew.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_42.png", provider: "pgsoft", tags: []},
+            {name: "Diner Frenzy Spins", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/DinerFrenzySpins.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1935269.png", provider: "pgsoft", tags: []},
+            {name: "Wings Of Iguazu", image: "https://shareservice.net/banner/image/games/slots/pgs/WingsofIguazu.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1747549.png", provider: "pgsoft", tags: []},
+            {name: "Safari Wilds", image: "https://premicloud.net/banner/image/games/slots/pgs/SafariWilds.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1594259.png", provider: "pgsoft", tags: []},
+            {name: "Jungle Delight", image: "https://premicloud.net/banner/image/games/slots/pgs/JungleDelight.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_40.png", provider: "pgsoft", tags: []},
+            {name: "Circus Delight", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/CircusDelight.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_80.png", provider: "pgsoft", tags: []},
+            {name: "Ultimate Striker", image: "https://premicloud.net/banner/image/games/slots/pgs/UltimateStriker.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1489936.png", provider: "pgsoft", tags: []},
+            {name: "Legend Of Hou Yi", image: "https://premicloud.net/banner/image/games/slots/pgs/LegendOfHouYi.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_34.png", provider: "pgsoft", tags: []},
+            {name: "Queen of Bounty", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/QueenOfBounty.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_84.png", provider: "pgsoft", tags: []},
+            {name: "Crypto Gold", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/CryptoGold.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_103.png", provider: "pgsoft", tags: ["gold"]},
+            {name: "Emoji Riches", image: "https://premicloud.net/banner/image/slot/emoji-riches.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_114.png", provider: "pgsoft", tags: []},
+            {name: "Emperors Favour", image: "https://premicloud.net/banner/image/games/slots/pgs/EmperorsFavour.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_44.png", provider: "pgsoft", tags: []},
+            {name: "Captain's Bounty", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/Captain&#039;sBounty.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_54.png", provider: "pgsoft", tags: []},
+            {name: "Fortune Gods", image: "https://premicloud.net/banner/image/games/slots/pgs/FortuneGods.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_3.png", provider: "pgsoft", tags: []},
+            {name: "Hip Hop Panda", image: "https://premicloud.net/banner/image/games/slots/pgs/HipHopPanda.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_33.png", provider: "pgsoft", tags: []},
+            {name: "Guardians Of Ice And Fire", image: "https://premicloud.net/banner/image/games/slots/pgs/GuardiansOfFireIce.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_91.png", provider: "pgsoft", tags: []},
+            {name: "Win Win Won", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/WinWinWon.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_24.png", provider: "pgsoft", tags: ["wins"]},
+            {name: "PG Soft Games", image: "https://premicloud.net/banner/image/games/slots//pgs/Pglobby.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_lobby.png", provider: "pgsoft", tags: []},
+            {name: "Symbols of Egypt", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/SymbolsOfEgypt.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_41.png", provider: "pgsoft", tags: []},
+            {name: "Candy Burst", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/CandyBurst.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_70.png", tags: ["sweet"]},
+            {name: "Raider Jane's Crypt Of Fortune", image: "https://premicloud.net/banner/image/games/slots/pgs/raiders jane_crypt-of-fortune.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_113.png", provider: "pgsoft", tags: []},
+            {name: "Vampire's Charm", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/Vampire&#039;sCharm.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_58.png", provider: "pgsoft", tags: []},
+            {name: "Oishi Delights", image: "https://shareservice.net/banner/image/games/slots/pgs/OishiDelights.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1815268.png", provider: "pgsoft", tags: []},
+            {name: "Incan Wonders", image: "https://shareservice.net/banner/image/games/slots/pgs/IncanWonders.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1850016.png", provider: "pgsoft", tags: ["wonders"]},
+            {name: "Legendary Monkey King", image: "https://premicloud.net/banner/image/games/slots/pgs/pgs_lgd-monkey-kg.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_107.png", provider: "pgsoft", tags: []},
+            {name: "Fortune Mouse", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/FortuneMouse.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_68.png", provider: "pgsoft", tags: []},
+            {name: "Shark Bounty", image: "https://shareservice.net/banner/image/games/slots/pgs/SharkHunter.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1648578.png", provider: "pgsoft", tags: []},
+            {name: "Wild Heist Cashout", image: "https://premicloud.net/banner/image/games/slots/pgs/WildHeistCashout.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1568554.png", provider: "pgsoft", tags: ["wild"]},
+            {name: "Santa's Gift Rush", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/Santa&#039;sGiftRush.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_37.png", tags: ["christmas"]},
+            {name: "Flirting Scholar", image: "https://premicloud.net/banner/image/games/slots/pgs/FlirtingScholar.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_61.png", provider: "pgsoft", tags: []},
+            {name: "Battleground Royale", image: "https://premicloud.net/banner/image/games/slots/PGsoft/BattlegroundRoyale.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_124.png", provider: "pgsoft", tags: []},
+            {name: "Egypts Book Of Mystery", image: "https://premicloud.net/banner/image/games/slots/pgs/EgyptsBookOfMystery.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_73.png", provider: "pgsoft", tags: []},
+            {name: "Phoenix Rises", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/PhoenixRises.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_82.png", tags: []},
+            {name: "Zombie Outbreak", image: "https://shareservice.net/banner/image/games/slots/pgs/ZombieOutbreak.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1635221.png", provider: "pgsoft", tags: []},
+            {name: "Medusa II", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/Medusa2.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_6.png", provider: "pgsoft", tags: []},
+            {name: "Gladiator's Glory", image: "https://shareservice.net/banner/image/games/slots/pgs/GladiatorsGlory.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1572362.png", provider: "pgsoft", tags: []},
+            {name: "Cruise Royale", image: "https://premicloud.net/banner/image/games/slots/pgs/CruiseRoyale.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1473388.png", provider: "pgsoft", tags: []},
+            {name: "Lucky Clover Riches", image: "https://shareservice.net/banner/image/games/slots/pgs/LuckyCloverLady.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1601012.png", provider: "pgsoft", tags: []},
+            {name: "Diner Delights", image: "https://premicloud.net/banner/image/games/slots/pgs/DinerDelights.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1372643.png", provider: "pgsoft", tags: []},
+            {name: "Prosperity Fortune Tree", image: "https://premicloud.net/banner/image/games/slots/pgs/ProsperityFortuneTree.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1312883.png", provider: "pgsoft", tags: ["fortune"]},
+            {name: "Gem Saviour Conquest", image: "https://premicloud.net/banner/image/games/slots/pgs/GemSaviourConquest.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_62.png", provider: "pgsoft", tags: []},
+            {name: "Bakery Bonanza", image: "https://premicloud.net/banner/image/games/slots/pgs/BakeryBonanza.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1418544.png", provider: "pgsoft", tags: ["bonanza"]},
+            {name: "Journey To The Wealth", image: "https://premicloud.net/banner/image/games/slots/pgs/JourneyToTheWealth.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_50.png", provider: "pgsoft", tags: []},
+            {name: "Spirited Wonder", image: "https://premicloud.net/banner/image/games/slots/pgs/spirited-wonders.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_119.png", provider: "pgsoft", tags: ["wonders"]},
+            {name: "Destiny Of Sun And Moon", image: "https://premicloud.net/banner/image/games/slots/pgs/DestinyofSunandMoon.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_121.png", provider: "pgsoft", tags: []},
+            {name: "Museum Wonders", image: "https://shareservice.net/banner/image/games/slots/pgs/MuseumMystery.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1755623.png", provider: "pgsoft", tags: []},
+            {name: "Rooster Rumble", image: "https://premicloud.net/banner/image/games/slots/pgs/RoosterRumble.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_123.png", provider: "pgsoft", tags: []},
+            {name: "Bikini Paradise", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/BikiniParadise.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_69.png", provider: "pgsoft", tags: []},
+            {name: "Majestic Treasures", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/MajesticTreasure.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_95.png", provider: "pgsoft", tags: []},
+            {name: "Opera Dynasty", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/OperaDynasty.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_93.png", provider: "pgsoft", tags: []},
+            {name: "Super Golf Drive", image: "https://premicloud.net/banner/image/games/slots/pgs/SuperGolfDrive.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1513328.png", provider: "pgsoft", tags: []},
+            {name: "Heist Stakes", image: "https://premicloud.net/banner/image/games/slots/pgs/HeistStakes.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_105.png", provider: "pgsoft", tags: []},
+            {name: "Jack Frosts Winter", image: "https://premicloud.net/banner/image/games/slots/pgs/JackFrostsWinter.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_97.png", provider: "pgsoft", tags: []},
+            {name: "Dragon Tiger Luck", image: "https://premicloud.net/banner/image/games/slots/pgs/DragonTigerLuck.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_63.png", provider: "pgsoft", tags: []},
+            {name: "Werewolf's Hunt", image: "https://premicloud.net/banner/image/games/slots/pgs/WerewolfsHunt.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1615454.png", provider: "pgsoft", tags: []},
+            {name: "Ninja Raccoon Frenzy", image: "https://premicloud.net/banner/image/games/slots/pgs/NinjaRaccoonFrenzy.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1529867.png", provider: "pgsoft", tags: []},
+            {name: "Genies 3 Wishes", image: "https://premicloud.net/banner/image/games/slots/pgs/Genies3Wishes.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_85.png", provider: "pgsoft", tags: []},
+            {name: "Bali Vacation", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/BaliVacation.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_94.png", provider: "pgsoft", tags: []},
+            {name: "Tree Of Fortune", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/TreeOfFortune.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_26.png", provider: "pgsoft", tags: []},
+            {name: "Baccarat Deluxe", image: "https://premicloud.net/banner/image/games/slots/pgs/BaccaratDeluxe.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_31.png", provider: "pgsoft", tags: []},
+            {name: "Mystical Spirits", image: "https://premicloud.net/banner/image/games/slots/pgs/MysticalSpirits.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1432733.png", provider: "pgsoft", tags: []},
+            {name: "Double Fortune", image: "https://premicloud.net/banner/image/games/slots/pgs/DoubleFortune.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_48.png", provider: "pgsoft", tags: []},
+            {name: "Oriental Prosperity", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/Oriental-Prosperity.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_112.png", provider: "pgsoft", tags: []},
+            {name: "Dragon Hatch", image: "https://premicloud.net/banner/image/games/slots/pgs/DragonHatch.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_57.png", provider: "pgsoft", tags: []},
+            {name: "Graffiti Rush", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/GraffitiRush.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1804577.png", provider: "pgsoft", tags: []},
+            {name: "Lucky Piggy", image: "https://shareservice.net/banner/image/games/slots/pgs/LuckyPiggy.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_130.png", provider: "pgsoft", tags: []},
+            {name: "Candy Bonanza", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/CandyBonanza.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_100.png", tags: ["sweet", "bonanza"]},
+            {name: "Three Crazy Piggies", image: "https://shareservice.net/banner/image/games/slots/pgs/ThreeCrazyPiggies.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1727711.png", provider: "pgsoft", tags: []},
+            {name: "Supermarket Spree", image: "https://premicloud.net/banner/image/games/slots/pgs/supermarket-spree.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_115.png", tags: []},
+            {name: "The Queens Banquet", image: "https://premicloud.net/banner/image/games/slots/pgs/TheQueenBanquet.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_120.png", provider: "pgsoft", tags: []},
+            {name: "Plushie Frenzy", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/PlushieFrenzy.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_25.png", provider: "pgsoft", tags: []},
+            {name: "Totem Wonders", image: "https://premicloud.net/banner/image/games/slots/pgs/TotemWonders.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1338274.png", provider: "pgsoft", tags: []},
+            {name: "Buffalo Win", image: "https://premicloud.net/banner/image/games/slots/pgs/bufallo-win.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_108.png", provider: "pgsoft", tags: []},
+            {name: "Forge Of Wealth", image: "https://premicloud.net/banner/image/games/slots/pgs/ForgeofWealth.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1555350.png", provider: "pgsoft", tags: []},
+            {name: "Tsar Treasure", image: "https://premicloud.net/banner/image/games/slots/pgs/TsarTreasures.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1655268.png", provider: "pgsoft", tags: []},
+            {name: "Fortune Tiger", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/FortuneTiger.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_126.png", provider: "pgsoft", tags: []},
+            {name: "Alchemy Gold", image: "https://premicloud.net/banner/image/games/slots/pgs/AlchemyGold.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1368367.png", provider: "pgsoft", tags: []},
+            {name: "Dragon Legend", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/DragonLegend.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_29.png", provider: "pgsoft", tags: []},
+            {name: "Prosperity Lion", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/ProsperityLion.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_36.png", provider: "pgsoft", tags: []},
+            {name: "Mask Carnival", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/Mask-Carnival.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_118.png", provider: "pgsoft", tags: []},
+            {name: "Galactic Gems", image: "https://premicloud.net/banner/image/games/slots/pgs/GalacticGems.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_86.png", provider: "pgsoft", tags: []},
+            {name: "Muay Thai Champion", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/MuayThaiChampion.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_64.png", provider: "pgsoft", tags: []},
+            {name: "Hawaiian Tiki", image: "https://premicloud.net/banner/image/games/slots/pgs/HawaiianTiki.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1381200.png", provider: "pgsoft", tags: []},
+            {name: "Fortune Rabbit", image: "https://premicloud.net/banner/image/games/slots/pgs/FortuneRabbit.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1543462.png", provider: "pgsoft", tags: []},
+            {name: "Rave Party Fever", image: "https://premicloud.net/banner/image/games/slots/pgs/RavePartyFever.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1420892.png", provider: "pgsoft", tags: []},
+            {name: "Thai River Wonders", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/ThaiRiversWonders.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_92.png", provider: "pgsoft", tags: []},
+            {name: "Shaolin Soccer", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/ShaolinSoccer.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_67.png", provider: "pgsoft", tags: []},
+            {name: "Wild Coaster", image: "https://premicloud.net/banner/image/games/slots/pgs/WildCoaster.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_132.png", provider: "pgsoft", tags: []},
+            {name: "Fortune Ox", image: "https://premicloud.net/banner/image/games/slots/pgs/FortuneOx.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_98.png", provider: "pgsoft", tags: []},
+            {name: "Wild Fireworks", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/WildFireworks.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_83.png", provider: "pgsoft", tags: []},
+            {name: "Win Win Fish Prawn Crab", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/FishPrawnCrab.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_129.png", provider: "pgsoft", tags: []},
+            {name: "Ninja vs Samurai", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/NinjavsSamurai.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_59.png", provider: "pgsoft", tags: []},
+            {name: "Mystic Potion", image: "https://premicloud.net/banner/image/games/slots/pgs/MysticPotion.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1717688.png", provider: "pgsoft", tags: []},
+            {name: "Gem Saviour Sword", image: "https://premicloud.net/banner/image/games/slots/pgs/GemSaviourSword.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_38.png", provider: "pgsoft", tags: []},
+            {name: "Mr. Hallow-Jackpot", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/MrHallowJackpot.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_35.png", provider: "pgsoft", tags: []},
+            {name: "Garuda Gems", image: "https://premicloud.net/banner/image/games/slots/pgs/GarudaGems.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_122.png", provider: "pgsoft", tags: []},
+            {name: "Rise Of The Sun God", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/RiseoftheSunGod.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_101.png", provider: "pgsoft", tags: []},
+            {name: "Mermaid Riches", image: "https://premicloud.net/banner/image/games/slots/pgs/MermaidRiches.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_102.png", provider: "pgsoft", tags: []},
+            {name: "Leprechaun Riches", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/LeprechaunRiches.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_60.png", provider: "pgsoft", tags: []},
+            {name: "Secrets Of Cleopatra", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/SecretOfCleopatra.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_90.png", tags: []},
+            {name: "Butterfly Blossom", image: "https://premicloud.net/banner/image/games/slots/pgs/ButterflyBlossom.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_125.png", provider: "pgsoft", tags: []},
+            {name: "Hotpot", image: "https://premicloud.net/banner/image/games/slots/pgs/HotPot.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_28.png", provider: "pgsoft", tags: []},
+            {name: "Hood Vs Wolf", image: "https://premicloud.net/banner/image/games/slots/pgs/HoodvsWolf.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_18.png", provider: "pgsoft", tags: []},
+            {name: "Medusa", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/Medusa.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_7.png", provider: "pgsoft", tags: []},
+            {name: "Piggy Gold", image: "https://premicloud.net/banner/image/games/slots/PGsoft/DewaTangkas/PiggyGold.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_39.png", provider: "pgsoft", tags: []},
+            {name: "Songkran Splash", image: "https://premicloud.net/banner/image/games/slots/pgs/SongkranSplash.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1448762.png", provider: "pgsoft", tags: []},
+            {name: "Doomsday Rampage", image: "https://premicloud.net/banner/image/assetgames/slots/pgs/DoomsdayRampage.webp", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1827457.png", provider: "pgsoft", tags: []},
+            {name: "Doomsday Rampage", image: "https://premicloud.net/banner/image/games/slots/pgs/DoomsdayRampage.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1827457.png", provider: "pgsoft", tags: []},
+            {name: "Doomsday Rampage", image: "https://premicloud.net/banner/image/games/slots/pgs/DoomsdayRampage.jpg", fallback: "https://common-static.ppgames.net/game_pic/rec/325/pgs_1827457.png", provider: "pgsoft", tags: []}
+        ];
+
+        // Combine data and add provider field
+        const pragmaticGamesWithProvider = pragmaticGamesRaw.map(game => ({...game, provider: 'pragmatic'}));
+        const gameData = [...pragmaticGamesWithProvider, ...pgSoftGamesRaw];
+        
+        // Dashboard state
+        let currentView = 'grid';
+        let currentPage = 1;
+        const gamesPerPage = 24;
+        let filteredGames = [...gameData];
+        let currentSort = 'name-asc';
+        let showAllMode = false; // Fitur toggle
+        let showAllBtnActive = false; // Toggle untuk tombol "Show All"
+        
+        // DOM Elements
+        const gamesDisplay = document.getElementById('games-display');
+        const searchInput = document.getElementById('search-input');
+        const categoryFilter = document.getElementById('category-filter');
+        const providerFilter = document.getElementById('provider-filter');
+        const sortBy = document.getElementById('sort-by');
+        const resetFiltersBtn = document.getElementById('reset-filters');
+        const gridViewBtn = document.getElementById('grid-view-btn');
+        const listViewBtn = document.getElementById('list-view-btn');
+        const showAllBtn = document.getElementById('show-all-btn');
+        const paginationContainer = document.getElementById('pagination-container');
+        const prevPageBtn = document.getElementById('prev-page');
+        const nextPageBtn = document.getElementById('next-page');
+        const pageNumbers = document.getElementById('page-numbers');
+        const totalGamesEl = document.getElementById('total-games');
+        const filteredGamesEl = document.getElementById('filtered-games');
+        const uniqueCategoriesEl = document.getElementById('unique-categories');
+        const currentYearEl = document.getElementById('current-year');
+        const totalInLibraryEl = document.getElementById('total-in-library');
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        const lightboxCaption = document.getElementById('lightbox-caption');
+        const closeLightbox = document.querySelector('.close-lightbox');
+        
+        // Initialize dashboard
+        function initDashboard() {
+            currentYearEl.textContent = new Date().getFullYear();
+            totalGamesEl.textContent = gameData.length;
+            totalInLibraryEl.textContent = gameData.length;
+            
+            // Calculate unique providers
+            const allProviders = new Set();
+            gameData.forEach(game => {
+                allProviders.add(game.provider);
+            });
+            uniqueCategoriesEl.textContent = allProviders.size;
+
+            searchInput.addEventListener('input', filterGames);
+            categoryFilter.addEventListener('change', filterGames);
+            providerFilter.addEventListener('change', filterGames);
+            sortBy.addEventListener('change', sortGames);
+            resetFiltersBtn.addEventListener('click', resetFilters);
+            gridViewBtn.addEventListener('click', () => switchView('grid'));
+            listViewBtn.addEventListener('click', () => switchView('list'));
+            showAllBtn.addEventListener('click', () => {
+                showAllMode = !showAllMode;
+                toggleShowAllMode();
+            });
+            
+            // Lightbox listeners
+            closeLightbox.addEventListener('click', closeLightboxFn);
+            lightbox.addEventListener('click', (e) => {
+                if (e.target === lightbox) {
+                    closeLightboxFn();
+                }
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === "Escape" && lightbox.classList.contains('show')) {
+                    closeLightboxFn();
+                }
+            });
+            
+            filterGames();
+        }
+
+        function toggleShowAll() {
+            // Toggle status tombol
+            showAllMode = !showAllMode;
+            
+            if (showAllMode) {
+                showAllBtn.classList.add('active');
+                showAllBtn.textContent = '<i class="fas fa-list"></i> Paginate'; // Ubah teks tombol ke 'Paginate'
+                paginationContainer.style.display = 'none'; // Sembunyikan paginasi
+            } else {
+                showAllBtn.classList.remove('active');
+                showAllBtn.innerHTML = '<i class="fas fa-layer-group"></i> Show All'; // Ubah teks tombol kembali ke 'Show All'
+                paginationContainer.style.display = 'flex'; // Tampilkan paginasi
+                currentPage = 1; // Reset halaman ke 1
+            }
+            
+            // Panggil tampilan UI tombol Show All
+            renderGames(); 
+        }
+
+        function closeLightboxFn() {
+            lightbox.classList.remove('show');
+            setTimeout(() => {
+                lightbox.style.display = "none";
+                lightboxImg.src = "";
+            }, 300);
+            document.body.style.overflow = 'auto';
+        }
+
+        // Logika Filter
+        function filterGames() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const category = categoryFilter.value;
+            const provider = providerFilter.value;
+            
+            filteredGames = gameData.filter(game => {
+                const matchesSearch = searchTerm === '' || game.name.toLowerCase().includes(searchTerm);
+                const matchesCategory = category === '' || game.tags.includes(category);
+                const matchesProvider = provider === '' || game.provider === provider;
+                return matchesSearch && matchesCategory && matchesProvider;
+            });
+            
+            sortGames();
+        }
+        
+        function sortGames() {
+            currentSort = sortBy.value;
+            
+            filteredGames.sort((a, b) => {
+                switch(currentSort) {
+                    case 'name-asc':
+                        return a.name.localeCompare(b.name);
+                    case 'name-desc':
+                        return b.name.localeCompare(a.name);
+                    case 'newest':
+                        const aIsNew = a.name.includes('1000') || a.name.includes('2023') || a.name.includes('2024');
+                        const bIsNew = b.name.includes('1000') || b.name.includes('2023') || b.name.includes('2024');
+                        if (aIsNew && !bIsNew) return -1;
+                        if (!aIsNew && bIsNew) return 1;
+                        return 0;
+                    case 'popular':
+                        const aIsPopular = a.name.includes('Gold') || a.name.includes('Bonanza') || a.name.includes('Mega') || a.name.includes('Ways');
+                        const bIsPopular = b.name.includes('Gold') || b.name.includes('Bonanza') || b.name.includes('Mega') || b.name.includes('Ways');
+                        if (aIsPopular && !bIsPopular) return -1;
+                        if (!aIsPopular && bIsPopular) return 1;
+                        return 0;
+                    default:
+                        return a.name.localeCompare(b.name);
+                }
+            });
+            
+            if (!showAllMode) {
+                currentPage = 1;
+            }
+            
+            renderGames();
+            updateStats();
+            updatePagination();
+        }
+        
+        function resetFilters() {
+            searchInput.value = '';
+            categoryFilter.value = '';
+            providerFilter.value = '';
+            sortBy.value = 'name-asc';
+            showAllMode = false;
+            
+            if(showAllActive) toggleShowAll(); // Jika tombol aktif, matikan status di function
+        }
+        
+        function switchView(view) {
+            currentView = view;
+            if (view === 'grid') {
+                gridViewBtn.classList.add('active');
+                listViewBtn.classList.remove('active');
+                gamesDisplay.classList.remove('games-list');
+                gamesDisplay.classList.add('games-grid');
+            } else {
+                listViewBtn.classList.add('active');
+                gridViewBtn.classList.remove('active');
+                gamesDisplay.classList.remove('games-grid');
+                gamesDisplay.classList.add('games-list');
+            }
+            renderGames();
+        }
+        
+        function renderGames() {
+            let gamesToDisplay = [];
+            
+            // Logika paginasi
+            if (showAllMode) {
+                gamesToDisplay = filteredGames;
+            } else {
+                const startIndex = (currentPage - 1) * gamesPerPage;
+                const endIndex = startIndex + gamesPerPage;
+                gamesToDisplay = filteredGames.slice(startIndex, endIndex);
+            }
+            
+            // Clear display
+            gamesDisplay.innerHTML = '';
+            
+            if (gamesToDisplay.length === 0) {
+                gamesDisplay.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-gamepad"></i>
+                        <h3>No games found</h3>
+                        <p>Try adjusting your search or filter criteria</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Render games cards
+            gamesToDisplay.forEach(game => {
+                const gameElement = document.createElement('div');
+                gameElement.className = `game-card ${currentView}-view`;
+                const finalImageSrc = game.image || game.fallback;
+                
+                let tagsHTML = '';
+                if (game.tags.length > 0) {
+                    tagsHTML = '<div class="game-tags">';
+                    game.tags.slice(0, 3).forEach(tag => {
+                        let tagClass = 'game-tag';
+                        if (tag === 'pp') tagClass += ' pp';
+                        if (tag === 'bonanza') tagClass += ' bonanza';
+                        if (tag === 'olympus') tagClass += ' olympus';
+                        if (tag === 'bass') tagClass += ' bass';
+                        if (tag === 'sweet') tagClass += ' sweet';
+                        if (tag === 'gates') tagClass += ' gates';
+                        if (tag === 'megaways') tagClass += ' megaways';
+                        if (tag === 'christmas') tagClass += ' christmas';
+                        if (tag === 'halloween') tagClass += ' halloween';
+                        if (tag === 'dice') tagClass += ' dice';
+                        if (tag === 'gold') tagClass += ' gold';
+                        tagsHTML += `<span class="${tagClass}">${tag}</span>`;
+                    });
+                    tagsHTML += '</div>';
+                }
+
+                // Provider badge (PG/Pragmatic)
+                let providerBadge = '';
+                if (game.provider === 'pragmatic') {
+                    providerBadge = '<span class="provider-badge pragmatic">PP</span>';
+                } else if (game.provider === 'pgsoft') {
+                    providerBadge = '<span class="provider-badge pgsoft">PG</span>';
+                }
+
+                gameElement.innerHTML = `
+                    ${providerBadge}
+                    <img src="${finalImageSrc}" alt="${game.name}" class="game-image" onerror="this.src='${game.fallback}'">
+                    <div class="game-info">
+                        <div class="game-title">${game.name}</div>
+                        ${tagsHTML}
+                    </div>
+                `;
+                
+                // Event listener untuk klik Zoom (Lightbox)
+                gameElement.querySelector('.game-image').addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    openLightbox(this.src, game.name);
+                });
+                
+                gamesDisplay.appendChild(gameElement);
+            });
+        }
+        
+        function updatePagination() {
+            if(showAllMode) {
+                paginationContainer.style.display = 'none'; // Sembunyikan jika Show All
+                return;
+            }
+
+            const totalPages = Math.ceil(filteredGames.length / gamesPerPage);
+            
+            prevPageBtn.disabled = currentPage === 1;
+            nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+            
+            pageNumbers.innerHTML = '';
+            
+            if (totalPages <= 1) return;
+
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+            
+            if (endPage > totalPages) {
+                startPage = totalPages;
+                endPage = totalPages;
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                pageBtn.textContent = i;
+                pageBtn.addEventListener('click', () => {
+                    currentPage = i;
+                    renderGames();
+                    updatePagination();
+                });
+                pageNumbers.appendChild(pageBtn);
+            }
+            
+            // Add ellipsis if needed
+            if (endPage < totalPages) {
+                const ellipsis = document.createElement('span');
+                ellipsis.textContent = '...';
+                ellipsis.style.padding = '10px 5px';
+                pageNumbers.appendChild(ellipsis);
+                
+                const lastPageBtn = document.createElement('button');
+                lastPageBtn.className = `page-btn ${totalPages === currentPage ? 'active' : ''}`;
+                lastPageBtn.textContent = totalPages;
+                lastPageBtn.addEventListener('click', () => {
+                    currentPage = totalPages;
+                    renderGames();
+                    updatePagination();
+                });
+                pageNumbers.appendChild(lastPageBtn);
+            }
+        }
+        
+        function updateStats() {
+            filteredGamesEl.textContent = filteredGames.length;
+        }
+        
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>
