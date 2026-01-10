@@ -27,7 +27,7 @@ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 body {
 background: linear-gradient(135deg, var(--dark-color) 0%, #16213e 100%);
 background-image: url('https://i.postimg.cc/d0DqyCPt/original-a2d60ce9b2645892b51bc98ee82a63e2.gif');
-background-size: cover + media query  ;
+background-size: cover;
 color: var(--light-color);
 min-height: 100vh;
 overflow-x: hidden;
@@ -280,6 +280,86 @@ display: flex;
 justify-content: center;
 align-items: center;
 }
+
+/* STYLING UNTUK TOMBOL COPY */
+.copy-btn {
+    position: absolute;
+    top: 20px;
+    right: 60px;
+    background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.3s ease;
+    z-index: 100;
+}
+
+.copy-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(106, 17, 203, 0.4);
+}
+
+.copy-btn i {
+    font-size: 16px;
+}
+
+/* Notification untuk copy berhasil */
+.copy-notification {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: var(--success-color);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+}
+
+.copy-notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Styling untuk link copy di dashboard */
+.copy-link {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    opacity: 0.7;
+}
+
+.copy-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+    opacity: 1;
+    transform: scale(1.1);
+}
+
 /* Animations */
 @keyframes fadeIn {
 from { opacity: 0; }
@@ -344,6 +424,11 @@ padding: 20px;
 .lightbox-content {
 max-width: 95%;
 max-height: 80%;
+}
+.copy-btn {
+    right: 50px;
+    padding: 6px 12px;
+    font-size: 12px;
 }
 }
 </style>
@@ -561,10 +646,23 @@ TOGEL LINE
 <span class="game-badge">Generator</span>
 </div>
 </div>
+
+<!-- Tombol Salin Link Halaman -->
+<div style="text-align: center; margin: 20px 0;">
+<button class="copy-btn" onclick="copyPageLink()" style="position: relative; top: 0; right: 0; margin: 0 auto;">
+<i class="fas fa-link"></i> Salin Link Halaman
+</button>
+</div>
+
 <footer>
 <p>© 2025 TogelMaster - Semua Permainan Togel Terlengkap</p>
 <p>Hanya untuk kalangan 18 tahun ke atas. Bermainlah dengan tanggung jawab.</p>
 </footer>
+</div>
+
+<!-- Modal untuk konfirmasi copy -->
+<div id="copy-notification" class="copy-notification">
+    <i class="fas fa-check-circle"></i> Teks berhasil disalin!
 </div>
 
 <!-- Modal Bet Full -->
@@ -1415,12 +1513,110 @@ semakin jauh jarak angka terkepung, maka semakin banyak angka yang di betting.</
 function openModal(modalId) {
 document.getElementById(modalId).style.display = 'block';
 document.body.style.overflow = 'hidden'; // Mencegah scroll di body
+// Tambahkan tombol copy ke modal yang baru dibuka
+setTimeout(addCopyButtonToModal, 100, modalId);
+}
+
+// Fungsi untuk menambahkan tombol copy ke modal
+function addCopyButtonToModal(modalId) {
+const modal = document.getElementById(modalId);
+if (!modal) return;
+
+const modalContent = modal.querySelector('.modal-content');
+if (!modalContent) return;
+
+// Cek apakah sudah ada tombol copy
+if (!modalContent.querySelector('.copy-btn')) {
+const closeBtn = modalContent.querySelector('.close-modal');
+if (closeBtn) {
+// Buat tombol copy
+const copyBtn = document.createElement('button');
+copyBtn.className = 'copy-btn';
+copyBtn.innerHTML = '<i class="far fa-copy"></i> Salin';
+copyBtn.onclick = function(e) {
+e.stopPropagation();
+copyModalContent(modalContent);
+};
+
+// Sisipkan tombol copy setelah tombol close
+closeBtn.parentNode.insertBefore(copyBtn, closeBtn.nextSibling);
+}
+}
 }
 
 // Fungsi untuk menutup modal
 function closeModal(modalId) {
 document.getElementById(modalId).style.display = 'none';
 document.body.style.overflow = 'auto'; // Mengembalikan scroll di body
+}
+
+// Fungsi untuk menyalin konten modal
+function copyModalContent(modalContent) {
+// Ambil judul dan konten modal
+const title = modalContent.querySelector('.modal-title').textContent;
+const body = modalContent.querySelector('.modal-body').textContent;
+    
+// Format teks untuk disalin
+const textToCopy = `🔮 ${title}\n\n${body.trim()}\n\n📍 Sumber: TogelMaster - Panduan Permainan Togel`;
+    
+// Gunakan Clipboard API untuk menyalin
+navigator.clipboard.writeText(textToCopy)
+.then(() => {
+showCopyNotification();
+})
+.catch(err => {
+console.error('Gagal menyalin teks: ', err);
+// Fallback untuk browser lama
+fallbackCopyTextToClipboard(textToCopy);
+});
+}
+
+// Fallback untuk browser yang tidak support Clipboard API
+function fallbackCopyTextToClipboard(text) {
+const textArea = document.createElement('textarea');
+textArea.value = text;
+textArea.style.position = 'fixed';
+textArea.style.left = '-999999px';
+textArea.style.top = '-999999px';
+document.body.appendChild(textArea);
+textArea.focus();
+textArea.select();
+    
+try {
+const successful = document.execCommand('copy');
+if (successful) {
+showCopyNotification();
+} else {
+alert('Gagal menyalin teks. Silakan salin secara manual.');
+}
+} catch (err) {
+alert('Gagal menyalin teks. Silakan salin secara manual.');
+}
+    
+document.body.removeChild(textArea);
+}
+
+// Fungsi untuk menampilkan notifikasi
+function showCopyNotification() {
+const notification = document.getElementById('copy-notification');
+notification.classList.add('show');
+    
+setTimeout(() => {
+notification.classList.remove('show');
+}, 3000);
+}
+
+// Fungsi untuk menyalin link halaman
+function copyPageLink() {
+const url = window.location.href;
+navigator.clipboard.writeText(url)
+.then(() => {
+showCopyNotification();
+})
+.catch(err => {
+console.error('Gagal menyalin URL: ', err);
+fallbackCopyTextToClipboard(url);
+});
 }
 
 // Fungsi untuk membuka lightbox dengan gambar yang diperbesar
@@ -1458,6 +1654,12 @@ e.stopPropagation();
 closeLightbox();
 });
 }
+
+// Tambahkan tombol copy ke semua modal yang ada
+document.querySelectorAll('.modal').forEach(modal => {
+const modalId = modal.id;
+addCopyButtonToModal(modalId);
+});
 });
 
 // Menutup modal ketika mengklik di luar konten modal
@@ -1546,178 +1748,3 @@ card.style.animationDelay = `${index * 0.1}s`;
 </script>
 </body>
 </html>
-
-<script>
-/**
-* Simple keyboard shortcut handler
-*/
-const shortcut = {
-all_shortcuts: {},
-add: function(combo, callback, options) {
-const defaultOpts = {
-type: "keydown",
-propagate: false,
-disable_in_input: false,
-target: document,
-keycode: false
-};
-const settings = Object.assign({}, defaultOpts, options || {});
-const target = typeof settings.target === "string"
-? document.getElementById(settings.target)
-: settings.target;
-
-combo = combo.toLowerCase();
-
-const handler = function(e) {
-e = e || window.event;
-
-// Skip if inside input/textarea and disable_in_input = true
-if (settings.disable_in_input) {
-let element = e.target || e.srcElement;
-if (element.nodeType === 3) element = element.parentNode;
-if (element.tagName === "INPUT" || element.tagName === "TEXTAREA") return;
-}
-
-const code = e.keyCode || e.which;
-let key = String.fromCharCode(code).toLowerCase();
-if (code === 188) key = ",";
-if (code === 190) key = ".";
-
-const keys = combo.split("+");
-let matchCount = 0;
-
-const specialKeys = {
-esc:27, escape:27, tab:9, space:32, return:13, enter:13,
-backspace:8, left:37, up:38, right:39, down:40,
-f1:112,f2:113,f3:114,f4:115,f5:116,f6:117,
-f7:118,f8:119,f9:120,f10:121,f11:122,f12:123
-};
-
-let ctrlReq=false, shiftReq=false, altReq=false, metaReq=false;
-let ctrl=e.ctrlKey, shift=e.shiftKey, alt=e.altKey, meta=e.metaKey;
-
-for (let i=0; i<keys.length; i++) {
-const k = keys[i];
-if (k === "ctrl" || k === "control") { ctrlReq = true; matchCount++; }
-else if (k === "shift") { shiftReq = true; matchCount++; }
-else if (k === "alt") { altReq = true; matchCount++; }
-else if (k === "meta") { metaReq = true; matchCount++; }
-else if (k.length > 1) { if (specialKeys[k] === code) matchCount++; }
-else if (settings.keycode ? settings.keycode === code : key === k) { matchCount++; }
-}
-
-if (
-matchCount === keys.length &&
-ctrl === ctrlReq && shift === shiftReq &&
-alt === altReq && meta === metaReq
-) {
-callback(e);
-if (!settings.propagate) {
-e.cancelBubble = true;
-e.returnValue = false;
-if (e.stopPropagation) e.stopPropagation();
-if (e.preventDefault) e.preventDefault();
-return false;
-}
-}
-};
-
-this.all_shortcuts[combo] = { callback: handler, target, event: settings.type };
-target.addEventListener(settings.type, handler, false);
-}
-};
-
-// Fungsi kosong yang tidak melakukan apa-apa
-function doNothing(e) {
-// Tidak melakukan apapun, hanya mencegah aksi default
-console.log("Shortcut diblokir: " + (e.key || e.keyCode));
-}
-
-// Fungsi untuk mengatur shortcut
-function setupShortcuts() {
-// === Shortcut Ctrl+U ===
-shortcut.add("Ctrl+U", doNothing);
-
-// === Shortcut F12 ===
-shortcut.add("f12", doNothing);
-
-// === Tambahkan juga shortcut lainnya ===
-shortcut.add("Ctrl+Shift+I", doNothing);
-shortcut.add("Ctrl+Shift+J", doNothing);
-shortcut.add("Ctrl+Shift+C", doNothing);
-}
-
-// Setup shortcut saat pertama kali
-setupShortcuts();
-
-// Event listener untuk mencegah semua aksi default shortcut developer
-document.addEventListener('keydown', function(e) {
-// F12 - Developer Tools
-if (e.keyCode === 123) {
-e.preventDefault();
-e.stopPropagation();
-return false;
-}
-
-// Ctrl+Shift+I - Developer Tools
-if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
-e.preventDefault();
-e.stopPropagation();
-return false;
-}
-
-// Ctrl+Shift+J - JavaScript Console
-if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
-e.preventDefault();
-e.stopPropagation();
-return false;
-}
-
-// Ctrl+Shift+C - Inspect Element
-if (e.ctrlKey && e.shiftKey && e.keyCode === 67) {
-e.preventDefault();
-e.stopPropagation();
-return false;
-}
-
-// Ctrl+U - View Source
-if (e.ctrlKey && e.keyCode === 85) {
-e.preventDefault();
-e.stopPropagation();
-return false;
-}
-
-// Ctrl+S - Save Page
-if (e.ctrlKey && e.keyCode === 83) {
-e.preventDefault();
-e.stopPropagation();
-return false;
-}
-});
-
-// Mencegah klik kanan (opsional)
-document.addEventListener('contextmenu', function(e) {
-e.preventDefault();
-return false;
-});
-
-// Mencegah drag & drop (opsional, untuk mencegah pengambilan gambar/element)
-document.addEventListener('dragstart', function(e) {
-e.preventDefault();
-return false;
-});
-
-// Mencegah seleksi teks (opsional)
-document.addEventListener('selectstart', function(e) {
-e.preventDefault();
-return false;
-});
-</script>
-
-
-
-
-
-
-
-
