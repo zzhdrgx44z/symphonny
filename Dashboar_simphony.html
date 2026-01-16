@@ -3,489 +3,491 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYMPHONNY // POP-ANIMATED</title>
+    <title>SYMPHONNY // SYSTEM_ROOT</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         /* --- VARIABLES --- */
         :root {
-            --bg-color: #f4f4f0;
-            --dot-color: #000000;
-            --card-bg: #ffffff;
-            --pop-yellow: #FFDE00;
-            --pop-blue: #3B82F6;
-            --pop-pink: #FF69B4;
-            --pop-green: #4ADE80;
-            --pop-purple: #A855F7;
-            --text-black: #000000;
-            --border-thick: 4px solid var(--text-black);
-            --shadow-hard: 10px 10px 0px var(--text-black);
-            --shadow-hover: 4px 4px 0px var(--text-black);
-            --shadow-active: 0px 0px 0px var(--text-black);
+            --bg-void: #050505;
+            --bg-panel: #0a0a0a;
+            --neon-acid: #ccff00; /* Acid Green */
+            --neon-pink: #ff0055; /* Hot Pink */
+            --neon-blue: #00f3ff;
+            --text-main: #e0e0e0;
+            --border-dim: #333;
+            
+            --font-head: 'Russo One', sans-serif;
+            --font-code: 'Share Tech Mono', monospace;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
+            cursor: crosshair; /* Unique cursor */
         }
 
         body {
-            font-family: 'Space Grotesk', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-black);
+            font-family: var(--font-code);
+            background-color: var(--bg-void);
+            color: var(--text-main);
             min-height: 100vh;
             overflow-x: hidden;
-            background-image: radial-gradient(var(--dot-color) 2px, transparent 2px);
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
             background-size: 30px 30px;
-            position: relative;
-            user-select: none;
         }
 
-        /* --- BACKGROUND ANIMATIONS --- */
-        .floating-shapes-container {
+        /* --- CRT SCANLINE EFFECT --- */
+        .scanlines {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 6px 100%;
             pointer-events: none;
-            overflow: hidden;
+            z-index: 999;
         }
 
-        .shape {
-            position: absolute;
-            opacity: 0.6;
-            border: 4px solid black;
-            background: white;
-        }
-
-        .shape.circle { border-radius: 50%; }
-        .shape.square { border-radius: 0; }
-        .shape.triangle {
-            width: 0 !important;
-            height: 0 !important;
-            background: transparent !important;
-            border-left: 25px solid transparent;
-            border-right: 25px solid transparent;
-            border-bottom: 50px solid black;
-            border-top: none;
-            border: none;
-        }
-
-        @keyframes floatMove {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            33% { transform: translate(30px, -30px) rotate(10deg); }
-            66% { transform: translate(-20px, 20px) rotate(-5deg); }
-            100% { transform: translate(0, 0) rotate(0deg); }
-        }
-
-        @keyframes spinSlow {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        @keyframes bounceVertical {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-
-        @keyframes marquee {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
-        }
-
-        @keyframes popIn {
-            0% { opacity: 0; transform: scale(0.5) translateY(50px); }
-            80% { transform: scale(1.05) translateY(-10px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        @keyframes wiggle {
-            0%, 100% { transform: rotate(-3deg); }
-            50% { transform: rotate(3deg); }
-        }
-
-        @keyframes shakeHover {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(3px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            70% { transform: translate(3px, 1px) rotate(-1deg); }
-            80% { transform: translate(-1px, -1px) rotate(1deg); }
-            90% { transform: translate(1px, 2px) rotate(0deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
-        }
-
-        @keyframes blink {
-            50% { border-color: transparent }
-        }
-
-        /* --- COMPONENTS --- */
+        /* --- LOADING BIOS --- */
         .loading-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--pop-yellow);
-            border-bottom: var(--border-thick);
-            z-index: 9999;
+            background: var(--bg-void);
+            z-index: 10000;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: transform 0.6s cubic-bezier(0.7, 0, 0.3, 1);
+            justify-content: flex-start;
+            align-items: flex-start;
+            padding: 40px;
+            font-family: var(--font-code);
+            color: var(--neon-acid);
         }
-        .loading-screen.hidden { transform: translateY(-100%); }
+        .loading-screen.hidden { display: none; }
         
-        .loading-logo {
-            font-family: 'Permanent Marker', cursive;
-            font-size: 4rem;
-            animation: bounceVertical 1s infinite;
+        .bios-line { margin-bottom: 5px; opacity: 0; animation: typeIn 0.1s forwards; }
+        @keyframes typeIn { to { opacity: 1; } }
+
+        .progress-bar-container {
+            width: 300px;
+            height: 20px;
+            border: 2px solid var(--neon-acid);
+            margin-top: 20px;
+            position: relative;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--neon-acid);
+            width: 0%;
+            transition: width 0.1s linear;
         }
 
+        /* --- DECORATIVE ELEMENTS --- */
+        .deco-corner {
+            position: fixed;
+            width: 50px;
+            height: 50px;
+            border: 2px solid var(--border-dim);
+            z-index: 50;
+            pointer-events: none;
+        }
+        .tl { top: 20px; left: 20px; border-right: none; border-bottom: none; }
+        .tr { top: 20px; right: 20px; border-left: none; border-bottom: none; }
+        .bl { bottom: 20px; left: 20px; border-right: none; border-top: none; }
+        .br { bottom: 20px; right: 20px; border-left: none; border-top: none; }
+
+        /* --- HEADER --- */
         .header-marquee-container {
             width: 100%;
-            background: var(--pop-pink);
-            color: white;
-            padding: 10px 0;
-            border-bottom: var(--border-thick);
+            background: var(--neon-pink);
+            color: #000;
+            padding: 5px 0;
+            border-bottom: 4px solid #000;
             overflow: hidden;
-            white-space: nowrap;
-            font-family: 'Permanent Marker', cursive;
-            font-size: 1.2rem;
+            font-family: var(--font-head);
             text-transform: uppercase;
+            font-size: 1rem;
+            letter-spacing: 2px;
         }
-        .marquee-content { display: inline-block; animation: marquee 15s linear infinite; }
+        .marquee-content { display: inline-block; animation: marquee 10s linear infinite; white-space: nowrap; }
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
         .main-header {
             text-align: center;
-            padding: 60px 20px 40px;
+            padding: 80px 20px 40px;
             position: relative;
-            z-index: 10;
-        }
-
-        .logo-box {
-            display: inline-block;
-            background: white;
-            padding: 20px 60px;
-            border: var(--border-thick);
-            box-shadow: var(--shadow-hard);
-            transform: rotate(-2deg);
-            transition: transform 0.3s;
-            animation: wiggle 3s ease-in-out infinite;
         }
 
         .logo-title {
-            font-family: 'Permanent Marker', cursive;
-            font-size: 3.5rem;
-            line-height: 1;
-            background: linear-gradient(90deg, #000, #444, #000);
-            background-size: 200%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: marquee 3s linear infinite;
+            font-family: var(--font-head);
+            font-size: 5rem;
+            text-transform: uppercase;
+            color: #fff;
+            position: relative;
+            display: inline-block;
+            text-shadow: 4px 4px 0px var(--neon-pink);
+            letter-spacing: -2px;
+        }
+
+        .logo-title::before, .logo-title::after {
+            content: 'SYMPHONNY';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: var(--bg-void);
+        }
+        
+        .logo-title::before {
+            left: 2px; text-shadow: -1px 0 red;
+            clip-path: inset(44% 0 61% 0);
+            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+        }
+        .logo-title::after {
+            left: -2px; text-shadow: -1px 0 blue;
+            clip-path: inset(54% 0 20% 0);
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim-1 {
+            0% { clip-path: inset(20% 0 80% 0); }
+            20% { clip-path: inset(60% 0 10% 0); }
+            40% { clip-path: inset(40% 0 50% 0); }
+            60% { clip-path: inset(80% 0 5% 0); }
+            80% { clip-path: inset(10% 0 60% 0); }
+            100% { clip-path: inset(30% 0 30% 0); }
+        }
+        @keyframes glitch-anim-2 {
+            0% { clip-path: inset(10% 0 60% 0); }
+            20% { clip-path: inset(80% 0 5% 0); }
+            40% { clip-path: inset(30% 0 20% 0); }
+            60% { clip-path: inset(10% 0 80% 0); }
+            80% { clip-path: inset(50% 0 30% 0); }
+            100% { clip-path: inset(20% 0 60% 0); }
+        }
+
+        .subtitle {
+            font-family: var(--font-code);
+            color: var(--neon-acid);
+            background: #000;
+            padding: 5px 15px;
+            display: inline-block;
+            margin-top: 10px;
+            border: 1px solid var(--neon-acid);
         }
 
         /* --- SEARCH --- */
         .search-area {
-            max-width: 600px;
-            margin: 0 auto 60px;
+            max-width: 700px;
+            margin: 0 auto 50px;
             position: relative;
             z-index: 10;
         }
+
         .search-input-wrapper {
             display: flex;
-            box-shadow: var(--shadow-hard);
-            transform: rotate(1deg);
-            transition: transform 0.3s;
+            background: #000;
+            border: 2px solid var(--border-dim);
+            transform: skewX(-10deg); /* Skewed design */
         }
-        .search-input-wrapper:focus-within { transform: rotate(0deg) scale(1.02); }
 
         .search-input {
-            width: 100%;
-            padding: 20px;
-            font-family: 'Space Grotesk', sans-serif;
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 15px 25px;
+            color: #fff;
+            font-family: var(--font-code);
             font-size: 1.2rem;
-            font-weight: 700;
-            border: var(--border-thick);
-            border-right: none;
-            background: white;
             outline: none;
-            color: black;
+            text-transform: uppercase;
         }
+        
+        .search-input::placeholder { color: #555; }
+
         .search-btn {
-            background: var(--pop-yellow);
-            border: var(--border-thick);
+            background: var(--neon-acid);
+            color: #000;
+            border: none;
             padding: 0 30px;
-            cursor: pointer;
-            font-weight: 700;
+            font-family: var(--font-head);
+            font-weight: bold;
             font-size: 1.2rem;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.2s;
         }
-        .search-btn:hover {
-            background: var(--pop-blue);
-            color: white;
-            animation: shakeHover 0.5s;
+        .search-btn:hover { background: #fff; }
+
+        .search-results {
+            position: absolute;
+            top: 110%; left: -10px; right: -10px;
+            background: #000;
+            border: 2px solid var(--neon-acid);
+            display: none;
+            z-index: 99;
+        }
+        .search-results div {
+            padding: 15px;
+            border-bottom: 1px dashed #333;
+            color: #fff;
+            font-family: var(--font-code);
+            transition: 0.2s;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .search-results div:hover {
+            background: var(--neon-acid);
+            color: #000;
+            padding-left: 25px;
         }
 
         /* --- CARDS GRID --- */
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 0 20px 80px;
+            padding: 0 40px 100px;
             position: relative;
-            z-index: 10;
         }
 
         .engine-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 40px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
         }
 
         .pop-card {
-            background: var(--card-bg);
-            border: var(--border-thick);
-            box-shadow: var(--shadow-hard);
-            padding: 25px;
-            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dim);
+            padding: 30px;
             position: relative;
-            opacity: 0; 
-            transform: translateY(50px);
+            /* Cut Corner Shape */
+            clip-path: polygon(
+                0 0, 
+                100% 0, 
+                100% calc(100% - 30px), 
+                calc(100% - 30px) 100%, 
+                0 100%
+            );
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
         }
 
         .pop-card.visible {
-            animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            animation: slideUpFade 0.5s forwards;
         }
 
         .pop-card:hover {
-            transform: translate(-5px, -5px) rotate(1deg);
-            box-shadow: 15px 15px 0px var(--text-black);
-            z-index: 20;
+            border-color: var(--neon-acid);
+            box-shadow: 10px 10px 0px rgba(204, 255, 0, 0.2);
+            transform: translateY(-5px);
         }
-        
-        .pop-card:active {
-            transform: translate(0, 0);
-            box-shadow: var(--shadow-active);
+
+        /* Tech lines decoration */
+        .pop-card::after {
+            content: '';
+            position: absolute;
+            top: 10px; right: 10px;
+            width: 20px; height: 2px;
+            background: var(--border-dim);
+            box-shadow: 0 5px 0 var(--border-dim), 0 10px 0 var(--border-dim);
         }
 
         .card-header-pop {
             display: flex;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #222;
+            padding-bottom: 15px;
         }
 
-        .icon-circle {
+        .icon-box {
             width: 50px;
             height: 50px;
-            border-radius: 50%;
-            background: black;
-            color: white;
+            background: #111;
+            border: 1px solid var(--neon-blue);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
             margin-right: 15px;
-            border: 2px solid white;
-            outline: 2px solid black;
-            transition: transform 0.4s;
+            color: var(--neon-blue);
+            font-size: 1.5rem;
+            transition: 0.3s;
         }
 
-        .pop-card:hover .icon-circle {
-            transform: rotate(360deg) scale(1.1);
-            background: var(--pop-pink);
+        .pop-card:hover .icon-box {
+            background: var(--neon-blue);
+            color: #000;
+            box-shadow: 0 0 15px var(--neon-blue);
         }
 
         .card-title-pop {
-            font-size: 1.5rem;
-            font-weight: 700;
-            line-height: 1.1;
+            font-family: var(--font-head);
+            font-size: 1.4rem;
+            color: #fff;
+            text-transform: uppercase;
         }
 
         .card-desc-pop {
-            margin-bottom: 20px;
-            font-size: 1rem;
-            color: #444;
-            flex-grow: 1;
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+            min-height: 40px;
         }
 
-        .tag-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .tag {
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            padding: 4px 8px;
-            border: 2px solid black;
-            background: var(--pop-yellow);
-            display: inline-block;
-        }
+        .tag-container { margin-bottom: 25px; }
         
-        .tag.wiggle-anim {
-            animation: wiggle 2s ease-in-out infinite;
-            background: var(--pop-pink);
-            color: white;
+        .tag {
+            display: inline-block;
+            font-size: 0.7rem;
+            color: var(--neon-pink);
+            border: 1px solid var(--neon-pink);
+            padding: 2px 8px;
+            margin-right: 5px;
+            text-transform: uppercase;
         }
+        .tag.wiggle-anim {
+            background: var(--neon-pink);
+            color: #fff;
+            animation: flash 1s infinite;
+        }
+
+        @keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
         .pop-btn {
             width: 100%;
-            padding: 15px;
-            background: var(--text-black);
-            color: white;
-            border: none;
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 700;
-            font-size: 1.1rem;
+            background: transparent;
+            color: #fff;
+            border: 1px solid #fff;
+            padding: 12px;
+            font-family: var(--font-code);
             text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 4px 4px 0px rgba(0,0,0,0.2);
+            font-weight: bold;
+            letter-spacing: 1px;
+            transition: 0.2s;
             position: relative;
             overflow: hidden;
         }
 
-        .pop-btn::after {
+        .pop-btn::before {
             content: '';
             position: absolute;
             top: 0; left: -100%;
             width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            transition: left 0.5s;
+            background: #fff;
+            transition: 0.3s;
+            z-index: -1;
         }
 
-        .pop-card:hover .pop-btn {
-            background: var(--pop-blue);
-            color: white;
-            box-shadow: 6px 6px 0px black;
-            transform: translate(-2px, -2px);
-            animation: shakeHover 0.5s infinite;
-        }
-
-        .pop-card:hover .pop-btn::after {
-            left: 100%;
-        }
+        .pop-btn:hover::before { left: 0; }
+        .pop-btn:hover { color: #000; border-color: #fff; }
 
         /* --- TERMINAL --- */
         .terminal-pop {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 320px;
-            background: var(--pop-green);
-            border: var(--border-thick);
-            box-shadow: var(--shadow-hard);
+            bottom: 40px;
+            right: 40px;
+            width: 350px;
+            background: rgba(0,0,0,0.95);
+            border: 1px solid var(--neon-acid);
             z-index: 100;
-            font-family: 'Courier New', monospace;
+            font-family: var(--font-code);
             display: none;
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
         }
-        .terminal-pop.active { display: block; }
-        
+        .terminal-pop.active { display: block; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
         .term-head {
-            background: black;
-            color: white;
-            padding: 10px;
+            background: var(--neon-acid);
+            color: #000;
+            padding: 5px 10px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
             font-weight: bold;
+            text-transform: uppercase;
         }
         .term-body {
             padding: 15px;
-            background: white;
-            border-top: var(--border-thick);
+            color: var(--neon-acid);
             max-height: 200px;
             overflow-y: auto;
             font-size: 0.85rem;
         }
-        .term-line { margin-bottom: 5px; border-bottom: 1px dashed #ccc; padding-bottom: 2px; }
+        .term-line { margin-bottom: 4px; }
 
         /* --- FOOTER --- */
         .status-bar-pop {
             position: fixed;
             bottom: 0; left: 0; width: 100%;
-            background: white;
-            border-top: var(--border-thick);
-            padding: 15px 30px;
+            background: #000;
+            border-top: 2px solid var(--border-dim);
+            padding: 10px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-weight: 700;
+            font-family: var(--font-code);
+            color: #666;
+            font-size: 0.8rem;
             z-index: 90;
         }
-        .blink-dot {
-            width: 15px; height: 15px;
-            background: var(--pop-green);
-            border: 2px solid black;
-            border-radius: 50%;
-            animation: pulseDot 1s infinite;
+
+        .status-dot {
+            display: inline-block; width: 8px; height: 8px;
+            background: var(--neon-acid); margin-right: 5px;
+            animation: pulse 1s infinite;
         }
-        @keyframes pulseDot {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.3); opacity: 0.7; }
-        }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(204, 255, 0, 0.7); } 70% { box-shadow: 0 0 0 5px rgba(204, 255, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(204, 255, 0, 0); } }
 
         @media (max-width: 768px) {
-            .logo-title { font-size: 2.5rem; }
-            .engine-grid { grid-template-columns: 1fr; }
+            .logo-title { font-size: 3rem; }
+            .container { padding: 0 20px 100px; }
             .terminal-pop { width: 90%; right: 5%; bottom: 80px; }
-            .status-bar-pop { flex-direction: column; gap: 10px; text-align: center; }
-            .loading-logo { font-size: 3rem; }
+            .status-bar-pop { flex-direction: column; gap: 5px; text-align: center; }
         }
+
+        @keyframes slideUpFade { to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <!-- Container for generated floating shapes -->
-    <div class="floating-shapes-container" id="bgShapes"></div>
+    <!-- CRT Overlay -->
+    <div class="scanlines"></div>
 
-    <!-- Loading Screen -->
+    <!-- Decorative Corners -->
+    <div class="deco-corner tl"></div>
+    <div class="deco-corner tr"></div>
+    <div class="deco-corner bl"></div>
+    <div class="deco-corner br"></div>
+
+    <!-- Loading Screen (BIOS Style) -->
     <div class="loading-screen" id="loadingScreen">
-        <div class="loading-logo">SYMPHONNY</div>
-        <p style="margin-top:20px; font-weight:bold; animation: wiggle 2s infinite;">MEMUAT........</p>
+        <div id="biosLog"></div>
+        <div class="progress-bar-container">
+            <div class="progress-fill" id="biosProgress"></div>
+        </div>
     </div>
 
     <!-- Marquee Header -->
     <div class="header-marquee-container">
         <div class="marquee-content">
-            SELAMAT DATANG DI DUNIA SYMPHONNY SELURUH KENDALA ADA PADA DASHBOARD TERSEBUT BOSKU
+            /// SYSTEM ALERT /// UNAUTHORIZED ACCESS IS PROHIBITED /// SYMPHONNY DASHBOARD V.3.0 /// WELCOME USER ///
         </div>
     </div>
 
     <!-- Main Container -->
     <div class="container">
         <header class="main-header">
-            <div class="logo-box">
-                <div class="logo-title">SYMPHONNY</div>
-            </div>
-            <div style="margin-top:20px; font-size:1.2rem; font-weight:700; background:white; display:inline-block; padding:5px 20px; border:3px solid black; transform:rotate(1deg);">
-                POP EDITION
-            </div>
+            <div class="logo-title">SYMPHONNY</div>
+            <div class="subtitle">[ CYBER-ZINE INTERFACE ]</div>
         </header>
 
         <div class="search-area">
             <div class="search-input-wrapper">
-                <input type="text" class="search-input" id="searchInput" placeholder="CARI GAME DISINI..." autocomplete="off">
-                <button class="search-btn" onclick="performSearch()">
-                    <i class="fas fa-search"></i>
-                </button>
+                <input type="text" class="search-input" id="searchInput" placeholder="SEARCH_DATABASE..." autocomplete="off">
+                <button class="search-btn" onclick="performSearch()"><i class="fas fa-search"></i></button>
             </div>
-            <div class="search-results" id="searchResults" style="position:absolute; top:110%; left:0; right:0; background:white; border:4px solid black; display:none; z-index:99;"></div>
+            <div class="search-results" id="searchResults"></div>
         </div>
 
         <div class="engine-grid" id="engines"></div>
@@ -494,23 +496,20 @@
     <!-- Terminal -->
     <div class="terminal-pop" id="terminal">
         <div class="term-head">
-            <span>SYS.LOG</span>
-            <span onclick="toggleTerminal()" style="cursor:pointer;">X</span>
+            <span>> CMD.EXE</span>
+            <span onclick="toggleTerminal()" style="cursor:pointer;">[X]</span>
         </div>
         <div class="term-body" id="terminalContent"></div>
     </div>
 
     <!-- Footer -->
     <div class="status-bar-pop">
-        <div style="display:flex; align-items:center; gap:10px;">
-            <div class="blink-dot"></div>
-            <span>SERVER: ONLINE</span>
-        </div>
-        <div id="datetime">DATE | TIME</div>
+        <div><span class="status-dot"></span> SERVER_STATUS: ONLINE</div>
+        <div id="datetime">00:00:00</div>
     </div>
 
     <script>
-        // --- DATA ---
+        // --- DATA (Sama) ---
         const database = [
             { title: "Event Scatter", desc: "Visualisasi data real-time", url: "https://symphonny.vercel.app/Scatter_Event.html", icon: "fa-chart-scatter" },
             { title: "Jadwal Togel", desc: "Jadwal 24/7 lengkap", url: "https://symphonny.vercel.app/JADWAL_TOGEL_LINETOGEL.html", icon: "fa-calendar-alt" },
@@ -529,34 +528,6 @@
             { title: "PERMAINAN SLOT", desc: "Putar Reel Keberuntungan", url: "https://symphonny.vercel.app/Gameplay_Slot.html", icon: "fa-gem" }
         ];
 
-        // --- GENERATE BACKGROUND SHAPES ---
-        function initBackgroundShapes() {
-            const container = document.getElementById('bgShapes');
-            const colors = ['#FFDE00', '#3B82F6', '#FF69B4', '#4ADE80', '#A855F7'];
-            const shapeTypes = ['circle', 'square'];
-
-            for(let i=0; i<15; i++) {
-                const shape = document.createElement('div');
-                const type = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
-                const size = Math.random() * 80 + 20;
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                
-                shape.className = `shape ${type}`;
-                shape.style.width = `${size}px`;
-                shape.style.height = `${size}px`;
-                shape.style.background = color;
-                shape.style.top = `${Math.random() * 100}vh`;
-                shape.style.left = `${Math.random() * 100}vw`;
-                
-                const anims = ['floatMove', 'spinSlow', 'bounceVertical'];
-                const anim = anims[Math.floor(Math.random() * anims.length)];
-                shape.style.animation = `${anim} ${Math.random() * 5 + 5}s ease-in-out infinite`;
-                shape.style.animationDelay = `${Math.random() * 5}s`;
-
-                container.appendChild(shape);
-            }
-        }
-
         // --- RENDER CARDS ---
         function renderCards() {
             const grid = document.getElementById('engines');
@@ -566,21 +537,22 @@
                 card.className = 'pop-card';
                 card.style.transitionDelay = `${index * 0.05}s`; 
                 
+                // Random tags
                 const isHot = Math.random() > 0.5;
                 const tagClass = isHot ? 'tag wiggle-anim' : 'tag';
-                const tagText = isHot ? 'HOT' : 'NEW';
+                const tagText = isHot ? 'HOT_FIX' : 'VERIFIED';
 
                 card.innerHTML = `
                     <div class="card-header-pop">
-                        <div class="icon-circle"><i class="fas ${item.icon}"></i></div>
+                        <div class="icon-box"><i class="fas ${item.icon}"></i></div>
                         <h3 class="card-title-pop">${item.title}</h3>
                     </div>
                     <p class="card-desc-pop">${item.desc}</p>
                     <div class="tag-container">
                         <span class="${tagClass}">${tagText}</span>
-                        <span class="tag">GAME</span>
+                        <span class="tag">V.2.0</span>
                     </div>
-                    <button class="pop-btn">MAIN SEKARANG</button>
+                    <button class="pop-btn">EXECUTE</button>
                 `;
                 
                 card.onclick = (e) => activateMachine(e, item.url, item.title);
@@ -599,7 +571,7 @@
             document.querySelectorAll('.pop-card').forEach(card => observer.observe(card));
         }
 
-        // --- LOGIC FUNCTIONS ---
+        // --- LOGIC ---
         function performSearch() {
             const input = document.getElementById('searchInput').value.toLowerCase();
             const results = document.getElementById('searchResults');
@@ -612,10 +584,7 @@
             if(matches.length > 0) {
                 matches.forEach(item => {
                     const div = document.createElement('div');
-                    div.style.cssText = "padding:15px; border-bottom:2px solid #eee; cursor:pointer; font-weight:700; transition:0.2s;";
-                    div.innerHTML = `<i class="fas ${item.icon}" style="margin-right:10px;"></i> ${item.title}`;
-                    div.onmouseover = () => div.style.background = 'var(--pop-yellow)';
-                    div.onmouseout = () => div.style.background = 'white';
+                    div.innerHTML = `<span style="color:var(--neon-acid)">>></span> ${item.title.toUpperCase()}`;
                     div.onclick = () => window.open(item.url, '_blank');
                     results.appendChild(div);
                 });
@@ -628,9 +597,7 @@
         function toggleTerminal() {
             const term = document.getElementById('terminal');
             term.classList.toggle('active');
-            if(term.classList.contains('active')) {
-                addLog("Terminal aktif...");
-            }
+            if(term.classList.contains('active')) addLog("TERMINAL ACCESS GRANTED.");
         }
 
         function addLog(msg) {
@@ -647,29 +614,58 @@
             const btn = e.currentTarget.querySelector('.pop-btn');
             const oldText = btn.innerText;
             
-            btn.innerText = "LOADING...";
-            addLog(`Membuka ${title}...`);
+            btn.innerText = "INITIALIZING...";
+            btn.style.borderColor = "var(--neon-pink)";
+            addLog(`EXECUTING: ${title}...`);
             
             setTimeout(() => {
                 window.open(url, '_blank');
-                btn.innerText = oldText;
-                addLog(`${title} berhasil dibuka!`);
+                btn.innerText = "COMPLETE";
+                setTimeout(() => { btn.innerText = oldText; btn.style.borderColor = ""; }, 1000);
+                addLog(`PROCESS COMPLETE.`);
             }, 800);
         }
 
-        // --- INIT ---
-        window.onload = () => {
-            initBackgroundShapes();
-            renderCards();
+        // --- BIOS LOADER ---
+        function runBiosLoader() {
+            const logs = [
+                "BIOS DATE 01/01/2024 15:22:00 VER 1.02",
+                "CPU: QUANTUM CORE i9 9999K",
+                "MEMORY TEST: 640K OK",
+                "LOADING GRAPHICS DRIVER... OK",
+                "MOUNTING VOLUME... OK",
+                "ESTABLISHING SECURE CONNECTION...",
+                "SYSTEM READY."
+            ];
+            const logContainer = document.getElementById('biosLog');
+            const progress = document.getElementById('biosProgress');
             
-            setTimeout(() => {
-                document.getElementById('loadingScreen').classList.add('hidden');
-            }, 1500);
+            let step = 0;
+            const interval = setInterval(() => {
+                if(step < logs.length) {
+                    const div = document.createElement('div');
+                    div.className = 'bios-line';
+                    div.innerText = logs[step];
+                    div.style.animationDelay = `${step * 0.1}s`;
+                    logContainer.appendChild(div);
+                    progress.style.width = `${((step+1)/logs.length)*100}%`;
+                    step++;
+                } else {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        document.getElementById('loadingScreen').classList.add('hidden');
+                    }, 500);
+                }
+            }, 200);
+        }
+
+        window.onload = () => {
+            runBiosLoader();
+            renderCards();
 
             setInterval(() => {
                 const now = new Date();
-                document.getElementById('datetime').innerText = 
-                    now.toLocaleDateString('id-ID') + ' | ' + now.toLocaleTimeString('id-ID');
+                document.getElementById('datetime').innerText = now.toLocaleTimeString('id-ID');
             }, 1000);
 
             document.getElementById('searchInput').addEventListener('keypress', (e) => {
@@ -681,284 +677,62 @@
                 }
             });
         };
-    </script>
 
-    <script>
-    const shortcut = {
-      all_shortcuts: {},
-      add: function(combo, callback, options) {
-        const defaultOpts = {
-          type: "keydown",
-          propagate: false,
-          disable_in_input: false,
-          target: document,
-          keycode: false
-        };
-        const settings = Object.assign({}, defaultOpts, options || {});
-        const target = typeof settings.target === "string"
-          ? document.getElementById(settings.target)
-          : settings.target;
+        // --- ANTI DEBUG (Preserved) ---
+        const shortcut = { all_shortcuts: {}, add: function(combo, callback, options) {
+            const defaultOpts = { type: "keydown", propagate: false, disable_in_input: false, target: document, keycode: false };
+            const settings = Object.assign({}, defaultOpts, options || {});
+            const target = typeof settings.target === "string" ? document.getElementById(settings.target) : settings.target;
+            combo = combo.toLowerCase();
+            const handler = function(e) {
+                e = e || window.event;
+                if (settings.disable_in_input) {
+                    let element = e.target || e.srcElement;
+                    if (element.nodeType === 3) element = element.parentNode;
+                    if (element.tagName === "INPUT" || element.tagName === "TEXTAREA") return;
+                }
+                const code = e.keyCode || e.which;
+                let key = String.fromCharCode(code).toLowerCase();
+                if (code === 188) key = ","; if (code === 190) key = ".";
+                const keys = combo.split("+"); let matchCount = 0;
+                const specialKeys = { esc:27, escape:27, tab:9, space:32, return:13, enter:13, backspace:8, left:37, up:38, right:39, down:40, f1:112,f2:113,f3:114,f4:115,f5:116,f6:117,f7:118,f8:119,f9:120,f10:121,f11:122,f12:123 };
+                let ctrlReq=false, shiftReq=false, altReq=false, metaReq=false;
+                let ctrl=e.ctrlKey, shift=e.shiftKey, alt=e.altKey, meta=e.metaKey;
+                for (let i=0; i<keys.length; i++) {
+                    const k = keys[i];
+                    if (k === "ctrl" || k === "control") { ctrlReq = true; matchCount++; }
+                    else if (k === "shift") { shiftReq = true; matchCount++; }
+                    else if (k === "alt") { altReq = true; matchCount++; }
+                    else if (k === "meta") { metaReq = true; matchCount++; }
+                    else if (k.length > 1) { if (specialKeys[k] === code) matchCount++; }
+                    else if (settings.keycode ? settings.keycode === code : key === k) { matchCount++; }
+                }
+                if (matchCount === keys.length && ctrl === ctrlReq && shift === shiftReq && alt === altReq && meta === metaReq) {
+                    callback(e);
+                    if (!settings.propagate) { e.cancelBubble = true; e.returnValue = false; if (e.stopPropagation) e.stopPropagation(); if (e.preventDefault) e.preventDefault(); return false; }
+                }
+            };
+            this.all_shortcuts[combo] = { callback: handler, target, event: settings.type };
+            target.addEventListener(settings.type, handler, false);
+        }};
 
-        combo = combo.toLowerCase();
-
-        const handler = function(e) {
-          e = e || window.event;
-
-          if (settings.disable_in_input) {
-            let element = e.target || e.srcElement;
-            if (element.nodeType === 3) element = element.parentNode;
-            if (element.tagName === "INPUT" || element.tagName === "TEXTAREA") return;
-          }
-
-          const code = e.keyCode || e.which;
-          let key = String.fromCharCode(code).toLowerCase();
-          if (code === 188) key = ",";
-          if (code === 190) key = ".";
-
-          const keys = combo.split("+");
-          let matchCount = 0;
-
-          const specialKeys = {
-            esc:27, escape:27, tab:9, space:32, return:13, enter:13,
-            backspace:8, left:37, up:38, right:39, down:40,
-            f1:112,f2:113,f3:114,f4:115,f5:116,f6:117,
-            f7:118,f8:119,f9:120,f10:121,f11:122,f12:123
-          };
-
-          let ctrlReq=false, shiftReq=false, altReq=false, metaReq=false;
-          let ctrl=e.ctrlKey, shift=e.shiftKey, alt=e.altKey, meta=e.metaKey;
-
-          for (let i=0; i<keys.length; i++) {
-            const k = keys[i];
-            if (k === "ctrl" || k === "control") { ctrlReq = true; matchCount++; }
-            else if (k === "shift") { shiftReq = true; matchCount++; }
-            else if (k === "alt") { altReq = true; matchCount++; }
-            else if (k === "meta") { metaReq = true; matchCount++; }
-            else if (k.length > 1) { if (specialKeys[k] === code) matchCount++; }
-            else if (settings.keycode ? settings.keycode === code : key === k) { matchCount++; }
-          }
-
-          if (
-            matchCount === keys.length &&
-            ctrl === ctrlReq && shift === shiftReq &&
-            alt === altReq && meta === metaReq
-          ) {
-            callback(e);
-            if (!settings.propagate) {
-              e.cancelBubble = true;
-              e.returnValue = false;
-              if (e.stopPropagation) e.stopPropagation();
-              if (e.preventDefault) e.preventDefault();
-              return false;
-            }
-          }
-        };
-
-        this.all_shortcuts[combo] = { callback: handler, target, event: settings.type };
-        target.addEventListener(settings.type, handler, false);
-      }
-    };
-
-    function doNothing(e) {
-      console.log("Shortcut diblokir: " + (e.key || e.keyCode));
-    }
-
-    function setupShortcuts() {
-      shortcut.add("Ctrl+U", doNothing);
-      shortcut.add("f12", doNothing);
-      shortcut.add("Ctrl+Shift+I", doNothing);
-      shortcut.add("Ctrl+Shift+J", doNothing);
-      shortcut.add("Ctrl+Shift+C", doNothing);
-      shortcut.add("Ctrl+S", doNothing);
-    }
-
-    setupShortcuts();
-
-    document.addEventListener('keydown', function(e) {
-      if (e.keyCode === 123) { e.preventDefault(); e.stopPropagation(); return false; }
-      if (e.ctrlKey && e.shiftKey && e.keyCode === 73) { e.preventDefault(); e.stopPropagation(); return false; }
-      if (e.ctrlKey && e.shiftKey && e.keyCode === 74) { e.preventDefault(); e.stopPropagation(); return false; }
-      if (e.ctrlKey && e.shiftKey && e.keyCode === 67) { e.preventDefault(); e.stopPropagation(); return false; }
-      if (e.ctrlKey && e.keyCode === 85) { e.preventDefault(); e.stopPropagation(); return false; }
-      if (e.ctrlKey && e.keyCode === 83) { e.preventDefault(); e.stopPropagation(); return false; }
-    });
-
-    document.addEventListener('contextmenu', function(e) {
-      e.preventDefault();
-      return false;
-    });
-
-    document.addEventListener('dragstart', function(e) {
-      e.preventDefault();
-      return false;
-    });
+        function doNothing(e) {}
+        function setupShortcuts() {
+            shortcut.add("Ctrl+U", doNothing); shortcut.add("f12", doNothing);
+            shortcut.add("Ctrl+Shift+I", doNothing); shortcut.add("Ctrl+Shift+J", doNothing);
+            shortcut.add("Ctrl+Shift+C", doNothing); shortcut.add("Ctrl+S", doNothing);
+        }
+        setupShortcuts();
+        document.addEventListener('keydown', function(e) {
+            if (e.keyCode === 123) { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 73) { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 74) { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 67) { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.keyCode === 85) { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.keyCode === 83) { e.preventDefault(); return false; }
+        });
+        document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; });
+        document.addEventListener('dragstart', function(e) { e.preventDefault(); return false; });
     </script>
 </body>
 </html>
-
-<script>
-/**
-* Simple keyboard shortcut handler
-*/
-const shortcut = {
-all_shortcuts: {},
-add: function(combo, callback, options) {
-const defaultOpts = {
-type: "keydown",
-propagate: false,
-disable_in_input: false,
-target: document,
-keycode: false
-};
-const settings = Object.assign({}, defaultOpts, options || {});
-const target = typeof settings.target === "string"
-? document.getElementById(settings.target)
-: settings.target;
-
-combo = combo.toLowerCase();
-
-const handler = function(e) {
-e = e || window.event;
-
-// Skip if inside input/textarea and disable_in_input = true
-if (settings.disable_in_input) {
-let element = e.target || e.srcElement;
-if (element.nodeType === 3) element = element.parentNode;
-if (element.tagName === "INPUT" || element.tagName === "TEXTAREA") return;
-}
-
-const code = e.keyCode || e.which;
-let key = String.fromCharCode(code).toLowerCase();
-if (code === 188) key = ",";
-if (code === 190) key = ".";
-
-const keys = combo.split("+");
-let matchCount = 0;
-
-const specialKeys = {
-esc:27, escape:27, tab:9, space:32, return:13, enter:13,
-backspace:8, left:37, up:38, right:39, down:40,
-f1:112,f2:113,f3:114,f4:115,f5:116,f6:117,
-f7:118,f8:119,f9:120,f10:121,f11:122,f12:123
-};
-
-let ctrlReq=false, shiftReq=false, altReq=false, metaReq=false;
-let ctrl=e.ctrlKey, shift=e.shiftKey, alt=e.altKey, meta=e.metaKey;
-
-for (let i=0; i<keys.length; i++) {
-const k = keys[i];
-if (k === "ctrl" || k === "control") { ctrlReq = true; matchCount++; }
-else if (k === "shift") { shiftReq = true; matchCount++; }
-else if (k === "alt") { altReq = true; matchCount++; }
-else if (k === "meta") { metaReq = true; matchCount++; }
-else if (k.length > 1) { if (specialKeys[k] === code) matchCount++; }
-else if (settings.keycode ? settings.keycode === code : key === k) { matchCount++; }
-}
-
-if (
-matchCount === keys.length &&
-ctrl === ctrlReq && shift === shiftReq &&
-alt === altReq && meta === metaReq
-) {
-callback(e);
-if (!settings.propagate) {
-e.cancelBubble = true;
-e.returnValue = false;
-if (e.stopPropagation) e.stopPropagation();
-if (e.preventDefault) e.preventDefault();
-return false;
-}
-}
-};
-
-this.all_shortcuts[combo] = { callback: handler, target, event: settings.type };
-target.addEventListener(settings.type, handler, false);
-}
-};
-
-// Fungsi kosong yang tidak melakukan apa-apa
-function doNothing(e) {
-// Tidak melakukan apapun, hanya mencegah aksi default
-console.log("Shortcut diblokir: " + (e.key || e.keyCode));
-}
-
-// Fungsi untuk mengatur shortcut
-function setupShortcuts() {
-// === Shortcut Ctrl+U ===
-shortcut.add("Ctrl+U", doNothing);
-
-// === Shortcut F12 ===
-shortcut.add("f12", doNothing);
-
-// === Tambahkan juga shortcut lainnya ===
-shortcut.add("Ctrl+Shift+I", doNothing);
-shortcut.add("Ctrl+Shift+J", doNothing);
-shortcut.add("Ctrl+Shift+C", doNothing);
-}
-
-// Setup shortcut saat pertama kali
-setupShortcuts();
-
-// Event listener untuk mencegah semua aksi default shortcut developer
-document.addEventListener('keydown', function(e) {
-// F12 - Developer Tools
-if (e.keyCode === 123) {
-e.preventDefault();
-e.stopPropagation();
-return false;
-}
-
-// Ctrl+Shift+I - Developer Tools
-if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
-e.preventDefault();
-e.stopPropagation();
-return false;
-}
-
-// Ctrl+Shift+J - JavaScript Console
-if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
-e.preventDefault();
-e.stopPropagation();
-return false;
-}
-
-// Ctrl+Shift+C - Inspect Element
-if (e.ctrlKey && e.shiftKey && e.keyCode === 67) {
-e.preventDefault();
-e.stopPropagation();
-return false;
-}
-
-// Ctrl+U - View Source
-if (e.ctrlKey && e.keyCode === 85) {
-e.preventDefault();
-e.stopPropagation();
-return false;
-}
-
-// Ctrl+S - Save Page
-if (e.ctrlKey && e.keyCode === 83) {
-e.preventDefault();
-e.stopPropagation();
-return false;
-}
-});
-
-// Mencegah klik kanan (opsional)
-document.addEventListener('contextmenu', function(e) {
-e.preventDefault();
-return false;
-});
-
-// Mencegah drag & drop (opsional, untuk mencegah pengambilan gambar/element)
-document.addEventListener('dragstart', function(e) {
-e.preventDefault();
-return false;
-});
-
-// Mencegah seleksi teks (opsional)
-document.addEventListener('selectstart', function(e) {
-e.preventDefault();
-return false;
-});
-</script>
