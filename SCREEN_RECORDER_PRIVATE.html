@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Dropbox SDK -->
+    <script src="https://unpkg.com/dropbox@10.34.0/dist/Dropbox-sdk.min.js"></script>
     <style>
         :root {
             --primary: #4f46e5;
@@ -19,6 +21,8 @@
             --warning: #f59e0b;
             --dark: #0f172a;
             --light: #f8fafc;
+            --dropbox-blue: #0061ff;
+            --google-blue: #4285f4;
             
             --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             --gradient-dark: linear-gradient(135deg, #1e1b4b 0%, var(--dark) 100%);
@@ -584,6 +588,32 @@
             color: rgba(255, 255, 255, 0.7);
         }
 
+        /* Cloud Storage Info */
+        .cloud-storage-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .cloud-storage-bar {
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            flex: 1;
+            margin: 0 10px;
+            overflow: hidden;
+        }
+
+        .cloud-storage-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
         /* Library */
         .library {
             background: var(--gradient-glass);
@@ -657,6 +687,7 @@
             overflow: hidden;
             transition: var(--transition);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
         }
 
         .video-card:hover {
@@ -1405,6 +1436,117 @@
             border: 1px solid var(--primary);
         }
 
+        /* Cloud Selector Modal */
+        .cloud-selector-modal .cloud-option {
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .cloud-selector-modal .cloud-option:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        .cloud-selector-modal .cloud-option.selected {
+            background: rgba(79, 70, 229, 0.1);
+            border-color: var(--primary);
+        }
+
+        .cloud-option-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .cloud-option-google {
+            background: rgba(66, 133, 244, 0.1);
+            color: #4285F4;
+        }
+
+        .cloud-option-dropbox {
+            background: rgba(0, 97, 255, 0.1);
+            color: #0061FF;
+        }
+
+        /* Upload Queue */
+        .upload-queue {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: var(--gradient-glass);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-lg);
+            padding: 15px;
+            min-width: 300px;
+            max-width: 400px;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: var(--shadow-lg);
+            z-index: 999;
+            display: none;
+        }
+
+        .upload-queue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .upload-queue-items {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .upload-queue-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: var(--radius-md);
+            margin-bottom: 5px;
+        }
+
+        .upload-queue-progress {
+            flex: 1;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .upload-queue-progress-fill {
+            height: 100%;
+            background: var(--success);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Dropbox Badge */
+        .dropbox-badge {
+            background: rgba(0, 97, 255, 0.2);
+            color: #4dabff;
+            padding: 3px 8px;
+            border-radius: var(--radius-sm);
+            font-size: 0.7rem;
+            font-weight: 600;
+            border: 1px solid rgba(0, 97, 255, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
         /* File Size Warning */
         .warning-badge {
             background: rgba(245, 158, 11, 0.2);
@@ -1480,6 +1622,11 @@
             .webcam-overlay {
                 width: 150px;
                 height: 120px;
+            }
+            
+            .upload-queue {
+                width: calc(100% - 40px);
+                max-width: none;
             }
         }
 
@@ -1576,6 +1723,10 @@
                     <i class="fas fa-shield-alt"></i>
                     SECURE
                 </div>
+                <div class="badge">
+                    <i class="fab fa-dropbox"></i>
+                    DROPBOX INTEGRATED
+                </div>
             </div>
         </header>
 
@@ -1650,7 +1801,7 @@
                 </button>
                 <button class="btn cloud" id="cloudBtn" disabled>
                     <i class="fas fa-cloud-upload-alt"></i>
-                    UPLOAD CLOUD
+                    UPLOAD TO CLOUD
                 </button>
             </div>
 
@@ -1870,7 +2021,7 @@
             <div class="storage-info">
                 <div class="storage-header">
                     <div>
-                        <h4 style="color: white; margin-bottom: 5px;">Storage Usage</h4>
+                        <h4 style="color: white; margin-bottom: 5px;">Local Storage</h4>
                         <p style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7);" id="storageStatus">
                             Calculating storage...
                         </p>
@@ -1909,10 +2060,43 @@
                 </label>
             </div>
 
-            <button class="btn" id="connectDriveBtn" style="width: 100%; background: rgba(255,255,255,0.1);">
-                <i class="fab fa-google-drive"></i>
-                CONNECT GOOGLE DRIVE (100GB FREE)
-            </button>
+            <div style="margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: var(--radius-md);">
+                <h4 style="margin-bottom: 10px; color: white;">Cloud Storage</h4>
+                
+                <button class="btn" id="connectDriveBtn" style="width: 100%; background: rgba(66,133,244,0.1); margin-bottom: 10px;">
+                    <i class="fab fa-google-drive"></i>
+                    <span id="driveBtnText">CONNECT GOOGLE DRIVE (100GB FREE)</span>
+                </button>
+                
+                <button class="btn" id="connectDropboxBtn" style="width: 100%; background: rgba(0,123,255,0.1);">
+                    <i class="fab fa-dropbox"></i>
+                    <span id="dropboxBtnText">CONNECT DROPBOX (2GB FREE)</span>
+                </button>
+                
+                <div class="cloud-storage-info" id="cloudStorageInfo">
+                    <!-- Cloud storage info will be loaded here -->
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: var(--radius-md);">
+                <h4 style="margin-bottom: 10px; color: white;">Default Cloud Service</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm);">
+                        <input type="radio" name="defaultCloud" value="google" checked>
+                        <div class="cloud-option-icon cloud-option-google">
+                            <i class="fab fa-google-drive"></i>
+                        </div>
+                        <span>Google Drive</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm);">
+                        <input type="radio" name="defaultCloud" value="dropbox">
+                        <div class="cloud-option-icon cloud-option-dropbox">
+                            <i class="fab fa-dropbox"></i>
+                        </div>
+                        <span>Dropbox</span>
+                    </label>
+                </div>
+            </div>
         </section>
 
         <!-- Video Library -->
@@ -1930,8 +2114,11 @@
                     <button class="action-btn" id="clearAllBtn">
                         <i class="fas fa-trash"></i> Clear All
                     </button>
-                    <button class="action-btn cloud-btn" id="syncAllBtn">
+                    <button class="action-btn" id="syncAllBtn">
                         <i class="fas fa-sync-alt"></i> Sync All
+                    </button>
+                    <button class="action-btn" id="browseDropboxBtn" style="display: none;">
+                        <i class="fab fa-dropbox"></i> Browse Dropbox
                     </button>
                 </div>
             </div>
@@ -1961,7 +2148,7 @@
                 <a href="#" class="footer-link">Documentation</a>
             </div>
             <p style="margin-top: 20px; font-size: 0.9rem;">
-                Supports files up to 10GB • 4K UHD recording • Cloud backup included
+                Supports files up to 10GB • 4K UHD recording • Cloud backup included • Dropbox & Google Drive integration
             </p>
         </footer>
     </div>
@@ -2005,6 +2192,9 @@
 
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Upload Queue -->
+    <div class="upload-queue" id="uploadQueue"></div>
 
     <!-- Enhanced Feature Modals -->
 
@@ -2184,6 +2374,14 @@
                     </div>
                     <div class="shortcut-description">Show Shortcuts</div>
                 </div>
+                <div class="shortcut-item">
+                    <div class="shortcut-keys">
+                        <span class="key">Ctrl</span>
+                        <span class="key">Shift</span>
+                        <span class="key">D</span>
+                    </div>
+                    <div class="shortcut-description">Upload to Dropbox</div>
+                </div>
             </div>
             
             <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: var(--radius-md);">
@@ -2260,19 +2458,159 @@
         </button>
     </div>
 
-    <!-- Script -->
+    <!-- Cloud Service Selector Modal -->
+    <div class="modal cloud-selector-modal" id="cloudSelectorModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-cloud-upload-alt"></i> Upload to Cloud</h2>
+                <button class="close-modal" id="closeCloudSelector">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-info">
+                <p style="margin-bottom: 15px;" id="cloudSelectorTitle">Choose where to upload your video:</p>
+                <div style="display: grid; gap: 10px; margin-bottom: 20px;">
+                    <div class="cloud-option" data-service="dropbox">
+                        <div class="cloud-option-icon cloud-option-dropbox">
+                            <i class="fab fa-dropbox"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600;">Dropbox</div>
+                            <div style="font-size: 0.9rem; color: rgba(255,255,255,0.7);" id="dropboxOptionInfo">
+                                Connect for 2GB free storage
+                            </div>
+                        </div>
+                        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7);" id="dropboxStorageInfo">
+                            <!-- Storage info will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <div class="cloud-option" data-service="google">
+                        <div class="cloud-option-icon cloud-option-google">
+                            <i class="fab fa-google-drive"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600;">Google Drive</div>
+                            <div style="font-size: 0.9rem; color: rgba(255,255,255,0.7);" id="googleOptionInfo">
+                                Connect for 100GB free storage
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-top: 15px;">
+                    <input type="checkbox" id="rememberCloudChoice" checked>
+                    <span>Remember my choice for future uploads</span>
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn" id="cancelCloudUpload" style="background: rgba(255,255,255,0.1);">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button class="modal-btn" id="confirmCloudUpload" style="background: var(--primary);">
+                    <i class="fas fa-cloud-upload-alt"></i> Upload
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dropbox Video Browser Modal -->
+    <div class="modal" id="dropboxBrowserModal">
+        <div class="modal-content" style="max-width: 800px; max-height: 80vh;">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fab fa-dropbox"></i> Dropbox Videos</h2>
+                <button class="close-modal" id="closeDropboxBrowser">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div style="margin-bottom: 20px; display: flex; gap: 10px;">
+                <div class="search-box" style="flex: 1;">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchDropboxVideos" placeholder="Search Dropbox videos...">
+                </div>
+                <button class="action-btn" id="refreshDropboxList">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            <div class="video-grid" style="max-height: 50vh;" id="dropboxVideoGrid">
+                <!-- Dropbox videos will be loaded here -->
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn" id="closeDropboxBrowserBtn" style="background: rgba(255,255,255,0.1);">
+                    <i class="fas fa-times"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dropbox Upload Success Modal -->
+    <div class="modal" id="dropboxSuccessModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fab fa-dropbox" style="color: #0061FF;"></i> Upload Complete</h2>
+                <button class="close-modal" id="closeDropboxSuccess">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-info">
+                <div style="text-align: center; margin: 20px 0;">
+                    <i class="fas fa-check-circle" style="font-size: 3rem; color: var(--success);"></i>
+                </div>
+                <p style="text-align: center; font-size: 1.1rem; margin-bottom: 20px;" id="dropboxSuccessTitle">
+                    Video uploaded successfully!
+                </p>
+                <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: var(--radius-md);">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;" id="dropboxSuccessInfo">
+                        <!-- Upload info will be loaded here -->
+                    </div>
+                    <div style="margin-top: 10px; display: none;" id="dropboxPathInfo">
+                        <p style="font-size: 0.9rem; margin-bottom: 5px;">Dropbox Path:</p>
+                        <p style="font-family: monospace; font-size: 0.8rem; word-break: break-all; background: rgba(0,0,0,0.3); padding: 10px; border-radius: var(--radius-sm);" id="dropboxPathText"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn" id="copyDropboxLinkBtn" style="background: rgba(0, 97, 255, 0.8); display: none;">
+                    <i class="fas fa-link"></i> Copy Link
+                </button>
+                <button class="modal-btn" id="openDropboxLinkBtn" style="background: rgba(0, 97, 255, 0.8); display: none;">
+                    <i class="fab fa-dropbox"></i> Open
+                </button>
+                <button class="modal-btn" id="closeDropboxSuccessBtn" style="background: rgba(255,255,255,0.1);">
+                    <i class="fas fa-check"></i> Done
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // App Configuration
+        // =============== CONFIGURATION ===============
         const CONFIG = {
             MAX_STORAGE: 10 * 1024 * 1024 * 1024, // 10GB in bytes
             CHUNK_SIZE: 5 * 1024 * 1024, // 5MB chunks for large files
             MAX_FILE_SIZE: 2 * 1024 * 1024 * 1024, // 2GB max per file
-            USE_INDEXED_DB: true, // Use IndexedDB for large files
-            AUTO_SAVE_INTERVAL: 5000, // Auto-save every 5 seconds
+            USE_INDEXED_DB: true,
+            AUTO_SAVE_INTERVAL: 5000,
             CACHE_PREFIX: 'screenrecorder_'
         };
 
-        // App State
+        const DROPBOX_CONFIG = {
+            CLIENT_ID: 'YOUR_DROPBOX_APP_CLIENT_ID', // GANTI INI DENGAN CLIENT ID ANDA
+            REDIRECT_URI: window.location.origin + window.location.pathname,
+            SCOPES: [
+                'files.content.write',
+                'files.content.read',
+                'files.metadata.write',
+                'files.metadata.read',
+                'account_info.read',
+                'sharing.write'
+            ].join(' '),
+            UPLOAD_CHUNK_SIZE: 8 * 1024 * 1024, // 8MB chunks
+            MAX_RETRIES: 3,
+            RETRY_DELAY: 2000
+        };
+
+        // =============== STATE ===============
         const state = {
             isRecording: false,
             mediaRecorder: null,
@@ -2291,10 +2629,8 @@
             pauseStartTime: null
         };
 
-        // Enhanced State
         const enhancedState = {
-            // Recording modes
-            recordingMode: 'fullscreen', // 'fullscreen', 'area', 'window', 'tab'
+            recordingMode: 'fullscreen',
             selectedArea: null,
             isPaused: false,
             isAreaSelecting: false,
@@ -2303,19 +2639,16 @@
             isWatermarkEnabled: false,
             isCountdownActive: false,
             
-            // Annotation
             annotationCanvas: null,
             annotationCtx: null,
             currentTool: 'pen',
             annotationHistory: [],
             currentStroke: [],
             
-            // Webcam
             webcamStream: null,
             webcamDevices: [],
             selectedWebcam: null,
             
-            // Performance monitoring
             performanceMonitor: null,
             cpuUsage: 0,
             memoryUsage: 0,
@@ -2324,7 +2657,6 @@
             lastFPSUpdate: 0,
             lastCpuTime: null,
             
-            // Watermark settings
             watermark: {
                 text: 'CONFIDENTIAL',
                 size: 24,
@@ -2333,30 +2665,43 @@
                 enabled: false
             },
             
-            // Countdown
             countdownValue: 3,
             countdownTimer: null,
             
-            // Scheduled recording
             scheduledRecording: null,
             scheduleTimer: null,
             
-            // Shortcuts
             shortcutsEnabled: true,
             
-            // Audio settings
             audioContext: null,
             systemGainNode: null,
             micGainNode: null,
             audioDestination: null,
             
-            // Drawing
             isDrawing: false,
             lastX: 0,
-            lastY: 0
+            lastY: 0,
+            
+            // Dropbox state
+            dropboxClient: null,
+            dropboxAccessToken: null,
+            dropboxAccount: null,
+            dropboxStorage: {
+                used: 0,
+                allocated: 2 * 1024 * 1024 * 1024 // Default 2GB
+            },
+            
+            // Upload queue
+            uploadQueue: [],
+            isUploading: false,
+            currentUpload: null,
+            
+            // Cloud settings
+            defaultCloudService: 'google',
+            autoUpload: true
         };
 
-        // DOM Elements
+        // =============== DOM ELEMENTS ===============
         const elements = {
             loading: document.getElementById('loading'),
             loadingText: document.getElementById('loading-text'),
@@ -2393,6 +2738,9 @@
             messageText: document.getElementById('message-text'),
             search: document.getElementById('search'),
             connectDriveBtn: document.getElementById('connectDriveBtn'),
+            driveBtnText: document.getElementById('driveBtnText'),
+            connectDropboxBtn: document.getElementById('connectDropboxBtn'),
+            dropboxBtnText: document.getElementById('dropboxBtnText'),
             storageStatus: document.getElementById('storageStatus'),
             totalSize: document.getElementById('totalSize'),
             storageFill: document.getElementById('storageFill'),
@@ -2400,6 +2748,8 @@
             maxStorage: document.getElementById('maxStorage'),
             clearAllBtn: document.getElementById('clearAllBtn'),
             syncAllBtn: document.getElementById('syncAllBtn'),
+            browseDropboxBtn: document.getElementById('browseDropboxBtn'),
+            cloudStorageInfo: document.getElementById('cloudStorageInfo'),
             
             // Enhanced elements
             areaSelector: document.getElementById('areaSelector'),
@@ -2461,10 +2811,37 @@
             bitrate: document.getElementById('bitrate'),
             cpuStat: document.getElementById('cpuStat'),
             memoryStat: document.getElementById('memoryStat'),
-            fpsLive: document.getElementById('fpsLive')
+            fpsLive: document.getElementById('fpsLive'),
+            
+            // Dropbox elements
+            uploadQueue: document.getElementById('uploadQueue'),
+            cloudSelectorModal: document.getElementById('cloudSelectorModal'),
+            cloudSelectorTitle: document.getElementById('cloudSelectorTitle'),
+            dropboxOptionInfo: document.getElementById('dropboxOptionInfo'),
+            dropboxStorageInfo: document.getElementById('dropboxStorageInfo'),
+            googleOptionInfo: document.getElementById('googleOptionInfo'),
+            rememberCloudChoice: document.getElementById('rememberCloudChoice'),
+            cancelCloudUpload: document.getElementById('cancelCloudUpload'),
+            confirmCloudUpload: document.getElementById('confirmCloudUpload'),
+            closeCloudSelector: document.getElementById('closeCloudSelector'),
+            dropboxBrowserModal: document.getElementById('dropboxBrowserModal'),
+            dropboxVideoGrid: document.getElementById('dropboxVideoGrid'),
+            searchDropboxVideos: document.getElementById('searchDropboxVideos'),
+            refreshDropboxList: document.getElementById('refreshDropboxList'),
+            closeDropboxBrowser: document.getElementById('closeDropboxBrowser'),
+            closeDropboxBrowserBtn: document.getElementById('closeDropboxBrowserBtn'),
+            dropboxSuccessModal: document.getElementById('dropboxSuccessModal'),
+            dropboxSuccessTitle: document.getElementById('dropboxSuccessTitle'),
+            dropboxSuccessInfo: document.getElementById('dropboxSuccessInfo'),
+            dropboxPathInfo: document.getElementById('dropboxPathInfo'),
+            dropboxPathText: document.getElementById('dropboxPathText'),
+            copyDropboxLinkBtn: document.getElementById('copyDropboxLinkBtn'),
+            openDropboxLinkBtn: document.getElementById('openDropboxLinkBtn'),
+            closeDropboxSuccess: document.getElementById('closeDropboxSuccess'),
+            closeDropboxSuccessBtn: document.getElementById('closeDropboxSuccessBtn')
         };
 
-        // Initialize
+        // =============== INITIALIZATION ===============
         document.addEventListener('DOMContentLoaded', async () => {
             showLoading('Initializing Screen Recorder PRO...');
             
@@ -2483,6 +2860,12 @@
                 
                 // Setup enhanced features
                 await enhancedInitialize();
+                
+                // Setup Dropbox
+                await initializeDropbox();
+                
+                // Load cloud preference
+                await loadCloudPreference();
                 
                 // Update UI
                 updateVideoGrid();
@@ -2504,33 +2887,27 @@
         // =============== DATABASE FUNCTIONS ===============
         async function initDatabase() {
             return new Promise((resolve, reject) => {
-                const request = indexedDB.open('ScreenRecorderDB', 4);
+                const request = indexedDB.open('ScreenRecorderDB', 5);
                 
                 request.onerror = () => reject(request.error);
                 
                 request.onsuccess = () => {
                     state.db = request.result;
-                    
-                    // Set up error handling
                     state.db.onerror = (event) => {
                         console.error('Database error:', event.target.error);
                         showMessage('Database error occurred', 'error');
                     };
-                    
                     resolve();
                 };
                 
                 request.onupgradeneeded = (event) => {
                     const db = event.target.result;
                     
-                    // Create videos store
                     if (!db.objectStoreNames.contains('videos')) {
                         const store = db.createObjectStore('videos', { 
                             keyPath: 'id',
                             autoIncrement: true 
                         });
-                        
-                        // Create indexes
                         store.createIndex('title', 'title', { unique: false });
                         store.createIndex('date', 'date', { unique: false });
                         store.createIndex('size', 'size', { unique: false });
@@ -2539,12 +2916,10 @@
                         store.createIndex('type', 'type', { unique: false });
                     }
                     
-                    // Create settings store
                     if (!db.objectStoreNames.contains('settings')) {
                         db.createObjectStore('settings', { keyPath: 'key' });
                     }
                     
-                    // Create screenshots store
                     if (!db.objectStoreNames.contains('screenshots')) {
                         const screenshotStore = db.createObjectStore('screenshots', { 
                             keyPath: 'id',
@@ -2566,7 +2941,6 @@
                 const transaction = state.db.transaction(['videos'], 'readwrite');
                 const store = transaction.objectStore('videos');
                 
-                // Check if we have enough storage
                 const newSize = state.storageUsed + videoData.size;
                 if (newSize > CONFIG.MAX_STORAGE) {
                     reject(new Error('Storage limit reached. Please delete some videos.'));
@@ -2650,59 +3024,692 @@
             });
         }
 
-        // =============== ENHANCED INITIALIZATION ===============
-        async function enhancedInitialize() {
-            // Initialize annotation canvas
-            enhancedState.annotationCanvas = elements.annotationCanvas;
-            enhancedState.annotationCtx = enhancedState.annotationCanvas.getContext('2d');
-            
-            // Set canvas size to match preview
-            const updateCanvasSize = () => {
-                if (elements.preview.parentElement) {
-                    const rect = elements.preview.getBoundingClientRect();
-                    enhancedState.annotationCanvas.width = rect.width;
-                    enhancedState.annotationCanvas.height = rect.height;
+        // =============== DROPBOX FUNCTIONS ===============
+        async function initializeDropbox() {
+            try {
+                // Check token from URL hash
+                const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                const accessToken = hashParams.get('access_token');
+                
+                if (accessToken) {
+                    await setupDropboxClient(accessToken);
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                } else {
+                    await loadDropboxTokenFromStorage();
                 }
+                
+            } catch (error) {
+                console.error('Dropbox initialization error:', error);
+            }
+        }
+
+        async function loadDropboxTokenFromStorage() {
+            try {
+                const transaction = state.db.transaction(['settings'], 'readonly');
+                const store = transaction.objectStore('settings');
+                const request = store.get('dropboxToken');
+                
+                request.onsuccess = () => {
+                    if (request.result && request.result.value) {
+                        setupDropboxClient(request.result.value);
+                    }
+                };
+            } catch (error) {
+                console.warn('Could not load Dropbox token:', error);
+            }
+        }
+
+        async function setupDropboxClient(accessToken) {
+            try {
+                enhancedState.dropboxClient = new Dropbox.Dropbox({ 
+                    accessToken: accessToken,
+                    fetch: fetch.bind(window)
+                });
+                
+                enhancedState.dropboxAccessToken = accessToken;
+                
+                // Get account info
+                await getDropboxAccountInfo();
+                
+                // Get storage info
+                await getDropboxStorageInfo();
+                
+                // Update UI
+                updateDropboxUI(true);
+                
+                // Save token to IndexedDB
+                await saveDropboxToken(accessToken);
+                
+                showToast(`Connected to Dropbox as ${enhancedState.dropboxAccount.name.display_name}`, 'success');
+                
+            } catch (error) {
+                console.error('Dropbox setup error:', error);
+                showToast('Failed to connect to Dropbox: ' + error.message, 'error');
+                
+                enhancedState.dropboxClient = null;
+                enhancedState.dropboxAccessToken = null;
+                updateDropboxUI(false);
+            }
+        }
+
+        async function getDropboxAccountInfo() {
+            try {
+                const response = await enhancedState.dropboxClient.usersGetCurrentAccount();
+                enhancedState.dropboxAccount = response.result;
+                return enhancedState.dropboxAccount;
+            } catch (error) {
+                throw new Error('Failed to get Dropbox account info: ' + error.message);
+            }
+        }
+
+        async function getDropboxStorageInfo() {
+            try {
+                const response = await enhancedState.dropboxClient.usersGetSpaceUsage();
+                enhancedState.dropboxStorage = {
+                    used: response.result.used,
+                    allocated: response.result.allocation.allocated
+                };
+                updateCloudStorageDisplay();
+                return enhancedState.dropboxStorage;
+            } catch (error) {
+                console.warn('Could not get Dropbox storage info:', error);
+                return null;
+            }
+        }
+
+        function updateDropboxUI(isConnected) {
+            if (isConnected && enhancedState.dropboxAccount) {
+                elements.connectDropboxBtn.style.background = 'rgba(0, 97, 255, 0.2)';
+                elements.dropboxBtnText.innerHTML = `<i class="fab fa-dropbox"></i> CONNECTED AS ${enhancedState.dropboxAccount.name.given_name}`;
+                elements.browseDropboxBtn.style.display = 'flex';
+                
+                elements.dropboxOptionInfo.textContent = `Connected as ${enhancedState.dropboxAccount.name.given_name}`;
+            } else {
+                elements.connectDropboxBtn.style.background = 'rgba(0,123,255,0.1)';
+                elements.dropboxBtnText.innerHTML = `<i class="fab fa-dropbox"></i> CONNECT DROPBOX (2GB FREE)`;
+                elements.browseDropboxBtn.style.display = 'none';
+                
+                elements.dropboxOptionInfo.textContent = 'Connect for 2GB free storage';
+            }
+        }
+
+        function updateCloudStorageDisplay() {
+            if (!enhancedState.dropboxStorage.used) return;
+            
+            const usedGB = (enhancedState.dropboxStorage.used / (1024 * 1024 * 1024)).toFixed(2);
+            const totalGB = (enhancedState.dropboxStorage.allocated / (1024 * 1024 * 1024)).toFixed(1);
+            const percentage = totalGB > 0 ? (usedGB / totalGB * 100) : 0;
+            
+            elements.dropboxStorageInfo.innerHTML = `${usedGB}GB/${totalGB}GB`;
+            
+            elements.cloudStorageInfo.innerHTML = `
+                <span>Dropbox Storage</span>
+                <div class="cloud-storage-bar">
+                    <div class="cloud-storage-fill" style="width: ${percentage}%"></div>
+                </div>
+                <span>${usedGB}GB/${totalGB}GB</span>
+            `;
+        }
+
+        async function saveDropboxToken(token) {
+            try {
+                const transaction = state.db.transaction(['settings'], 'readwrite');
+                const store = transaction.objectStore('settings');
+                await store.put({ 
+                    key: 'dropboxToken', 
+                    value: token 
+                });
+            } catch (error) {
+                console.error('Failed to save Dropbox token:', error);
+            }
+        }
+
+        async function connectDropbox() {
+            if (enhancedState.dropboxClient) {
+                showToast('Already connected to Dropbox', 'info');
+                return;
+            }
+            
+            showProgress('Redirecting to Dropbox authorization...');
+            
+            const authUrl = `https://www.dropbox.com/oauth2/authorize?client_id=${DROPBOX_CONFIG.CLIENT_ID}&response_type=token&redirect_uri=${encodeURIComponent(DROPBOX_CONFIG.REDIRECT_URI)}&scope=${DROPBOX_CONFIG.SCOPES}`;
+            
+            const authWindow = window.open(
+                authUrl,
+                'Dropbox Auth',
+                'width=600,height=700,menubar=no,toolbar=no,location=yes,resizable=yes,scrollbars=yes,status=yes'
+            );
+            
+            if (!authWindow) {
+                hideProgress();
+                showToast('Please allow popups to connect to Dropbox', 'warning');
+                return;
+            }
+            
+            const checkAuth = setInterval(() => {
+                if (authWindow.closed) {
+                    clearInterval(checkAuth);
+                    hideProgress();
+                    
+                    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                    const token = hashParams.get('access_token');
+                    
+                    if (token) {
+                        setupDropboxClient(token);
+                    } else {
+                        showToast('Dropbox authorization cancelled', 'info');
+                    }
+                }
+            }, 500);
+        }
+
+        async function disconnectDropbox() {
+            if (!enhancedState.dropboxClient) {
+                showToast('Not connected to Dropbox', 'info');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to disconnect from Dropbox?')) {
+                try {
+                    await enhancedState.dropboxClient.authTokenRevoke();
+                    
+                    enhancedState.dropboxClient = null;
+                    enhancedState.dropboxAccessToken = null;
+                    enhancedState.dropboxAccount = null;
+                    
+                    const transaction = state.db.transaction(['settings'], 'readwrite');
+                    const store = transaction.objectStore('settings');
+                    await store.delete('dropboxToken');
+                    
+                    updateDropboxUI(false);
+                    
+                    showToast('Disconnected from Dropbox', 'success');
+                    
+                } catch (error) {
+                    console.error('Dropbox disconnect error:', error);
+                    showToast('Failed to disconnect from Dropbox', 'error');
+                }
+            }
+        }
+
+        // =============== DROPBOX UPLOAD ===============
+        async function uploadToDropbox(videoId) {
+            const video = state.videos.find(v => v.id === videoId);
+            if (!video) {
+                showToast('Video not found', 'error');
+                return;
+            }
+            
+            if (video.dropboxPath) {
+                showToast('Video already uploaded to Dropbox', 'info');
+                return;
+            }
+            
+            const storageInfo = await getDropboxStorageInfo();
+            if (storageInfo) {
+                const freeSpace = storageInfo.allocated - storageInfo.used;
+                if (video.size > freeSpace) {
+                    showToast('Not enough space on Dropbox', 'error');
+                    return;
+                }
+            }
+            
+            addToUploadQueue(videoId, 'dropbox');
+            
+            if (!enhancedState.isUploading) {
+                processUploadQueue();
+            }
+        }
+
+        function addToUploadQueue(videoId, service = 'dropbox') {
+            const video = state.videos.find(v => v.id === videoId);
+            if (!video) return;
+            
+            const queueItem = {
+                id: Date.now().toString(),
+                videoId: videoId,
+                service: service,
+                title: video.title,
+                size: video.size,
+                progress: 0,
+                status: 'pending',
+                startTime: null,
+                endTime: null
             };
             
-            updateCanvasSize();
-            window.addEventListener('resize', updateCanvasSize);
+            enhancedState.uploadQueue.push(queueItem);
             
-            // Load webcam devices
-            await loadWebcamDevices();
+            showUploadQueue();
+            updateVideoCardStatus(videoId, 'queued');
             
-            // Load watermark settings from storage
-            await loadWatermarkSettings();
+            showToast(`Added "${video.title}" to upload queue`, 'info');
+        }
+
+        async function processUploadQueue() {
+            if (enhancedState.uploadQueue.length === 0 || enhancedState.isUploading) {
+                return;
+            }
             
-            // Setup performance monitoring
-            setupPerformanceMonitoring();
+            enhancedState.isUploading = true;
             
-            // Setup audio context for volume control
-            setupAudioContext();
+            const queueItem = enhancedState.uploadQueue.find(item => item.status === 'pending');
+            if (!queueItem) {
+                enhancedState.isUploading = false;
+                return;
+            }
             
-            // Setup enhanced event listeners
-            setupEnhancedEventListeners();
+            queueItem.status = 'uploading';
+            queueItem.startTime = Date.now();
+            enhancedState.currentUpload = queueItem;
             
-            // Setup keyboard shortcuts
-            setupEnhancedShortcuts();
+            updateUploadQueueUI();
             
-            // Setup sliders
-            setupSliders();
+            try {
+                const video = state.videos.find(v => v.id === queueItem.videoId);
+                
+                if (!video || !video.blob) {
+                    throw new Error('Video data not found');
+                }
+                
+                let result;
+                if (video.size > 150 * 1024 * 1024) {
+                    result = await uploadLargeFileToDropbox(video, queueItem);
+                } else {
+                    result = await uploadFileToDropbox(video, queueItem);
+                }
+                
+                video.dropboxPath = result.path_display;
+                video.dropboxId = result.id;
+                video.isCloud = true;
+                video.cloudService = 'dropbox';
+                
+                await updateVideoInDB(video.id, {
+                    dropboxPath: video.dropboxPath,
+                    dropboxId: video.dropboxId,
+                    isCloud: true,
+                    cloudService: 'dropbox'
+                });
+                
+                try {
+                    const sharedLink = await createDropboxSharedLink(video.dropboxId);
+                    video.dropboxShareLink = sharedLink;
+                } catch (linkError) {
+                    console.warn('Could not create share link:', linkError);
+                }
+                
+                queueItem.status = 'completed';
+                queueItem.progress = 100;
+                queueItem.endTime = Date.now();
+                
+                updateVideoGrid();
+                updateVideoCardStatus(queueItem.videoId, 'uploaded');
+                
+                showDropboxUploadSuccess(video, queueItem);
+                
+                await getDropboxStorageInfo();
+                
+            } catch (error) {
+                console.error('Upload failed:', error);
+                
+                queueItem.status = 'failed';
+                queueItem.error = error.message;
+                
+                updateVideoCardStatus(queueItem.videoId, 'failed');
+                
+                showToast(`Upload failed: ${error.message}`, 'error');
+            }
             
-            // Set default schedule date to tomorrow
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            elements.scheduleDate.valueAsDate = tomorrow;
+            enhancedState.currentUpload = null;
+            enhancedState.isUploading = false;
             
-            // Set default time to current time + 5 minutes
-            const now = new Date();
-            now.setMinutes(now.getMinutes() + 5);
-            elements.scheduleTime.value = now.toTimeString().slice(0, 5);
+            setTimeout(() => {
+                processUploadQueue();
+            }, 1000);
+        }
+
+        async function uploadFileToDropbox(video, queueItem) {
+            const filePath = `/Screen Recorder/${video.title}.${getFileExtension(video.mimeType)}`;
+            const fileContent = await video.blob.arrayBuffer();
             
-            // Setup schedule duration slider
-            elements.scheduleDuration.addEventListener('input', (e) => {
-                elements.scheduleDurationValue.textContent = `${e.target.value} minutes`;
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                
+                xhr.upload.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        const progress = Math.round((event.loaded / event.total) * 100);
+                        queueItem.progress = progress;
+                        updateUploadQueueUI();
+                    }
+                };
+                
+                xhr.onload = async () => {
+                    if (xhr.status === 200) {
+                        const response = JSON.parse(xhr.responseText);
+                        resolve(response);
+                    } else {
+                        reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
+                    }
+                };
+                
+                xhr.onerror = () => reject(new Error('Network error during upload'));
+                
+                xhr.open('POST', 'https://content.dropboxapi.com/2/files/upload');
+                xhr.setRequestHeader('Authorization', `Bearer ${enhancedState.dropboxAccessToken}`);
+                xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+                xhr.setRequestHeader('Dropbox-API-Arg', JSON.stringify({
+                    path: filePath,
+                    mode: 'add',
+                    autorename: true,
+                    mute: false
+                }));
+                
+                xhr.send(fileContent);
             });
+        }
+
+        async function uploadLargeFileToDropbox(video, queueItem) {
+            const filePath = `/Screen Recorder/${video.title}.${getFileExtension(video.mimeType)}`;
+            const blob = video.blob;
+            const chunkSize = DROPBOX_CONFIG.UPLOAD_CHUNK_SIZE;
+            const fileSize = blob.size;
+            const totalChunks = Math.ceil(fileSize / chunkSize);
+            
+            const sessionStart = await enhancedState.dropboxClient.filesUploadSessionStart({
+                close: false,
+                contents: await blob.slice(0, Math.min(chunkSize, fileSize)).arrayBuffer()
+            });
+            
+            const sessionId = sessionStart.result.session_id;
+            let uploadedBytes = Math.min(chunkSize, fileSize);
+            
+            queueItem.progress = Math.round((uploadedBytes / fileSize) * 100);
+            updateUploadQueueUI();
+            
+            for (let i = 1; i < totalChunks; i++) {
+                const start = i * chunkSize;
+                const end = Math.min((i + 1) * chunkSize, fileSize);
+                const chunk = await blob.slice(start, end).arrayBuffer();
+                
+                try {
+                    await enhancedState.dropboxClient.filesUploadSessionAppendV2({
+                        cursor: {
+                            session_id: sessionId,
+                            offset: uploadedBytes
+                        },
+                        close: i === totalChunks - 1,
+                        contents: chunk
+                    });
+                    
+                    uploadedBytes += chunk.byteLength;
+                    queueItem.progress = Math.round((uploadedBytes / fileSize) * 100);
+                    updateUploadQueueUI();
+                    
+                } catch (error) {
+                    let retryCount = 0;
+                    while (retryCount < DROPBOX_CONFIG.MAX_RETRIES) {
+                        try {
+                            await new Promise(resolve => setTimeout(resolve, DROPBOX_CONFIG.RETRY_DELAY * (retryCount + 1)));
+                            await enhancedState.dropboxClient.filesUploadSessionAppendV2({
+                                cursor: {
+                                    session_id: sessionId,
+                                    offset: uploadedBytes
+                                },
+                                close: i === totalChunks - 1,
+                                contents: chunk
+                            });
+                            break;
+                        } catch (retryError) {
+                            retryCount++;
+                            if (retryCount === DROPBOX_CONFIG.MAX_RETRIES) {
+                                throw new Error(`Failed after ${DROPBOX_CONFIG.MAX_RETRIES} retries: ${retryError.message}`);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            const commitInfo = {
+                path: filePath,
+                mode: { '.tag': 'add' },
+                autorename: true,
+                mute: false
+            };
+            
+            const response = await enhancedState.dropboxClient.filesUploadSessionFinish({
+                cursor: {
+                    session_id: sessionId,
+                    offset: uploadedBytes
+                },
+                commit: commitInfo
+            });
+            
+            return response.result;
+        }
+
+        async function createDropboxSharedLink(fileId) {
+            try {
+                const response = await enhancedState.dropboxClient.sharingCreateSharedLinkWithSettings({
+                    path: fileId
+                });
+                
+                return response.result.url.replace('www.dropbox.com', 'dl.dropbox.com');
+                
+            } catch (error) {
+                if (error.status === 409) {
+                    const links = await enhancedState.dropboxClient.sharingListSharedLinks({
+                        path: fileId
+                    });
+                    
+                    if (links.result.links.length > 0) {
+                        return links.result.links[0].url.replace('www.dropbox.com', 'dl.dropbox.com');
+                    }
+                }
+                
+                return null;
+            }
+        }
+
+        // =============== UPLOAD QUEUE UI ===============
+        function showUploadQueue() {
+            updateUploadQueueUI();
+            if (elements.uploadQueue) {
+                elements.uploadQueue.style.display = 'block';
+            }
+        }
+
+        function updateUploadQueueUI() {
+            if (!elements.uploadQueue) return;
+            
+            const activeItems = enhancedState.uploadQueue.filter(item => 
+                item.status === 'pending' || item.status === 'uploading'
+            );
+            
+            if (activeItems.length === 0) {
+                elements.uploadQueue.style.display = 'none';
+                return;
+            }
+            
+            elements.uploadQueue.innerHTML = `
+                <div class="upload-queue-header">
+                    <h4 style="margin: 0; font-size: 1rem;"><i class="fas fa-cloud-upload-alt"></i> Upload Queue</h4>
+                    <button class="action-btn" id="hideQueueBtn" style="padding: 5px 10px;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="upload-queue-items">
+                    ${activeItems.map(item => `
+                        <div class="upload-queue-item">
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    ${item.title}
+                                </div>
+                                <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">
+                                    ${formatFileSize(item.size)} • ${item.status === 'uploading' ? 'Uploading...' : 'Waiting...'}
+                                </div>
+                            </div>
+                            ${item.status === 'uploading' ? `
+                                <div style="font-size: 0.8rem; font-weight: 600; min-width: 40px; text-align: right;">
+                                    ${item.progress}%
+                                </div>
+                                <div class="upload-queue-progress">
+                                    <div class="upload-queue-progress-fill" style="width: ${item.progress}%"></div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+                ${activeItems.length > 1 ? `
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: rgba(255,255,255,0.7); text-align: center;">
+                        ${activeItems.length - 1} more in queue
+                    </div>
+                ` : ''}
+            `;
+            
+            const hideBtn = elements.uploadQueue.querySelector('#hideQueueBtn');
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    elements.uploadQueue.style.display = 'none';
+                });
+            }
+        }
+
+        function updateVideoCardStatus(videoId, status) {
+            const videoCard = document.querySelector(`.video-card[data-id="${videoId}"]`);
+            if (!videoCard) return;
+            
+            const existingStatus = videoCard.querySelector('.upload-status');
+            if (existingStatus) existingStatus.remove();
+            
+            if (status === 'queued') {
+                const statusDiv = document.createElement('div');
+                statusDiv.className = 'upload-status';
+                statusDiv.innerHTML = `
+                    <div style="position: absolute; top: 10px; right: 10px; background: rgba(245, 158, 11, 0.8); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.7rem; display: flex; align-items: center; gap: 5px;">
+                        <i class="fas fa-clock"></i> Queued
+                    </div>
+                `;
+                videoCard.appendChild(statusDiv);
+            } else if (status === 'uploaded') {
+                const statusDiv = document.createElement('div');
+                statusDiv.className = 'upload-status';
+                statusDiv.innerHTML = `
+                    <div style="position: absolute; top: 10px; right: 10px; background: rgba(16, 185, 129, 0.8); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.7rem; display: flex; align-items: center; gap: 5px;">
+                        <i class="fab fa-dropbox"></i> Uploaded
+                    </div>
+                `;
+                videoCard.appendChild(statusDiv);
+            }
+        }
+
+        function showDropboxUploadSuccess(video, queueItem) {
+            const duration = queueItem.endTime ? ((queueItem.endTime - queueItem.startTime) / 1000).toFixed(1) : '?';
+            
+            elements.dropboxSuccessTitle.textContent = `"${video.title}" uploaded successfully!`;
+            
+            elements.dropboxSuccessInfo.innerHTML = `
+                <div><strong>Size:</strong> ${formatFileSize(video.size)}</div>
+                <div><strong>Duration:</strong> ${duration}s</div>
+                <div><strong>Service:</strong> Dropbox</div>
+                <div><strong>Speed:</strong> ${formatFileSize(video.size / (duration || 1))}/s</div>
+            `;
+            
+            if (video.dropboxPath) {
+                elements.dropboxPathInfo.style.display = 'block';
+                elements.dropboxPathText.textContent = video.dropboxPath;
+            }
+            
+            if (video.dropboxShareLink) {
+                elements.copyDropboxLinkBtn.style.display = 'flex';
+                elements.openDropboxLinkBtn.style.display = 'flex';
+                
+                elements.copyDropboxLinkBtn.onclick = () => {
+                    navigator.clipboard.writeText(video.dropboxShareLink)
+                        .then(() => showToast('Link copied to clipboard!', 'success'))
+                        .catch(() => {
+                            const textArea = document.createElement('textarea');
+                            textArea.value = video.dropboxShareLink;
+                            document.body.appendChild(textArea);
+                            textArea.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(textArea);
+                            showToast('Link copied to clipboard!', 'success');
+                        });
+                };
+                
+                elements.openDropboxLinkBtn.onclick = () => {
+                    window.open(video.dropboxShareLink, '_blank');
+                };
+            }
+            
+            elements.dropboxSuccessModal.style.display = 'flex';
+        }
+
+        // =============== CLOUD SERVICE SELECTION ===============
+        function showCloudServiceSelector(videoId) {
+            const video = state.videos.find(v => v.id === videoId);
+            if (!video) return;
+            
+            elements.cloudSelectorTitle.textContent = `Choose where to upload "${video.title}":`;
+            
+            // Update Dropbox info
+            if (enhancedState.dropboxAccount) {
+                elements.dropboxOptionInfo.textContent = `Connected as ${enhancedState.dropboxAccount.name.given_name}`;
+                if (enhancedState.dropboxStorage.used) {
+                    const usedGB = (enhancedState.dropboxStorage.used / (1024 * 1024 * 1024)).toFixed(2);
+                    const totalGB = (enhancedState.dropboxStorage.allocated / (1024 * 1024 * 1024)).toFixed(1);
+                    elements.dropboxStorageInfo.textContent = `${usedGB}GB/${totalGB}GB`;
+                }
+            }
+            
+            // Update Google Drive info
+            if (state.isCloudConnected) {
+                elements.googleOptionInfo.textContent = 'Connected to Google Drive';
+            }
+            
+            // Reset selection
+            document.querySelectorAll('.cloud-option').forEach(opt => {
+                opt.classList.remove('selected');
+                if (opt.dataset.service === enhancedState.defaultCloudService) {
+                    opt.classList.add('selected');
+                }
+            });
+            
+            elements.cloudSelectorModal.style.display = 'flex';
+            
+            // Store video ID for later use
+            elements.cloudSelectorModal.dataset.videoId = videoId;
+        }
+
+        async function saveCloudPreference(service) {
+            try {
+                const transaction = state.db.transaction(['settings'], 'readwrite');
+                const store = transaction.objectStore('settings');
+                await store.put({ 
+                    key: 'defaultCloudService', 
+                    value: service 
+                });
+            } catch (error) {
+                console.error('Failed to save cloud preference:', error);
+            }
+        }
+
+        async function loadCloudPreference() {
+            try {
+                const transaction = state.db.transaction(['settings'], 'readonly');
+                const store = transaction.objectStore('settings');
+                const request = store.get('defaultCloudService');
+                
+                request.onsuccess = () => {
+                    if (request.result) {
+                        enhancedState.defaultCloudService = request.result.value;
+                        
+                        const radio = document.querySelector(`input[name="defaultCloud"][value="${request.result.value}"]`);
+                        if (radio) radio.checked = true;
+                    }
+                };
+            } catch (error) {
+                console.warn('Could not load cloud preference:', error);
+            }
         }
 
         // =============== BASIC FUNCTIONS ===============
@@ -2740,7 +3747,6 @@
             elements.usedStorage.textContent = `${usedGB} GB used`;
             elements.maxStorage.textContent = `${maxGB} GB max`;
             
-            // Update status text
             if (percentage > 90) {
                 elements.storageStatus.innerHTML = `<span style="color: #ef4444;">Storage almost full!</span>`;
             } else if (percentage > 70) {
@@ -2750,19 +3756,225 @@
             }
         }
 
+        // =============== ENHANCED INITIALIZATION ===============
+        async function enhancedInitialize() {
+            enhancedState.annotationCanvas = elements.annotationCanvas;
+            enhancedState.annotationCtx = enhancedState.annotationCanvas.getContext('2d');
+            
+            const updateCanvasSize = () => {
+                if (elements.preview.parentElement) {
+                    const rect = elements.preview.getBoundingClientRect();
+                    enhancedState.annotationCanvas.width = rect.width;
+                    enhancedState.annotationCanvas.height = rect.height;
+                }
+            };
+            
+            updateCanvasSize();
+            window.addEventListener('resize', updateCanvasSize);
+            
+            await loadWebcamDevices();
+            await loadWatermarkSettings();
+            setupPerformanceMonitoring();
+            setupAudioContext();
+            setupEnhancedEventListeners();
+            setupEnhancedShortcuts();
+            setupSliders();
+            
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            elements.scheduleDate.valueAsDate = tomorrow;
+            
+            const now = new Date();
+            now.setMinutes(now.getMinutes() + 5);
+            elements.scheduleTime.value = now.toTimeString().slice(0, 5);
+            
+            elements.scheduleDuration.addEventListener('input', (e) => {
+                elements.scheduleDurationValue.textContent = `${e.target.value} minutes`;
+            });
+        }
+
+        async function loadWebcamDevices() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                enhancedState.webcamDevices = devices.filter(device => 
+                    device.kind === 'videoinput'
+                );
+                
+                const transaction = state.db.transaction(['settings'], 'readwrite');
+                const store = transaction.objectStore('settings');
+                store.put({ 
+                    key: 'webcamDevices', 
+                    value: enhancedState.webcamDevices.map(d => ({
+                        deviceId: d.deviceId,
+                        label: d.label || `Camera ${enhancedState.webcamDevices.indexOf(d) + 1}`
+                    }))
+                });
+                
+            } catch (error) {
+                console.warn('Could not load webcam devices:', error);
+            }
+        }
+
+        async function loadWatermarkSettings() {
+            try {
+                const transaction = state.db.transaction(['settings'], 'readonly');
+                const store = transaction.objectStore('settings');
+                const request = store.get('watermark');
+                
+                request.onsuccess = () => {
+                    if (request.result) {
+                        enhancedState.watermark = { ...enhancedState.watermark, ...request.result.value };
+                        if (enhancedState.watermark.enabled) {
+                            enhancedState.isWatermarkEnabled = true;
+                            elements.watermarkBtn.classList.add('active');
+                            elements.watermarkBtn.querySelector('.status').textContent = 'On';
+                        }
+                    }
+                };
+            } catch (error) {
+                console.warn('Could not load watermark settings:', error);
+            }
+        }
+
+        async function saveWatermarkSettings() {
+            try {
+                const transaction = state.db.transaction(['settings'], 'readwrite');
+                const store = transaction.objectStore('settings');
+                store.put({ 
+                    key: 'watermark', 
+                    value: enhancedState.watermark 
+                });
+            } catch (error) {
+                console.warn('Could not save watermark settings:', error);
+            }
+        }
+
+        function setupPerformanceMonitoring() {
+            function updateFPS() {
+                enhancedState.frameCount++;
+                const now = Date.now();
+                
+                if (now - enhancedState.lastFPSUpdate >= 1000) {
+                    enhancedState.liveFPS = enhancedState.frameCount;
+                    enhancedState.frameCount = 0;
+                    enhancedState.lastFPSUpdate = now;
+                    
+                    if (state.isRecording) {
+                        elements.liveIndicators.style.display = 'flex';
+                        elements.fpsLive.textContent = `${enhancedState.liveFPS} FPS`;
+                    }
+                }
+                
+                if (state.isRecording) {
+                    requestAnimationFrame(updateFPS);
+                }
+            }
+            
+            const originalStartRecording = startRecording;
+            window.startRecording = async function() {
+                await originalStartRecording.apply(this, arguments);
+                if (state.isRecording) {
+                    enhancedState.lastFPSUpdate = Date.now();
+                    updateFPS();
+                }
+            };
+            
+            enhancedState.performanceMonitor = setInterval(() => {
+                if (state.isRecording) {
+                    if (enhancedState.lastCpuTime) {
+                        const timeDiff = Date.now() - enhancedState.lastCpuTime;
+                        const cpuLoad = Math.min(100, Math.random() * 30 + (state.recordedChunks.length / 1000));
+                        enhancedState.cpuUsage = cpuLoad.toFixed(1);
+                        
+                        elements.cpuStat.textContent = `${enhancedState.cpuUsage}%`;
+                        elements.cpuUsage.textContent = `CPU: ${enhancedState.cpuUsage}%`;
+                    }
+                    enhancedState.lastCpuTime = Date.now();
+                    
+                    const memory = performance.memory;
+                    if (memory) {
+                        const usedMB = Math.round(memory.usedJSHeapSize / 1024 / 1024);
+                        const totalMB = Math.round(memory.totalJSHeapSize / 1024 / 1024);
+                        
+                        enhancedState.memoryUsage = usedMB;
+                        elements.memoryStat.textContent = `${usedMB} MB`;
+                        elements.memoryUsage.textContent = `MEM: ${usedMB}MB`;
+                    }
+                }
+            }, 2000);
+        }
+
+        function setupAudioContext() {
+            try {
+                enhancedState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                enhancedState.systemGainNode = enhancedState.audioContext.createGain();
+                enhancedState.micGainNode = enhancedState.audioContext.createGain();
+                enhancedState.audioDestination = enhancedState.audioContext.createMediaStreamDestination();
+                
+                enhancedState.systemGainNode.connect(enhancedState.audioDestination);
+                enhancedState.micGainNode.connect(enhancedState.audioDestination);
+                
+                enhancedState.systemGainNode.gain.value = 1.0;
+                enhancedState.micGainNode.gain.value = 0.8;
+                
+            } catch (error) {
+                console.warn('Audio context not supported:', error);
+            }
+        }
+
+        function setupSliders() {
+            elements.fpsSlider.addEventListener('input', (e) => {
+                const fps = parseInt(e.target.value);
+                elements.fpsValue.textContent = `${fps} FPS`;
+                elements.fps.textContent = `${fps} FPS`;
+            });
+            
+            elements.bitrateSlider.addEventListener('input', (e) => {
+                const bitrate = parseInt(e.target.value);
+                elements.bitrateValue.textContent = `${bitrate} Mbps`;
+                elements.bitrate.textContent = `${bitrate} Mbps`;
+            });
+            
+            elements.systemVolumeSlider.addEventListener('input', (e) => {
+                const volume = parseInt(e.target.value) / 100;
+                elements.systemVolumeValue.textContent = `${e.target.value}%`;
+                
+                if (enhancedState.systemGainNode) {
+                    enhancedState.systemGainNode.gain.value = volume;
+                }
+            });
+            
+            elements.micVolumeSlider.addEventListener('input', (e) => {
+                const volume = parseInt(e.target.value) / 100;
+                elements.micVolumeValue.textContent = `${e.target.value}%`;
+                
+                if (enhancedState.micGainNode) {
+                    enhancedState.micGainNode.gain.value = volume;
+                }
+            });
+        }
+
         // =============== EVENT LISTENERS ===============
         function setupEventListeners() {
             // Recording controls
             elements.recordBtn.addEventListener('click', startRecording);
             elements.stopBtn.addEventListener('click', stopRecording);
             elements.downloadBtn.addEventListener('click', downloadRecording);
-            elements.cloudBtn.addEventListener('click', uploadToCloud);
+            elements.cloudBtn.addEventListener('click', () => {
+                const latestVideo = state.videos[0];
+                if (latestVideo) {
+                    showCloudServiceSelector(latestVideo.id);
+                } else {
+                    showToast('No video to upload', 'warning');
+                }
+            });
             
             // Library
             elements.startRecordingBtn.addEventListener('click', startRecording);
             elements.search.addEventListener('input', updateVideoGrid);
             elements.clearAllBtn.addEventListener('click', clearAllVideos);
             elements.syncAllBtn.addEventListener('click', syncAllVideos);
+            elements.browseDropboxBtn.addEventListener('click', listDropboxVideos);
             
             // Modal
             elements.closeModal.addEventListener('click', closeModal);
@@ -2770,7 +3982,7 @@
                 if (state.currentVideoId) downloadVideo(state.currentVideoId);
             });
             elements.modalCloudBtn.addEventListener('click', () => {
-                if (state.currentVideoId) uploadVideo(state.currentVideoId);
+                if (state.currentVideoId) showCloudServiceSelector(state.currentVideoId);
             });
             elements.modalDeleteBtn.addEventListener('click', () => {
                 if (state.currentVideoId) deleteVideo(state.currentVideoId);
@@ -2781,17 +3993,16 @@
             
             // Cloud connection
             elements.connectDriveBtn.addEventListener('click', connectDrive);
+            elements.connectDropboxBtn.addEventListener('click', connectDropbox);
             
             // Quality settings
             document.querySelectorAll('input[name="quality"]').forEach(radio => {
                 radio.addEventListener('change', function() {
-                    // Update selected class
                     document.querySelectorAll('.quality-option').forEach(option => {
                         option.classList.remove('selected');
                     });
                     this.closest('.quality-option').classList.add('selected');
                     
-                    // Update resolution display
                     const quality = this.value;
                     elements.resolution.textContent = 
                         quality === '4k' ? '4K UHD' : 
@@ -2802,7 +4013,64 @@
                 });
             });
             
-            // Handle window close during recording
+            // Default cloud service
+            document.querySelectorAll('input[name="defaultCloud"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    enhancedState.defaultCloudService = this.value;
+                    saveCloudPreference(this.value);
+                    showToast(`Default cloud service set to ${this.value === 'dropbox' ? 'Dropbox' : 'Google Drive'}`, 'info');
+                });
+            });
+            
+            // Cloud selector modal
+            elements.closeCloudSelector.addEventListener('click', () => {
+                elements.cloudSelectorModal.style.display = 'none';
+            });
+            
+            elements.cancelCloudUpload.addEventListener('click', () => {
+                elements.cloudSelectorModal.style.display = 'none';
+            });
+            
+            elements.confirmCloudUpload.addEventListener('click', () => {
+                const videoId = elements.cloudSelectorModal.dataset.videoId;
+                const selectedService = document.querySelector('.cloud-option.selected').dataset.service;
+                const rememberChoice = elements.rememberCloudChoice.checked;
+                
+                if (rememberChoice) {
+                    enhancedState.defaultCloudService = selectedService;
+                    saveCloudPreference(selectedService);
+                }
+                
+                elements.cloudSelectorModal.style.display = 'none';
+                
+                if (selectedService === 'dropbox') {
+                    uploadToDropbox(videoId);
+                } else {
+                    // Google Drive upload
+                    showToast('Google Drive upload not implemented yet', 'info');
+                }
+            });
+            
+            // Cloud option selection
+            document.querySelectorAll('.cloud-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    document.querySelectorAll('.cloud-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    option.classList.add('selected');
+                });
+            });
+            
+            // Dropbox success modal
+            elements.closeDropboxSuccess.addEventListener('click', () => {
+                elements.dropboxSuccessModal.style.display = 'none';
+            });
+            
+            elements.closeDropboxSuccessBtn.addEventListener('click', () => {
+                elements.dropboxSuccessModal.style.display = 'none';
+            });
+            
+            // Window events
             window.addEventListener('beforeunload', (e) => {
                 if (state.isRecording) {
                     e.preventDefault();
@@ -2811,7 +4079,6 @@
                 }
             });
             
-            // Handle modal close
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape' && elements.videoModal.style.display === 'flex') {
                     closeModal();
@@ -2825,7 +4092,6 @@
             });
         }
 
-        // =============== ENHANCED EVENT LISTENERS ===============
         function setupEnhancedEventListeners() {
             setupAreaSelection();
             setupPauseResume();
@@ -2837,12 +4103,10 @@
             setupSchedule();
             setupShortcutsPanel();
             
-            // Advanced settings button
             elements.settingsBtn.addEventListener('click', () => {
                 showToast('Advanced settings loaded', 'info');
             });
             
-            // Close camera selector
             elements.closeCameraSelector.addEventListener('click', () => {
                 elements.cameraSelector.style.display = 'none';
             });
@@ -2888,7 +4152,6 @@
                 elements.selectionBox.style.left = (width < 0 ? currentX : startX) + 'px';
                 elements.selectionBox.style.top = (height < 0 ? currentY : startY) + 'px';
                 
-                // Update info
                 const selectionWidth = Math.abs(width);
                 const selectionHeight = Math.abs(height);
                 elements.selectionInfo.textContent = `${selectionWidth}x${selectionHeight}`;
@@ -2908,7 +4171,6 @@
                 const width = Math.abs(endX - startX);
                 const height = Math.abs(endY - startY);
                 
-                // Ensure minimum size
                 if (width < 100 || height < 100) {
                     showToast('Selection too small. Minimum 100x100 pixels.', 'warning');
                     return;
@@ -2917,18 +4179,15 @@
                 enhancedState.selectedArea = { x, y, width, height };
                 enhancedState.recordingMode = 'area';
                 
-                // Update UI
                 elements.areaStatus.textContent = `${width}x${height}`;
                 elements.areaRecordBtn.classList.add('active');
                 
-                // Hide selector
                 enhancedState.isAreaSelecting = false;
                 elements.areaSelector.style.display = 'none';
                 
                 showToast(`Area selected: ${width}x${height}`, 'success');
             });
 
-            // Cancel area selection with ESC
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape' && enhancedState.isAreaSelecting) {
                     enhancedState.isAreaSelecting = false;
@@ -2944,14 +4203,12 @@
                 if (!state.mediaRecorder || !state.isRecording) return;
                 
                 if (enhancedState.isPaused) {
-                    // Resume recording
                     state.mediaRecorder.resume();
                     enhancedState.isPaused = false;
                     elements.pauseBtn.innerHTML = '<i class="fas fa-pause"></i> PAUSE';
                     elements.pauseBtn.style.background = 'var(--warning)';
                     showToast('Recording resumed', 'info');
                     
-                    // Resume timer
                     if (state.timerInterval) {
                         clearInterval(state.timerInterval);
                         state.timerInterval = null;
@@ -2960,14 +4217,12 @@
                     startTimer();
                     
                 } else {
-                    // Pause recording
                     state.mediaRecorder.pause();
                     enhancedState.isPaused = true;
                     elements.pauseBtn.innerHTML = '<i class="fas fa-play"></i> RESUME';
                     elements.pauseBtn.style.background = 'var(--success)';
                     showToast('Recording paused', 'info');
                     
-                    // Pause timer
                     if (state.timerInterval) {
                         clearInterval(state.timerInterval);
                         state.timerInterval = null;
@@ -2982,7 +4237,6 @@
             elements.screenshotBtn.addEventListener('click', async () => {
                 try {
                     if (!state.currentStream) {
-                        // Request screen capture for screenshot only
                         const stream = await navigator.mediaDevices.getDisplayMedia({
                             video: true
                         });
@@ -2991,7 +4245,6 @@
                         const imageCapture = new ImageCapture(track);
                         const bitmap = await imageCapture.grabFrame();
                         
-                        // Convert to blob
                         const canvas = document.createElement('canvas');
                         canvas.width = bitmap.width;
                         canvas.height = bitmap.height;
@@ -2999,7 +4252,6 @@
                         ctx.drawImage(bitmap, 0, 0);
                         
                         canvas.toBlob(async (blob) => {
-                            // Save screenshot
                             const screenshotData = {
                                 id: Date.now().toString(),
                                 title: `Screenshot_${formatDateForFilename()}`,
@@ -3011,10 +4263,8 @@
                                 height: bitmap.height
                             };
                             
-                            // Save to IndexedDB
                             await saveScreenshotToDB(screenshotData);
                             
-                            // Create download link
                             const url = URL.createObjectURL(blob);
                             const a = document.createElement('a');
                             a.href = url;
@@ -3028,11 +4278,9 @@
                             showToast(`Screenshot saved! (${formatFileSize(blob.size)})`, 'success');
                         }, 'image/png');
                         
-                        // Stop the track
                         track.stop();
                         
                     } else {
-                        // Take screenshot from current stream
                         const video = elements.preview;
                         const canvas = document.createElement('canvas');
                         canvas.width = video.videoWidth;
@@ -3041,7 +4289,6 @@
                         ctx.drawImage(video, 0, 0);
                         
                         canvas.toBlob(async (blob) => {
-                            // Save screenshot
                             const screenshotData = {
                                 id: Date.now().toString(),
                                 title: `Screenshot_${formatDateForFilename()}`,
@@ -3053,10 +4300,8 @@
                                 height: video.videoHeight
                             };
                             
-                            // Save to IndexedDB
                             await saveScreenshotToDB(screenshotData);
                             
-                            // Create download link
                             const url = URL.createObjectURL(blob);
                             const a = document.createElement('a');
                             a.href = url;
@@ -3094,7 +4339,6 @@
                 }
             });
 
-            // Tool selection
             document.querySelectorAll('.annotation-tool[data-tool]').forEach(btn => {
                 btn.addEventListener('click', () => {
                     document.querySelectorAll('.annotation-tool').forEach(b => {
@@ -3105,7 +4349,6 @@
                 });
             });
 
-            // Clear annotations
             document.getElementById('clearAnnotations').addEventListener('click', () => {
                 enhancedState.annotationCtx.clearRect(0, 0, 
                     enhancedState.annotationCanvas.width, 
@@ -3114,7 +4357,6 @@
                 enhancedState.annotationHistory = [];
             });
 
-            // Hide annotations
             document.getElementById('hideAnnotations').addEventListener('click', () => {
                 enhancedState.isAnnotating = false;
                 elements.annotationTools.style.display = 'none';
@@ -3122,7 +4364,6 @@
                 elements.annotateBtn.querySelector('.status').textContent = 'Off';
             });
 
-            // Drawing logic
             enhancedState.annotationCanvas.addEventListener('mousedown', (e) => {
                 if (!enhancedState.isAnnotating) return;
                 
@@ -3180,7 +4421,6 @@
                 enhancedState.annotationCtx.closePath();
                 enhancedState.annotationCtx.globalCompositeOperation = 'source-over';
                 
-                // Save stroke to history
                 if (enhancedState.currentStroke.length > 0) {
                     enhancedState.annotationHistory.push({
                         tool: enhancedState.currentTool,
@@ -3190,48 +4430,12 @@
                     });
                 }
             });
-
-            // Touch support
-            enhancedState.annotationCanvas.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                if (!enhancedState.isAnnotating) return;
-                
-                const touch = e.touches[0];
-                const rect = enhancedState.annotationCanvas.getBoundingClientRect();
-                [enhancedState.lastX, enhancedState.lastY] = [touch.clientX - rect.left, touch.clientY - rect.top];
-                
-                enhancedState.isDrawing = true;
-                enhancedState.annotationCtx.beginPath();
-                enhancedState.annotationCtx.moveTo(enhancedState.lastX, enhancedState.lastY);
-            });
-
-            enhancedState.annotationCanvas.addEventListener('touchmove', (e) => {
-                e.preventDefault();
-                if (!enhancedState.isDrawing || !enhancedState.isAnnotating) return;
-                
-                const touch = e.touches[0];
-                const rect = enhancedState.annotationCanvas.getBoundingClientRect();
-                const x = touch.clientX - rect.left;
-                const y = touch.clientY - rect.top;
-                
-                enhancedState.annotationCtx.lineTo(x, y);
-                enhancedState.annotationCtx.stroke();
-                [enhancedState.lastX, enhancedState.lastY] = [x, y];
-            });
-
-            enhancedState.annotationCanvas.addEventListener('touchend', () => {
-                if (!enhancedState.isDrawing) return;
-                
-                enhancedState.isDrawing = false;
-                enhancedState.annotationCtx.closePath();
-            });
         }
 
-        // =============== WEBCAM OVERLAY ===============
+        // =============== WEBCAM ===============
         async function setupWebcam() {
             elements.webcamBtn.addEventListener('click', async () => {
                 if (enhancedState.isWebcamActive) {
-                    // Turn off webcam
                     if (enhancedState.webcamStream) {
                         enhancedState.webcamStream.getTracks().forEach(track => track.stop());
                         enhancedState.webcamStream = null;
@@ -3244,14 +4448,12 @@
                     
                     showToast('Webcam turned off', 'info');
                 } else {
-                    // Show camera selector
                     await showCameraSelector();
                 }
             });
 
             elements.toggleWebcam.addEventListener('click', async () => {
                 if (enhancedState.isWebcamActive) {
-                    // Pause/resume webcam
                     const videoTrack = enhancedState.webcamStream.getVideoTracks()[0];
                     if (videoTrack.enabled) {
                         videoTrack.enabled = false;
@@ -3276,29 +4478,6 @@
                 elements.webcamBtn.classList.remove('active');
                 showToast('Webcam removed', 'info');
             });
-        }
-
-        async function loadWebcamDevices() {
-            try {
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                enhancedState.webcamDevices = devices.filter(device => 
-                    device.kind === 'videoinput'
-                );
-                
-                // Store in IndexedDB
-                const transaction = state.db.transaction(['settings'], 'readwrite');
-                const store = transaction.objectStore('settings');
-                store.put({ 
-                    key: 'webcamDevices', 
-                    value: enhancedState.webcamDevices.map(d => ({
-                        deviceId: d.deviceId,
-                        label: d.label || `Camera ${enhancedState.webcamDevices.indexOf(d) + 1}`
-                    }))
-                });
-                
-            } catch (error) {
-                console.warn('Could not load webcam devices:', error);
-            }
         }
 
         async function showCameraSelector() {
@@ -3369,12 +4548,10 @@
                 }
             });
 
-            // Watermark editor controls
             elements.watermarkText.addEventListener('input', updateWatermarkPreview);
             elements.watermarkSize.addEventListener('input', updateWatermarkPreview);
             elements.watermarkOpacity.addEventListener('input', updateWatermarkPreview);
             
-            // Position buttons
             document.querySelectorAll('[data-position]').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     enhancedState.watermark.position = e.target.dataset.position;
@@ -3382,7 +4559,6 @@
                 });
             });
             
-            // Apply watermark
             elements.applyWatermark.addEventListener('click', () => {
                 enhancedState.watermark.enabled = true;
                 enhancedState.isWatermarkEnabled = true;
@@ -3391,13 +4567,11 @@
                 elements.watermarkBtn.querySelector('.status').textContent = 'On';
                 elements.watermarkEditor.style.display = 'none';
                 
-                // Save to IndexedDB
                 saveWatermarkSettings();
                 
                 showToast('Watermark applied', 'success');
             });
             
-            // Cancel watermark
             elements.cancelWatermark.addEventListener('click', () => {
                 elements.watermarkEditor.style.display = 'none';
                 enhancedState.isWatermarkEnabled = false;
@@ -3405,7 +4579,6 @@
         }
 
         function showWatermarkEditor() {
-            // Load saved settings
             elements.watermarkText.value = enhancedState.watermark.text;
             elements.watermarkSize.value = enhancedState.watermark.size;
             elements.watermarkOpacity.value = enhancedState.watermark.opacity * 100;
@@ -3426,7 +4599,6 @@
             elements.watermarkTextPreview.style.fontSize = `${size}px`;
             elements.watermarkTextPreview.style.opacity = opacity;
             
-            // Set position
             elements.watermarkTextPreview.style.position = 'absolute';
             elements.watermarkTextPreview.style.margin = '20px';
             
@@ -3450,41 +4622,7 @@
             }
         }
 
-        async function loadWatermarkSettings() {
-            try {
-                const transaction = state.db.transaction(['settings'], 'readonly');
-                const store = transaction.objectStore('settings');
-                const request = store.get('watermark');
-                
-                request.onsuccess = () => {
-                    if (request.result) {
-                        enhancedState.watermark = { ...enhancedState.watermark, ...request.result.value };
-                        if (enhancedState.watermark.enabled) {
-                            enhancedState.isWatermarkEnabled = true;
-                            elements.watermarkBtn.classList.add('active');
-                            elements.watermarkBtn.querySelector('.status').textContent = 'On';
-                        }
-                    }
-                };
-            } catch (error) {
-                console.warn('Could not load watermark settings:', error);
-            }
-        }
-
-        async function saveWatermarkSettings() {
-            try {
-                const transaction = state.db.transaction(['settings'], 'readwrite');
-                const store = transaction.objectStore('settings');
-                store.put({ 
-                    key: 'watermark', 
-                    value: enhancedState.watermark 
-                });
-            } catch (error) {
-                console.warn('Could not save watermark settings:', error);
-            }
-        }
-
-        // =============== COUNTDOWN TIMER ===============
+        // =============== COUNTDOWN ===============
         function setupCountdown() {
             elements.timerBtn.addEventListener('click', () => {
                 if (state.isRecording) {
@@ -3527,7 +4665,7 @@
             }, 1000);
         }
 
-        // =============== SCHEDULED RECORDING ===============
+        // =============== SCHEDULE ===============
         function setupSchedule() {
             elements.scheduleBtn.addEventListener('click', () => {
                 elements.scheduleEditor.style.display = 'flex';
@@ -3561,7 +4699,7 @@
                 
                 enhancedState.scheduledRecording = {
                     time: scheduledTime.getTime(),
-                    duration: duration * 60 * 1000, // Convert to milliseconds
+                    duration: duration * 60 * 1000,
                     active: true
                 };
                 
@@ -3569,7 +4707,6 @@
                 elements.scheduleBtn.querySelector('.status').textContent = 'On';
                 elements.scheduleEditor.style.display = 'none';
                 
-                // Start schedule check
                 checkSchedule();
                 
                 showToast(`Recording scheduled for ${scheduledTime.toLocaleString()} (${duration} minutes)`, 'success');
@@ -3582,11 +4719,9 @@
             const now = Date.now();
             
             if (now >= enhancedState.scheduledRecording.time) {
-                // Time to start recording
                 enhancedState.scheduledRecording.active = false;
                 startRecording();
                 
-                // Schedule stop
                 setTimeout(() => {
                     if (state.isRecording) {
                         stopRecording();
@@ -3594,17 +4729,15 @@
                     }
                 }, enhancedState.scheduledRecording.duration);
                 
-                // Clear schedule
                 enhancedState.scheduledRecording = null;
                 elements.scheduleBtn.classList.remove('active');
                 elements.scheduleBtn.querySelector('.status').textContent = 'Off';
             } else {
-                // Check again in 1 second
                 setTimeout(checkSchedule, 1000);
             }
         }
 
-        // =============== KEYBOARD SHORTCUTS PANEL ===============
+        // =============== SHORTCUTS ===============
         function setupShortcutsPanel() {
             elements.shortcutsBtn.addEventListener('click', () => {
                 elements.shortcutsPanel.style.display = 'flex';
@@ -3621,129 +4754,7 @@
             });
         }
 
-        // =============== PERFORMANCE MONITORING ===============
-        function setupPerformanceMonitoring() {
-            // Update FPS counter
-            function updateFPS() {
-                enhancedState.frameCount++;
-                const now = Date.now();
-                
-                if (now - enhancedState.lastFPSUpdate >= 1000) {
-                    enhancedState.liveFPS = enhancedState.frameCount;
-                    enhancedState.frameCount = 0;
-                    enhancedState.lastFPSUpdate = now;
-                    
-                    // Update UI
-                    if (state.isRecording) {
-                        elements.liveIndicators.style.display = 'flex';
-                        elements.fpsLive.textContent = `${enhancedState.liveFPS} FPS`;
-                    }
-                }
-                
-                if (state.isRecording) {
-                    requestAnimationFrame(updateFPS);
-                }
-            }
-            
-            // Start FPS counter when recording starts
-            const originalStartRecording = startRecording;
-            window.startRecording = async function() {
-                await originalStartRecording.apply(this, arguments);
-                if (state.isRecording) {
-                    enhancedState.lastFPSUpdate = Date.now();
-                    updateFPS();
-                }
-            };
-            
-            // Monitor CPU and memory usage (approximate)
-            enhancedState.performanceMonitor = setInterval(() => {
-                if (state.isRecording) {
-                    // Approximate CPU usage
-                    if (enhancedState.lastCpuTime) {
-                        const timeDiff = Date.now() - enhancedState.lastCpuTime;
-                        const cpuLoad = Math.min(100, Math.random() * 30 + (state.recordedChunks.length / 1000));
-                        enhancedState.cpuUsage = cpuLoad.toFixed(1);
-                        
-                        elements.cpuStat.textContent = `${enhancedState.cpuUsage}%`;
-                        elements.cpuUsage.textContent = `CPU: ${enhancedState.cpuUsage}%`;
-                    }
-                    enhancedState.lastCpuTime = Date.now();
-                    
-                    // Approximate memory usage
-                    const memory = performance.memory;
-                    if (memory) {
-                        const usedMB = Math.round(memory.usedJSHeapSize / 1024 / 1024);
-                        const totalMB = Math.round(memory.totalJSHeapSize / 1024 / 1024);
-                        
-                        enhancedState.memoryUsage = usedMB;
-                        elements.memoryStat.textContent = `${usedMB} MB`;
-                        elements.memoryUsage.textContent = `MEM: ${usedMB}MB`;
-                    }
-                }
-            }, 2000);
-        }
-
-        // =============== AUDIO CONTEXT FOR VOLUME CONTROL ===============
-        function setupAudioContext() {
-            try {
-                enhancedState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                enhancedState.systemGainNode = enhancedState.audioContext.createGain();
-                enhancedState.micGainNode = enhancedState.audioContext.createGain();
-                enhancedState.audioDestination = enhancedState.audioContext.createMediaStreamDestination();
-                
-                // Connect gain nodes to destination
-                enhancedState.systemGainNode.connect(enhancedState.audioDestination);
-                enhancedState.micGainNode.connect(enhancedState.audioDestination);
-                
-                // Set initial volumes
-                enhancedState.systemGainNode.gain.value = 1.0; // 100%
-                enhancedState.micGainNode.gain.value = 0.8;   // 80%
-                
-            } catch (error) {
-                console.warn('Audio context not supported:', error);
-            }
-        }
-
-        // =============== SLIDER CONTROLS ===============
-        function setupSliders() {
-            // FPS Slider
-            elements.fpsSlider.addEventListener('input', (e) => {
-                const fps = parseInt(e.target.value);
-                elements.fpsValue.textContent = `${fps} FPS`;
-                elements.fps.textContent = `${fps} FPS`;
-            });
-            
-            // Bitrate Slider
-            elements.bitrateSlider.addEventListener('input', (e) => {
-                const bitrate = parseInt(e.target.value);
-                elements.bitrateValue.textContent = `${bitrate} Mbps`;
-                elements.bitrate.textContent = `${bitrate} Mbps`;
-            });
-            
-            // System Volume Slider
-            elements.systemVolumeSlider.addEventListener('input', (e) => {
-                const volume = parseInt(e.target.value) / 100;
-                elements.systemVolumeValue.textContent = `${e.target.value}%`;
-                
-                if (enhancedState.systemGainNode) {
-                    enhancedState.systemGainNode.gain.value = volume;
-                }
-            });
-            
-            // Microphone Volume Slider
-            elements.micVolumeSlider.addEventListener('input', (e) => {
-                const volume = parseInt(e.target.value) / 100;
-                elements.micVolumeValue.textContent = `${e.target.value}%`;
-                
-                if (enhancedState.micGainNode) {
-                    enhancedState.micGainNode.gain.value = volume;
-                }
-            });
-        }
-
-        // =============== ENHANCED SHORTCUTS ===============
         function setupEnhancedShortcuts() {
-            // Ctrl+R: Start/Stop recording
             shortcut.add("Ctrl+R", (e) => {
                 e.preventDefault();
                 if (state.isRecording) {
@@ -3753,7 +4764,6 @@
                 }
             });
             
-            // Ctrl+P: Pause/Resume recording
             shortcut.add("Ctrl+P", (e) => {
                 e.preventDefault();
                 if (state.isRecording) {
@@ -3761,47 +4771,48 @@
                 }
             });
             
-            // Ctrl+S: Take screenshot
             shortcut.add("Ctrl+S", (e) => {
                 e.preventDefault();
                 elements.screenshotBtn.click();
             });
             
-            // F1: Toggle annotation tools
             shortcut.add("f1", (e) => {
                 e.preventDefault();
                 elements.annotateBtn.click();
             });
             
-            // Ctrl+W: Toggle webcam
             shortcut.add("Ctrl+W", (e) => {
                 e.preventDefault();
                 elements.webcamBtn.click();
             });
             
-            // Ctrl+M: Toggle watermark
             shortcut.add("Ctrl+M", (e) => {
                 e.preventDefault();
                 elements.watermarkBtn.click();
             });
             
-            // Ctrl+T: Toggle timer
             shortcut.add("Ctrl+T", (e) => {
                 e.preventDefault();
                 elements.timerBtn.click();
             });
             
-            // Ctrl+K: Show shortcuts
             shortcut.add("Ctrl+K", (e) => {
                 e.preventDefault();
                 elements.shortcutsPanel.style.display = 'flex';
+            });
+            
+            shortcut.add("Ctrl+Shift+D", (e) => {
+                e.preventDefault();
+                const latestVideo = state.videos[0];
+                if (latestVideo && enhancedState.dropboxClient) {
+                    uploadToDropbox(latestVideo.id);
+                }
             });
         }
 
         // =============== RECORDING FUNCTIONS ===============
         async function startRecording() {
             try {
-                // Start countdown if enabled
                 if (enhancedState.isCountdownActive) {
                     await new Promise(resolve => {
                         startCountdown(resolve);
@@ -3810,21 +4821,18 @@
                 
                 showLoading('Preparing to record...');
                 
-                // Get settings
                 const quality = document.querySelector('input[name="quality"]:checked').value;
                 const audioSettings = {
                     system: document.getElementById('audio').checked,
                     mic: document.getElementById('mic').checked
                 };
                 
-                // Check storage space
                 if (state.storageUsed > CONFIG.MAX_STORAGE * 0.9) {
                     hideLoading();
                     showToast('Storage almost full! Please delete some videos before recording.', 'error');
                     return;
                 }
                 
-                // Request screen capture
                 let displayConstraints = {
                     video: {
                         width: { ideal: getResolutionWidth(quality) },
@@ -3834,7 +4842,6 @@
                     audio: audioSettings.system
                 };
                 
-                // Apply area selection if enabled
                 if (enhancedState.recordingMode === 'area' && enhancedState.selectedArea) {
                     displayConstraints.video = {
                         ...displayConstraints.video,
@@ -3847,7 +4854,6 @@
                 
                 let finalStream = displayStream;
                 
-                // Add microphone audio if enabled
                 if (audioSettings.mic) {
                     try {
                         const micStream = await navigator.mediaDevices.getUserMedia({ 
@@ -3858,33 +4864,27 @@
                             }
                         });
                         
-                        // Combine audio streams using AudioContext
                         if (enhancedState.audioContext) {
                             const destination = enhancedState.audioContext.createMediaStreamDestination();
                             
-                            // Add display audio
                             if (displayStream.getAudioTracks().length > 0) {
                                 const displayAudio = enhancedState.audioContext.createMediaStreamSource(displayStream);
                                 displayAudio.connect(enhancedState.systemGainNode);
                                 enhancedState.systemGainNode.connect(destination);
                             }
                             
-                            // Add microphone audio
                             const micAudio = enhancedState.audioContext.createMediaStreamSource(micStream);
                             micAudio.connect(enhancedState.micGainNode);
                             enhancedState.micGainNode.connect(destination);
                             
-                            // Get combined audio track
                             const combinedAudio = destination.stream;
                             
-                            // Combine with video
                             const videoTrack = displayStream.getVideoTracks()[0];
                             finalStream = new MediaStream([
                                 videoTrack,
                                 ...combinedAudio.getAudioTracks()
                             ]);
                         } else {
-                            // Fallback: simple track combination
                             const videoTrack = displayStream.getVideoTracks()[0];
                             finalStream = new MediaStream([
                                 videoTrack,
@@ -3903,14 +4903,12 @@
                 state.recordedChunks = [];
                 state.recordingStartTime = Date.now();
                 
-                // Show preview
                 elements.preview.srcObject = finalStream;
                 elements.preview.style.display = 'block';
                 elements.videoOverlay.style.display = 'none';
                 
-                // Setup MediaRecorder with optimized settings
                 const mimeType = getMimeType(quality);
-                const bitrate = getBitrate(quality) * 1000000; // Convert Mbps to bps
+                const bitrate = getBitrate(quality) * 1000000;
                 
                 const options = { 
                     mimeType: mimeType,
@@ -3918,10 +4916,8 @@
                     audioBitsPerSecond: 128000
                 };
                 
-                // Try to use hardware acceleration if enabled
                 if (document.getElementById('enableHardwareAcceleration').checked) {
                     try {
-                        // Try different codecs for better hardware acceleration
                         const codecs = [
                             'video/webm;codecs=vp9,opus',
                             'video/webm;codecs=vp8,opus',
@@ -3941,13 +4937,11 @@
                 
                 state.mediaRecorder = new MediaRecorder(finalStream, options);
                 
-                // Handle data in chunks to prevent memory issues
                 state.mediaRecorder.ondataavailable = (event) => {
                     if (event.data.size > 0) {
                         state.recordedChunks.push(event.data);
                         updateFileSize();
                         
-                        // Check file size limit
                         const totalSize = state.recordedChunks.reduce((sum, chunk) => sum + chunk.size, 0);
                         if (totalSize > CONFIG.MAX_FILE_SIZE) {
                             showToast('File size limit reached (2GB). Stopping recording.', 'warning');
@@ -3956,7 +4950,6 @@
                     }
                 };
                 
-                // Handle stop
                 state.mediaRecorder.onstop = async () => {
                     try {
                         if (state.recordedChunks.length === 0) {
@@ -3967,7 +4960,6 @@
                             type: options.mimeType 
                         });
                         
-                        // Check final file size
                         if (blob.size > CONFIG.MAX_FILE_SIZE) {
                             showToast('File too large (max 2GB). Recording discarded.', 'error');
                             cleanupRecording();
@@ -3976,10 +4968,8 @@
                         
                         showProgress('Saving recording...');
                         
-                        // Create thumbnail
                         const thumbnail = await createThumbnail(blob);
                         
-                        // Create video metadata
                         const duration = Math.floor((Date.now() - state.recordingStartTime) / 1000);
                         const size = blob.size;
                         
@@ -4001,29 +4991,33 @@
                             selectedArea: enhancedState.selectedArea
                         };
                         
-                        // Save to IndexedDB
                         const videoId = await saveVideoToDB(videoData);
                         videoData.id = videoId;
                         
-                        // Update state
                         state.videos.unshift(videoData);
                         updateVideoGrid();
                         await updateStorageUsage();
                         
-                        // Enable buttons
                         elements.downloadBtn.disabled = false;
                         elements.cloudBtn.disabled = false;
                         
-                        // Update stats
                         elements.timer.textContent = formatTime(duration);
                         elements.fileSize.textContent = formatFileSize(size);
                         
                         hideProgress();
                         showToast(`Recording saved! (${formatFileSize(size)})`, 'success');
                         
-                        // Auto upload to cloud if enabled
-                        if (document.getElementById('autoCloud').checked && state.isCloudConnected) {
-                            setTimeout(() => uploadToCloud(), 1000);
+                        if (document.getElementById('autoCloud').checked) {
+                            setTimeout(() => {
+                                const latestVideo = state.videos[0];
+                                if (latestVideo) {
+                                    if (enhancedState.defaultCloudService === 'dropbox' && enhancedState.dropboxClient) {
+                                        uploadToDropbox(latestVideo.id);
+                                    } else if (state.isCloudConnected) {
+                                        // Google Drive auto upload
+                                    }
+                                }
+                            }, 1000);
                         }
                         
                     } catch (error) {
@@ -4035,14 +5029,11 @@
                     }
                 };
                 
-                // Start recording with large time slices for better performance
                 const timeSlice = document.getElementById('largeFileSupport').checked ? 5000 : 1000;
                 state.mediaRecorder.start(timeSlice);
                 
-                // Start timer
                 startTimer();
                 
-                // Update UI
                 state.isRecording = true;
                 elements.recordBtn.disabled = true;
                 elements.stopBtn.disabled = false;
@@ -4052,7 +5043,6 @@
                 hideLoading();
                 showToast(`Recording started in ${quality}`, 'success');
                 
-                // Handle stream end
                 finalStream.getVideoTracks()[0].onended = () => {
                     if (state.isRecording) {
                         stopRecording();
@@ -4156,16 +5146,13 @@
                 
                 video.addEventListener('seeked', () => {
                     try {
-                        // Set canvas size
                         const width = 320;
                         const height = (video.videoHeight / video.videoWidth) * width;
                         canvas.width = width;
                         canvas.height = height;
                         
-                        // Draw video frame
                         ctx.drawImage(video, 0, 0, width, height);
                         
-                        // Get thumbnail as data URL
                         const thumbnail = canvas.toDataURL('image/jpeg', 0.7);
                         URL.revokeObjectURL(video.src);
                         resolve(thumbnail);
@@ -4175,7 +5162,6 @@
                     }
                 });
                 
-                // Fallback if video doesn't load
                 setTimeout(() => {
                     if (video.src) {
                         URL.revokeObjectURL(video.src);
@@ -4205,7 +5191,6 @@
             
             elements.emptyLibrary.style.display = 'none';
             
-            // Create video cards with lazy loading
             filteredVideos.forEach(video => {
                 const card = createVideoCard(video);
                 elements.videoGrid.appendChild(card);
@@ -4220,7 +5205,7 @@
             const duration = formatTime(video.duration);
             const size = formatFileSize(video.size);
             const date = formatDate(video.date);
-            const isLarge = video.size > 500 * 1024 * 1024; // 500MB+
+            const isLarge = video.size > 500 * 1024 * 1024;
             const isScreenshot = video.type === 'screenshot';
             
             card.innerHTML = `
@@ -4233,19 +5218,21 @@
                         ${duration}
                     </div>
                     ${video.isCloud ? 
-                        '<div style="position: absolute; top: 10px; left: 10px; background: rgba(59, 130, 246, 0.8); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.8rem;"><i class="fas fa-cloud"></i></div>' : 
+                        `<div style="position: absolute; top: 10px; left: 10px; background: ${video.cloudService === 'dropbox' ? 'rgba(0, 97, 255, 0.8)' : 'rgba(59, 130, 246, 0.8)'}; padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.7rem;">
+                            <i class="fab fa-${video.cloudService === 'dropbox' ? 'dropbox' : 'google-drive'}"></i>
+                        </div>` : 
                         ''
                     }
                     ${video.audioMic ? 
-                        '<div style="position: absolute; top: 10px; right: 10px; background: rgba(16, 185, 129, 0.8); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.8rem;"><i class="fas fa-microphone"></i></div>' : 
+                        '<div style="position: absolute; top: 10px; right: 10px; background: rgba(16, 185, 129, 0.8); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.7rem;"><i class="fas fa-microphone"></i></div>' : 
                         ''
                     }
                     ${isLarge ? 
-                        '<div style="position: absolute; bottom: 10px; left: 10px; background: rgba(245, 158, 11, 0.8); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.8rem;"><i class="fas fa-hdd"></i> Large</div>' : 
+                        '<div style="position: absolute; bottom: 10px; left: 10px; background: rgba(245, 158, 11, 0.8); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.7rem;"><i class="fas fa-hdd"></i> Large</div>' : 
                         ''
                     }
                     ${isScreenshot ? 
-                        '<div style="position: absolute; top: 10px; left: 10px; background: rgba(236, 72, 153, 0.8); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.8rem;"><i class="fas fa-camera"></i></div>' : 
+                        '<div style="position: absolute; top: 10px; left: 10px; background: rgba(236, 72, 153, 0.8); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.7rem;"><i class="fas fa-camera"></i></div>' : 
                         ''
                     }
                 </div>
@@ -4270,13 +5257,12 @@
                 </div>
             `;
             
-            // Add event listeners
             const playBtn = card.querySelector('.play-btn');
             const cloudBtn = card.querySelector('.cloud-btn');
             const deleteBtn = card.querySelector('.delete-btn');
             
             playBtn.addEventListener('click', () => isScreenshot ? viewScreenshot(video.id) : playVideo(video.id));
-            cloudBtn.addEventListener('click', () => uploadVideo(video.id));
+            cloudBtn.addEventListener('click', () => showCloudServiceSelector(video.id));
             deleteBtn.addEventListener('click', () => deleteVideo(video.id));
             
             return card;
@@ -4294,23 +5280,20 @@
             showProgress('Loading video...');
             
             try {
-                // Get blob from video data
                 const blob = video.blob;
                 if (!blob) {
                     throw new Error('Video data not found');
                 }
                 
-                // Create object URL for the blob
                 const videoUrl = URL.createObjectURL(blob);
                 
-                // Set up modal video player
                 elements.modalVideo.src = videoUrl;
                 elements.modalVideoTitle.textContent = video.title;
                 
-                // Set video info
                 const qualityLabel = getQualityLabel(video.quality);
                 const bitrate = video.bitrate ? formatFileSize(video.bitrate / 8) + '/s' : 'N/A';
                 const recordingMode = video.recordingMode === 'area' ? 'Selected Area' : 'Full Screen';
+                const cloudService = video.cloudService === 'dropbox' ? 'Dropbox' : 'Google Drive';
                 
                 elements.modalInfo.innerHTML = `
                     <h3 style="margin-bottom: 15px;">${video.title}</h3>
@@ -4319,7 +5302,7 @@
                         <div><i class="fas fa-clock"></i> <strong>Duration:</strong> ${formatTime(video.duration)}</div>
                         <div><i class="fas fa-file-alt"></i> <strong>Size:</strong> ${formatFileSize(video.size)}</div>
                         <div><i class="fas fa-calendar"></i> <strong>Date:</strong> ${formatDate(video.date)}</div>
-                        <div><i class="fas fa-cloud"></i> <strong>Status:</strong> ${video.isCloud ? 'Uploaded to Cloud' : 'Local Only'}</div>
+                        <div><i class="fas fa-cloud"></i> <strong>Cloud:</strong> ${video.isCloud ? `Uploaded to ${cloudService}` : 'Local Only'}</div>
                         <div><i class="fas fa-microphone"></i> <strong>Audio:</strong> ${video.audioMic ? 'System + Microphone' : 'System Only'}</div>
                         <div><i class="fas fa-bolt"></i> <strong>Bitrate:</strong> ${bitrate}</div>
                         <div><i class="fas fa-code"></i> <strong>Format:</strong> ${video.mimeType || 'webm'}</div>
@@ -4327,11 +5310,9 @@
                     </div>
                 `;
                 
-                // Show modal
                 elements.videoModal.style.display = 'flex';
                 hideProgress();
                 
-                // Play video automatically
                 const playPromise = elements.modalVideo.play();
                 if (playPromise !== undefined) {
                     playPromise.catch(e => {
@@ -4339,12 +5320,10 @@
                     });
                 }
                 
-                // Clean up URL when modal closes
                 elements.modalVideo.onended = () => {
                     URL.revokeObjectURL(videoUrl);
                 };
                 
-                // Also clean up on modal close
                 const closeHandler = () => {
                     if (elements.modalVideo.src) {
                         URL.revokeObjectURL(elements.modalVideo.src);
@@ -4372,7 +5351,6 @@
                 const blob = screenshot.blob;
                 const url = URL.createObjectURL(blob);
                 
-                // Create a modal for screenshot
                 const modal = document.createElement('div');
                 modal.className = 'modal';
                 modal.style.display = 'flex';
@@ -4408,7 +5386,6 @@
                 document.body.appendChild(modal);
                 hideProgress();
                 
-                // Add event listeners
                 const closeBtn = modal.querySelector('#closeScreenshotModal');
                 const downloadBtn = modal.querySelector('#downloadScreenshotBtn');
                 const deleteBtn = modal.querySelector('#deleteScreenshotBtn');
@@ -4435,7 +5412,6 @@
                     }
                 });
                 
-                // Close modal on background click
                 modal.addEventListener('click', (e) => {
                     if (e.target === modal) {
                         document.body.removeChild(modal);
@@ -4452,7 +5428,6 @@
         function closeModal() {
             elements.videoModal.style.display = 'none';
             
-            // Pause video and reset
             if (elements.modalVideo.src) {
                 elements.modalVideo.pause();
                 elements.modalVideo.currentTime = 0;
@@ -4485,8 +5460,7 @@
                 return;
             }
             
-            // For large files, show progress
-            if (video.size > 100 * 1024 * 1024) { // > 100MB
+            if (video.size > 100 * 1024 * 1024) {
                 showProgress('Preparing download...');
             }
             
@@ -4501,7 +5475,6 @@
                 a.click();
                 document.body.removeChild(a);
                 
-                // Clean up
                 setTimeout(() => {
                     URL.revokeObjectURL(url);
                     if (video.size > 100 * 1024 * 1024) {
@@ -4527,74 +5500,7 @@
                 return;
             }
             
-            if (!state.isCloudConnected) {
-                showToast('Please connect to Google Drive first', 'warning');
-                return;
-            }
-            
-            uploadVideo(latestVideo.id);
-        }
-
-        async function uploadVideo(videoId) {
-            const video = state.videos.find(v => v.id === videoId);
-            if (!video) {
-                showToast('Video not found', 'error');
-                return;
-            }
-            
-            if (video.isCloud) {
-                showToast('Video already uploaded to cloud', 'info');
-                return;
-            }
-            
-            // Show progress for large files
-            const isLargeFile = video.size > 100 * 1024 * 1024;
-            showProgress(isLargeFile ? 'Uploading large file to cloud...' : 'Uploading to cloud...');
-            
-            try {
-                // Simulate upload with progress
-                let progress = 0;
-                const totalChunks = Math.ceil(video.size / CONFIG.CHUNK_SIZE);
-                let uploadedChunks = 0;
-                
-                const uploadInterval = setInterval(() => {
-                    uploadedChunks++;
-                    progress = Math.min(100, (uploadedChunks / totalChunks) * 100);
-                    
-                    updateProgress(
-                        progress,
-                        isLargeFile ? 
-                            `Uploading ${formatFileSize((video.size * progress) / 100)} of ${formatFileSize(video.size)}` :
-                            `Uploading... ${Math.round(progress)}%`
-                    );
-                    
-                    if (progress >= 100) {
-                        clearInterval(uploadInterval);
-                        
-                        // Update video status
-                        video.isCloud = true;
-                        updateVideoInDB(video.id, { isCloud: true });
-                        
-                        // Update UI
-                        updateVideoGrid();
-                        
-                        // Close modal if open
-                        if (state.currentVideoId === videoId) {
-                            closeModal();
-                        }
-                        
-                        setTimeout(() => {
-                            hideProgress();
-                            showToast(`Video uploaded to cloud! (${formatFileSize(video.size)})`, 'success');
-                        }, 500);
-                    }
-                }, isLargeFile ? 200 : 100);
-                
-            } catch (error) {
-                hideProgress();
-                showToast('Upload failed: ' + error.message, 'error');
-                console.error('Upload error:', error);
-            }
+            showCloudServiceSelector(latestVideo.id);
         }
 
         // =============== DELETE FUNCTIONS ===============
@@ -4606,7 +5512,6 @@
             showProgress('Deleting video...');
             
             try {
-                // Find video index
                 const videoIndex = state.videos.findIndex(v => v.id === videoId);
                 if (videoIndex === -1) {
                     throw new Error('Video not found');
@@ -4614,17 +5519,13 @@
                 
                 const video = state.videos[videoIndex];
                 
-                // Delete from IndexedDB
                 await deleteVideoFromDB(videoId);
                 
-                // Remove from state
                 state.videos.splice(videoIndex, 1);
                 
-                // Update UI
                 updateVideoGrid();
                 await updateStorageUsage();
                 
-                // Close modal if open
                 if (state.currentVideoId === videoId) {
                     closeModal();
                 }
@@ -4652,16 +5553,13 @@
             showProgress('Clearing all videos...');
             
             try {
-                // Clear all videos from IndexedDB
                 const transaction = state.db.transaction(['videos'], 'readwrite');
                 const store = transaction.objectStore('videos');
                 const clearRequest = store.clear();
                 
                 clearRequest.onsuccess = () => {
-                    // Clear state
                     state.videos = [];
                     
-                    // Update UI
                     updateVideoGrid();
                     updateStorageUsage();
                     
@@ -4686,11 +5584,6 @@
                 return;
             }
             
-            if (!state.isCloudConnected) {
-                showToast('Please connect to Google Drive first', 'warning');
-                return;
-            }
-            
             const videosToSync = state.videos.filter(v => !v.isCloud);
             if (videosToSync.length === 0) {
                 showToast('All videos are already synced', 'info');
@@ -4707,7 +5600,6 @@
                 let syncedCount = 0;
                 const totalSize = videosToSync.reduce((sum, v) => sum + v.size, 0);
                 
-                // Simulate batch upload
                 const uploadInterval = setInterval(() => {
                     syncedCount++;
                     const progress = Math.min(100, (syncedCount / videosToSync.length) * 100);
@@ -4720,13 +5612,11 @@
                     if (progress >= 100) {
                         clearInterval(uploadInterval);
                         
-                        // Mark all as synced
                         videosToSync.forEach(video => {
                             video.isCloud = true;
                             updateVideoInDB(video.id, { isCloud: true });
                         });
                         
-                        // Update UI
                         updateVideoGrid();
                         
                         setTimeout(() => {
@@ -4752,7 +5642,6 @@
             
             showProgress('Connecting to Google Drive...');
             
-            // Simulate connection
             let progress = 0;
             const connectInterval = setInterval(() => {
                 progress += 10;
@@ -4773,7 +5662,175 @@
             }, 150);
         }
 
+        // =============== DROPBOX BROWSER ===============
+        async function listDropboxVideos() {
+            if (!enhancedState.dropboxClient) {
+                showToast('Not connected to Dropbox', 'warning');
+                return;
+            }
+            
+            showProgress('Fetching videos from Dropbox...');
+            
+            try {
+                const response = await enhancedState.dropboxClient.filesListFolder({
+                    path: '/Screen Recorder',
+                    recursive: false,
+                    include_media_info: true,
+                    include_deleted: false,
+                    include_has_explicit_shared_members: false,
+                    include_mounted_folders: true
+                });
+                
+                const videos = response.result.entries.filter(entry => 
+                    entry['.tag'] === 'file' && 
+                    (entry.name.endsWith('.webm') || entry.name.endsWith('.mp4') || entry.name.endsWith('.mkv'))
+                );
+                
+                hideProgress();
+                
+                showDropboxVideoBrowser(videos);
+                
+            } catch (error) {
+                hideProgress();
+                showToast('Failed to list Dropbox videos: ' + error.message, 'error');
+            }
+        }
+
+        function showDropboxVideoBrowser(videos) {
+            elements.dropboxVideoGrid.innerHTML = videos.length > 0 ? videos.map(video => `
+                <div class="video-card" data-path="${video.path_display}">
+                    <div class="video-thumbnail">
+                        <i class="fas fa-play-circle"></i>
+                        <div style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.8rem;">
+                            ${formatFileSize(video.size)}
+                        </div>
+                        <div style="position: absolute; top: 10px; left: 10px; background: rgba(0, 97, 255, 0.8); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.7rem;">
+                            <i class="fab fa-dropbox"></i>
+                        </div>
+                    </div>
+                    <div class="video-info">
+                        <div class="video-title" title="${video.name}">${video.name}</div>
+                        <div class="video-meta">
+                            <div><i class="fas fa-calendar"></i> ${formatDate(video.client_modified)}</div>
+                            <div><i class="fas fa-hdd"></i> Dropbox</div>
+                        </div>
+                        <div class="video-actions">
+                            <button class="action-btn dropbox-download-btn">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                            <button class="action-btn dropbox-delete-btn">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('') : `
+                <div class="empty-library">
+                    <i class="fas fa-cloud" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                    <h3>No videos in Dropbox</h3>
+                    <p>Upload videos from your local library</p>
+                </div>
+            `;
+            
+            elements.dropboxBrowserModal.style.display = 'flex';
+            
+            // Add event listeners
+            const downloadButtons = elements.dropboxVideoGrid.querySelectorAll('.dropbox-download-btn');
+            const deleteButtons = elements.dropboxVideoGrid.querySelectorAll('.dropbox-delete-btn');
+            
+            downloadButtons.forEach((btn, index) => {
+                btn.addEventListener('click', () => {
+                    const video = videos[index];
+                    downloadFromDropbox(video);
+                });
+            });
+            
+            deleteButtons.forEach((btn, index) => {
+                btn.addEventListener('click', () => {
+                    const video = videos[index];
+                    deleteFromDropbox(video);
+                });
+            });
+        }
+
+        async function downloadFromDropbox(video) {
+            showProgress(`Downloading ${video.name}...`);
+            
+            try {
+                const response = await enhancedState.dropboxClient.filesDownload({
+                    path: video.path_lower || video.path_display
+                });
+                
+                const blob = new Blob([response.result.fileBlob], { type: response.result.fileBlob.type });
+                
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = video.name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                setTimeout(() => {
+                    URL.revokeObjectURL(url);
+                    hideProgress();
+                }, 100);
+                
+                showToast(`Downloaded "${video.name}" from Dropbox`, 'success');
+                
+            } catch (error) {
+                hideProgress();
+                showToast('Download failed: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteFromDropbox(video) {
+            if (!confirm(`Are you sure you want to delete "${video.name}" from Dropbox?`)) {
+                return;
+            }
+            
+            showProgress(`Deleting ${video.name}...`);
+            
+            try {
+                await enhancedState.dropboxClient.filesDeleteV2({
+                    path: video.path_lower || video.path_display
+                });
+                
+                hideProgress();
+                showToast(`Deleted "${video.name}" from Dropbox`, 'success');
+                
+                listDropboxVideos();
+                
+            } catch (error) {
+                hideProgress();
+                showToast('Delete failed: ' + error.message, 'error');
+            }
+        }
+
         // =============== UTILITY FUNCTIONS ===============
+        async function saveScreenshotToDB(screenshotData) {
+            return new Promise((resolve, reject) => {
+                if (!state.db) {
+                    reject(new Error('Database not initialized'));
+                    return;
+                }
+                
+                const transaction = state.db.transaction(['videos'], 'readwrite');
+                const store = transaction.objectStore('videos');
+                
+                const request = store.add(screenshotData);
+                
+                request.onsuccess = () => {
+                    state.videos.unshift(screenshotData);
+                    updateVideoGrid();
+                    updateStorageUsage();
+                    resolve(request.result);
+                };
+                
+                request.onerror = () => reject(request.error);
+            });
+        }
+
         function getResolutionWidth(quality) {
             switch(quality) {
                 case '4k': return 3840;
@@ -4805,7 +5862,6 @@
         }
 
         function getMimeType(quality) {
-            // Use VP9 for better compression with large files
             if (quality === '4k' || quality === '1440p') {
                 return 'video/webm;codecs=vp9,opus';
             }
@@ -4814,10 +5870,10 @@
 
         function getBitrate(quality) {
             switch(quality) {
-                case '4k': return 16; // 16 Mbps
-                case '1440p': return 8;  // 8 Mbps
-                case '1080p': return 5;  // 5 Mbps
-                case '720p': return 2.5;   // 2.5 Mbps
+                case '4k': return 16;
+                case '1440p': return 8;
+                case '1080p': return 5;
+                case '720p': return 2.5;
                 default: return 5;
             }
         }
@@ -4860,15 +5916,12 @@
             
             const size = bytes / Math.pow(k, i);
             
-            // For GB, show 2 decimal places
             if (i === 3) {
                 return size.toFixed(2) + ' ' + sizes[i];
             }
-            // For MB, show 1 decimal place
             if (i === 2 && size >= 100) {
                 return size.toFixed(1) + ' ' + sizes[i];
             }
-            // For others, show no decimals
             return Math.round(size) + ' ' + sizes[i];
         }
 
@@ -4914,7 +5967,6 @@
             elements.progressFill.style.width = percent + '%';
             elements.progressText.textContent = Math.round(percent) + '% - ' + text;
             
-            // Change color based on progress
             if (percent < 30) {
                 elements.progressFill.style.background = 'linear-gradient(90deg, #ef4444, #f59e0b)';
             } else if (percent < 70) {
@@ -4929,7 +5981,6 @@
         }
 
         function showMessage(text, type) {
-            // Set icon based on type
             let icon = 'info-circle';
             switch(type) {
                 case 'success': icon = 'check-circle'; break;
@@ -4942,7 +5993,6 @@
             elements.message.className = `message ${type}`;
             elements.message.style.display = 'flex';
             
-            // Auto hide
             setTimeout(() => {
                 elements.message.style.display = 'none';
             }, 4000);
@@ -4974,41 +6024,15 @@
             
             elements.toastContainer.appendChild(toast);
             
-            // Close button
             toast.querySelector('.toast-close').addEventListener('click', () => {
                 toast.remove();
             });
             
-            // Auto-remove after 5 seconds
             setTimeout(() => {
                 if (toast.parentNode) {
                     toast.remove();
                 }
             }, 5000);
-        }
-
-        // =============== ENHANCED UTILITY FUNCTIONS ===============
-        async function saveScreenshotToDB(screenshotData) {
-            return new Promise((resolve, reject) => {
-                if (!state.db) {
-                    reject(new Error('Database not initialized'));
-                    return;
-                }
-                
-                const transaction = state.db.transaction(['videos'], 'readwrite');
-                const store = transaction.objectStore('videos');
-                
-                const request = store.add(screenshotData);
-                
-                request.onsuccess = () => {
-                    state.videos.unshift(screenshotData);
-                    updateVideoGrid();
-                    updateStorageUsage();
-                    resolve(request.result);
-                };
-                
-                request.onerror = () => reject(request.error);
-            });
         }
 
         // =============== KEYBOARD SHORTCUT HANDLER ===============
@@ -5032,7 +6056,6 @@
                 const handler = function(e) {
                     e = e || window.event;
 
-                    // Skip if inside input/textarea and disable_in_input = true
                     if (settings.disable_in_input) {
                         let element = e.target || e.srcElement;
                         if (element.nodeType === 3) element = element.parentNode;
@@ -5088,74 +6111,60 @@
             }
         };
 
-        // Fungsi untuk mencegah aksi default shortcut developer
+        // =============== SHORTCUT PROTECTION ===============
         function doNothing(e) {
             console.log("Shortcut diblokir: " + (e.key || e.keyCode));
         }
 
-        // Setup shortcut protection
         function setupShortcutProtection() {
-            // === Shortcut Ctrl+U ===
             shortcut.add("Ctrl+U", doNothing);
-            // === Shortcut F12 ===
             shortcut.add("f12", doNothing);
-            // === Tambahkan juga shortcut lainnya ===
             shortcut.add("Ctrl+Shift+I", doNothing);
             shortcut.add("Ctrl+Shift+J", doNothing);
             shortcut.add("Ctrl+Shift+C", doNothing);
         }
 
-        // Event listener untuk mencegah semua aksi default shortcut developer
         document.addEventListener('keydown', function(e) {
-            // F12 - Developer Tools
             if (e.keyCode === 123) {
                 e.preventDefault();
                 e.stopPropagation();
                 return false;
             }
 
-            // Ctrl+Shift+I - Developer Tools
             if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
                 e.preventDefault();
                 e.stopPropagation();
                 return false;
             }
 
-            // Ctrl+Shift+J - JavaScript Console
             if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
                 e.preventDefault();
                 e.stopPropagation();
                 return false;
             }
 
-            // Ctrl+Shift+C - Inspect Element
             if (e.ctrlKey && e.shiftKey && e.keyCode === 67) {
                 e.preventDefault();
                 e.stopPropagation();
                 return false;
             }
 
-            // Ctrl+U - View Source
             if (e.ctrlKey && e.keyCode === 85) {
                 e.preventDefault();
                 e.stopPropagation();
                 return false;
             }
 
-            // Ctrl+S - Save Page (allow for screenshot)
             if (e.ctrlKey && e.keyCode === 83 && !e.shiftKey) {
-                // Allow Ctrl+S for screenshot
                 return;
             }
         });
 
-        // Mencegah klik kanan (opsional)
         document.addEventListener('contextmenu', function(e) {
             e.preventDefault();
             return false;
         });
 
-        // Setup shortcut protection
         setupShortcutProtection();
 
     </script>
