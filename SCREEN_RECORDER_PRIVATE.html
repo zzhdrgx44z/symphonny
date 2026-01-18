@@ -2594,21 +2594,8 @@
             CACHE_PREFIX: 'screenrecorder_'
         };
 
-        const DROPBOX_CONFIG = {
-            CLIENT_ID: 'YOUR_DROPBOX_APP_CLIENT_ID', // GANTI INI DENGAN CLIENT ID ANDA
-            REDIRECT_URI: window.location.origin + window.location.pathname,
-            SCOPES: [
-                'files.content.write',
-                'files.content.read',
-                'files.metadata.write',
-                'files.metadata.read',
-                'account_info.read',
-                'sharing.write'
-            ].join(' '),
-            UPLOAD_CHUNK_SIZE: 8 * 1024 * 1024, // 8MB chunks
-            MAX_RETRIES: 3,
-            RETRY_DELAY: 2000
-        };
+        // Dropbox App Key - GANTI INI DENGAN APP KEY ANDA
+        const DROPBOX_APP_KEY = 'YOUR_DROPBOX_APP_KEY_HERE';
 
         // =============== STATE ===============
         const state = {
@@ -2861,7 +2848,7 @@
                 // Setup enhanced features
                 await enhancedInitialize();
                 
-                // Setup Dropbox
+                // Initialize Dropbox connection
                 await initializeDropbox();
                 
                 // Load cloud preference
@@ -3027,15 +3014,30 @@
         // =============== DROPBOX FUNCTIONS ===============
         async function initializeDropbox() {
             try {
-                // Check token from URL hash
+                // Check if we have a saved access token
+                const savedToken = localStorage.getItem('dropbox_access_token');
+                
+                if (savedToken) {
+                    // Check if token is valid by testing it
+                    try {
+                        await setupDropboxClient(savedToken);
+                    } catch (error) {
+                        console.warn('Saved Dropbox token invalid, removing:', error);
+                        localStorage.removeItem('dropbox_access_token');
+                        updateDropboxUI(false);
+                    }
+                }
+                
+                // Check URL hash for new token (from OAuth redirect)
                 const hashParams = new URLSearchParams(window.location.hash.substring(1));
                 const accessToken = hashParams.get('access_token');
                 
                 if (accessToken) {
+                    localStorage.setItem('dropbox_access_token', accessToken);
                     await setupDropboxClient(accessToken);
+                    
+                    // Clean URL
                     window.history.replaceState({}, document.title, window.location.pathname);
-                } else {
-                    await loadDropboxTokenFromStorage();
                 }
                 
             } catch (error) {
@@ -3043,24 +3045,9 @@
             }
         }
 
-        async function loadDropboxTokenFromStorage() {
-            try {
-                const transaction = state.db.transaction(['settings'], 'readonly');
-                const store = transaction.objectStore('settings');
-                const request = store.get('dropboxToken');
-                
-                request.onsuccess = () => {
-                    if (request.result && request.result.value) {
-                        setupDropboxClient(request.result.value);
-                    }
-                };
-            } catch (error) {
-                console.warn('Could not load Dropbox token:', error);
-            }
-        }
-
         async function setupDropboxClient(accessToken) {
             try {
+                // Initialize Dropbox client
                 enhancedState.dropboxClient = new Dropbox.Dropbox({ 
                     accessToken: accessToken,
                     fetch: fetch.bind(window)
@@ -3068,7 +3055,7 @@
                 
                 enhancedState.dropboxAccessToken = accessToken;
                 
-                // Get account info
+                // Test connection by getting account info
                 await getDropboxAccountInfo();
                 
                 // Get storage info
@@ -3077,15 +3064,14 @@
                 // Update UI
                 updateDropboxUI(true);
                 
-                // Save token to IndexedDB
-                await saveDropboxToken(accessToken);
-                
                 showToast(`Connected to Dropbox as ${enhancedState.dropboxAccount.name.display_name}`, 'success');
                 
             } catch (error) {
                 console.error('Dropbox setup error:', error);
                 showToast('Failed to connect to Dropbox: ' + error.message, 'error');
                 
+                // Clear invalid token
+                localStorage.removeItem('dropbox_access_token');
                 enhancedState.dropboxClient = null;
                 enhancedState.dropboxAccessToken = null;
                 updateDropboxUI(false);
@@ -3120,16 +3106,24 @@
         function updateDropboxUI(isConnected) {
             if (isConnected && enhancedState.dropboxAccount) {
                 elements.connectDropboxBtn.style.background = 'rgba(0, 97, 255, 0.2)';
-                elements.dropboxBtnText.innerHTML = `<i class="fab fa-dropbox"></i> CONNECTED AS ${enhancedState.dropboxAccount.name.given_name}`;
+                elements.dropboxBtnText.innerHTML = `<i class="fab fa-dropbox"></i> CONNECTED AS ${enhancedState.dropboxAccount.name.given_name.toUpperCase()}`;
                 elements.browseDropboxBtn.style.display = 'flex';
                 
                 elements.dropboxOptionInfo.textContent = `Connected as ${enhancedState.dropboxAccount.name.given_name}`;
+                
+                // Update storage info in cloud selector
+                if (enhancedState.dropboxStorage.used) {
+                    const usedGB = (enhancedState.dropboxStorage.used / (1024 * 1024 * 1024)).toFixed(2);
+                    const totalGB = (enhancedState.dropboxStorage.allocated / (1024 * 1024 * 1024)).toFixed(1);
+                    elements.dropboxStorageInfo.textContent = `${usedGB}GB/${totalGB}GB`;
+                }
             } else {
                 elements.connectDropboxBtn.style.background = 'rgba(0,123,255,0.1)';
                 elements.dropboxBtnText.innerHTML = `<i class="fab fa-dropbox"></i> CONNECT DROPBOX (2GB FREE)`;
                 elements.browseDropboxBtn.style.display = 'none';
                 
                 elements.dropboxOptionInfo.textContent = 'Connect for 2GB free storage';
+                elements.dropboxStorageInfo.textContent = '';
             }
         }
 
@@ -3151,28 +3145,26 @@
             `;
         }
 
-        async function saveDropboxToken(token) {
-            try {
-                const transaction = state.db.transaction(['settings'], 'readwrite');
-                const store = transaction.objectStore('settings');
-                await store.put({ 
-                    key: 'dropboxToken', 
-                    value: token 
-                });
-            } catch (error) {
-                console.error('Failed to save Dropbox token:', error);
-            }
-        }
-
         async function connectDropbox() {
             if (enhancedState.dropboxClient) {
                 showToast('Already connected to Dropbox', 'info');
                 return;
             }
             
+            // Ganti DROPBOX_APP_KEY dengan App Key Anda
+            const appKey = DROPBOX_APP_KEY || 'YOUR_DROPBOX_APP_KEY_HERE';
+            
+            if (appKey === 'YOUR_DROPBOX_APP_KEY_HERE') {
+                showToast('Please set your Dropbox App Key in the code first', 'warning');
+                showMessage('To connect Dropbox:<br>1. Go to https://www.dropbox.com/developers/apps<br>2. Create an app<br>3. Copy the App Key<br>4. Replace "YOUR_DROPBOX_APP_KEY_HERE" in the code', 'info');
+                return;
+            }
+            
             showProgress('Redirecting to Dropbox authorization...');
             
-            const authUrl = `https://www.dropbox.com/oauth2/authorize?client_id=${DROPBOX_CONFIG.CLIENT_ID}&response_type=token&redirect_uri=${encodeURIComponent(DROPBOX_CONFIG.REDIRECT_URI)}&scope=${DROPBOX_CONFIG.SCOPES}`;
+            // OAuth 2.0 authorization URL
+            const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname);
+            const authUrl = `https://www.dropbox.com/oauth2/authorize?client_id=${appKey}&response_type=token&redirect_uri=${redirectUri}`;
             
             const authWindow = window.open(
                 authUrl,
@@ -3187,18 +3179,21 @@
             }
             
             const checkAuth = setInterval(() => {
-                if (authWindow.closed) {
-                    clearInterval(checkAuth);
-                    hideProgress();
-                    
-                    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-                    const token = hashParams.get('access_token');
-                    
-                    if (token) {
-                        setupDropboxClient(token);
-                    } else {
-                        showToast('Dropbox authorization cancelled', 'info');
+                try {
+                    if (authWindow.closed) {
+                        clearInterval(checkAuth);
+                        hideProgress();
+                        
+                        // Check if we have a token in localStorage now
+                        const token = localStorage.getItem('dropbox_access_token');
+                        if (token) {
+                            setupDropboxClient(token);
+                        } else {
+                            showToast('Dropbox authorization cancelled or failed', 'info');
+                        }
                     }
+                } catch (e) {
+                    // Window might be cross-origin, just continue
                 }
             }, 500);
         }
@@ -3211,17 +3206,25 @@
             
             if (confirm('Are you sure you want to disconnect from Dropbox?')) {
                 try {
-                    await enhancedState.dropboxClient.authTokenRevoke();
+                    // Clear token from storage
+                    localStorage.removeItem('dropbox_access_token');
                     
+                    // Try to revoke token
+                    try {
+                        await enhancedState.dropboxClient.authTokenRevoke();
+                    } catch (e) {
+                        console.warn('Could not revoke token:', e);
+                    }
+                    
+                    // Clear state
                     enhancedState.dropboxClient = null;
                     enhancedState.dropboxAccessToken = null;
                     enhancedState.dropboxAccount = null;
+                    enhancedState.dropboxStorage = null;
                     
-                    const transaction = state.db.transaction(['settings'], 'readwrite');
-                    const store = transaction.objectStore('settings');
-                    await store.delete('dropboxToken');
-                    
+                    // Update UI
                     updateDropboxUI(false);
+                    elements.cloudStorageInfo.innerHTML = '';
                     
                     showToast('Disconnected from Dropbox', 'success');
                     
@@ -3245,6 +3248,7 @@
                 return;
             }
             
+            // Check storage space
             const storageInfo = await getDropboxStorageInfo();
             if (storageInfo) {
                 const freeSpace = storageInfo.allocated - storageInfo.used;
@@ -3312,17 +3316,19 @@
                 }
                 
                 let result;
-                if (video.size > 150 * 1024 * 1024) {
+                if (video.size > 150 * 1024 * 1024) { // 150MB threshold
                     result = await uploadLargeFileToDropbox(video, queueItem);
                 } else {
                     result = await uploadFileToDropbox(video, queueItem);
                 }
                 
+                // Update video with Dropbox info
                 video.dropboxPath = result.path_display;
                 video.dropboxId = result.id;
                 video.isCloud = true;
                 video.cloudService = 'dropbox';
                 
+                // Save to database
                 await updateVideoInDB(video.id, {
                     dropboxPath: video.dropboxPath,
                     dropboxId: video.dropboxId,
@@ -3330,6 +3336,7 @@
                     cloudService: 'dropbox'
                 });
                 
+                // Try to create shared link
                 try {
                     const sharedLink = await createDropboxSharedLink(video.dropboxId);
                     video.dropboxShareLink = sharedLink;
@@ -3341,11 +3348,14 @@
                 queueItem.progress = 100;
                 queueItem.endTime = Date.now();
                 
+                // Update UI
                 updateVideoGrid();
                 updateVideoCardStatus(queueItem.videoId, 'uploaded');
                 
+                // Show success modal
                 showDropboxUploadSuccess(video, queueItem);
                 
+                // Update storage info
                 await getDropboxStorageInfo();
                 
             } catch (error) {
@@ -3362,6 +3372,7 @@
             enhancedState.currentUpload = null;
             enhancedState.isUploading = false;
             
+            // Process next item after delay
             setTimeout(() => {
                 processUploadQueue();
             }, 1000);
@@ -3371,6 +3382,8 @@
             const filePath = `/Screen Recorder/${video.title}.${getFileExtension(video.mimeType)}`;
             const fileContent = await video.blob.arrayBuffer();
             
+            showProgress(`Uploading ${video.title}...`);
+            
             return new Promise((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
                 
@@ -3379,19 +3392,25 @@
                         const progress = Math.round((event.loaded / event.total) * 100);
                         queueItem.progress = progress;
                         updateUploadQueueUI();
+                        updateProgress(progress, `Uploading to Dropbox...`);
                     }
                 };
                 
                 xhr.onload = async () => {
                     if (xhr.status === 200) {
                         const response = JSON.parse(xhr.responseText);
+                        hideProgress();
                         resolve(response);
                     } else {
+                        hideProgress();
                         reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
                     }
                 };
                 
-                xhr.onerror = () => reject(new Error('Network error during upload'));
+                xhr.onerror = () => {
+                    hideProgress();
+                    reject(new Error('Network error during upload'));
+                };
                 
                 xhr.open('POST', 'https://content.dropboxapi.com/2/files/upload');
                 xhr.setRequestHeader('Authorization', `Bearer ${enhancedState.dropboxAccessToken}`);
@@ -3410,80 +3429,95 @@
         async function uploadLargeFileToDropbox(video, queueItem) {
             const filePath = `/Screen Recorder/${video.title}.${getFileExtension(video.mimeType)}`;
             const blob = video.blob;
-            const chunkSize = DROPBOX_CONFIG.UPLOAD_CHUNK_SIZE;
+            const chunkSize = 8 * 1024 * 1024; // 8MB chunks
             const fileSize = blob.size;
             const totalChunks = Math.ceil(fileSize / chunkSize);
             
-            const sessionStart = await enhancedState.dropboxClient.filesUploadSessionStart({
-                close: false,
-                contents: await blob.slice(0, Math.min(chunkSize, fileSize)).arrayBuffer()
-            });
+            showProgress(`Uploading large file (${formatFileSize(fileSize)})...`);
             
-            const sessionId = sessionStart.result.session_id;
-            let uploadedBytes = Math.min(chunkSize, fileSize);
-            
-            queueItem.progress = Math.round((uploadedBytes / fileSize) * 100);
-            updateUploadQueueUI();
-            
-            for (let i = 1; i < totalChunks; i++) {
-                const start = i * chunkSize;
-                const end = Math.min((i + 1) * chunkSize, fileSize);
-                const chunk = await blob.slice(start, end).arrayBuffer();
+            try {
+                // Start upload session
+                const sessionStart = await enhancedState.dropboxClient.filesUploadSessionStart({
+                    close: false,
+                    contents: await blob.slice(0, Math.min(chunkSize, fileSize)).arrayBuffer()
+                });
                 
-                try {
-                    await enhancedState.dropboxClient.filesUploadSessionAppendV2({
-                        cursor: {
-                            session_id: sessionId,
-                            offset: uploadedBytes
-                        },
-                        close: i === totalChunks - 1,
-                        contents: chunk
-                    });
+                const sessionId = sessionStart.result.session_id;
+                let uploadedBytes = Math.min(chunkSize, fileSize);
+                
+                queueItem.progress = Math.round((uploadedBytes / fileSize) * 100);
+                updateUploadQueueUI();
+                updateProgress(queueItem.progress, `Uploading chunk 1 of ${totalChunks}`);
+                
+                // Upload remaining chunks
+                for (let i = 1; i < totalChunks; i++) {
+                    const start = i * chunkSize;
+                    const end = Math.min((i + 1) * chunkSize, fileSize);
+                    const chunk = await blob.slice(start, end).arrayBuffer();
                     
-                    uploadedBytes += chunk.byteLength;
-                    queueItem.progress = Math.round((uploadedBytes / fileSize) * 100);
-                    updateUploadQueueUI();
-                    
-                } catch (error) {
-                    let retryCount = 0;
-                    while (retryCount < DROPBOX_CONFIG.MAX_RETRIES) {
-                        try {
-                            await new Promise(resolve => setTimeout(resolve, DROPBOX_CONFIG.RETRY_DELAY * (retryCount + 1)));
-                            await enhancedState.dropboxClient.filesUploadSessionAppendV2({
-                                cursor: {
-                                    session_id: sessionId,
-                                    offset: uploadedBytes
-                                },
-                                close: i === totalChunks - 1,
-                                contents: chunk
-                            });
-                            break;
-                        } catch (retryError) {
-                            retryCount++;
-                            if (retryCount === DROPBOX_CONFIG.MAX_RETRIES) {
-                                throw new Error(`Failed after ${DROPBOX_CONFIG.MAX_RETRIES} retries: ${retryError.message}`);
+                    try {
+                        await enhancedState.dropboxClient.filesUploadSessionAppendV2({
+                            cursor: {
+                                session_id: sessionId,
+                                offset: uploadedBytes
+                            },
+                            close: i === totalChunks - 1,
+                            contents: chunk
+                        });
+                        
+                        uploadedBytes += chunk.byteLength;
+                        queueItem.progress = Math.round((uploadedBytes / fileSize) * 100);
+                        updateUploadQueueUI();
+                        updateProgress(queueItem.progress, `Uploading chunk ${i + 1} of ${totalChunks}`);
+                        
+                    } catch (error) {
+                        // Retry logic
+                        let retryCount = 0;
+                        while (retryCount < 3) {
+                            try {
+                                await new Promise(resolve => setTimeout(resolve, 2000 * (retryCount + 1)));
+                                await enhancedState.dropboxClient.filesUploadSessionAppendV2({
+                                    cursor: {
+                                        session_id: sessionId,
+                                        offset: uploadedBytes
+                                    },
+                                    close: i === totalChunks - 1,
+                                    contents: chunk
+                                });
+                                break;
+                            } catch (retryError) {
+                                retryCount++;
+                                if (retryCount === 3) {
+                                    throw new Error(`Failed after 3 retries: ${retryError.message}`);
+                                }
                             }
                         }
                     }
                 }
+                
+                // Finish upload session
+                const commitInfo = {
+                    path: filePath,
+                    mode: { '.tag': 'add' },
+                    autorename: true,
+                    mute: false
+                };
+                
+                const response = await enhancedState.dropboxClient.filesUploadSessionFinish({
+                    cursor: {
+                        session_id: sessionId,
+                        offset: uploadedBytes
+                    },
+                    commit: commitInfo
+                });
+                
+                hideProgress();
+                return response.result;
+                
+            } catch (error) {
+                hideProgress();
+                throw error;
             }
-            
-            const commitInfo = {
-                path: filePath,
-                mode: { '.tag': 'add' },
-                autorename: true,
-                mute: false
-            };
-            
-            const response = await enhancedState.dropboxClient.filesUploadSessionFinish({
-                cursor: {
-                    session_id: sessionId,
-                    offset: uploadedBytes
-                },
-                commit: commitInfo
-            });
-            
-            return response.result;
         }
 
         async function createDropboxSharedLink(fileId) {
@@ -3495,13 +3529,18 @@
                 return response.result.url.replace('www.dropbox.com', 'dl.dropbox.com');
                 
             } catch (error) {
+                // If link already exists, get existing links
                 if (error.status === 409) {
-                    const links = await enhancedState.dropboxClient.sharingListSharedLinks({
-                        path: fileId
-                    });
-                    
-                    if (links.result.links.length > 0) {
-                        return links.result.links[0].url.replace('www.dropbox.com', 'dl.dropbox.com');
+                    try {
+                        const links = await enhancedState.dropboxClient.sharingListSharedLinks({
+                            path: fileId
+                        });
+                        
+                        if (links.result.links.length > 0) {
+                            return links.result.links[0].url.replace('www.dropbox.com', 'dl.dropbox.com');
+                        }
+                    } catch (listError) {
+                        console.warn('Could not list shared links:', listError);
                     }
                 }
                 
@@ -3994,6 +4033,7 @@
             // Cloud connection
             elements.connectDriveBtn.addEventListener('click', connectDrive);
             elements.connectDropboxBtn.addEventListener('click', connectDropbox);
+            elements.connectDropboxBtn.addEventListener('dblclick', disconnectDropbox);
             
             // Quality settings
             document.querySelectorAll('input[name="quality"]').forEach(radio => {
@@ -4044,7 +4084,11 @@
                 elements.cloudSelectorModal.style.display = 'none';
                 
                 if (selectedService === 'dropbox') {
-                    uploadToDropbox(videoId);
+                    if (enhancedState.dropboxClient) {
+                        uploadToDropbox(videoId);
+                    } else {
+                        showToast('Please connect to Dropbox first', 'warning');
+                    }
                 } else {
                     // Google Drive upload
                     showToast('Google Drive upload not implemented yet', 'info');
