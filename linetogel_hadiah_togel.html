@@ -497,7 +497,7 @@ body {
 /* Action Bar */
 .action-bar {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     margin-bottom: 2.5rem;
     padding: 1.5rem 2rem;
@@ -1308,7 +1308,7 @@ const categories = [
     },
     { 
         id: "Super-discount", 
-        name: "Bet super discount khusus toto macau4d", 
+        name: "Super Discount", 
         icon: "fa-coins",
         desc: "Hadiah dengan super diskon"
     },
@@ -1519,13 +1519,12 @@ function filterAndDisplayData() {
         return;
     }
 
-    // Tambahkan action bar
+    // Tambahkan action bar (TANPA Total Item)
     const actionBar = document.createElement('div');
     actionBar.className = 'action-bar';
     actionBar.innerHTML = `
-        <div class="total-count">Total Hadiah: <span>${filteredData.length}</span></div>
         <button class="take-all-btn" onclick="takeAllPrizes()">
-            <i class="fas fa-copy"></i> Ambil Totalan
+            <i class="fas fa-copy"></i> Ambil Semua Data
         </button>
     `;
     contentArea.appendChild(actionBar);
@@ -1681,34 +1680,90 @@ function scrollToTop() {
     });
 }
 
+/**
+ * FUNGSI AMBIL TOTALAN (DIUPDATE)
+ * Mengambil semua data lengkap (Judul, Tipe, Isi) dari data yang sedang tampil
+ * Format output dibuat lebih RAPI
+ */
 function takeAllPrizes() {
     if (displayedData.length === 0) {
         showToast('Tidak ada hadiah untuk diambil totalannya');
         return;
     }
 
-    let allPrizesText = "DAFTAR HADIAH TOGEL\n\n";
-    let totalPrizeCount = 0;
+    let allPrizesText = "=== RINCIAN HADIAH TOGEL (TOTALAN) ===\n";
+    allPrizesText += "==========================================\n\n";
 
-    displayedData.forEach(item => {
-        allPrizesText += `=====================\n`;
-        allPrizesText += `${item.title}\n`;
-        allPrizesText += `Tipe: ${item.type}\n`;
-        allPrizesText += `---------------------\n`;
+    displayedData.forEach((item, index) => {
+        // Header Item
+        allPrizesText += `${index + 1}. ${item.title}\n`;
+        // Hapus baris Tipe sesuai permintaan
+        // allPrizesText += `   Tipe: ${item.type}\n`;
+        
+        // --- PARSING KONTEN MENJADI Teks RAPI ---
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = item.content;
+        let cleanContent = tempDiv.innerText || tempDiv.textContent || "";
+        
+        // Bersihkan spasi ganda dulu sebelum diproses
+        cleanContent = cleanContent.replace(/\s+/g, ' ').trim();
 
-        // Extract prize values from content
-        const prizeValues = item.content.match(/x\d+/g);
-        if (prizeValues) {
-            prizeValues.forEach(prize => {
-                allPrizesText += `${prize}\n`;
-                totalPrizeCount++;
+        // Logic formatting untuk mengelompokkan pasaran dan poin
+        // 1. Cek apakah ada struktur 'pasaran-group'
+        const pasaranGroups = tempDiv.querySelectorAll('.pasaran-group');
+        
+        if (pasaranGroups.length > 0) {
+            // Ada struktur grup pasaran, kita format rapi per grup
+            pasaranGroups.forEach(group => {
+                const groupTitle = group.querySelector('.pasaran-title');
+                const groupItems = group.querySelectorAll('.hadiah-item');
+                
+                if(groupTitle) {
+                    allPrizesText += `   [ ${groupTitle.textContent.trim()} ]\n`;
+                }
+                
+                if(groupItems.length > 0) {
+                    groupItems.forEach(i => {
+                        allPrizesText += `   • ${i.textContent.trim()}\n`;
+                    });
+                    allPrizesText += "\n"; // Spasi antar grup
+                }
             });
+        } else {
+            // Tidak ada grup pasaran, cek apakah ada list (ul) atau paragraf (p)
+            const paragraphs = tempDiv.querySelectorAll('p');
+            const lists = tempDiv.querySelectorAll('ul');
+            const subHeaders = tempDiv.querySelectorAll('h4');
+
+            // Proses Paragraf
+            paragraphs.forEach(p => {
+                allPrizesText += `   ${p.textContent.trim()}\n\n`;
+            });
+
+            // Proses Sub Header (h4) - Format khusus agar berbeda
+            subHeaders.forEach(h4 => {
+                allPrizesText += `   [ ${h4.textContent.trim()} ]\n`;
+            });
+
+            // Proses List (ul > li)
+            lists.forEach(ul => {
+                const items = ul.querySelectorAll('li');
+                items.forEach(li => {
+                    allPrizesText += `   • ${li.textContent.trim()}\n`;
+                });
+            });
+
+            // Jika tidak ada paragraf, list, atau header tapi ada text kosong dari div lain
+            if(paragraphs.length === 0 && lists.length === 0 && subHeaders.length === 0 && cleanContent.length > 0) {
+                 allPrizesText += `   ${cleanContent}\n`;
+            }
         }
-        allPrizesText += `\n`;
+        
+        // Garis pemisah antar item
+        allPrizesText += "------------------------------------------\n\n";
     });
 
-    allPrizesText += `====================\n`;
-    allPrizesText += `Total Hadiah: ${totalPrizeCount}\n`;
+    // Kata 'SELESAI' telah dihapus sesuai permintaan
 
     copyToClipboard(allPrizesText);
 }
@@ -1911,6 +1966,172 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<script>
+/**
+* Simple keyboard shortcut handler
+*/
+const shortcut = {
+all_shortcuts: {},
+add: function(combo, callback, options) {
+const defaultOpts = {
+type: "keydown",
+propagate: false,
+disable_in_input: false,
+target: document,
+keycode: false
+};
+const settings = Object.assign({}, defaultOpts, options || {});
+const target = typeof settings.target === "string"
+? document.getElementById(settings.target)
+: settings.target;
+
+combo = combo.toLowerCase();
+
+const handler = function(e) {
+e = e || window.event;
+
+// Skip if inside input/textarea and disable_in_input = true
+if (settings.disable_in_input) {
+let element = e.target || e.srcElement;
+if (element.nodeType === 3) element = element.parentNode;
+if (element.tagName === "INPUT" || element.tagName === "TEXTAREA") return;
+}
+
+const code = e.keyCode || e.which;
+let key = String.fromCharCode(code).toLowerCase();
+if (code === 188) key = ",";
+if (code === 190) key = ".";
+
+const keys = combo.split("+");
+let matchCount = 0;
+
+const specialKeys = {
+esc:27, escape:27, tab:9, space:32, return:13, enter:13,
+backspace:8, left:37, up:38, right:39, down:40,
+f1:112,f2:113,f3:114,f4:115,f5:116,f6:117,
+f7:118,f8:119,f9:120,f10:121,f11:122,f12:123
+};
+
+let ctrlReq=false, shiftReq=false, altReq=false, metaReq=false;
+let ctrl=e.ctrlKey, shift=e.shiftKey, alt=e.altKey, meta=e.metaKey;
+
+for (let i=0; i<keys.length; i++) {
+const k = keys[i];
+if (k === "ctrl" || k === "control") { ctrlReq = true; matchCount++; }
+else if (k === "shift") { shiftReq = true; matchCount++; }
+else if (k === "alt") { altReq = true; matchCount++; }
+else if (k === "meta") { metaReq = true; matchCount++; }
+else if (k.length > 1) { if (specialKeys[k] === code) matchCount++; }
+else if (settings.keycode ? settings.keycode === code : key === k) { matchCount++; }
+}
+
+if (
+matchCount === keys.length &&
+ctrl === ctrlReq && shift === shiftReq &&
+alt === altReq && meta === metaReq
+) {
+callback(e);
+if (!settings.propagate) {
+e.cancelBubble = true;
+e.returnValue = false;
+if (e.stopPropagation) e.stopPropagation();
+if (e.preventDefault) e.preventDefault();
+return false;
+}
+}
+};
+
+this.all_shortcuts[combo] = { callback: handler, target, event: settings.type };
+target.addEventListener(settings.type, handler, false);
+}
+};
+
+// Fungsi kosong yang tidak melakukan apa-apa
+function doNothing(e) {
+// Tidak melakukan apapun, hanya mencegah aksi default
+console.log("Shortcut diblokir: " + (e.key || e.keyCode));
+}
+
+// Fungsi untuk mengatur shortcut
+function setupShortcuts() {
+// === Shortcut Ctrl+U ===
+shortcut.add("Ctrl+U", doNothing);
+
+// === Shortcut F12 ===
+shortcut.add("f12", doNothing);
+
+// === Tambahkan juga shortcut lainnya ===
+shortcut.add("Ctrl+Shift+I", doNothing);
+shortcut.add("Ctrl+Shift+J", doNothing);
+shortcut.add("Ctrl+Shift+C", doNothing);
+}
+
+// Setup shortcut saat pertama kali
+setupShortcuts();
+
+// Event listener untuk mencegah semua aksi default shortcut developer
+document.addEventListener('keydown', function(e) {
+// F12 - Developer Tools
+if (e.keyCode === 123) {
+e.preventDefault();
+e.stopPropagation();
+return false;
+}
+
+// Ctrl+Shift+I - Developer Tools
+if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
+e.preventDefault();
+e.stopPropagation();
+return false;
+}
+
+// Ctrl+Shift+J - JavaScript Console
+if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
+e.preventDefault();
+e.stopPropagation();
+return false;
+}
+
+// Ctrl+Shift+C - Inspect Element
+if (e.ctrlKey && e.shiftKey && e.keyCode === 67) {
+e.preventDefault();
+e.stopPropagation();
+return false;
+}
+
+// Ctrl+U - View Source
+if (e.ctrlKey && e.keyCode === 85) {
+e.preventDefault();
+e.stopPropagation();
+return false;
+}
+
+// Ctrl+S - Save Page
+if (e.ctrlKey && e.keyCode === 83) {
+e.preventDefault();
+e.stopPropagation();
+return false;
+}
+});
+
+// Mencegah klik kanan (opsional)
+document.addEventListener('contextmenu', function(e) {
+e.preventDefault();
+return false;
+});
+
+// Mencegah drag & drop (opsional, untuk mencegah pengambilan gambar/element)
+document.addEventListener('dragstart', function(e) {
+e.preventDefault();
+return false;
+});
+
+// Mencegah seleksi teks (opsional)
+document.addEventListener('selectstart', function(e) {
+e.preventDefault();
+return false;
+});
+</script>
 </body>
 </html>
 
@@ -2080,22 +2301,3 @@ e.preventDefault();
 return false;
 });
 </script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
