@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TOMMY HILFIGER // Y2K OS</title>
+<title>TOMMY HILFIGER // Y2K OS (SCROLLABLE)</title>
 <!-- Fonts: Space Mono (Data) & Outfit (Display) -->
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Space+Mono&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
@@ -39,7 +39,7 @@ background-position: 0 0, 10px 10px;
 color: var(--text-dark);
 font-family: 'Space Mono', monospace;
 height: 100vh;
-overflow: hidden;
+overflow: hidden; /* BODY FIXED */
 display: flex;
 flex-direction: column;
 }
@@ -55,6 +55,7 @@ justify-content: space-between;
 align-items: center;
 padding: 0 20px;
 box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+flex-shrink: 0; /* Supaya taskbar tidak ikut scroll */
 }
 
 .os-clock {
@@ -65,10 +66,11 @@ color: var(--win-dark-blue);
 
 /* Desktop Workspace */
 .workspace {
-flex: 1;
+flex: 1; /* Mengisi sisa tinggi layar */
 padding: 40px;
 display: flex;
 gap: 30px;
+overflow: hidden; /* Workspace fixed, scroll ada di dalam window */
 position: relative;
 }
 
@@ -98,6 +100,7 @@ font-weight: bold;
 font-family: 'Outfit', sans-serif;
 text-transform: uppercase;
 letter-spacing: 1px;
+flex-shrink: 0; /* Header tidak ikut scroll */
 }
 
 .win-controls span {
@@ -113,6 +116,8 @@ border: 1px solid rgba(255,255,255,0.5);
 .sidebar-win {
 width: 240px;
 flex-shrink: 0;
+display: flex;
+flex-direction: column;
 }
 
 .icon-grid {
@@ -120,6 +125,7 @@ padding: 20px;
 display: grid;
 grid-template-columns: 1fr 1fr;
 gap: 20px;
+overflow-y: auto; /* Sidebar bisa scroll jika layar pendek */
 }
 
 .desktop-icon {
@@ -152,17 +158,31 @@ color: var(--win-dark-blue);
 font-weight: bold;
 }
 
-/* =============== MAIN CONTENT WINDOW =============== */
+/* =============== MAIN CONTENT WINDOW (SCROLLABLE AREA) =============== */
 .main-win {
-flex: 1;
+flex: 1; /* Mengambil sisa ruang */
 padding: 0;
+display: flex;
+flex-direction: column;
+min-width: 0; /* Mencegah overflow flex */
 }
 
+/* AREA SCROLL UTAMA */
 .win-content {
 padding: 20px;
-overflow-y: auto;
-height: 100%;
+overflow-y: auto; /* AKTIFKAN SCROLL DI SINI */
+flex: 1; /* Isi sisa tinggi window */
 }
+
+/* Custom Scrollbar Style */
+.win-content::-webkit-scrollbar { width: 12px; }
+.win-content::-webkit-scrollbar-track { background: #cbd5e1; border-left: 2px solid #fff; }
+.win-content::-webkit-scrollbar-thumb { 
+    background: var(--win-blue); 
+    border: 2px solid #cbd5e1; 
+    border-radius: 10px; 
+}
+.win-content::-webkit-scrollbar-thumb:hover { background: var(--win-dark-blue); }
 
 /* Views */
 .view-section { display: none; animation: bootWindow 0.5s ease; }
@@ -245,7 +265,7 @@ color: #64748b;
 margin-top: 5px;
 }
 
-/* AMAN STATUS (Green Y2K) */
+/* AMAN STATUS */
 .safe-status-y2k {
 background: var(--cyber-green);
 color: #000;
@@ -260,6 +280,7 @@ width: 100%;
 border-collapse: collapse;
 background: white;
 border: 2px solid #cbd5e1;
+margin-bottom: 40px; /* Spacer di bawah table agar tidak ketemu bawah */
 }
 
 .table-y2k th {
@@ -308,13 +329,13 @@ animation: slideDown 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
 }
 @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-/* Mobile */
+/* Mobile Responsive */
 @media (max-width: 768px) {
-.workspace { flex-direction: column; padding: 20px; }
+.workspace { flex-direction: column; padding: 20px; overflow-y: auto; } /* Mobile scroll di workspace */
 .sidebar-win { width: 100%; height: auto; display: flex; flex-direction: row; align-items: center; overflow-x: auto; }
 .icon-grid { display: flex; gap: 20px; padding: 10px; }
+.main-win { height: 600px; /* Fixed height for mobile content window */ }
 .stats-y2k { grid-template-columns: 1fr; }
-.main-win { height: 100%; }
 }
 </style>
 </head>
@@ -344,15 +365,26 @@ animation: slideDown 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
                 <div class="icon-box" style="background: var(--cyber-pink); border-color: #fff; color: #fff;"><i class="fas fa-chart-pie"></i></div>
                 <div class="icon-label">Analytics</div>
             </div>
+            <!-- Dummy Icons for visual -->
+            <div class="desktop-icon">
+                <div class="icon-box" style="background:#fff; color:#000;"><i class="fas fa-folder"></i></div>
+                <div class="icon-label">Docs</div>
+            </div>
+            <div class="desktop-icon">
+                <div class="icon-box" style="background:#fff; color:#000;"><i class="fas fa-cog"></i></div>
+                <div class="icon-label">Settings</div>
+            </div>
         </div>
     </aside>
 
-    <!-- WINDOW 2: MAIN CONTENT -->
+    <!-- WINDOW 2: MAIN CONTENT (SCROLLABLE) -->
     <main class="window-frame main-win">
         <div class="win-header">
             Tommy_System.exe
             <div class="win-controls"><span></span><span></span></div>
         </div>
+        
+        <!-- CONTENT AREA WITH SCROLL -->
         <div class="win-content">
             
             <!-- VIEW 1: DATABASE -->
@@ -365,6 +397,10 @@ animation: slideDown 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
                 <table class="table-y2k" id="tableContainer">
                     <!-- Data Here -->
                 </table>
+                
+                <div style="text-align:center; padding: 20px; color:#94a3b8; font-size:0.8rem;">
+                    --- END OF LIST ---
+                </div>
             </div>
 
             <!-- VIEW 2: ANALYTICS -->
@@ -378,7 +414,7 @@ animation: slideDown 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
                         <div class="stat-val-y2k">99%</div>
                         <div class="stat-lbl-y2k">Disk Space</div>
                     </div>
-                    <!-- AMAN STATUS (Green Y2K) -->
+                    <!-- AMAN STATUS -->
                     <div class="stat-box-y2k safe-status-y2k">
                         <div class="stat-val-y2k">AMAN</div>
                         <div class="stat-lbl-y2k" style="color: #000; font-weight: bold;">System OK</div>
@@ -392,6 +428,17 @@ animation: slideDown 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
                     <div style="width:10%; height:90%; background: var(--cyber-green); border: 1px solid #000;"></div>
                     <div style="width:10%; height:50%; background: var(--cyber-yellow); border: 1px solid #000;"></div>
                     <div style="width:10%; height:60%; background: #fff; border: 1px solid #000;"></div>
+                </div>
+                
+                <div style="margin-top: 40px; padding: 20px; background:white; border:2px solid #94a3b8; border-radius:4px;">
+                    <h3 style="font-family:'Outfit'; margin-bottom:10px;">System Log:</h3>
+                    <ul style="font-size:0.8rem; color:#666; list-style:none; line-height:1.6;">
+                        <li>> System initialized successfully.</li>
+                        <li>> Connected to secure database node.</li>
+                        <li>> User authentication verified.</li>
+                        <li>> All services running normally.</li>
+                        <li>> Waiting for user input...</li>
+                    </ul>
                 </div>
             </div>
 
@@ -437,9 +484,7 @@ function showAnalytics() {
 }
 
 function setActiveNav(el) {
-    // Visual feedback only
-    // document.querySelectorAll('.desktop-icon').forEach(n => n.style.opacity = '0.5');
-    // el.style.opacity = '1';
+    // Visual only
 }
 
 function showToast(msg) {
