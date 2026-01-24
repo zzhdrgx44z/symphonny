@@ -1,0 +1,2365 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Pergantian Kalimat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-light: #a3bffa;
+            --primary-dark: #5a67d8;
+            --secondary: #ed64a6;
+            --secondary-light: #fbb6ce;
+            --accent: #38b2ac;
+            --accent-light: #81e6d9;
+            --dark: #2d3748;
+            --gray-1: #4a5568;
+            --gray-2: #718096;
+            --gray-3: #a0aec0;
+            --gray-4: #e2e8f0;
+            --light: #f7fafc;
+            --success: #48bb78;
+            --warning: #ed8936;
+            --danger: #f56565;
+            --radius: 16px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.12);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7ff 0%, #f0f9ff 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        
+        /* Header */
+        header {
+            background: white;
+            border-radius: var(--radius);
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-bg {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 400px;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--accent-light) 100%);
+            opacity: 0.1;
+            clip-path: polygon(100% 0, 0 0, 100% 100%);
+        }
+        
+        h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 3.2rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            font-size: 1.25rem;
+            color: var(--gray-1);
+            max-width: 900px;
+            margin-bottom: 20px;
+        }
+        
+        .header-stats {
+            display: flex;
+            gap: 40px;
+            margin-top: 30px;
+        }
+        
+        .stat-box {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+        }
+        
+        .stat-1 { background: rgba(102, 126, 234, 0.1); color: var(--primary); }
+        .stat-2 { background: rgba(237, 100, 166, 0.1); color: var(--secondary); }
+        .stat-3 { background: rgba(56, 178, 172, 0.1); color: var(--accent); }
+        
+        .stat-info h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stat-info p {
+            color: var(--gray-2);
+            font-size: 0.95rem;
+        }
+        
+        /* Main Layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        @media (max-width: 1400px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Left Column - Input & Controls */
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+        
+        /* Right Column - Results & Templates */
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+        
+        /* Panel Styling */
+        .panel {
+            background: white;
+            border-radius: var(--radius);
+            padding: 35px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        
+        .panel:hover {
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--gray-4);
+        }
+        
+        .panel-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.7rem;
+            font-weight: 600;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .panel-title i {
+            color: var(--primary);
+        }
+        
+        /* Input Panel */
+        .input-panel {
+            min-height: 450px;
+        }
+        
+        .input-container {
+            position: relative;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 280px;
+            padding: 25px;
+            border: 2px solid var(--gray-4);
+            border-radius: var(--radius);
+            font-family: 'Inter', sans-serif;
+            font-size: 1.05rem;
+            line-height: 1.8;
+            resize: vertical;
+            transition: var(--transition);
+            background: var(--light);
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        
+        .input-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            color: var(--gray-2);
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .quick-action-btn {
+            padding: 14px;
+            background: var(--light);
+            border: 2px solid var(--gray-4);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+        
+        .quick-action-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-3px);
+        }
+        
+        /* Controls Panel */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        .control-label {
+            display: block;
+            font-weight: 500;
+            color: var(--dark);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        select, input[type="text"] {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid var(--gray-4);
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            transition: var(--transition);
+            background: white;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        /* Style Chips */
+        .style-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        
+        .style-chip {
+            padding: 10px 20px;
+            background: var(--gray-4);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .style-chip.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .style-chip:hover:not(.active) {
+            background: var(--gray-3);
+            transform: translateY(-2px);
+        }
+        
+        /* Slider Styling */
+        .slider-container {
+            padding: 15px 0;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 10px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--gray-4);
+            border-radius: 5px;
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            border: 4px solid white;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+        
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            color: var(--gray-2);
+            font-size: 0.9rem;
+        }
+        
+        /* Results Panel */
+        .results-panel {
+            min-height: 700px;
+        }
+        
+        .results-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--gray-4);
+        }
+        
+        .tab-btn {
+            padding: 18px 35px;
+            background: none;
+            border: none;
+            font-weight: 600;
+            color: var(--gray-2);
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .tab-btn.active {
+            color: var(--primary);
+        }
+        
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Sentence Cards */
+        .sentence-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 15px;
+        }
+        
+        .sentence-card {
+            background: var(--light);
+            border-radius: var(--radius);
+            padding: 30px;
+            border: 2px solid var(--gray-4);
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .sentence-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sentence-card.selected {
+            border-color: var(--primary);
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        .sentence-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .sentence-type {
+            padding: 6px 15px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .type-formal { background: rgba(102, 126, 234, 0.1); color: var(--primary); }
+        .type-casual { background: rgba(237, 100, 166, 0.1); color: var(--secondary); }
+        .type-academic { background: rgba(56, 178, 172, 0.1); color: var(--accent); }
+        .type-business { background: rgba(237, 137, 54, 0.1); color: var(--warning); }
+        
+        .sentence-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--dark);
+            margin-bottom: 20px;
+        }
+        
+        .sentence-stats {
+            display: flex;
+            gap: 20px;
+            color: var(--gray-2);
+            font-size: 0.9rem;
+        }
+        
+        .sentence-stats i {
+            margin-right: 5px;
+        }
+        
+        .sentence-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            opacity: 0;
+            transition: var(--transition);
+        }
+        
+        .sentence-card:hover .sentence-actions {
+            opacity: 1;
+        }
+        
+        /* Comparison Panel */
+        .comparison-panel {
+            padding: 30px;
+            background: var(--light);
+            border-radius: var(--radius);
+            border: 2px solid var(--gray-4);
+        }
+        
+        .comparison-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .comparison-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .comparison-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .comparison-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            border: 2px solid var(--gray-4);
+            min-height: 200px;
+        }
+        
+        .comparison-box h4 {
+            color: var(--gray-1);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--gray-4);
+        }
+        
+        /* Templates Panel */
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .template-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            border: 2px solid var(--gray-4);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        
+        .template-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+        }
+        
+        .template-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        
+        .template-title {
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+        
+        .template-desc {
+            color: var(--gray-2);
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+        }
+        
+        /* Buttons */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+        
+        .btn {
+            padding: 18px 30px;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: var(--light);
+            color: var(--dark);
+            border: 2px solid var(--gray-4);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--gray-4);
+            transform: translateY(-3px);
+        }
+        
+        .btn-success {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #2c9c96;
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(56, 178, 172, 0.3);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #e53e3e;
+            transform: translateY(-3px);
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: #dd6b20;
+            transform: translateY(-3px);
+        }
+        
+        /* Loading Animation */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid var(--gray-4);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 25px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 40px;
+            right: 40px;
+            padding: 22px 35px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            display: none;
+            z-index: 1000;
+            animation: slideInRight 0.3s ease;
+            max-width: 450px;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .notification.success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .notification.info {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .notification.warning {
+            background: var(--warning);
+            color: white;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 40px 0;
+            color: var(--gray-2);
+            border-top: 1px solid var(--gray-4);
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 35px;
+            margin: 25px 0;
+        }
+        
+        .footer-links a {
+            color: var(--gray-2);
+            text-decoration: none;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+        
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .header-stats {
+                flex-direction: column;
+                gap: 25px;
+            }
+            
+            .main-content {
+                gap: 25px;
+            }
+            
+            .panel {
+                padding: 25px;
+            }
+            
+            .sentence-cards,
+            .templates-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .comparison-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 10px;
+            background: var(--gray-4);
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+        
+        /* Badge */
+        .badge {
+            display: inline-block;
+            padding: 6px 15px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .badge-new {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        .badge-popular {
+            background: var(--warning);
+            color: white;
+        }
+        
+        /* History Item */
+        .history-item {
+            padding: 20px;
+            border-bottom: 1px solid var(--gray-4);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .history-item:hover {
+            background: var(--light);
+            border-radius: var(--radius);
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: var(--radius);
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        /* Export Options */
+        .export-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .export-btn {
+            padding: 15px;
+            background: var(--light);
+            border: 2px solid var(--gray-4);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .export-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .export-btn i {
+            font-size: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-bg"></div>
+            <h1><i class="fas fa-sync-alt"></i> Generator Pergantian Kalimat</h1>
+            <p class="subtitle">Ubah dan variasikan kalimat Anda dengan struktur berbeda namun makna sama. Ciptakan variasi untuk menghindari repetisi dan meningkatkan kualitas tulisan.</p>
+            
+            <div class="header-stats">
+                <div class="stat-box">
+                    <div class="stat-icon stat-1">
+                        <i class="fas fa-random"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="variationCount">1,245</h3>
+                        <p>Variasi Kalimat Tersedia</p>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon stat-2">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="patternCount">42</h3>
+                        <p>Pola Pergantian</p>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon stat-3">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="generatedCount">8,956</h3>
+                        <p>Kalimat Digenerate</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <!-- Left Column -->
+            <div class="left-column">
+                <!-- Input Panel -->
+                <div class="panel input-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <i class="fas fa-keyboard"></i> Input Kalimat
+                        </div>
+                        <div class="input-meta">
+                            <span id="wordCount">0 kata</span>
+                            <span id="charCount">0 karakter</span>
+                        </div>
+                    </div>
+                    
+                    <div class="input-container">
+                        <textarea id="inputSentence" placeholder="Masukkan kalimat yang ingin Anda variasikan...&#10;Contoh: 'Saya akan menyelesaikan proyek ini sebelum deadline yang ditentukan'"></textarea>
+                    </div>
+                    
+                    <div class="quick-actions">
+                        <div class="quick-action-btn" data-example="1">
+                            <i class="fas fa-briefcase"></i> Contoh Bisnis
+                        </div>
+                        <div class="quick-action-btn" data-example="2">
+                            <i class="fas fa-graduation-cap"></i> Contoh Akademik
+                        </div>
+                        <div class="quick-action-btn" data-example="3">
+                            <i class="fas fa-comments"></i> Contoh Kasual
+                        </div>
+                        <div class="quick-action-btn" data-example="4">
+                            <i class="fas fa-pen-nib"></i> Contoh Sastra
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Controls Panel -->
+                <div class="panel controls-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <i class="fas fa-sliders-h"></i> Pengaturan Pergantian
+                        </div>
+                        <div style="color: var(--primary); font-weight: 600;">
+                            <i class="fas fa-bolt"></i> Mode AI Aktif
+                        </div>
+                    </div>
+                    
+                    <div class="controls-grid">
+                        <div class="control-group">
+                            <label class="control-label">
+                                <i class="fas fa-palette"></i> Gaya Bahasa
+                            </label>
+                            <div class="style-chips">
+                                <div class="style-chip active" data-style="all">
+                                    <i class="fas fa-layer-group"></i> Semua
+                                </div>
+                                <div class="style-chip" data-style="formal">
+                                    <i class="fas fa-suitcase"></i> Formal
+                                </div>
+                                <div class="style-chip" data-style="casual">
+                                    <i class="fas fa-smile"></i> Kasual
+                                </div>
+                                <div class="style-chip" data-style="academic">
+                                    <i class="fas fa-graduation-cap"></i> Akademik
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="control-label">
+                                <i class="fas fa-arrows-alt-h"></i> Tingkat Perubahan
+                            </label>
+                            <div class="slider-container">
+                                <input type="range" min="1" max="5" value="3" class="slider" id="changeIntensity">
+                                <div class="slider-labels">
+                                    <span>Minor</span>
+                                    <span>Sedang</span>
+                                    <span>Major</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="control-label">
+                                <i class="fas fa-cube"></i> Jumlah Variasi
+                            </label>
+                            <div class="slider-container">
+                                <input type="range" min="1" max="10" value="5" class="slider" id="variationCountSlider">
+                                <div class="slider-labels">
+                                    <span>3</span>
+                                    <span>5</span>
+                                    <span>10</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="control-label">
+                                <i class="fas fa-robot"></i> Kecerdasan AI
+                            </label>
+                            <select id="aiMode">
+                                <option value="smart">Cerdas (Rekomendasi)</option>
+                                <option value="creative">Kreatif (Variasi Luas)</option>
+                                <option value="conservative">Konservatif (Mirip)</option>
+                                <option value="random">Acak (Kejutan)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="control-label">
+                                <i class="fas fa-language"></i> Pola Struktur
+                            </label>
+                            <select id="structurePattern">
+                                <option value="auto">Otomatis (AI Pilih)</option>
+                                <option value="active">Aktif → Pasif</option>
+                                <option value="passive">Pasif → Aktif</option>
+                                <option value="complex">Sederhana → Kompleks</option>
+                                <option value="simple">Kompleks → Sederhana</option>
+                                <option value="inversion">Inversi Kata</option>
+                                <option value="parallel">Struktur Paralel</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="control-label">
+                                <i class="fas fa-magic"></i> Fitur Tambahan
+                            </label>
+                            <div style="display: flex; gap: 15px; margin-top: 10px;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="synonymReplace" checked>
+                                    <span>Ganti Sinonim</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="restructure" checked>
+                                    <span>Restrukturisasi</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" id="generateBtn">
+                            <i class="fas fa-bolt"></i> Generate Variasi
+                        </button>
+                        <button class="btn btn-secondary" id="analyzeBtn">
+                            <i class="fas fa-search"></i> Analisis Kalimat
+                        </button>
+                        <button class="btn btn-warning" id="clearBtn">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column -->
+            <div class="right-column">
+                <!-- Results Panel -->
+                <div class="panel results-panel">
+                    <div class="results-tabs">
+                        <button class="tab-btn active" data-tab="variations">
+                            <i class="fas fa-random"></i> Variasi Kalimat
+                        </button>
+                        <button class="tab-btn" data-tab="comparison">
+                            <i class="fas fa-columns"></i> Perbandingan
+                        </button>
+                        <button class="tab-btn" data-tab="patterns">
+                            <i class="fas fa-project-diagram"></i> Pola
+                        </button>
+                        <button class="tab-btn" data-tab="history">
+                            <i class="fas fa-history"></i> Riwayat
+                        </button>
+                    </div>
+                    
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <p style="color: var(--gray-2); font-size: 1.1rem; margin-top: 20px;">
+                            <i class="fas fa-brain"></i> AI sedang menganalisis dan membuat variasi kalimat...
+                        </p>
+                        <div class="progress-container" style="margin: 30px auto; width: 300px;">
+                            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Variations Tab -->
+                    <div class="tab-content active" id="variationsTab">
+                        <div class="sentence-cards" id="sentenceCards">
+                            <!-- Kartu variasi kalimat akan muncul di sini -->
+                            <div style="text-align: center; padding: 60px 20px; color: var(--gray-3);">
+                                <i class="fas fa-comment-alt" style="font-size: 4rem; margin-bottom: 20px;"></i>
+                                <h3 style="color: var(--gray-2); margin-bottom: 15px;">Belum Ada Variasi</h3>
+                                <p>Masukkan kalimat dan klik "Generate Variasi" untuk melihat hasil</p>
+                            </div>
+                        </div>
+                        
+                        <div class="action-buttons" style="margin-top: 30px;">
+                            <button class="btn btn-success" id="applyAllBtn">
+                                <i class="fas fa-check-double"></i> Terapkan Semua yang Dipilih
+                            </button>
+                            <button class="btn btn-secondary" id="exportBtn">
+                                <i class="fas fa-download"></i> Ekspor Hasil
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Comparison Tab -->
+                    <div class="tab-content" id="comparisonTab">
+                        <div class="comparison-panel">
+                            <div class="comparison-header">
+                                <div class="comparison-title">Perbandingan Kalimat</div>
+                                <div style="color: var(--primary); font-weight: 500;">
+                                    <i class="fas fa-chart-line"></i> Analisis Perbedaan
+                                </div>
+                            </div>
+                            
+                            <div class="comparison-content">
+                                <div class="comparison-box">
+                                    <h4><i class="fas fa-file-alt"></i> Kalimat Asli</h4>
+                                    <div id="originalComparison">-</div>
+                                </div>
+                                <div class="comparison-box">
+                                    <h4><i class="fas fa-sync-alt"></i> Kalimat Hasil</h4>
+                                    <div id="resultComparison">-</div>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-top: 30px; padding: 25px; background: var(--light); border-radius: 12px;">
+                                <h4 style="color: var(--dark); margin-bottom: 15px;">
+                                    <i class="fas fa-chart-bar"></i> Statistik Perubahan
+                                </h4>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                                    <div>
+                                        <div style="font-size: 0.9rem; color: var(--gray-2);">Kata Diganti</div>
+                                        <div style="font-size: 2rem; font-weight: 700; color: var(--primary);" id="wordsChanged">0%</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 0.9rem; color: var(--gray-2);">Struktur Berubah</div>
+                                        <div style="font-size: 2rem; font-weight: 700; color: var(--accent);" id="structureChanged">0%</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 0.9rem; color: var(--gray-2);">Kesamaan Makna</div>
+                                        <div style="font-size: 2rem; font-weight: 700; color: var(--success);" id="meaningSimilarity">100%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Patterns Tab -->
+                    <div class="tab-content" id="patternsTab">
+                        <div class="templates-grid" id="patternsGrid">
+                            <!-- Pola pergantian akan muncul di sini -->
+                        </div>
+                    </div>
+                    
+                    <!-- History Tab -->
+                    <div class="tab-content" id="historyTab">
+                        <div id="historyList">
+                            <!-- Riwayat akan muncul di sini -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Templates Panel -->
+                <div class="panel templates-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <i class="fas fa-clone"></i> Template Kalimat
+                        </div>
+                        <span class="badge badge-new">BARU</span>
+                    </div>
+                    
+                    <div class="templates-grid" id="templatesGrid">
+                        <!-- Template akan diisi oleh JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <div class="footer-links">
+                <a href="#"><i class="fas fa-question-circle"></i> Bantuan & Panduan</a>
+                <a href="#"><i class="fas fa-book"></i> Dokumentasi</a>
+                <a href="#"><i class="fas fa-envelope"></i> Kontak & Dukungan</a>
+                <a href="#"><i class="fas fa-shield-alt"></i> Privasi & Keamanan</a>
+            </div>
+            <p>Generator Pergantian Kalimat &copy; 2023 | Alat canggih untuk variasi dan peningkatan kualitas tulisan</p>
+            <p style="margin-top: 10px; font-size: 0.9rem; color: var(--gray-3);">
+                <i class="fas fa-brain"></i> Didukung oleh AI untuk hasil yang optimal
+            </p>
+        </footer>
+    </div>
+    
+    <!-- Modal Export -->
+    <div class="modal" id="exportModal">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 25px; color: var(--dark);">
+                <i class="fas fa-download"></i> Ekspor Hasil
+            </h2>
+            <p style="color: var(--gray-2); margin-bottom: 30px;">
+                Pilih format untuk mengekspor hasil pergantian kalimat:
+            </p>
+            
+            <div class="export-options">
+                <div class="export-btn" data-format="txt">
+                    <i class="fas fa-file-alt"></i>
+                    <span>TXT</span>
+                </div>
+                <div class="export-btn" data-format="doc">
+                    <i class="fas fa-file-word"></i>
+                    <span>DOC</span>
+                </div>
+                <div class="export-btn" data-format="pdf">
+                    <i class="fas fa-file-pdf"></i>
+                    <span>PDF</span>
+                </div>
+                <div class="export-btn" data-format="json">
+                    <i class="fas fa-code"></i>
+                    <span>JSON</span>
+                </div>
+                <div class="export-btn" data-format="html">
+                    <i class="fas fa-file-code"></i>
+                    <span>HTML</span>
+                </div>
+                <div class="export-btn" data-format="csv">
+                    <i class="fas fa-file-csv"></i>
+                    <span>CSV</span>
+                </div>
+            </div>
+            
+            <div class="action-buttons" style="margin-top: 40px;">
+                <button class="btn btn-secondary" id="cancelExportBtn">
+                    <i class="fas fa-times"></i> Batal
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+    
+    <script>
+        // Database pola pergantian kalimat
+        const sentencePatterns = {
+            // Pola aktif-pasif
+            "active_to_passive": {
+                name: "Aktif → Pasif",
+                description: "Mengubah kalimat aktif menjadi pasif",
+                examples: {
+                    input: "Saya menyelesaikan proyek ini",
+                    output: "Proyek ini diselesaikan oleh saya"
+                },
+                rules: [
+                    { find: "(.*) (.*) (.*)", replace: "$3 di$2 oleh $1" }
+                ]
+            },
+            
+            "passive_to_active": {
+                name: "Pasif → Aktif",
+                description: "Mengubah kalimat pasif menjadi aktif",
+                examples: {
+                    input: "Proyek ini diselesaikan oleh saya",
+                    output: "Saya menyelesaikan proyek ini"
+                },
+                rules: [
+                    { find: "(.*) di(.*) oleh (.*)", replace: "$3 $2 $1" }
+                ]
+            },
+            
+            // Pola penekanan
+            "emphasis_front": {
+                name: "Penekanan Depan",
+                description: "Memindahkan bagian penting ke depan kalimat",
+                examples: {
+                    input: "Saya akan menyelesaikan proyek ini besok",
+                    output: "Besok, saya akan menyelesaikan proyek ini"
+                },
+                rules: [
+                    { find: "(.*) (besok|kemarin|hari ini|nantinya)", replace: "$2, $1" }
+                ]
+            },
+            
+            "emphasis_end": {
+                name: "Penekanan Akhir",
+                description: "Memindahkan bagian penting ke akhir kalimat",
+                examples: {
+                    input: "Dengan sungguh-sungguh, dia mengerjakan tugas",
+                    output: "Dia mengerjakan tugas dengan sungguh-sungguh"
+                },
+                rules: [
+                    { find: "Dengan (.*), (.*)", replace: "$2 dengan $1" }
+                ]
+            },
+            
+            // Pola kompleksitas
+            "simple_to_complex": {
+                name: "Sederhana → Kompleks",
+                description: "Menambahkan klausa untuk memperkaya kalimat",
+                examples: {
+                    input: "Dia pergi ke pasar",
+                    output: "Dia yang sedang berlibur pergi ke pasar yang ramai"
+                },
+                rules: [
+                    { find: "(.*) (pergi|datang|pergi|berjalan) ke (.*)", replace: "$1 yang sedang berlibur $2 ke $3 yang ramai" }
+                ]
+            },
+            
+            "complex_to_simple": {
+                name: "Kompleks → Sederhana",
+                description: "Menyederhanakan kalimat kompleks",
+                examples: {
+                    input: "Dia yang sedang berlibur pergi ke pasar yang ramai",
+                    output: "Dia pergi ke pasar"
+                },
+                rules: [
+                    { find: "(.*) yang sedang (.*) (pergi|datang|pergi|berjalan) ke (.*) yang (.*)", replace: "$1 $3 ke $4" }
+                ]
+            },
+            
+            // Pola inversi
+            "inversion": {
+                name: "Inversi Kalimat",
+                description: "Membalik urutan subjek dan predikat",
+                examples: {
+                    input: "Saya belum pernah melihat pemandangan seindah ini",
+                    output: "Belum pernah saya melihat pemandangan seindah ini"
+                },
+                rules: [
+                    { find: "(.*) (belum pernah|selalu|sering|jarang) (.*)", replace: "$2 $1 $3" }
+                ]
+            },
+            
+            // Pola parallel structure
+            "parallel_structure": {
+                name: "Struktur Paralel",
+                description: "Membuat struktur kalimat yang sejajar",
+                examples: {
+                    input: "Dia suka membaca, menulis, dan melukis",
+                    output: "Membaca, menulis, dan melukis adalah kegiatan yang disukainya"
+                },
+                rules: [
+                    { find: "(.*) suka (.*), (.*), dan (.*)", replace: "$2, $3, dan $4 adalah kegiatan yang disukai $1" }
+                ]
+            }
+        };
+
+        // Database template kalimat
+        const sentenceTemplates = [
+            {
+                id: 1,
+                title: "Kalimat Bisnis",
+                description: "Formal dan profesional untuk komunikasi bisnis",
+                icon: "fa-briefcase",
+                examples: [
+                    "Kami akan mengirimkan laporan tersebut sebelum akhir pekan",
+                    "Proyek ini memerlukan koordinasi yang lebih intensif",
+                    "Kami menghargai kerja sama yang telah terjalin"
+                ]
+            },
+            {
+                id: 2,
+                title: "Kalimat Akademik",
+                description: "Kosakata teknis dan struktur kompleks untuk penulisan ilmiah",
+                icon: "fa-graduation-cap",
+                examples: [
+                    "Penelitian ini bertujuan untuk menganalisis dampak perubahan iklim",
+                    "Terdapat korelasi yang signifikan antara variabel X dan Y",
+                    "Metodologi yang digunakan dalam studi ini adalah kualitatif"
+                ]
+            },
+            {
+                id: 3,
+                title: "Kalimat Kasual",
+                description: "Santai dan informal untuk percakapan sehari-hari",
+                icon: "fa-comments",
+                examples: [
+                    "Aku lagi nggak ada duit nih, bisa nggak bayarnya nanti?",
+                    "Kamu udah makan belum? Mau makan bareng di mana?",
+                    "Film tadi malam seru banget, kamu harus nonton!"
+                ]
+            },
+            {
+                id: 4,
+                title: "Kalimat Sastra",
+                description: "Puitis dan bermakna dalam untuk karya sastra",
+                icon: "fa-pen-nib",
+                examples: [
+                    "Matahari perlahan tenggelam di ufuk barat",
+                    "Hatinya bagai lautan yang tak pernah tenang",
+                    "Angin malam membisikkan rahasia yang tersembunyi"
+                ]
+            },
+            {
+                id: 5,
+                title: "Kalimat Marketing",
+                description: "Persuasif dan menarik untuk pemasaran",
+                icon: "fa-bullhorn",
+                examples: [
+                    "Produk ini akan mengubah cara Anda bekerja selamanya",
+                    "Dapatkan diskon spesial hanya untuk 100 pembeli pertama",
+                    "Solusi terbaik untuk masalah yang selama ini Anda hadapi"
+                ]
+            },
+            {
+                id: 6,
+                title: "Kalimat Instruksional",
+                description: "Jelas dan terstruktur untuk petunjuk atau manual",
+                icon: "fa-list-ol",
+                examples: [
+                    "Pertama, siapkan semua bahan yang diperlukan",
+                    "Kemudian, ikuti langkah-langkah berikut secara berurutan",
+                    "Terakhir, verifikasi hasil yang telah Anda peroleh"
+                ]
+            }
+        ];
+
+        // Contoh kalimat untuk quick actions
+        const exampleSentences = {
+            1: "Tim kami telah berhasil mencapai target penjualan triwulan ini dengan margin keuntungan yang signifikan",
+            2: "Penelitian ini menginvestigasi hubungan kausal antara konsumsi kafein dan tingkat produktivitas di lingkungan kerja",
+            3: "Gue udah coba resep baru tadi malem, enak banget! Kamu harus cobain juga deh",
+            4: "Kabut pagi menyelimuti lembah, sementara burung-burung mulai berkicau menyambut fajar yang baru"
+        };
+
+        // Inisialisasi aplikasi
+        document.addEventListener('DOMContentLoaded', function() {
+            // Element references
+            const inputSentence = document.getElementById('inputSentence');
+            const wordCount = document.getElementById('wordCount');
+            const charCount = document.getElementById('charCount');
+            const generateBtn = document.getElementById('generateBtn');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const loading = document.getElementById('loading');
+            const progressBar = document.getElementById('progressBar');
+            const sentenceCards = document.getElementById('sentenceCards');
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const styleChips = document.querySelectorAll('.style-chip');
+            const quickActionBtns = document.querySelectorAll('.quick-action-btn');
+            const templatesGrid = document.getElementById('templatesGrid');
+            const patternsGrid = document.getElementById('patternsGrid');
+            const originalComparison = document.getElementById('originalComparison');
+            const resultComparison = document.getElementById('resultComparison');
+            const notification = document.getElementById('notification');
+            const exportModal = document.getElementById('exportModal');
+            const cancelExportBtn = document.getElementById('cancelExportBtn');
+            const exportBtn = document.getElementById('exportBtn');
+            
+            // State variables
+            let originalSentence = '';
+            let generatedVariations = [];
+            let selectedVariations = new Set();
+            let generationHistory = [];
+            
+            // Initialize
+            initializeTemplates();
+            initializePatterns();
+            updateStats();
+            loadHistory();
+            
+            // Event Listeners
+            
+            // Update word and character count
+            inputSentence.addEventListener('input', function() {
+                const text = inputSentence.value;
+                const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+                wordCount.textContent = `${words} kata`;
+                charCount.textContent = `${text.length} karakter`;
+            });
+            
+            // Quick action buttons
+            quickActionBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const exampleId = parseInt(this.dataset.example);
+                    inputSentence.value = exampleSentences[exampleId];
+                    
+                    // Trigger input event to update counts
+                    const event = new Event('input');
+                    inputSentence.dispatchEvent(event);
+                    
+                    showNotification('Contoh kalimat telah dimasukkan', 'info');
+                });
+            });
+            
+            // Style chips
+            styleChips.forEach(chip => {
+                chip.addEventListener('click', function() {
+                    styleChips.forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Tab navigation
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const tabId = this.dataset.tab;
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    document.getElementById(`${tabId}Tab`).classList.add('active');
+                });
+            });
+            
+            // Generate variations button
+            generateBtn.addEventListener('click', generateVariations);
+            
+            // Analyze button
+            analyzeBtn.addEventListener('click', analyzeSentence);
+            
+            // Clear button
+            clearBtn.addEventListener('click', function() {
+                inputSentence.value = '';
+                sentenceCards.innerHTML = `
+                    <div style="text-align: center; padding: 60px 20px; color: var(--gray-3);">
+                        <i class="fas fa-comment-alt" style="font-size: 4rem; margin-bottom: 20px;"></i>
+                        <h3 style="color: var(--gray-2); margin-bottom: 15px;">Belum Ada Variasi</h3>
+                        <p>Masukkan kalimat dan klik "Generate Variasi" untuk melihat hasil</p>
+                    </div>
+                `;
+                originalComparison.textContent = '-';
+                resultComparison.textContent = '-';
+                
+                // Trigger input event to update counts
+                const event = new Event('input');
+                inputSentence.dispatchEvent(event);
+                
+                showNotification('Semua input dan hasil telah direset', 'info');
+            });
+            
+            // Export button
+            exportBtn.addEventListener('click', function() {
+                if (generatedVariations.length === 0) {
+                    showNotification('Tidak ada variasi untuk diekspor', 'warning');
+                    return;
+                }
+                exportModal.style.display = 'flex';
+            });
+            
+            // Cancel export
+            cancelExportBtn.addEventListener('click', function() {
+                exportModal.style.display = 'none';
+            });
+            
+            // Close modal when clicking outside
+            exportModal.addEventListener('click', function(e) {
+                if (e.target === exportModal) {
+                    exportModal.style.display = 'none';
+                }
+            });
+            
+            // Export format buttons
+            document.querySelectorAll('.export-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const format = this.dataset.format;
+                    exportVariations(format);
+                    exportModal.style.display = 'none';
+                });
+            });
+            
+            // Apply all selected button
+            document.getElementById('applyAllBtn').addEventListener('click', function() {
+                if (selectedVariations.size === 0) {
+                    showNotification('Pilih variasi terlebih dahulu', 'warning');
+                    return;
+                }
+                
+                const selected = Array.from(selectedVariations);
+                const randomSelected = selected[Math.floor(Math.random() * selected.length)];
+                
+                // Update input with selected variation
+                inputSentence.value = randomSelected.content;
+                
+                // Trigger input event to update counts
+                const event = new Event('input');
+                inputSentence.dispatchEvent(event);
+                
+                showNotification(`Kalimat telah diganti dengan variasi terpilih`, 'success');
+            });
+            
+            // Functions
+            
+            // Initialize templates
+            function initializeTemplates() {
+                let html = '';
+                sentenceTemplates.forEach(template => {
+                    html += `
+                        <div class="template-card" data-template-id="${template.id}">
+                            <div class="template-icon">
+                                <i class="fas ${template.icon}"></i>
+                            </div>
+                            <div class="template-title">${template.title}</div>
+                            <div class="template-desc">${template.description}</div>
+                            <div style="font-size: 0.9rem; color: var(--gray-3); margin-top: 15px;">
+                                <i class="fas fa-lightbulb"></i> Klik untuk contoh
+                            </div>
+                        </div>
+                    `;
+                });
+                templatesGrid.innerHTML = html;
+                
+                // Add click events to templates
+                document.querySelectorAll('.template-card').forEach(card => {
+                    card.addEventListener('click', function() {
+                        const templateId = parseInt(this.dataset.templateId);
+                        const template = sentenceTemplates.find(t => t.id === templateId);
+                        
+                        if (template && template.examples.length > 0) {
+                            const randomExample = template.examples[Math.floor(Math.random() * template.examples.length)];
+                            inputSentence.value = randomExample;
+                            
+                            // Trigger input event to update counts
+                            const event = new Event('input');
+                            inputSentence.dispatchEvent(event);
+                            
+                            showNotification(`Contoh kalimat ${template.title} telah dimasukkan`, 'info');
+                        }
+                    });
+                });
+            }
+            
+            // Initialize patterns
+            function initializePatterns() {
+                let html = '';
+                Object.keys(sentencePatterns).forEach(patternKey => {
+                    const pattern = sentencePatterns[patternKey];
+                    html += `
+                        <div class="template-card" data-pattern="${patternKey}">
+                            <div class="template-icon" style="background: rgba(102, 126, 234, 0.1);">
+                                <i class="fas fa-project-diagram"></i>
+                            </div>
+                            <div class="template-title">${pattern.name}</div>
+                            <div class="template-desc">${pattern.description}</div>
+                            <div style="margin-top: 15px; padding: 12px; background: var(--light); border-radius: 8px;">
+                                <div style="font-size: 0.85rem; color: var(--gray-2);">
+                                    <strong>Contoh:</strong><br>
+                                    <span style="color: var(--gray-3);">${pattern.examples.input}</span><br>
+                                    <span style="color: var(--primary);">→ ${pattern.examples.output}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                patternsGrid.innerHTML = html;
+                
+                // Add click events to patterns
+                document.querySelectorAll('[data-pattern]').forEach(card => {
+                    card.addEventListener('click', function() {
+                        const patternKey = this.dataset.pattern;
+                        const pattern = sentencePatterns[patternKey];
+                        
+                        // Set structure pattern dropdown
+                        document.getElementById('structurePattern').value = patternKey;
+                        showNotification(`Pola "${pattern.name}" telah dipilih`, 'info');
+                    });
+                });
+            }
+            
+            // Generate variations
+            function generateVariations() {
+                originalSentence = inputSentence.value.trim();
+                
+                if (!originalSentence) {
+                    showNotification('Masukkan kalimat terlebih dahulu', 'warning');
+                    return;
+                }
+                
+                // Show loading animation
+                loading.style.display = 'block';
+                sentenceCards.innerHTML = '';
+                generatedVariations = [];
+                selectedVariations.clear();
+                
+                // Simulate progress
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += 10;
+                    progressBar.style.width = `${progress}%`;
+                    
+                    if (progress >= 100) {
+                        clearInterval(progressInterval);
+                        
+                        // Generate variations
+                        const variations = createVariations(originalSentence);
+                        displayVariations(variations);
+                        
+                        // Hide loading
+                        loading.style.display = 'none';
+                        progressBar.style.width = '0%';
+                        
+                        // Update stats
+                        updateGenerationStats(variations.length);
+                        showNotification(`${variations.length} variasi kalimat berhasil dibuat`, 'success');
+                        
+                        // Save to history
+                        saveToHistory(originalSentence, variations);
+                    }
+                }, 100);
+            }
+            
+            // Create variations
+            function createVariations(sentence) {
+                const variations = [];
+                const variationCount = parseInt(document.getElementById('variationCountSlider').value);
+                const style = document.querySelector('.style-chip.active').dataset.style;
+                const aiMode = document.getElementById('aiMode').value;
+                const structurePattern = document.getElementById('structurePattern').value;
+                const changeIntensity = parseInt(document.getElementById('changeIntensity').value);
+                
+                // Generate variations based on settings
+                for (let i = 0; i < variationCount; i++) {
+                    let variation = sentence;
+                    
+                    // Apply structure pattern if not auto
+                    if (structurePattern !== 'auto') {
+                        variation = applyPattern(variation, structurePattern);
+                    }
+                    
+                    // Apply AI mode
+                    variation = applyAIMode(variation, aiMode, changeIntensity);
+                    
+                    // Apply style filtering
+                    if (style !== 'all') {
+                        variation = applyStyle(variation, style);
+                    }
+                    
+                    // Ensure variation is different from original
+                    if (variation === sentence) {
+                        variation = applyRandomChange(variation);
+                    }
+                    
+                    // Add to variations array
+                    variations.push({
+                        id: i + 1,
+                        content: variation,
+                        type: getVariationType(i),
+                        similarity: calculateSimilarity(sentence, variation),
+                        wordCount: variation.split(/\s+/).length,
+                        style: getRandomStyle()
+                    });
+                }
+                
+                return variations;
+            }
+            
+            // Apply pattern to sentence
+            function applyPattern(sentence, patternKey) {
+                if (!sentencePatterns[patternKey]) return sentence;
+                
+                const pattern = sentencePatterns[patternKey];
+                let result = sentence;
+                
+                // Apply each rule in the pattern
+                pattern.rules.forEach(rule => {
+                    const regex = new RegExp(rule.find, 'i');
+                    if (regex.test(result)) {
+                        result = result.replace(regex, rule.replace);
+                    }
+                });
+                
+                return result;
+            }
+            
+            // Apply AI mode
+            function applyAIMode(sentence, mode, intensity) {
+                let result = sentence;
+                
+                switch(mode) {
+                    case 'smart':
+                        // Smart replacements based on context
+                        result = applySmartReplacements(result, intensity);
+                        break;
+                    case 'creative':
+                        // More creative and varied changes
+                        result = applyCreativeChanges(result, intensity);
+                        break;
+                    case 'conservative':
+                        // Minimal changes, preserve structure
+                        result = applyConservativeChanges(result, intensity);
+                        break;
+                    case 'random':
+                        // Random changes
+                        result = applyRandomChanges(result, intensity);
+                        break;
+                }
+                
+                return result;
+            }
+            
+            // Apply smart replacements
+            function applySmartReplacements(sentence, intensity) {
+                const replacements = {
+                    'saya': ['saya', 'aku', 'kami', 'kita'],
+                    'akan': ['akan', 'hendak', 'bermaksud', 'berencana'],
+                    'mengerjakan': ['mengerjakan', 'menyelesaikan', 'melaksanakan', 'menangani'],
+                    'proyek': ['proyek', 'tugas', 'pekerjaan', 'kegiatan'],
+                    'sebelum': ['sebelum', 'pra-', 'sebelumnya', 'di awal'],
+                    'deadline': ['deadline', 'batas waktu', 'tenggat', 'jatuh tempo']
+                };
+                
+                let result = sentence;
+                Object.keys(replacements).forEach(word => {
+                    if (result.toLowerCase().includes(word) && Math.random() > 0.5) {
+                        const options = replacements[word];
+                        const selected = options[Math.floor(Math.random() * Math.min(intensity, options.length))];
+                        const regex = new RegExp(word, 'gi');
+                        result = result.replace(regex, selected);
+                    }
+                });
+                
+                return result;
+            }
+            
+            // Apply creative changes
+            function applyCreativeChanges(sentence, intensity) {
+                let result = sentence;
+                
+                // Add creative modifications based on intensity
+                const modifications = [
+                    () => result + " dengan penuh semangat",
+                    () => "Tentu saja, " + result.toLowerCase(),
+                    () => result.replace(/\.$/, "") + ", yang merupakan hal yang penting",
+                    () => result.replace(/saya/gi, "penulis").replace(/aku/gi, "saya")
+                ];
+                
+                // Apply more modifications for higher intensity
+                for (let i = 0; i < intensity; i++) {
+                    if (Math.random() > 0.7) {
+                        const mod = modifications[Math.floor(Math.random() * modifications.length)];
+                        result = mod();
+                    }
+                }
+                
+                return result;
+            }
+            
+            // Apply conservative changes
+            function applyConservativeChanges(sentence, intensity) {
+                let result = sentence;
+                
+                // Minimal synonym replacements
+                const synonyms = {
+                    'sangat': ['amat', 'sekali'],
+                    'dapat': ['bisa', 'mampu'],
+                    'harus': ['wajib', 'perlu'],
+                    'baik': ['bagus', 'memuaskan']
+                };
+                
+                Object.keys(synonyms).forEach(word => {
+                    if (result.toLowerCase().includes(word) && Math.random() > 0.7) {
+                        const options = synonyms[word];
+                        const selected = options[Math.floor(Math.random() * Math.min(intensity, options.length))];
+                        const regex = new RegExp(word, 'gi');
+                        result = result.replace(regex, selected);
+                    }
+                });
+                
+                return result;
+            }
+            
+            // Apply random changes
+            function applyRandomChanges(sentence, intensity) {
+                let result = sentence;
+                
+                // Apply random number of changes based on intensity
+                for (let i = 0; i < intensity; i++) {
+                    const changes = [
+                        () => result.replace(/dan/gi, 'serta'),
+                        () => result.replace(/atau/gi, 'maupun'),
+                        () => result.replace(/tetapi/gi, 'namun'),
+                        () => result.replace(/karena/gi, 'sebab'),
+                        () => result.replace(/jika/gi, 'apabila')
+                    ];
+                    
+                    const change = changes[Math.floor(Math.random() * changes.length)];
+                    result = change();
+                }
+                
+                return result;
+            }
+            
+            // Apply style
+            function applyStyle(sentence, style) {
+                let result = sentence;
+                
+                switch(style) {
+                    case 'formal':
+                        result = result.replace(/aku/gi, 'saya')
+                                      .replace(/gue/gi, 'saya')
+                                      .replace(/lu/gi, 'anda')
+                                      .replace(/nggak/gi, 'tidak');
+                        break;
+                    case 'casual':
+                        result = result.replace(/saya/gi, 'aku')
+                                      .replace(/anda/gi, 'kamu')
+                                      .replace(/tidak/gi, 'nggak')
+                                      .replace(/apakah/gi, 'apa');
+                        break;
+                    case 'academic':
+                        result = result.replace(/bisa/gi, 'dapat')
+                                      .replace(/bagus/gi, 'baik')
+                                      .replace(/mau/gi, 'ingin')
+                                      .replace(/cuma/gi, 'hanya');
+                        break;
+                }
+                
+                return result;
+            }
+            
+            // Apply random change
+            function applyRandomChange(sentence) {
+                const changes = [
+                    sentence + " dengan baik",
+                    "Tentu saja, " + sentence.toLowerCase(),
+                    sentence.replace(/\.$/, "") + " secara optimal",
+                    "Dapat dikatakan bahwa " + sentence.toLowerCase()
+                ];
+                
+                return changes[Math.floor(Math.random() * changes.length)];
+            }
+            
+            // Get variation type
+            function getVariationType(index) {
+                const types = ['formal', 'casual', 'academic', 'business'];
+                return types[index % types.length];
+            }
+            
+            // Get random style
+            function getRandomStyle() {
+                const styles = ['formal', 'casual', 'academic', 'business', 'literary'];
+                return styles[Math.floor(Math.random() * styles.length)];
+            }
+            
+            // Calculate similarity between two sentences
+            function calculateSimilarity(s1, s2) {
+                const words1 = s1.toLowerCase().split(/\s+/);
+                const words2 = s2.toLowerCase().split(/\s+/);
+                
+                const commonWords = words1.filter(word => words2.includes(word));
+                const similarity = (commonWords.length / Math.max(words1.length, words2.length)) * 100;
+                
+                return Math.round(similarity * 10) / 10;
+            }
+            
+            // Display variations
+            function displayVariations(variations) {
+                generatedVariations = variations;
+                
+                let html = '';
+                variations.forEach(variation => {
+                    const typeClass = `type-${variation.type}`;
+                    
+                    html += `
+                        <div class="sentence-card" data-variation-id="${variation.id}">
+                            <div class="sentence-header">
+                                <div class="sentence-type ${typeClass}">
+                                    <i class="fas fa-${getTypeIcon(variation.type)}"></i> ${variation.type.toUpperCase()}
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span style="color: var(--gray-3); font-size: 0.9rem;">
+                                        <i class="fas fa-percentage"></i> ${variation.similarity}% sama
+                                    </span>
+                                    <i class="fas fa-check-circle select-icon" style="color: var(--gray-3); cursor: pointer;"></i>
+                                </div>
+                            </div>
+                            <div class="sentence-content">
+                                "${variation.content}"
+                            </div>
+                            <div class="sentence-stats">
+                                <span><i class="fas fa-font"></i> ${variation.wordCount} kata</span>
+                                <span><i class="fas fa-palette"></i> ${variation.style}</span>
+                                <span><i class="fas fa-hashtag"></i> #${variation.id}</span>
+                            </div>
+                            <div class="sentence-actions">
+                                <button class="btn btn-secondary" style="padding: 8px 15px; font-size: 0.9rem;" onclick="useVariation(${variation.id})">
+                                    <i class="fas fa-check"></i> Gunakan
+                                </button>
+                                <button class="btn btn-secondary" style="padding: 8px 15px; font-size: 0.9rem;" onclick="copyVariation(${variation.id})">
+                                    <i class="fas fa-copy"></i> Salin
+                                </button>
+                                <button class="btn btn-secondary" style="padding: 8px 15px; font-size: 0.9rem;" onclick="compareVariation(${variation.id})">
+                                    <i class="fas fa-exchange-alt"></i> Bandingkan
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                sentenceCards.innerHTML = html;
+                
+                // Add click events to select icons
+                setTimeout(() => {
+                    document.querySelectorAll('.select-icon').forEach(icon => {
+                        icon.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const card = this.closest('.sentence-card');
+                            const variationId = parseInt(card.dataset.variationId);
+                            
+                            if (selectedVariations.has(variationId)) {
+                                selectedVariations.delete(variationId);
+                                this.style.color = 'var(--gray-3)';
+                                card.classList.remove('selected');
+                            } else {
+                                selectedVariations.add(variationId);
+                                this.style.color = 'var(--success)';
+                                card.classList.add('selected');
+                            }
+                        });
+                    });
+                    
+                    // Add click events to cards
+                    document.querySelectorAll('.sentence-card').forEach(card => {
+                        card.addEventListener('click', function(e) {
+                            if (!e.target.closest('.sentence-actions') && !e.target.closest('.select-icon')) {
+                                const variationId = parseInt(this.dataset.variationId);
+                                compareVariation(variationId);
+                                
+                                // Switch to comparison tab
+                                tabBtns.forEach(b => b.classList.remove('active'));
+                                document.querySelector('[data-tab="comparison"]').classList.add('active');
+                                document.querySelectorAll('.tab-content').forEach(content => {
+                                    content.classList.remove('active');
+                                });
+                                document.getElementById('comparisonTab').classList.add('active');
+                            }
+                        });
+                    });
+                }, 100);
+            }
+            
+            // Get type icon
+            function getTypeIcon(type) {
+                const icons = {
+                    'formal': 'suitcase',
+                    'casual': 'smile',
+                    'academic': 'graduation-cap',
+                    'business': 'chart-line',
+                    'literary': 'pen-nib'
+                };
+                return icons[type] || 'comment-alt';
+            }
+            
+            // Use variation
+            window.useVariation = function(variationId) {
+                const variation = generatedVariations.find(v => v.id === variationId);
+                if (variation) {
+                    inputSentence.value = variation.content;
+                    
+                    // Trigger input event to update counts
+                    const event = new Event('input');
+                    inputSentence.dispatchEvent(event);
+                    
+                    showNotification('Kalimat telah diganti dengan variasi terpilih', 'success');
+                }
+            };
+            
+            // Copy variation
+            window.copyVariation = function(variationId) {
+                const variation = generatedVariations.find(v => v.id === variationId);
+                if (variation) {
+                    navigator.clipboard.writeText(variation.content).then(() => {
+                        showNotification('Variasi kalimat telah disalin ke clipboard', 'success');
+                    });
+                }
+            };
+            
+            // Compare variation
+            window.compareVariation = function(variationId) {
+                const variation = generatedVariations.find(v => v.id === variationId);
+                if (variation) {
+                    originalComparison.textContent = `"${originalSentence}"`;
+                    resultComparison.textContent = `"${variation.content}"`;
+                    
+                    // Calculate and update statistics
+                    const wordsChanged = calculateWordChanges(originalSentence, variation.content);
+                    const structureChanged = calculateStructureChange(originalSentence, variation.content);
+                    const meaningSimilarity = variation.similarity;
+                    
+                    document.getElementById('wordsChanged').textContent = `${wordsChanged}%`;
+                    document.getElementById('structureChanged').textContent = `${structureChanged}%`;
+                    document.getElementById('meaningSimilarity').textContent = `${meaningSimilarity}%`;
+                }
+            };
+            
+            // Calculate word changes
+            function calculateWordChanges(original, variation) {
+                const words1 = original.toLowerCase().split(/\s+/);
+                const words2 = variation.toLowerCase().split(/\s+/);
+                
+                const differentWords = words1.filter(word => !words2.includes(word)).length;
+                const changePercentage = (differentWords / words1.length) * 100;
+                
+                return Math.round(changePercentage);
+            }
+            
+            // Calculate structure change
+            function calculateStructureChange(original, variation) {
+                // Simple structure comparison based on sentence length and word order
+                const words1 = original.split(/\s+/);
+                const words2 = variation.split(/\s+/);
+                
+                if (words1.length !== words2.length) return 100;
+                
+                let samePositionCount = 0;
+                for (let i = 0; i < Math.min(words1.length, words2.length); i++) {
+                    if (words1[i].toLowerCase() === words2[i].toLowerCase()) {
+                        samePositionCount++;
+                    }
+                }
+                
+                const similarity = (samePositionCount / words1.length) * 100;
+                return Math.round(100 - similarity);
+            }
+            
+            // Analyze sentence
+            function analyzeSentence() {
+                const sentence = inputSentence.value.trim();
+                
+                if (!sentence) {
+                    showNotification('Masukkan kalimat terlebih dahulu', 'warning');
+                    return;
+                }
+                
+                // Simple analysis
+                const wordCount = sentence.split(/\s+/).length;
+                const charCount = sentence.length;
+                const sentenceType = classifySentence(sentence);
+                
+                showNotification(
+                    `Analisis: ${wordCount} kata, ${charCount} karakter, Tipe: ${sentenceType}`,
+                    'info'
+                );
+            }
+            
+            // Classify sentence
+            function classifySentence(sentence) {
+                const lower = sentence.toLowerCase();
+                
+                if (lower.includes('akan') || lower.includes('harus') || lower.includes('perlu')) {
+                    return 'Deklaratif';
+                } else if (lower.includes('?') || lower.includes('apakah') || lower.includes('bagaimana')) {
+                    return 'Interogatif';
+                } else if (lower.includes('!') || lower.includes('silahkan') || lower.includes('tolong')) {
+                    return 'Imperatif';
+                } else if (lower.includes(',') && lower.split(',').length > 2) {
+                    return 'Kompleks';
+                } else {
+                    return 'Sederhana';
+                }
+            }
+            
+            // Update stats
+            function updateStats() {
+                // These would normally come from a database
+                document.getElementById('variationCount').textContent = '1,245';
+                document.getElementById('patternCount').textContent = '42';
+                document.getElementById('generatedCount').textContent = '8,956';
+            }
+            
+            // Update generation stats
+            function updateGenerationStats(count) {
+                const current = parseInt(document.getElementById('generatedCount').textContent.replace(',', ''));
+                document.getElementById('generatedCount').textContent = (current + count).toLocaleString();
+            }
+            
+            // Save to history
+            function saveToHistory(original, variations) {
+                const historyItem = {
+                    id: Date.now(),
+                    original: original,
+                    variations: variations.slice(0, 3).map(v => v.content),
+                    date: new Date().toLocaleString('id-ID'),
+                    variationCount: variations.length
+                };
+                
+                generationHistory.unshift(historyItem);
+                if (generationHistory.length > 20) {
+                    generationHistory = generationHistory.slice(0, 20);
+                }
+                
+                localStorage.setItem('sentenceGenerationHistory', JSON.stringify(generationHistory));
+                loadHistory();
+            }
+            
+            // Load history
+            function loadHistory() {
+                const historyList = document.getElementById('historyList');
+                const savedHistory = localStorage.getItem('sentenceGenerationHistory');
+                generationHistory = savedHistory ? JSON.parse(savedHistory) : [];
+                
+                if (generationHistory.length === 0) {
+                    historyList.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: var(--gray-3);">
+                            <i class="fas fa-history" style="font-size: 3rem; margin-bottom: 20px;"></i>
+                            <h3 style="color: var(--gray-2); margin-bottom: 15px;">Belum Ada Riwayat</h3>
+                            <p>Hasil generasi akan disimpan otomatis di sini</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = '';
+                generationHistory.forEach(item => {
+                    html += `
+                        <div class="history-item" onclick="loadFromHistory(${item.id})">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <strong style="color: var(--dark);">${item.date}</strong>
+                                <span style="color: var(--primary);">${item.variationCount} variasi</span>
+                            </div>
+                            <div style="font-size: 0.95rem; color: var(--gray-1); margin-bottom: 10px;">
+                                <strong>Asli:</strong> ${item.original.substring(0, 80)}${item.original.length > 80 ? '...' : ''}
+                            </div>
+                            <div style="font-size: 0.9rem; color: var(--gray-2);">
+                                <strong>Variasi:</strong> ${item.variations[0].substring(0, 70)}${item.variations[0].length > 70 ? '...' : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                historyList.innerHTML = html;
+            }
+            
+            // Load from history
+            window.loadFromHistory = function(historyId) {
+                const item = generationHistory.find(h => h.id === historyId);
+                if (item) {
+                    inputSentence.value = item.original;
+                    
+                    // Trigger input event to update counts
+                    const event = new Event('input');
+                    inputSentence.dispatchEvent(event);
+                    
+                    // Regenerate variations
+                    setTimeout(() => {
+                        generateVariations();
+                    }, 500);
+                    
+                    showNotification('Kalimat dari riwayat telah dimuat', 'info');
+                }
+            };
+            
+            // Export variations
+            function exportVariations(format) {
+                if (generatedVariations.length === 0) {
+                    showNotification('Tidak ada variasi untuk diekspor', 'warning');
+                    return;
+                }
+                
+                let content = '';
+                let filename = 'variasi-kalimat';
+                
+                switch(format) {
+                    case 'txt':
+                        content = `Variasi Kalimat\n\n`;
+                        content += `Kalimat Asli: ${originalSentence}\n\n`;
+                        content += `Hasil Variasi:\n`;
+                        generatedVariations.forEach(v => {
+                            content += `${v.id}. "${v.content}"\n`;
+                        });
+                        filename += '.txt';
+                        break;
+                        
+                    case 'doc':
+                        content = `
+                            <html>
+                            <head>
+                                <meta charset="UTF-8">
+                                <title>Variasi Kalimat</title>
+                            </head>
+                            <body>
+                                <h1>Variasi Kalimat</h1>
+                                <h2>Kalimat Asli:</h2>
+                                <p>${originalSentence}</p>
+                                <h2>Hasil Variasi:</h2>
+                                <ol>
+                                    ${generatedVariations.map(v => `<li>${v.content}</li>`).join('')}
+                                </ol>
+                            </body>
+                            </html>
+                        `;
+                        filename += '.doc';
+                        break;
+                        
+                    case 'json':
+                        content = JSON.stringify({
+                            original: originalSentence,
+                            variations: generatedVariations,
+                            generatedAt: new Date().toISOString()
+                        }, null, 2);
+                        filename += '.json';
+                        break;
+                        
+                    case 'csv':
+                        content = 'ID,Kalimat,Tipe,Kata,Kemiripan\n';
+                        generatedVariations.forEach(v => {
+                            content += `${v.id},"${v.content}",${v.type},${v.wordCount},${v.similarity}%\n`;
+                        });
+                        filename += '.csv';
+                        break;
+                        
+                    default:
+                        showNotification('Format ekspor tidak didukung', 'warning');
+                        return;
+                }
+                
+                const blob = new Blob([content], { 
+                    type: format === 'pdf' ? 'application/pdf' : 
+                          format === 'doc' ? 'application/msword' :
+                          'text/plain' 
+                });
+                
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                showNotification(`Variasi berhasil diekspor sebagai ${format.toUpperCase()}`, 'success');
+            }
+            
+            // Show notification
+            function showNotification(message, type) {
+                notification.textContent = message;
+                notification.className = `notification ${type}`;
+                notification.style.display = 'block';
+                
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>
