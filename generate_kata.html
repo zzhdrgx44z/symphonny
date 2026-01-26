@@ -1100,6 +1100,58 @@
             background: linear-gradient(90deg, var(--primary), var(--accent));
             border-radius: 4px;
         }
+        
+        .comparison-panel {
+            padding: 20px;
+        }
+        
+        .comparison-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .comparison-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .comparison-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .comparison-box {
+            background: var(--light);
+            padding: 25px;
+            border-radius: var(--radius);
+            border: 2px solid var(--gray-4);
+        }
+        
+        .comparison-box h4 {
+            margin-bottom: 15px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        #originalComparison, #resultComparison {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--gray-1);
+            min-height: 100px;
+        }
     </style>
 </head>
 <body>
@@ -2765,38 +2817,241 @@
 
         // Initialize generator (previous functionality)
         function initializeGenerator() {
-            // Your existing generator initialization code here
-            // This would include all the event listeners for the generator tab
-            // For brevity, I'm including a simplified version
+            // Initialize example buttons
+            document.querySelectorAll('.quick-action-btn[data-example]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const exampleNumber = this.dataset.example;
+                    const examples = {
+                        1: "Perusahaan kami berkomitmen untuk memberikan layanan terbaik kepada pelanggan dengan solusi inovatif dan efektif.",
+                        2: "Penelitian ini menggunakan metode kualitatif dengan pendekatan studi kasus untuk menganalisis fenomena sosial yang terjadi di masyarakat perkotaan.",
+                        3: "Aku lagi bingung nih mau ngapain, udah coba beberapa cara tapi belum berhasil juga.",
+                        4: "Mentari pagi menyapa dengan lembut, menghangatkan bumi yang masih terlelap dalam buaian embun pagi."
+                    };
+                    
+                    document.getElementById('inputSentence').value = examples[exampleNumber];
+                    showNotification('Contoh kalimat telah dimasukkan', 'info');
+                });
+            });
             
+            // Initialize generate button
             const generateBtn = document.getElementById('generateBtn');
             if (generateBtn) {
                 generateBtn.addEventListener('click', function() {
-                    // Simulate generation and update dashboard
-                    dashboardData.totalVariations += parseInt(document.getElementById('variationCountSlider').value);
-                    updateDashboardStats();
-                    saveDashboardData();
-                    
-                    // Add activity
-                    const newActivity = {
-                        id: dashboardData.activityLog.length + 1,
-                        action: 'generate',
-                        style: document.querySelector('.style-chip.active').dataset.style,
-                        count: parseInt(document.getElementById('variationCountSlider').value),
-                        time: new Date().toISOString(),
-                        description: `Generate ${document.getElementById('variationCountSlider').value} variasi kalimat`
-                    };
-                    
-                    dashboardData.activityLog.unshift(newActivity);
-                    if (dashboardData.activityLog.length > 20) {
-                        dashboardData.activityLog = dashboardData.activityLog.slice(0, 20);
+                    const inputSentence = document.getElementById('inputSentence').value;
+                    if (!inputSentence.trim()) {
+                        showNotification('Silakan masukkan kalimat terlebih dahulu', 'warning');
+                        return;
                     }
                     
-                    loadActivityFeed();
-                    showNotification('Variasi berhasil dibuat dan dashboard diperbarui', 'success');
+                    // Show loading animation
+                    document.getElementById('loading').style.display = 'block';
+                    document.getElementById('progressBar').style.width = '0%';
+                    
+                    // Simulate progress
+                    let progress = 0;
+                    const progressInterval = setInterval(() => {
+                        progress += 10;
+                        document.getElementById('progressBar').style.width = `${progress}%`;
+                        
+                        if (progress >= 100) {
+                            clearInterval(progressInterval);
+                            document.getElementById('loading').style.display = 'none';
+                            
+                            // Generate sample variations
+                            generateSampleVariations(inputSentence);
+                            
+                            // Update dashboard stats
+                            dashboardData.totalVariations += parseInt(document.getElementById('variationCountSlider').value);
+                            updateDashboardStats();
+                            saveDashboardData();
+                            
+                            // Add activity
+                            const style = document.querySelector('.style-chip.active').dataset.style;
+                            const newActivity = {
+                                id: dashboardData.activityLog.length + 1,
+                                action: 'generate',
+                                style: style,
+                                count: parseInt(document.getElementById('variationCountSlider').value),
+                                time: new Date().toISOString(),
+                                description: `Generate ${document.getElementById('variationCountSlider').value} variasi kalimat ${style}`
+                            };
+                            
+                            dashboardData.activityLog.unshift(newActivity);
+                            if (dashboardData.activityLog.length > 20) {
+                                dashboardData.activityLog = dashboardData.activityLog.slice(0, 20);
+                            }
+                            
+                            loadActivityFeed();
+                            showNotification('Variasi berhasil dibuat', 'success');
+                        }
+                    }, 200);
                 });
             }
         }
+
+        // Generate sample variations
+        function generateSampleVariations(originalSentence) {
+            const sentenceCards = document.getElementById('sentenceCards');
+            sentenceCards.innerHTML = '';
+            
+            const variationCount = parseInt(document.getElementById('variationCountSlider').value);
+            const style = document.querySelector('.style-chip.active').dataset.style;
+            const aiMode = document.getElementById('aiMode').value;
+            
+            const sampleVariations = [
+                {
+                    sentence: "Implementasi komitmen perusahaan kami tertuju pada penyediaan layanan optimal bagi konsumen melalui solusi-solusi yang inovatif dan efektif.",
+                    type: "formal",
+                    wordsChanged: 8,
+                    structure: "active-passive"
+                },
+                {
+                    sentence: "Kami benar-benar bertekad memberikan pelayanan terbaik buat customer dengan berbagai solusi kreatif dan efisien.",
+                    type: "casual",
+                    wordsChanged: 6,
+                    structure: "simple"
+                },
+                {
+                    sentence: "Organisasi ini memiliki dedikasi tinggi dalam menghadirkan layanan berkualitas prima kepada pelanggan melalui pendekatan solutif yang inovatif dan terukur.",
+                    type: "academic",
+                    wordsChanged: 10,
+                    structure: "complex"
+                },
+                {
+                    sentence: "Fokus utama perusahaan kami adalah optimalisasi layanan pelanggan dengan menerapkan solusi-solusi yang tidak hanya inovatif tetapi juga efektif.",
+                    type: "business",
+                    wordsChanged: 7,
+                    structure: "parallel"
+                },
+                {
+                    sentence: "Dengan penuh dedikasi, perusahaan kami mengupayakan penyajian layanan terbaik bagi pelanggan melalui solusi yang kreatif dan berdampak.",
+                    type: "formal",
+                    wordsChanged: 9,
+                    structure: "inversion"
+                }
+            ];
+            
+            // Select variations based on style
+            let variationsToShow = sampleVariations;
+            if (style !== 'all') {
+                variationsToShow = sampleVariations.filter(v => v.type === style);
+            }
+            
+            // Limit to requested count
+            variationsToShow = variationsToShow.slice(0, variationCount);
+            
+            variationsToShow.forEach((variation, index) => {
+                const card = document.createElement('div');
+                card.className = 'sentence-card';
+                card.innerHTML = `
+                    <div class="sentence-header">
+                        <div>
+                            <h4>Variasi ${index + 1}</h4>
+                            <div style="font-size: 0.9rem; color: var(--gray-3);">Mode: ${aiMode}</div>
+                        </div>
+                        <div class="sentence-type type-${variation.type}">${variation.type}</div>
+                    </div>
+                    <div class="sentence-content">${variation.sentence}</div>
+                    <div class="sentence-stats">
+                        <div><i class="fas fa-exchange-alt"></i> ${variation.wordsChanged} kata diganti</div>
+                        <div><i class="fas fa-project-diagram"></i> ${variation.structure}</div>
+                    </div>
+                    <div class="sentence-actions">
+                        <button class="btn btn-secondary" style="padding: 8px 15px; font-size: 0.9rem;" onclick="selectSentence(this)">
+                            <i class="far fa-copy"></i> Pilih
+                        </button>
+                        <button class="btn btn-primary" style="padding: 8px 15px; font-size: 0.9rem;" onclick="applySentence('${variation.sentence}')">
+                            <i class="fas fa-check"></i> Terapkan
+                        </button>
+                    </div>
+                `;
+                sentenceCards.appendChild(card);
+            });
+            
+            // Update comparison tab
+            document.getElementById('originalComparison').textContent = originalSentence;
+            if (variationsToShow.length > 0) {
+                document.getElementById('resultComparison').textContent = variationsToShow[0].sentence;
+                document.getElementById('wordsChanged').textContent = `${variationsToShow[0].wordsChanged * 10}%`;
+                document.getElementById('structureChanged').textContent = '65%';
+                document.getElementById('meaningSimilarity').textContent = '92%';
+            }
+        }
+
+        // Select sentence
+        window.selectSentence = function(button) {
+            const card = button.closest('.sentence-card');
+            card.classList.toggle('selected');
+        };
+
+        // Apply sentence
+        window.applySentence = function(sentence) {
+            document.getElementById('inputSentence').value = sentence;
+            showNotification('Kalimat telah diterapkan ke input', 'success');
+        };
+
+        // Initialize other generator buttons
+        document.getElementById('analyzeBtn').addEventListener('click', function() {
+            const inputSentence = document.getElementById('inputSentence').value;
+            if (!inputSentence.trim()) {
+                showNotification('Silakan masukkan kalimat terlebih dahulu', 'warning');
+                return;
+            }
+            
+            const wordCount = inputSentence.split(/\s+/).length;
+            const charCount = inputSentence.length;
+            
+            showNotification(`Kalimat dianalisis: ${wordCount} kata, ${charCount} karakter`, 'info');
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', function() {
+            document.getElementById('inputSentence').value = '';
+            document.getElementById('wordCount').textContent = '0 kata';
+            document.getElementById('charCount').textContent = '0 karakter';
+            document.getElementById('sentenceCards').innerHTML = `
+                <div style="text-align: center; padding: 60px 20px; color: var(--gray-3);">
+                    <i class="fas fa-comment-alt" style="font-size: 4rem; margin-bottom: 20px;"></i>
+                    <h3 style="color: var(--gray-2); margin-bottom: 15px;">Belum Ada Variasi</h3>
+                    <p>Masukkan kalimat dan klik "Generate Variasi" untuk melihat hasil</p>
+                </div>
+            `;
+            showNotification('Input dan hasil telah direset', 'info');
+        });
+
+        // Update word and character count
+        document.getElementById('inputSentence').addEventListener('input', function() {
+            const text = this.value;
+            const wordCount = text.trim() === '' ? 0 : text.split(/\s+/).length;
+            const charCount = text.length;
+            
+            document.getElementById('wordCount').textContent = `${wordCount} kata`;
+            document.getElementById('charCount').textContent = `${charCount} karakter`;
+        });
+
+        // Initialize style chips
+        document.querySelectorAll('.style-chip').forEach(chip => {
+            chip.addEventListener('click', function() {
+                document.querySelectorAll('.style-chip').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Initialize result tabs
+        document.querySelectorAll('.results-tabs .tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tabId = this.dataset.tab;
+                
+                // Update active tab button
+                document.querySelectorAll('.results-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Show corresponding tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(`${tabId}Tab`).classList.add('active');
+            });
+        });
     </script>
 </body>
 </html>
