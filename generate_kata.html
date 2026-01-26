@@ -4057,10 +4057,24 @@
         // Simulate AI processing
         function simulateAIProcessing(inputSentence, style, variationLevel, variationCount, aiMode, structurePattern) {
             let progress = 0;
-            const progressStep = 100 / (variationCount * 3); // 3 steps per variation
+            const steps = [
+                "Menganalisis struktur kalimat...",
+                "Memproses sinonim dan kosakata...",
+                "Menerapkan transformasi gaya...",
+                "Membuat variasi kalimat...",
+                "Menilai kualitas hasil..."
+            ];
+            let currentStep = 0;
             
             loadingInterval = setInterval(() => {
-                progress += progressStep;
+                progress += (100 / (variationCount * 5)); // More steps for better simulation
+                
+                // Update loading details every 20% progress
+                if (progress > (currentStep + 1) * 20 && currentStep < steps.length - 1) {
+                    currentStep++;
+                    document.getElementById('loadingDetails').textContent = steps[currentStep];
+                }
+                
                 if (progress > 100) progress = 100;
                 
                 document.getElementById('loadingProgressBar').style.width = `${progress}%`;
@@ -4069,11 +4083,9 @@
                 if (progress >= 100) {
                     clearInterval(loadingInterval);
                     
-                    // Hide loading overlay
                     setTimeout(() => {
                         hideLoadingOverlay();
                         
-                        // Generate sample variations
                         const variations = generateSampleVariations(
                             inputSentence, 
                             style, 
@@ -4083,164 +4095,580 @@
                             structurePattern
                         );
                         
-                        // Display results
                         displayGeneratedResults(variations);
                         
-                        // Update app data
+                        // Update stats
                         appData.totalVariations += variationCount;
                         appData.generatedResults = variations;
                         
-                        // Add to activity log
+                        // Update word usage statistics
+                        updateWordUsageStatistics(variations);
+                        
+                        // Add activity
                         const newActivity = {
                             id: appData.activityLog.length + 1,
                             action: 'generate',
                             style: style,
                             count: variationCount,
                             time: new Date().toISOString(),
-                            description: `Membuat ${variationCount} variasi kalimat ${style}`,
+                            description: `Membuat ${variationCount} variasi kalimat ${style} dengan mode ${aiMode}`,
                             type: 'success'
                         };
                         appData.activityLog.unshift(newActivity);
                         
-                        // Save data
                         saveAppData();
-                        
-                        // Update dashboard
                         updateDashboard();
                         
-                        // Show success notification
                         showNotification(`Berhasil membuat ${variationCount} variasi kalimat!`, 'success');
                     }, 500);
                 }
             }, 100);
         }
         
-        // Generate sample variations
+        // Generate sample variations - IMPROVED VERSION
         function generateSampleVariations(inputSentence, style, variationLevel, variationCount, aiMode, structurePattern) {
             const variations = [];
             const styles = style === 'all' ? ['formal', 'casual', 'academic', 'business', 'creative'] : [style];
             
-            // Sample sentence variations based on input
-            const sampleVariations = [
-                // Formal variations
-                {
-                    sentence: "Implementasi komitmen perusahaan kami tertuju pada penyediaan layanan optimal bagi konsumen melalui solusi-solusi yang inovatif dan efektif.",
-                    type: "formal",
-                    wordsChanged: 8,
-                    structure: "active-passive",
-                    complexity: "complex",
-                    score: 9
-                },
-                {
-                    sentence: "Perusahaan kami berdedikasi untuk memberikan layanan terbaik kepada pelanggan dengan menerapkan solusi yang inovatif serta efektif.",
-                    type: "formal",
-                    wordsChanged: 6,
-                    structure: "parallel",
-                    complexity: "medium",
-                    score: 8
-                },
-                // Casual variations
-                {
-                    sentence: "Kami bener-bener niat banget ngasih pelayanan terbaik buat customer pake solusi yang kreatif dan efisien.",
-                    type: "casual",
-                    wordsChanged: 7,
-                    structure: "simple",
-                    complexity: "simple",
-                    score: 7
-                },
-                {
-                    sentence: "Kita pengen banget kasih layanan paling ok buat pelanggan dengan cara-cara yang gak biasa dan efektif.",
-                    type: "casual",
-                    wordsChanged: 5,
-                    structure: "simple",
-                    complexity: "simple",
-                    score: 6
-                },
-                // Academic variations
-                {
-                    sentence: "Organisasi ini memiliki dedikasi tinggi dalam menghadirkan layanan berkualitas prima kepada pelanggan melalui pendekatan solutif yang inovatif dan terukur.",
-                    type: "academic",
-                    wordsChanged: 10,
-                    structure: "complex",
-                    complexity: "complex",
-                    score: 9
-                },
-                // Business variations
-                {
-                    sentence: "Fokus utama perusahaan kami adalah optimalisasi layanan pelanggan dengan menerapkan solusi-solusi yang tidak hanya inovatif tetapi juga efektif.",
-                    type: "business",
-                    wordsChanged: 7,
-                    structure: "parallel",
-                    complexity: "medium",
-                    score: 8
-                },
-                // Creative variations
-                {
-                    sentence: "Dengan sepenuh hati, kami merangkai pelayanan terbaik untuk setiap pelanggan melalui solusi yang segar dan berdampak.",
-                    type: "creative",
-                    wordsChanged: 9,
-                    structure: "inversion",
-                    complexity: "medium",
-                    score: 8
+            // Daftar sinonim yang lebih kaya untuk Bahasa Indonesia
+            const synonymDictionary = {
+                "saya": ["saya", "aku", "kami", "beta", "gue", "ane"],
+                "akan": ["akan", "hendak", "bakal", "mau", "berniat"],
+                "dengan": ["dengan", "bersama", "memakai", "menggunakan", "lewat"],
+                "yang": ["yang", "mana", "itu", "tersebut"],
+                "ini": ["ini", "berikut", "tersebut", "di bawah"],
+                "untuk": ["untuk", "guna", "bagi", "demi", "kepentingan"],
+                "dari": ["dari", "daripada", "berasal", "mulai"],
+                "pada": ["pada", "di", "dalam", "pada saat"],
+                "sebagai": ["sebagai", "selaku", "menjadi", "berperan"],
+                "adalah": ["adalah", "merupakan", "ialah", "yaitu"],
+                "telah": ["telah", "sudah", "pernah", "telah selesai"],
+                "atau": ["atau", "maupun", "entah", "apakah"],
+                "juga": ["juga", "pula", "serta", "lagi pula"],
+                "dalam": ["dalam", "di dalam", "pada", "di"],
+                "oleh": ["oleh", "melalui", "dari", "karena"],
+                "bisa": ["bisa", "dapat", "mampu", "sanggup"],
+                "harus": ["harus", "wajib", "mesti", "perlu"],
+                "baik": ["baik", "bagus", "kualitas", "unggul"],
+                "proyek": ["proyek", "pekerjaan", "tugas", "kegiatan", "rencana"],
+                "deadline": ["deadline", "batas waktu", "tenggat", "jatuh tempo"],
+                "menyelesaikan": ["menyelesaikan", "menuntaskan", "mengakhiri", "merampungkan", "menyempurnakan"],
+                "terbaik": ["terbaik", "optimal", "prima", "unggulan", "terhebat"],
+                "perusahaan": ["perusahaan", "firma", "korporasi", "bisnis", "usaha"],
+                "komitmen": ["komitmen", "janji", "keterikatan", "kesanggupan", "dedikasi"],
+                "layanan": ["layanan", "pelayanan", "jasa", "servis", "bantuan"],
+                "pelanggan": ["pelanggan", "konsumen", "klien", "customer", "pembeli"],
+                "solusi": ["solusi", "jalan keluar", "pemecahan", "jawaban", "cara"],
+                "inovatif": ["inovatif", "kreatif", "baru", "orisinil", "pionir"],
+                "efektif": ["efektif", "efisien", "berdaya guna", "bermanfaat", "tepat guna"]
+            };
+            
+            // Pola struktur kalimat
+            const structurePatterns = {
+                "active": ["S + P + O + K", "S + P + O", "S + P + Pel + K"],
+                "passive": ["O + P + oleh S + K", "O + P + K", "O + P + S"],
+                "complex": ["S + P + O + yang + P2 + O2", "Meskipun + S + P, S2 + P2", "Ketika + S + P, S2 + P2"],
+                "simple": ["S + P", "P + S", "P + O"],
+                "inversion": ["K + P + S + O", "Dengan + O, S + P", "Untuk + O, S + P"],
+                "parallel": ["S + P + O, P2 + O2, dan P3 + O3", "Baik O maupun O2 + P + S", "Tidak hanya P + O, tetapi juga P2 + O2"],
+                "emphatic": ["Sangatlah + adjective + S + P", "Adalah + O + yang + P + S", "Justru + S + lah + yang + P"],
+                "concise": ["S + P inti + O", "P + O (tanpa S jika konteks jelas)", "Kata kunci + P + O"]
+            };
+            
+            // Fungsi untuk mengganti sinonim
+            function replaceSynonyms(sentence, level) {
+                const words = sentence.split(' ');
+                const result = [];
+                
+                words.forEach(word => {
+                    const cleanWord = word.toLowerCase().replace(/[.,!?;:]$/, '');
+                    const punctuation = word.match(/[.,!?;:]$/)?.[0] || '';
+                    
+                    if (synonymDictionary[cleanWord] && Math.random() < (level / 10)) {
+                        const synonyms = synonymDictionary[cleanWord];
+                        const randomSynonym = synonyms[Math.floor(Math.random() * synonyms.length)];
+                        result.push(randomSynonym + punctuation);
+                    } else {
+                        result.push(word);
+                    }
+                });
+                
+                return result.join(' ');
+            }
+            
+            // Fungsi untuk mengubah struktur kalimat
+            function restructureSentence(sentence, pattern) {
+                const baseSentence = sentence;
+                
+                switch(pattern) {
+                    case 'active':
+                        return ubahKeAktif(baseSentence);
+                    case 'passive':
+                        return ubahKePasif(baseSentence);
+                    case 'complex':
+                        return buatKompleks(baseSentence);
+                    case 'simple':
+                        return sederhanakan(baseSentence);
+                    case 'inversion':
+                        return inversi(baseSentence);
+                    case 'parallel':
+                        return strukturParalel(baseSentence);
+                    case 'emphatic':
+                        return beriPenekanan(baseSentence);
+                    case 'concise':
+                        return ringkas(baseSentence);
+                    default:
+                        return baseSentence;
                 }
-            ];
-            
-            // Filter by selected style and limit count
-            let filteredVariations = sampleVariations;
-            if (style !== 'all') {
-                filteredVariations = sampleVariations.filter(v => v.type === style);
             }
             
-            // Adjust based on variation level
-            if (variationLevel < 5) {
-                filteredVariations = filteredVariations.filter(v => v.complexity !== 'complex');
+            // Fungsi-fungsi transformasi
+            function ubahKeAktif(sentence) {
+                // Contoh sederhana transformasi pasif ke aktif
+                const passivePatterns = [
+                    [/oleh (\w+) ([\w\s]+) (di|ter)(\w+)/i, '$1 $2 $3$4'],
+                    [/([\w\s]+) (di|ter)(\w+) oleh (\w+)/i, '$4 $2$3 $1']
+                ];
+                
+                let result = sentence;
+                passivePatterns.forEach(pattern => {
+                    if (pattern[0].test(result)) {
+                        result = result.replace(pattern[0], pattern[1]);
+                    }
+                });
+                return result;
             }
             
-            if (variationLevel > 5) {
-                filteredVariations = filteredVariations.filter(v => v.complexity !== 'simple');
+            function ubahKePasif(sentence) {
+                // Contoh sederhana transformasi aktif ke pasif
+                const activePatterns = [
+                    [/(\w+) (me\w+) (\w+)/i, '$3 di$2 oleh $1'],
+                    [/(\w+) (mem\w+) (\w+)/i, '$3 di$2 oleh $1'],
+                    [/(\w+) (men\w+) (\w+)/i, '$3 di$2 oleh $1']
+                ];
+                
+                let result = sentence;
+                activePatterns.forEach(pattern => {
+                    if (pattern[0].test(result)) {
+                        result = result.replace(pattern[0], pattern[1]);
+                    }
+                });
+                return result;
             }
             
-            // Limit to requested count
-            filteredVariations = filteredVariations.slice(0, variationCount);
+            function buatKompleks(sentence) {
+                const connectors = [
+                    "yang sebenarnya",
+                    "meskipun demikian",
+                    "dengan demikian",
+                    "oleh karena itu",
+                    "sebagai akibatnya",
+                    "di samping itu",
+                    "selain itu",
+                    "sementara itu"
+                ];
+                
+                const connector = connectors[Math.floor(Math.random() * connectors.length)];
+                return `${connector}, ${sentence}`;
+            }
             
-            // Add more variations if needed
-            while (filteredVariations.length < variationCount) {
-                const baseVariation = filteredVariations[Math.floor(Math.random() * filteredVariations.length)];
-                const newVariation = {
-                    ...baseVariation,
-                    sentence: modifySentence(baseVariation.sentence),
-                    wordsChanged: baseVariation.wordsChanged + Math.floor(Math.random() * 3) - 1,
-                    score: Math.min(10, baseVariation.score + Math.floor(Math.random() * 2) - 1)
+            function sederhanakan(sentence) {
+                // Hapus kata penghubung yang tidak perlu
+                const complexWords = ["yang sebenarnya", "meskipun", "walaupun", "oleh karena", "sebagai akibat"];
+                let result = sentence;
+                complexWords.forEach(word => {
+                    result = result.replace(new RegExp(word + '\\s*,?\\s*', 'gi'), '');
+                });
+                return result.trim();
+            }
+            
+            function inversi(sentence) {
+                const inversions = [
+                    ["Dengan ", sentence],
+                    ["Untuk ", sentence.toLowerCase()],
+                    ["Dalam rangka ", sentence.toLowerCase()],
+                    ["Berdasarkan ", sentence.toLowerCase()]
+                ];
+                
+                const inversion = inversions[Math.floor(Math.random() * inversions.length)];
+                return inversion[0] + inversion[1];
+            }
+            
+            function strukturParalel(sentence) {
+                const words = sentence.split(' ');
+                if (words.length > 5) {
+                    const mid = Math.floor(words.length / 2);
+                    return words.slice(0, mid).join(' ') + ', ' + 
+                           words.slice(mid).join(' ') + ', dan ' +
+                           generateParallelPhrase(words);
+                }
+                return sentence;
+            }
+            
+            function generateParallelPhrase(words) {
+                const verbs = ['mengembangkan', 'meningkatkan', 'memperbaiki', 'mengoptimalkan'];
+                const nouns = ['kualitas', 'efisiensi', 'produktivitas', 'hasil'];
+                return verbs[Math.floor(Math.random() * verbs.length)] + ' ' + 
+                       nouns[Math.floor(Math.random() * nouns.length)];
+            }
+            
+            function beriPenekanan(sentence) {
+                const emphaticStarters = [
+                    "Sangat penting untuk ",
+                    "Perlu ditekankan bahwa ",
+                    "Harus diingat bahwa ",
+                    "Penting untuk diketahui bahwa ",
+                    "Yang terpenting adalah "
+                ];
+                
+                const starter = emphaticStarters[Math.floor(Math.random() * emphaticStarters.length)];
+                return starter + sentence.toLowerCase();
+            }
+            
+            function ringkas(sentence) {
+                // Hapus kata-kata yang tidak perlu
+                const unnecessary = ["sangat", "benar-benar", "sungguh", "amat", "sekali", "yang", "dengan"];
+                let words = sentence.split(' ');
+                words = words.filter(word => !unnecessary.includes(word.toLowerCase()));
+                return words.join(' ');
+            }
+            
+            // Fungsi untuk menghasilkan variasi berdasarkan gaya
+            function generateByStyle(baseSentence, styleType) {
+                let result = baseSentence;
+                
+                // Terapkan transformasi berdasarkan gaya
+                switch(styleType) {
+                    case 'formal':
+                        result = result.replace(/\baku\b/gi, 'saya');
+                        result = result.replace(/\bgue\b/gi, 'saya');
+                        result = result.replace(/\bbuat\b/gi, 'untuk');
+                        result = result.replace(/\bgak\b/gi, 'tidak');
+                        result = result.replace(/\bbanget\b/gi, 'sangat');
+                        result = addFormalWords(result);
+                        break;
+                        
+                    case 'casual':
+                        result = result.replace(/\bsaya\b/gi, Math.random() > 0.5 ? 'aku' : 'gue');
+                        result = result.replace(/\buntuk\b/gi, Math.random() > 0.7 ? 'buat' : 'untuk');
+                        result = result.replace(/\btidak\b/gi, Math.random() > 0.5 ? 'gak' : 'nggak');
+                        result = result.replace(/\bsangat\b/gi, Math.random() > 0.6 ? 'banget' : 'sangat');
+                        result = shortenSentence(result);
+                        break;
+                        
+                    case 'academic':
+                        result = addAcademicPhrases(result);
+                        result = useComplexStructures(result);
+                        result = replaceWithAcademicTerms(result);
+                        break;
+                        
+                    case 'business':
+                        result = addBusinessJargon(result);
+                        result = useProfessionalTone(result);
+                        break;
+                        
+                    case 'creative':
+                        result = addCreativeFlair(result);
+                        result = useFigurativeLanguage(result);
+                        break;
+                }
+                
+                return result;
+            }
+            
+            // Helper functions untuk gaya
+            function addFormalWords(sentence) {
+                const formalAdditions = [
+                    "Oleh karena itu, ",
+                    "Dengan demikian, ",
+                    "Berdasarkan hal tersebut, ",
+                    "Sehubungan dengan itu, "
+                ];
+                
+                if (Math.random() > 0.5) {
+                    const addition = formalAdditions[Math.floor(Math.random() * formalAdditions.length)];
+                    return addition + sentence.toLowerCase();
+                }
+                return sentence;
+            }
+            
+            function shortenSentence(sentence) {
+                const words = sentence.split(' ');
+                if (words.length > 10 && Math.random() > 0.5) {
+                    return words.slice(0, 8).join(' ') + '...';
+                }
+                return sentence;
+            }
+            
+            function addAcademicPhrases(sentence) {
+                const academicPhrases = [
+                    "Ditinjau dari perspektif ",
+                    "Berdasarkan analisis mendalam, ",
+                    "Dalam konteks teoritis, ",
+                    "Merujuk pada penelitian sebelumnya, "
+                ];
+                
+                if (Math.random() > 0.6) {
+                    const phrase = academicPhrases[Math.floor(Math.random() * academicPhrases.length)];
+                    return phrase + sentence.toLowerCase();
+                }
+                return sentence;
+            }
+            
+            function useComplexStructures(sentence) {
+                const complexConnectors = [
+                    "yang mana",
+                    "di mana",
+                    "dengan kata lain",
+                    "secara signifikan",
+                    "secara konsisten"
+                ];
+                
+                let result = sentence;
+                if (Math.random() > 0.5) {
+                    const connector = complexConnectors[Math.floor(Math.random() * complexConnectors.length)];
+                    const words = result.split(' ');
+                    const insertPos = Math.floor(words.length / 2);
+                    words.splice(insertPos, 0, connector);
+                    result = words.join(' ');
+                }
+                return result;
+            }
+            
+            function replaceWithAcademicTerms(sentence) {
+                const academicTerms = {
+                    "baik": "optimal",
+                    "cara": "metodologi",
+                    "hasil": "output",
+                    "kerja": "kinerja",
+                    "cepat": "efisien"
                 };
-                filteredVariations.push(newVariation);
+                
+                let result = sentence;
+                Object.keys(academicTerms).forEach(term => {
+                    const regex = new RegExp(`\\b${term}\\b`, 'gi');
+                    if (regex.test(result) && Math.random() > 0.7) {
+                        result = result.replace(regex, academicTerms[term]);
+                    }
+                });
+                return result;
             }
             
-            // Add metadata
-            filteredVariations.forEach((variation, index) => {
-                variation.id = Date.now() + index;
-                variation.original = inputSentence;
-                variation.timestamp = new Date().toISOString();
-                variation.aiMode = aiMode;
-                variation.structurePattern = structurePattern;
-                variations.push(variation);
-            });
+            function addBusinessJargon(sentence) {
+                const jargon = [
+                    "best practice",
+                    "core competency",
+                    "key performance indicator",
+                    "return on investment",
+                    "stakeholder engagement",
+                    "value proposition",
+                    "synergy",
+                    "leverage"
+                ];
+                
+                let result = sentence;
+                if (Math.random() > 0.5) {
+                    const term = jargon[Math.floor(Math.random() * jargon.length)];
+                    result += ` dengan menerapkan ${term}`;
+                }
+                return result;
+            }
+            
+            function useProfessionalTone(sentence) {
+                const professionalStarters = [
+                    "Strategi kami meliputi ",
+                    "Kami berfokus pada ",
+                    "Visi kami adalah ",
+                    "Misi perusahaan mencakup "
+                ];
+                
+                if (Math.random() > 0.5) {
+                    const starter = professionalStarters[Math.floor(Math.random() * professionalStarters.length)];
+                    return starter + sentence.toLowerCase();
+                }
+                return sentence;
+            }
+            
+            function addCreativeFlair(sentence) {
+                const creativeAdjectives = [
+                    "membara",
+                    "berkilau",
+                    "memukau",
+                    "mengagumkan",
+                    "fenomenal",
+                    "luar biasa",
+                    "tak terlupakan"
+                ];
+                
+                const words = sentence.split(' ');
+                if (words.length > 3 && Math.random() > 0.4) {
+                    const adj = creativeAdjectives[Math.floor(Math.random() * creativeAdjectives.length)];
+                    words.splice(1, 0, adj);
+                    return words.join(' ');
+                }
+                return sentence;
+            }
+            
+            function useFigurativeLanguage(sentence) {
+                const metaphors = [
+                    "bagaikan ",
+                    "laksana ",
+                    "ibarat ",
+                    "seperti ",
+                    "bak "
+                ];
+                
+                if (Math.random() > 0.6) {
+                    const metaphor = metaphors[Math.floor(Math.random() * metaphors.length)];
+                    const comparisons = ["matahari terbit", "ombak lautan", "burung terbang", "sungai mengalir"];
+                    const comparison = comparisons[Math.floor(Math.random() * comparisons.length)];
+                    return `${sentence} ${metaphor}${comparison}`;
+                }
+                return sentence;
+            }
+            
+            // Generate variasi
+            for (let i = 0; i < variationCount; i++) {
+                let variation = inputSentence;
+                const currentStyle = styles[Math.floor(Math.random() * styles.length)];
+                
+                // Apply synonym replacement based on variation level
+                variation = replaceSynonyms(variation, variationLevel);
+                
+                // Apply structure transformation if specified
+                if (structurePattern !== 'auto' && Math.random() > 0.3) {
+                    variation = restructureSentence(variation, structurePattern);
+                }
+                
+                // Apply style transformation
+                variation = generateByStyle(variation, currentStyle);
+                
+                // Additional transformations based on AI mode
+                switch(aiMode) {
+                    case 'creative':
+                        // More aggressive changes
+                        if (Math.random() > 0.5) {
+                            variation = restructureSentence(variation, 
+                                ['inversion', 'parallel', 'emphatic'][Math.floor(Math.random() * 3)]
+                            );
+                        }
+                        break;
+                        
+                    case 'conservative':
+                        // Minimal changes
+                        if (Math.random() > 0.7) {
+                            variation = replaceSynonyms(variation, 2); // Low variation level
+                        }
+                        break;
+                        
+                    case 'deep':
+                        // Complex transformations
+                        if (Math.random() > 0.4) {
+                            variation = buatKompleks(variation);
+                        }
+                        break;
+                        
+                    case 'random':
+                        // Random mix of everything
+                        const transformations = [
+                            () => replaceSynonyms(variation, 10),
+                            () => restructureSentence(variation, Object.keys(structurePatterns)[Math.floor(Math.random() * Object.keys(structurePatterns).length)]),
+                            () => generateByStyle(variation, styles[Math.floor(Math.random() * styles.length)])
+                        ];
+                        variation = transformations[Math.floor(Math.random() * transformations.length)]();
+                        break;
+                }
+                
+                // Calculate metrics
+                const originalWords = inputSentence.split(' ');
+                const variationWords = variation.split(' ');
+                const commonWords = originalWords.filter(word => 
+                    variationWords.includes(word.toLowerCase())
+                ).length;
+                
+                const wordsChanged = Math.max(1, Math.floor((originalWords.length - commonWords) / originalWords.length * 100));
+                
+                // Determine complexity
+                let complexity = "medium";
+                if (variationWords.length < 8) complexity = "simple";
+                if (variationWords.length > 15) complexity = "complex";
+                
+                // Calculate quality score (simplified)
+                const score = calculateQualityScore(variation, currentStyle);
+                
+                variations.push({
+                    id: Date.now() + i,
+                    sentence: capitalizeFirstLetter(variation),
+                    type: currentStyle,
+                    wordsChanged: wordsChanged,
+                    structure: structurePattern !== 'auto' ? structurePattern : getRandomStructure(),
+                    complexity: complexity,
+                    score: score,
+                    original: inputSentence,
+                    timestamp: new Date().toISOString(),
+                    aiMode: aiMode,
+                    structurePattern: structurePattern
+                });
+            }
             
             return variations;
         }
         
-        // Modify sentence for additional variations
-        function modifySentence(sentence) {
-            const modifications = [
-                sentence => sentence.replace(/kami/gi, 'organisasi kami'),
-                sentence => sentence.replace(/pelanggan/gi, 'klien'),
-                sentence => sentence.replace(/layanan/gi, 'pelayanan'),
-                sentence => sentence + ' secara konsisten',
-                sentence => 'Secara khusus, ' + sentence.toLowerCase(),
-                sentence => sentence.replace(/\.$/, ' dengan hasil yang maksimal.')
-            ];
+        // Helper functions untuk generate variasi
+        function capitalizeFirstLetter(sentence) {
+            return sentence.charAt(0).toUpperCase() + sentence.slice(1);
+        }
+        
+        function getRandomStructure() {
+            const structures = ["active-passive", "parallel", "inversion", "complex-simple", "emphatic"];
+            return structures[Math.floor(Math.random() * structures.length)];
+        }
+        
+        function calculateQualityScore(sentence, style) {
+            let score = 7; // Base score
             
-            const randomMod = modifications[Math.floor(Math.random() * modifications.length)];
-            return randomMod(sentence);
+            // Adjust based on sentence length
+            const words = sentence.split(' ');
+            if (words.length >= 6 && words.length <= 15) score += 1;
+            
+            // Adjust based on style appropriateness
+            switch(style) {
+                case 'formal':
+                    if (!sentence.match(/\b(aku|gue|lo|lu)\b/i)) score += 1;
+                    break;
+                case 'academic':
+                    if (sentence.match(/\b(metodologi|analisis|teori|paradigma)\b/i)) score += 1;
+                    break;
+                case 'business':
+                    if (sentence.match(/\b(strategi|efisiensi|produktivitas|ROI)\b/i)) score += 1;
+                    break;
+            }
+            
+            // Penalize for repetition
+            const wordArray = words.map(w => w.toLowerCase());
+            const uniqueWords = [...new Set(wordArray)];
+            const uniqueness = uniqueWords.length / wordArray.length;
+            if (uniqueness > 0.8) score += 1;
+            
+            return Math.min(10, Math.max(4, score)); // Keep between 4-10
+        }
+        
+        // Fungsi untuk memperbarui statistik penggunaan kata
+        function updateWordUsageStatistics(variations) {
+            variations.forEach(variation => {
+                const words = variation.sentence.toLowerCase().split(/\s+/);
+                words.forEach(word => {
+                    const cleanWord = word.replace(/[.,!?;:]/g, '');
+                    if (cleanWord.length > 2) { // Ignore short words
+                        appData.wordUsage[cleanWord] = (appData.wordUsage[cleanWord] || 0) + 1;
+                    }
+                });
+            });
+            
+            // Keep only top 50 words
+            const wordEntries = Object.entries(appData.wordUsage);
+            wordEntries.sort((a, b) => b[1] - a[1]);
+            appData.wordUsage = Object.fromEntries(wordEntries.slice(0, 50));
         }
         
         // Display generated results
@@ -4997,6 +5425,23 @@
                 toggleDarkMode();
             }
         });
+        
+        // Update live charts untuk animasi real-time
+        function updateLiveCharts() {
+            if (charts.usageChart) {
+                // Add some random fluctuation to make charts look alive
+                const data = charts.usageChart.data.datasets[0].data;
+                if (data.length > 0) {
+                    const lastIndex = data.length - 1;
+                    const fluctuation = Math.floor(Math.random() * 5) - 2; // -2 to +2
+                    data[lastIndex] = Math.max(10, data[lastIndex] + fluctuation);
+                    charts.usageChart.update('none');
+                }
+            }
+        }
+        
+        // Update interval untuk chart live
+        setInterval(updateLiveCharts, 10000); // Update every 10 seconds
     </script>
 </body>
 </html>
