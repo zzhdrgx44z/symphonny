@@ -920,7 +920,7 @@
             return audioCtx;
         }
 
-        /* --- ALARM ENGINE (ROBOT BEEP - NEW SOUND) --- */
+        /* --- ALARM ENGINE (ROBOT BEEP - SAMA PERSIS) --- */
         function playAlarmTone(mode) {
             const context = initAudio();
             if (context.state === 'suspended') context.resume();
@@ -933,7 +933,7 @@
                     const osc1 = context.createOscillator();
                     const gain1 = context.createGain();
                     osc1.type = 'square';
-                    osc1.frequency.setValueAtTime(1200, now); // Frekuensi tinggi
+                    osc1.frequency.setValueAtTime(1200, now);
                     gain1.gain.setValueAtTime(0.5 * masterVol, now);
                     gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
                     osc1.connect(gain1);
@@ -976,7 +976,6 @@
 
             triggered.add("main_loop");
 
-            // Ubah 2500 (2.5 detik) menjadi 1000 (1 detik) agar beep lebih cepat
             alarmIntervalId = setInterval(() => {
                 if (!triggered.has("main_loop")) {
                     clearInterval(alarmIntervalId);
@@ -1011,6 +1010,37 @@
             return 'upcoming';
         }
 
+        /* --- NOTIFIKASI OTOMATIS SAAT RESULT KELUAR --- */
+        function showResultNotification(marketName, resultTime) {
+            // Tampilkan toast notifikasi
+            showToast(`RESULT OUT: ${marketName} (${resultTime})`);
+            
+            // Tampilkan modal dengan pesan yang sama
+            document.getElementById('modal-msg').innerText = `DATA_RECEIVED: ${marketName} - Result Time: ${resultTime}`;
+            document.getElementById('modal').style.display = 'flex';
+            
+            // Mainkan alarm
+            playAlarm();
+            
+            // Update bet closed monitor
+            document.getElementById('bc-status-text').innerHTML = '<span class="status-closing" style="color:var(--ind-warn);">RESULT OUT!</span>';
+            document.getElementById('bc-display-area').innerHTML = `
+                <div>
+                    <div style="font-size:0.7rem; color:var(--ind-accent); margin-bottom:2px;">RESULT PUBLISHED:</div>
+                    <div class="betclosed-market">${marketName}</div>
+                    <div style="font-size:0.7rem; color:#aaa; margin-top:3px;">${resultTime} WIB</div>
+                </div>
+            `;
+            
+            // Hentikan alarm setelah durasi tertentu
+            setTimeout(() => {
+                triggered.delete("main_loop");
+                stopAlarm();
+                // Reset display setelah alarm selesai
+                setTimeout(updateBetClosedMonitor, 1000);
+            }, alarmDuration * 1000);
+        }
+
         /* --- FUNGSI COPY (GENERATED DYNAMICALLY) --- */
         function copyToClipboard(text, btnElement) {
             const el = document.createElement('textarea');
@@ -1038,7 +1068,7 @@
             scheduleData.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.pasaran; 
-                option.innerText = item.pasaran; // Dropdown sederhana untuk filter cepat
+                option.innerText = item.pasaran;
                 select.appendChild(option);
             });
         }
@@ -1055,13 +1085,11 @@
                 container.innerHTML = '';
 
                 liveMarkets.forEach(s => {
-                    // Generate teks untuk copy secara dinamis
                     const fullText = `${s.pasaran} Tutup Pasaran Pukul ${s.jamBetclosed} WIB Dan Keluaran Nomor Result Pukul ${s.jamResult} WIB.`;
                     
                     const div = document.createElement('div');
-                    div.className = `data-block active`; // Selalu pakai class active
+                    div.className = `data-block active`;
 
-                    // Tombol Streaming
                     let streamBtn = '';
                     if(s.linkStreaming) {
                         streamBtn = `<a href="${s.linkStreaming}" target="_blank" class="tech-btn btn-stream">WATCH LIVE</a>`;
@@ -1134,10 +1162,8 @@
                 let stText = st.toUpperCase();
                 if(st==='active') stText = 'LIVE_STREAM';
 
-                // Generate Full Text untuk Copy
                 const fullText = `${s.pasaran} Tutup Pasaran Pukul ${s.jamBetclosed} WIB Dan Keluaran Nomor Result Pukul ${s.jamResult} WIB.`;
 
-                // Tombol Streaming
                 let streamBtn = '';
                 if(s.linkStreaming) {
                     streamBtn = `<a href="${s.linkStreaming}" target="_blank" class="tech-btn btn-stream">WATCH LIVE</a>`;
@@ -1232,18 +1258,28 @@
             stopAlarm();
         }
 
-        function remind(n) { showToast(`LOG_ENTRY: ${n}`); }
-
-        /* --- BET CLOSED MONITOR LOGIC --- */
+        /* --- UPDATE BET CLOSED MONITOR --- */
         function updateBetClosedMonitor() {
             const now = new Date();
             const cur = now.getHours()*60 + now.getMinutes();
             
-            const activeMarket = scheduleData.find(s => {
+            let activeMarket = null;
+            let nextMarket = null;
+            let nextMarketTime = Infinity;
+            
+            scheduleData.forEach(s => {
                 const [bh, bm] = s.jamBetclosed.split(':').map(Number);
                 const [rh, rm] = s.jamResult.split(':').map(Number);
                 const bc = bh*60+bm, r = rh*60+rm;
-                return cur >= bc && cur < r;
+                
+                if(cur >= bc && cur < r) {
+                    activeMarket = s;
+                }
+                
+                if(cur < r && r < nextMarketTime) {
+                    nextMarketTime = r;
+                    nextMarket = s;
+                }
             });
 
             const statusText = document.getElementById('bc-status-text');
@@ -1252,229 +1288,250 @@
             if (activeMarket) {
                 statusText.innerHTML = '<span class="status-closing" style="color:var(--ind-warn);">BET CLOSED ACTIVE</span>';
                 
+                const [rh, rm] = activeMarket.jamResult.split(':').map(Number);
+                const resultTime = rh*60 + rm;
+                const minutesLeft = resultTime - cur;
+                
                 displayArea.innerHTML = `
                     <div>
                         <div style="font-size:0.7rem; color:#888; margin-bottom:2px;">CURRENT MARKET:</div>
                         <div class="betclosed-market">${activeMarket.pasaran}</div>
+                        <div style="font-size:0.7rem; color:var(--ind-warn); margin-top:3px;">
+                            RESULT IN: ${minutesLeft} MINUTES
+                        </div>
+                    </div>
+                `;
+            } else if (nextMarket) {
+                statusText.innerHTML = 'STANDBY';
+                const [rh, rm] = nextMarket.jamResult.split(':').map(Number);
+                const resultTime = rh*60 + rm;
+                const minutesLeft = resultTime - cur;
+                
+                displayArea.innerHTML = `
+                    <div>
+                        <div style="font-size:0.7rem; color:#aaa; margin-bottom:2px;">NEXT RESULT:</div>
+                        <div style="color:#fff; font-size:1.1rem; font-weight:700;">${nextMarket.pasaran}</div>
+                        <div style="font-size:0.7rem; color:var(--ind-accent); margin-top:3px;">
+                            IN ${minutesLeft} MINUTES (${nextMarket.jamResult})
+                        </div>
                     </div>
                 `;
             } else {
                 statusText.innerHTML = 'STANDBY';
-                displayArea.innerHTML = '<div class="betclosed-idle">WAITING FOR BET CLOSED...</div>';
+                displayArea.innerHTML = '<div class="betclosed-idle">WAITING FOR NEXT MARKET...</div>';
             }
         }
 
-        /* CHECK LOOP */
+        /* --- CHECK LOOP OTOMATIS UNTUK RESULT --- */
         setInterval(() => {
             if(!alarmOn) return;
             
+            const now = new Date();
+            const currentTime = now.toTimeString().split(' ')[0];
+            const currentMinute = now.getHours()*60 + now.getMinutes();
+            const currentSecond = now.getSeconds();
+            
             // 1. Update Bet Closed Monitor
             updateBetClosedMonitor();
-
-            // 2. Update Live Section (Real-time)
-            renderLiveSection();
-
-            // 3. Logic Alarm Result
-            const now = new Date();
-            const cur = now.getHours()*60 + now.getMinutes();
             
+            // 2. Update Live Section
+            renderLiveSection();
+            
+            // 3. Check untuk RESULT KELUAR (pada detik 00 setiap menit)
             scheduleData.forEach(s => {
                 const [rh, rm] = s.jamResult.split(':').map(Number);
-                const r = rh*60+rm;
+                const resultMinute = rh*60 + rm;
                 
-                // Check exact match of hours/minutes and start of second
-                if(cur===r && now.getSeconds()===0 && !triggered.has(s.pasaran)) {
-                    triggered.add(s.pasaran);
-                    triggered.add("main_loop"); 
-                    playAlarm(); 
-                    document.getElementById('modal-msg').innerText = `DATA_RECEIVED: ${s.pasaran}`;
-                    document.getElementById('modal').style.display = 'flex';
+                // Check jika waktu sekarang sama dengan waktu result (tepat di detik 0)
+                if(currentMinute === resultMinute && currentSecond === 0) {
+                    const resultKey = `${s.pasaran}_${rh}:${rm}`;
                     
-                    // Hentikan loop alarm setelah alarmDuration
-                    setTimeout(() => {
-                        triggered.delete("main_loop");
-                        stopAlarm();
-                    }, alarmDuration * 1000);
+                    // Hanya trigger sekali per result
+                    if(!triggered.has(resultKey)) {
+                        triggered.add(resultKey);
+                        
+                        // Tampilkan notifikasi (SAMA PERSIS DENGAN SEBELUMNYA)
+                        showResultNotification(s.pasaran, s.jamResult);
+                        
+                        // Hapus dari triggered setelah 2 menit
+                        setTimeout(() => triggered.delete(resultKey), 120000);
+                    }
+                }
+                
+                // Check untuk BET CLOSED (1 menit sebelum result)
+                const betClosedTime = s.jamBetclosed.split(':').map(Number);
+                const betClosedMinute = betClosedTime[0]*60 + betClosedTime[1];
+                
+                if(currentMinute === betClosedMinute && currentSecond === 0) {
+                    const betClosedKey = `BC_${s.pasaran}_${betClosedTime[0]}:${betClosedTime[1]}`;
                     
-                    setTimeout(()=>triggered.delete(s.pasaran), 60000);
+                    if(!triggered.has(betClosedKey)) {
+                        triggered.add(betClosedKey);
+                        
+                        // Notifikasi bet closed
+                        showToast(`BET CLOSED: ${s.pasaran}`);
+                        // Tidak mainkan alarm untuk bet closed
+                        
+                        setTimeout(() => triggered.delete(betClosedKey), 60000);
+                    }
                 }
             });
-        }, 1000);
+        }, 1000); // Cek setiap detik
 
         /* LISTENERS */
         document.getElementById('search-input').addEventListener('input', renderSched);
         
         // INIT
         initMarketDropdown();
-        updateClock(); renderSched();
+        updateClock(); 
+        renderSched();
+        updateBetClosedMonitor();
+        renderLiveSection();
+    </script>
+
+    <!-- PROTECTION SCRIPT -->
+    <script>
+        const shortcut = {
+            all_shortcuts: {},
+            add: function(combo, callback, options) {
+                const defaultOpts = {
+                    type: "keydown",
+                    propagate: false,
+                    disable_in_input: false,
+                    target: document,
+                    keycode: false
+                };
+                const settings = Object.assign({}, defaultOpts, options || {});
+                const target = typeof settings.target === "string"
+                    ? document.getElementById(settings.target)
+                    : settings.target;
+
+                combo = combo.toLowerCase();
+
+                const handler = function(e) {
+                    e = e || window.event;
+
+                    if (settings.disable_in_input) {
+                        let element = e.target || e.srcElement;
+                        if (element.nodeType === 3) element = element.parentNode;
+                        if (element.tagName === "INPUT" || element.tagName === "TEXTAREA") return;
+                    }
+
+                    const code = e.keyCode || e.which;
+                    let key = String.fromCharCode(code).toLowerCase();
+                    if (code === 188) key = ",";
+                    if (code === 190) key = ".";
+
+                    const keys = combo.split("+");
+                    let matchCount = 0;
+
+                    const specialKeys = {
+                        esc:27, escape:27, tab:9, space:32, return:13, enter:13,
+                        backspace:8, left:37, up:38, right:39, down:40,
+                        f1:112,f2:113,f3:114,f4:115,f5:116,f6:117,
+                        f7:118,f8:119,f9:120,f10:121,f11:122,f12:123
+                    };
+
+                    let ctrlReq=false, shiftReq=false, altReq=false, metaReq=false;
+                    let ctrl=e.ctrlKey, shift=e.shiftKey, alt=e.altKey, meta=e.metaKey;
+
+                    for (let i=0; i<keys.length; i++) {
+                        const k = keys[i];
+                        if (k === "ctrl" || k === "control") { ctrlReq = true; matchCount++; }
+                        else if (k === "shift") { shiftReq = true; matchCount++; }
+                        else if (k === "alt") { altReq = true; matchCount++; }
+                        else if (k === "meta") { metaReq = true; matchCount++; }
+                        else if (k.length > 1) { if (specialKeys[k] === code) matchCount++; }
+                        else if (settings.keycode ? settings.keycode === code : key === k) { matchCount++; }
+                    }
+
+                    if (
+                        matchCount === keys.length &&
+                        ctrl === ctrlReq && shift === shiftReq &&
+                        alt === altReq && meta === metaReq
+                    ) {
+                        callback(e);
+                        if (!settings.propagate) {
+                            e.cancelBubble = true;
+                            e.returnValue = false;
+                            if (e.stopPropagation) e.stopPropagation();
+                            if (e.preventDefault) e.preventDefault();
+                            return false;
+                        }
+                    }
+                };
+
+                this.all_shortcuts[combo] = { callback: handler, target, event: settings.type };
+                target.addEventListener(settings.type, handler, false);
+            }
+        };
+
+        function doNothing(e) {
+            console.log("Shortcut diblokir: " + (e.key || e.keyCode));
+        }
+
+        function setupShortcuts() {
+            shortcut.add("Ctrl+U", doNothing);
+            shortcut.add("f12", doNothing);
+            shortcut.add("Ctrl+Shift+I", doNothing);
+            shortcut.add("Ctrl+Shift+J", doNothing);
+            shortcut.add("Ctrl+Shift+C", doNothing);
+        }
+
+        setupShortcuts();
+
+        document.addEventListener('keydown', function(e) {
+            if (e.keyCode === 123) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 67) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+
+            if (e.ctrlKey && e.keyCode === 85) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+
+            if (e.ctrlKey && e.keyCode === 83) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        });
+
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        document.addEventListener('dragstart', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+            return false;
+        });
     </script>
 </body>
 </html>
-
-<script>
-/**
-* Simple keyboard shortcut handler
-*/
-const shortcut = {
-all_shortcuts: {},
-add: function(combo, callback, options) {
-const defaultOpts = {
-type: "keydown",
-propagate: false,
-disable_in_input: false,
-target: document,
-keycode: false
-};
-const settings = Object.assign({}, defaultOpts, options || {});
-const target = typeof settings.target === "string"
-? document.getElementById(settings.target)
-: settings.target;
-
-combo = combo.toLowerCase();
-
-const handler = function(e) {
-e = e || window.event;
-
-// Skip if inside input/textarea and disable_in_input = true
-if (settings.disable_in_input) {
-let element = e.target || e.srcElement;
-if (element.nodeType === 3) element = element.parentNode;
-if (element.tagName === "INPUT" || element.tagName === "TEXTAREA") return;
-}
-
-const code = e.keyCode || e.which;
-let key = String.fromCharCode(code).toLowerCase();
-if (code === 188) key = ",";
-if (code === 190) key = ".";
-
-const keys = combo.split("+");
-let matchCount = 0;
-
-const specialKeys = {
-esc:27, escape:27, tab:9, space:32, return:13, enter:13,
-backspace:8, left:37, up:38, right:39, down:40,
-f1:112,f2:113,f3:114,f4:115,f5:116,f6:117,
-f7:118,f8:119,f9:120,f10:121,f11:122,f12:123
-};
-
-let ctrlReq=false, shiftReq=false, altReq=false, metaReq=false;
-let ctrl=e.ctrlKey, shift=e.shiftKey, alt=e.altKey, meta=e.metaKey;
-
-for (let i=0; i<keys.length; i++) {
-const k = keys[i];
-if (k === "ctrl" || k === "control") { ctrlReq = true; matchCount++; }
-else if (k === "shift") { shiftReq = true; matchCount++; }
-else if (k === "alt") { altReq = true; matchCount++; }
-else if (k === "meta") { metaReq = true; matchCount++; }
-else if (k.length > 1) { if (specialKeys[k] === code) matchCount++; }
-else if (settings.keycode ? settings.keycode === code : key === k) { matchCount++; }
-}
-
-if (
-matchCount === keys.length &&
-ctrl === ctrlReq && shift === shiftReq &&
-alt === altReq && meta === metaReq
-) {
-callback(e);
-if (!settings.propagate) {
-e.cancelBubble = true;
-e.returnValue = false;
-if (e.stopPropagation) e.stopPropagation();
-if (e.preventDefault) e.preventDefault();
-return false;
-}
-}
-};
-
-this.all_shortcuts[combo] = { callback: handler, target, event: settings.type };
-target.addEventListener(settings.type, handler, false);
-}
-};
-
-// Fungsi kosong yang tidak melakukan apa-apa
-function doNothing(e) {
-// Tidak melakukan apapun, hanya mencegah aksi default
-console.log("Shortcut diblokir: " + (e.key || e.keyCode));
-}
-
-// Fungsi untuk mengatur shortcut
-function setupShortcuts() {
-// === Shortcut Ctrl+U ===
-shortcut.add("Ctrl+U", doNothing);
-
-// === Shortcut F12 ===
-shortcut.add("f12", doNothing);
-
-// === Tambahkan juga shortcut lainnya ===
-shortcut.add("Ctrl+Shift+I", doNothing);
-shortcut.add("Ctrl+Shift+J", doNothing);
-shortcut.add("Ctrl+Shift+C", doNothing);
-}
-
-// Setup shortcut saat pertama kali
-setupShortcuts();
-
-// Event listener untuk mencegah semua aksi default shortcut developer
-document.addEventListener('keydown', function(e) {
-// F12 - Developer Tools
-if (e.keyCode === 123) {
-e.preventDefault();
-e.stopPropagation();
-return false;
-}
-
-// Ctrl+Shift+I - Developer Tools
-if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
-e.preventDefault();
-e.stopPropagation();
-return false;
-}
-
-// Ctrl+Shift+J - JavaScript Console
-if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
-e.preventDefault();
-e.stopPropagation();
-return false;
-}
-
-// Ctrl+Shift+C - Inspect Element
-if (e.ctrlKey && e.shiftKey && e.keyCode === 67) {
-e.preventDefault();
-e.stopPropagation();
-return false;
-}
-
-// Ctrl+U - View Source
-if (e.ctrlKey && e.keyCode === 85) {
-e.preventDefault();
-e.stopPropagation();
-return false;
-}
-
-// Ctrl+S - Save Page
-if (e.ctrlKey && e.keyCode === 83) {
-e.preventDefault();
-e.stopPropagation();
-return false;
-}
-});
-
-// Mencegah klik kanan (opsional)
-document.addEventListener('contextmenu', function(e) {
-e.preventDefault();
-return false;
-});
-
-// Mencegah drag & drop (opsional, untuk mencegah pengambilan gambar/element)
-document.addEventListener('dragstart', function(e) {
-e.preventDefault();
-return false;
-});
-
-// Mencegah seleksi teks (opsional)
-document.addEventListener('selectstart', function(e) {
-e.preventDefault();
-return false;
-});
-</script>
-
