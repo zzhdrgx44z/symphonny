@@ -3,11 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Screen Recorder PRO - Cloud Sync</title>
+    <title>Screen Recorder PRO - Cloud Sync Multi-Device</title>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Firebase (Opsional) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <style>
         :root {
             --primary: #4f46e5;
@@ -149,6 +154,11 @@
         .badge.pro {
             background: rgba(236, 72, 153, 0.2);
             border-color: var(--accent);
+        }
+
+        .badge.multi-device {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: var(--warning);
         }
 
         /* Recorder Section */
@@ -1012,6 +1022,45 @@
             margin-top: 20px;
         }
 
+        /* Device List */
+        .device-list {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-md);
+            padding: 15px;
+            margin: 15px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .device-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .device-item:last-child {
+            border-bottom: none;
+        }
+
+        .device-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .device-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+
+        .device-indicator.offline {
+            background: var(--danger);
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .container {
@@ -1152,6 +1201,63 @@
         </div>
     </div>
 
+    <!-- Device Sync Modal -->
+    <div class="modal" id="deviceModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-laptop"></i> Multi-Device Sync
+                </h2>
+                <button class="close-modal" id="closeDeviceModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <h4 style="color: white; margin-bottom: 10px;">Your Device</h4>
+                <div style="padding: 15px; background: rgba(255,255,255,0.05); border-radius: var(--radius-md);">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div class="device-indicator"></div>
+                        <div>
+                            <div style="font-weight: 600;">Current Device</div>
+                            <div style="font-size: 0.9rem; color: rgba(255,255,255,0.7);" id="currentDeviceId">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <h4 style="color: white; margin-bottom: 10px;">Other Devices</h4>
+                <div class="device-list" id="deviceList">
+                    <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">
+                        No other devices found
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <h4 style="color: white; margin-bottom: 10px;">Sync Options</h4>
+                <div style="display: grid; gap: 10px;">
+                    <button class="action-btn" id="syncAllDevicesBtn">
+                        <i class="fas fa-sync-alt"></i> Sync All Devices
+                    </button>
+                    <button class="action-btn" id="importFromDeviceBtn">
+                        <i class="fas fa-download"></i> Import from Selected Device
+                    </button>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="modal-btn" id="refreshDevicesBtn" style="background: var(--primary); color: white;">
+                    <i class="fas fa-redo"></i> Refresh
+                </button>
+                <button class="modal-btn" id="closeModalBtn" style="background: var(--danger); color: white;">
+                    <i class="fas fa-times"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Container -->
     <div class="container">
         <!-- Header -->
@@ -1165,7 +1271,7 @@
                 </div>
             </div>
             <p class="tagline">
-                Rekam layar dengan sync cloud! Data tersimpan aman dan bisa diakses di komputer manapun.
+                Rekam layar dengan sync cloud multi-device! Data tersimpan aman dan bisa diakses di komputer manapun.
             </p>
             <div class="badges">
                 <div class="badge cloud">
@@ -1176,9 +1282,9 @@
                     <i class="fas fa-crown"></i>
                     PRO VERSION
                 </div>
-                <div class="badge">
-                    <i class="fas fa-shield-alt"></i>
-                    ENCRYPTED
+                <div class="badge multi-device">
+                    <i class="fas fa-laptop-house"></i>
+                    MULTI-DEVICE
                 </div>
             </div>
         </header>
@@ -1237,10 +1343,13 @@
                         <i class="fas fa-redo"></i> Restore Data
                     </button>
                     <button class="action-btn" id="exportJsonBtn">
-                        <i class="fas fa-file-export"></i> Export JSON
+                        <i class="fas fa-file-export"></i> Export Database
                     </button>
                     <button class="action-btn" id="importJsonBtn">
-                        <i class="fas fa-file-import"></i> Import JSON
+                        <i class="fas fa-file-import"></i> Import Database
+                    </button>
+                    <button class="action-btn" id="multiDeviceBtn">
+                        <i class="fas fa-laptop-house"></i> Multi-Device
                     </button>
                 </div>
             </div>
@@ -1460,7 +1569,7 @@
 
         <!-- Footer -->
         <footer class="footer">
-            <p>© 2024 Screen Recorder Cloud • v2.0</p>
+            <p>© 2024 Screen Recorder Cloud • v3.0 • Multi-Device Sync</p>
             <div class="footer-links">
                 <a href="#" class="footer-link">Privacy Policy</a>
                 <a href="#" class="footer-link">Terms of Service</a>
@@ -1468,7 +1577,8 @@
             </div>
             <p style="margin-top: 20px; font-size: 0.9rem;">
                 Device ID: <span id="deviceId" style="color: var(--primary); font-weight: 600;"></span> • 
-                Cloud Status: <span id="cloudStatus" style="color: var(--success);">Connected</span>
+                Cloud Status: <span id="cloudStatus" style="color: var(--success);">Connected</span> •
+                Videos: <span id="totalVideosCount">0</span>
             </p>
         </footer>
     </div>
@@ -1505,13 +1615,30 @@
     <script>
         // =============== CLOUD SYNC CONFIGURATION ===============
         const CLOUD_CONFIG = {
-            CLOUD_KEY: 'screen_recorder_cloud_data',
-            BACKUP_KEY: 'screen_recorder_backup',
+            CLOUD_KEY: 'screen_recorder_cloud_data_v3',
+            BACKUP_KEY: 'screen_recorder_backup_v3',
             DEVICE_ID_KEY: 'screen_recorder_device_id',
+            DEVICES_KEY: 'screen_recorder_devices',
             SYNC_HISTORY_KEY: 'screen_recorder_sync_history',
-            MAX_CLOUD_SIZE: 50 * 1024 * 1024, // 50MB max untuk cloud
+            MAX_CLOUD_SIZE: 100 * 1024 * 1024, // 100MB max untuk cloud
             SYNC_INTERVAL: 5 * 60 * 1000, // 5 menit
-            ENCRYPTION_KEY: 'screen-recorder-secure-key-2024'
+            ENCRYPTION_KEY: 'screen-recorder-secure-key-2024-v3',
+            
+            // Multi-device sync
+            MULTI_DEVICE_ENABLED: true,
+            DEVICE_SYNC_INTERVAL: 60 * 1000, // 1 menit
+            
+            // Firebase config (silahkan isi dengan konfigurasi Firebase Anda)
+            FIREBASE_CONFIG: {
+                apiKey: "AIzaSyDEXAMPLE1234567890abcdef",
+                authDomain: "your-app.firebaseapp.com",
+                projectId: "your-project-id",
+                storageBucket: "your-app.appspot.com",
+                messagingSenderId: "1234567890",
+                appId: "1:1234567890:web:abcdef1234567890"
+            },
+            
+            USE_FIREBASE: false // Set true jika ingin menggunakan Firebase
         };
 
         // =============== STATE ===============
@@ -1535,13 +1662,25 @@
             isSyncing: false,
             syncInterval: null,
             
+            // Multi-device sync
+            devices: {},
+            currentDeviceData: null,
+            deviceSyncInterval: null,
+            
             // Settings
             autoSyncEnabled: true,
             encryptDataEnabled: true,
             chunkRecordingEnabled: false,
             autoCleanupEnabled: true,
             totalRecordingTime: 0,
-            systemStatus: 'ready'
+            systemStatus: 'ready',
+            
+            // Firebase (jika digunakan)
+            firebase: null,
+            firestore: null,
+            storage: null,
+            auth: null,
+            userId: null
         };
 
         // =============== DOM ELEMENTS ===============
@@ -1567,6 +1706,7 @@
             fileSize: document.getElementById('fileSize'),
             totalDuration: document.getElementById('totalDuration'),
             videoCount: document.getElementById('videoCount'),
+            totalVideosCount: document.getElementById('totalVideosCount'),
             videoGrid: document.getElementById('videoGrid'),
             emptyLibrary: document.getElementById('emptyLibrary'),
             trySyncBtn: document.getElementById('trySyncBtn'),
@@ -1610,36 +1750,95 @@
             backupBtn: document.getElementById('backupBtn'),
             restoreBtn: document.getElementById('restoreBtn'),
             exportJsonBtn: document.getElementById('exportJsonBtn'),
-            importJsonBtn: document.getElementById('importJsonBtn')
+            importJsonBtn: document.getElementById('importJsonBtn'),
+            multiDeviceBtn: document.getElementById('multiDeviceBtn'),
+            deviceModal: document.getElementById('deviceModal'),
+            deviceList: document.getElementById('deviceList'),
+            currentDeviceId: document.getElementById('currentDeviceId'),
+            syncAllDevicesBtn: document.getElementById('syncAllDevicesBtn'),
+            importFromDeviceBtn: document.getElementById('importFromDeviceBtn'),
+            refreshDevicesBtn: document.getElementById('refreshDevicesBtn'),
+            closeDeviceModal: document.getElementById('closeDeviceModal'),
+            closeModalBtn: document.getElementById('closeModalBtn')
         };
 
         // =============== INITIALIZATION ===============
         document.addEventListener('DOMContentLoaded', async () => {
-            showLoading('Loading Screen Recorder Cloud...');
+            showLoading('Initializing Screen Recorder Cloud...');
             
             try {
                 setupEventListeners();
                 await initializeDevice();
+                await initializeFirebase();
                 await loadLocalData();
-                await loadCloudData();
+                await loadMultiDeviceData();
                 await calculateStorageUsage();
                 updateVideoGrid();
                 updateSystemStats();
                 updateSyncStatus();
+                updateDeviceList();
                 
                 if (state.autoSyncEnabled) {
                     startAutoSync();
                 }
                 
+                if (CLOUD_CONFIG.MULTI_DEVICE_ENABLED) {
+                    startDeviceSync();
+                }
+                
                 hideLoading();
-                showToast('Screen Recorder Cloud ready! Data sync aktif.', 'success');
+                showToast('Screen Recorder Cloud ready! Multi-device sync aktif.', 'success');
                 
             } catch (error) {
+                console.error('Initialization error:', error);
                 hideLoading();
                 showToast('Screen Recorder loaded with local storage', 'info');
-                console.log('Screen Recorder loaded with fallback');
             }
         });
+
+        // =============== FIREBASE INITIALIZATION ===============
+        async function initializeFirebase() {
+            if (!CLOUD_CONFIG.USE_FIREBASE) {
+                console.log('Firebase disabled, using localStorage sync');
+                return;
+            }
+            
+            try {
+                // Check if Firebase is available
+                if (typeof firebase === 'undefined') {
+                    console.warn('Firebase not loaded, falling back to localStorage');
+                    return;
+                }
+                
+                // Initialize Firebase
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(CLOUD_CONFIG.FIREBASE_CONFIG);
+                }
+                
+                state.firebase = firebase;
+                state.firestore = firebase.firestore();
+                state.storage = firebase.storage();
+                state.auth = firebase.auth();
+                
+                // Sign in anonymously
+                await state.auth.signInAnonymously();
+                state.userId = state.auth.currentUser.uid;
+                
+                console.log('Firebase initialized with user:', state.userId);
+                elements.cloudStatus.textContent = 'Firebase Connected';
+                elements.cloudStatus.style.color = 'var(--success)';
+                
+                // Load data from Firebase
+                await loadFromFirebase();
+                
+                return true;
+            } catch (error) {
+                console.error('Firebase initialization error:', error);
+                elements.cloudStatus.textContent = 'Local Storage Only';
+                elements.cloudStatus.style.color = 'var(--warning)';
+                return false;
+            }
+        }
 
         // =============== DEVICE & CLOUD INITIALIZATION ===============
         async function initializeDevice() {
@@ -1651,110 +1850,407 @@
             }
             state.deviceId = deviceId;
             elements.deviceId.textContent = deviceId.substring(0, 12) + '...';
+            elements.currentDeviceId.textContent = deviceId;
             
-            // Initialize cloud data structure
-            let cloudData = localStorage.getItem(CLOUD_CONFIG.CLOUD_KEY);
-            if (cloudData) {
+            // Initialize device registry
+            let devices = localStorage.getItem(CLOUD_CONFIG.DEVICES_KEY);
+            if (devices) {
                 try {
-                    state.cloudData = JSON.parse(cloudData);
+                    state.devices = JSON.parse(devices);
                 } catch (e) {
-                    state.cloudData = {
-                        devices: {},
-                        videos: [],
-                        lastUpdated: new Date().toISOString(),
-                        version: '2.0'
-                    };
+                    state.devices = {};
                 }
-            } else {
-                state.cloudData = {
-                    devices: {},
-                    videos: [],
-                    lastUpdated: new Date().toISOString(),
-                    version: '2.0'
-                };
             }
             
             // Register this device
-            state.cloudData.devices[deviceId] = {
+            state.devices[deviceId] = {
                 lastSeen: new Date().toISOString(),
                 userAgent: navigator.userAgent,
-                platform: navigator.platform
+                platform: navigator.platform,
+                videoCount: 0,
+                lastSync: null
             };
             
-            await saveCloudData();
+            // Save device registry
+            localStorage.setItem(CLOUD_CONFIG.DEVICES_KEY, JSON.stringify(state.devices));
+            
+            // Create device-specific storage
+            state.currentDeviceData = {
+                deviceId: deviceId,
+                videos: [],
+                settings: {},
+                lastUpdated: new Date().toISOString()
+            };
+            
+            return deviceId;
         }
 
-        // =============== CLOUD SYNC FUNCTIONS ===============
-        async function saveCloudData() {
+        // =============== MULTI-DEVICE SYNC SYSTEM ===============
+        async function loadMultiDeviceData() {
             try {
-                // Prepare data for cloud
-                const cloudVideos = state.videos.map(video => {
-                    // Don't store blob in cloud (too large)
-                    const { blob, ...videoData } = video;
-                    return {
-                        ...videoData,
-                        deviceId: state.deviceId,
-                        synced: true
-                    };
-                });
+                // Load data from all registered devices
+                const allDevices = state.devices;
+                const allVideos = [...state.videos];
                 
-                state.cloudData.videos = cloudVideos;
-                state.cloudData.lastUpdated = new Date().toISOString();
-                state.cloudData.devices[state.deviceId].lastSeen = new Date().toISOString();
+                for (const [deviceId, deviceInfo] of Object.entries(allDevices)) {
+                    if (deviceId !== state.deviceId) {
+                        const deviceDataKey = `screen_recorder_device_${deviceId}`;
+                        const deviceData = localStorage.getItem(deviceDataKey);
+                        
+                        if (deviceData) {
+                            try {
+                                const parsedData = JSON.parse(deviceData);
+                                
+                                if (parsedData.videos && Array.isArray(parsedData.videos)) {
+                                    for (const videoMeta of parsedData.videos) {
+                                        // Check if video already exists
+                                        const exists = allVideos.some(v => v.id === videoMeta.id);
+                                        if (!exists) {
+                                            // Add metadata only, blob will be loaded on demand
+                                            allVideos.push({
+                                                ...videoMeta,
+                                                fromOtherDevice: true,
+                                                sourceDevice: deviceId,
+                                                blob: null // Don't load blob immediately
+                                            });
+                                        }
+                                    }
+                                }
+                            } catch (e) {
+                                console.warn(`Error loading data from device ${deviceId}:`, e);
+                            }
+                        }
+                    }
+                }
                 
-                // Save to localStorage (simulated cloud)
-                const dataToSave = state.encryptDataEnabled 
-                    ? encryptData(JSON.stringify(state.cloudData))
-                    : JSON.stringify(state.cloudData);
-                
-                localStorage.setItem(CLOUD_CONFIG.CLOUD_KEY, dataToSave);
-                localStorage.setItem(CLOUD_CONFIG.BACKUP_KEY, dataToSave);
-                
-                state.lastSync = new Date();
-                updateSyncStatus();
-                
+                state.videos = allVideos;
                 return true;
             } catch (error) {
-                console.error('Save cloud data error:', error);
+                console.error('Multi-device data load error:', error);
                 return false;
             }
         }
 
-        async function loadCloudData() {
+        async function saveToMultiDevice() {
             try {
-                let cloudData = localStorage.getItem(CLOUD_CONFIG.CLOUD_KEY);
-                if (!cloudData) return;
+                // Prepare device data (metadata only, no blobs)
+                const deviceData = {
+                    deviceId: state.deviceId,
+                    videos: state.videos.map(video => ({
+                        id: video.id,
+                        title: video.title,
+                        duration: video.duration,
+                        size: video.size,
+                        date: video.date,
+                        quality: video.quality,
+                        thumbnail: video.thumbnail || null
+                    })),
+                    settings: {
+                        autoSync: state.autoSyncEnabled,
+                        encryptData: state.encryptDataEnabled
+                    },
+                    lastUpdated: new Date().toISOString(),
+                    videoCount: state.videos.length
+                };
                 
-                // Decrypt if needed
-                if (state.encryptDataEnabled && cloudData.startsWith('ENCRYPTED:')) {
-                    cloudData = decryptData(cloudData.substring(10));
-                }
+                // Save to device-specific storage
+                const deviceDataKey = `screen_recorder_device_${state.deviceId}`;
+                const dataToSave = state.encryptDataEnabled 
+                    ? encryptData(JSON.stringify(deviceData))
+                    : JSON.stringify(deviceData);
                 
-                const parsedData = JSON.parse(cloudData);
+                localStorage.setItem(deviceDataKey, dataToSave);
                 
-                // Merge videos from cloud with local videos
-                if (parsedData.videos && Array.isArray(parsedData.videos)) {
-                    const cloudVideoIds = new Set(state.videos.map(v => v.id));
-                    
-                    parsedData.videos.forEach(cloudVideo => {
-                        if (!cloudVideoIds.has(cloudVideo.id)) {
-                            // Add cloud video to local storage
-                            state.videos.push({
-                                ...cloudVideo,
-                                fromCloud: true
-                            });
-                        }
-                    });
-                }
+                // Update device registry
+                state.devices[state.deviceId] = {
+                    ...state.devices[state.deviceId],
+                    lastSeen: new Date().toISOString(),
+                    videoCount: state.videos.length,
+                    lastSync: new Date().toISOString()
+                };
                 
-                state.cloudData = parsedData;
-                state.lastSync = new Date(parsedData.lastUpdated);
+                localStorage.setItem(CLOUD_CONFIG.DEVICES_KEY, JSON.stringify(state.devices));
                 
+                return true;
             } catch (error) {
-                console.error('Load cloud data error:', error);
+                console.error('Save to multi-device error:', error);
+                return false;
             }
         }
 
+        function startDeviceSync() {
+            if (state.deviceSyncInterval) {
+                clearInterval(state.deviceSyncInterval);
+            }
+            
+            state.deviceSyncInterval = setInterval(async () => {
+                try {
+                    await saveToMultiDevice();
+                    await loadMultiDeviceData();
+                    updateDeviceList();
+                    
+                    // Update video grid to show multi-device videos
+                    updateVideoGrid();
+                } catch (error) {
+                    console.error('Device sync error:', error);
+                }
+            }, CLOUD_CONFIG.DEVICE_SYNC_INTERVAL);
+        }
+
+        function updateDeviceList() {
+            const deviceList = elements.deviceList;
+            deviceList.innerHTML = '';
+            
+            const devices = Object.entries(state.devices);
+            
+            if (devices.length <= 1) {
+                deviceList.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">
+                        No other devices found
+                    </div>
+                `;
+                return;
+            }
+            
+            devices.forEach(([deviceId, deviceInfo]) => {
+                if (deviceId === state.deviceId) return;
+                
+                const deviceItem = document.createElement('div');
+                deviceItem.className = 'device-item';
+                deviceItem.dataset.deviceId = deviceId;
+                
+                const lastSeen = new Date(deviceInfo.lastSeen);
+                const now = new Date();
+                const diffMinutes = Math.floor((now - lastSeen) / (1000 * 60));
+                
+                deviceItem.innerHTML = `
+                    <div class="device-info">
+                        <div class="device-indicator ${diffMinutes > 5 ? 'offline' : ''}"></div>
+                        <div>
+                            <div style="font-weight: 600;">${deviceId.substring(0, 8)}...</div>
+                            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">
+                                ${deviceInfo.videoCount || 0} videos • 
+                                ${diffMinutes < 1 ? 'Just now' : diffMinutes + ' min ago'}
+                            </div>
+                        </div>
+                    </div>
+                    <button class="action-btn sync-device-btn" style="padding: 5px 10px; font-size: 0.8rem;">
+                        <i class="fas fa-download"></i> Sync
+                    </button>
+                `;
+                
+                deviceList.appendChild(deviceItem);
+                
+                // Add event listener to sync button
+                deviceItem.querySelector('.sync-device-btn').addEventListener('click', async () => {
+                    await syncFromDevice(deviceId);
+                });
+            });
+        }
+
+        async function syncFromDevice(deviceId) {
+            if (!deviceId || deviceId === state.deviceId) return;
+            
+            showProgress(`Syncing from device ${deviceId.substring(0, 8)}...`);
+            
+            try {
+                const deviceDataKey = `screen_recorder_device_${deviceId}`;
+                const deviceData = localStorage.getItem(deviceDataKey);
+                
+                if (!deviceData) {
+                    throw new Error('Device data not found');
+                }
+                
+                // Decrypt if needed
+                let parsedData;
+                if (state.encryptDataEnabled && deviceData.startsWith('ENCRYPTED:')) {
+                    parsedData = JSON.parse(decryptData(deviceData.substring(10)));
+                } else {
+                    parsedData = JSON.parse(deviceData);
+                }
+                
+                if (!parsedData.videos || !Array.isArray(parsedData.videos)) {
+                    throw new Error('Invalid device data format');
+                }
+                
+                let syncedCount = 0;
+                
+                for (const videoMeta of parsedData.videos) {
+                    // Check if video already exists
+                    const exists = state.videos.some(v => v.id === videoMeta.id);
+                    if (!exists) {
+                        // Try to load actual video data if available
+                        const videoDataKey = `screen_recorder_video_${deviceId}_${videoMeta.id}`;
+                        const videoData = localStorage.getItem(videoDataKey);
+                        
+                        let blob = null;
+                        if (videoData) {
+                            // Video data available (might be base64 encoded)
+                            if (videoData.startsWith('data:')) {
+                                // Base64 encoded video
+                                try {
+                                    const response = await fetch(videoData);
+                                    blob = await response.blob();
+                                } catch (e) {
+                                    console.warn('Failed to decode video data:', e);
+                                }
+                            }
+                        }
+                        
+                        // Add video to collection
+                        state.videos.push({
+                            ...videoMeta,
+                            blob: blob,
+                            fromOtherDevice: true,
+                            sourceDevice: deviceId,
+                            syncedAt: new Date().toISOString()
+                        });
+                        
+                        syncedCount++;
+                        
+                        updateProgress((syncedCount / parsedData.videos.length) * 100, 
+                            `Syncing video ${syncedCount} of ${parsedData.videos.length}`);
+                    }
+                }
+                
+                // Update local storage
+                await saveLocalData();
+                
+                // Update UI
+                updateVideoGrid();
+                updateSystemStats();
+                
+                hideProgress();
+                showToast(`Synced ${syncedCount} videos from device`, 'success');
+                
+            } catch (error) {
+                hideProgress();
+                showToast('Device sync failed: ' + error.message, 'error');
+            }
+        }
+
+        async function syncAllDevices() {
+            showProgress('Syncing from all devices...');
+            
+            try {
+                const devices = Object.keys(state.devices);
+                let totalSynced = 0;
+                
+                for (const deviceId of devices) {
+                    if (deviceId !== state.deviceId) {
+                        await syncFromDevice(deviceId);
+                        totalSynced++;
+                    }
+                }
+                
+                hideProgress();
+                showToast(`Synced from ${totalSynced} devices`, 'success');
+                
+            } catch (error) {
+                hideProgress();
+                showToast('Multi-device sync failed: ' + error.message, 'error');
+            }
+        }
+
+        // =============== FIREBASE FUNCTIONS ===============
+        async function saveToFirebase(videoData) {
+            if (!state.firestore || !state.userId) return null;
+            
+            try {
+                const videoId = videoData.id || `video_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                
+                // Prepare metadata
+                const metadata = {
+                    ...videoData,
+                    blob: null, // Don't store blob in Firestore
+                    userId: state.userId,
+                    deviceId: state.deviceId,
+                    uploadedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    size: videoData.size,
+                    duration: videoData.duration,
+                    title: videoData.title,
+                    quality: videoData.quality,
+                    fromCloud: true
+                };
+                
+                // 1. Save metadata to Firestore
+                await state.firestore.collection('videos').doc(videoId).set(metadata);
+                
+                // 2. Upload blob to Firebase Storage if available
+                if (videoData.blob && videoData.blob.size < 50 * 1024 * 1024) {
+                    try {
+                        const storageRef = state.storage.ref(`videos/${state.userId}/${videoId}.webm`);
+                        await storageRef.put(videoData.blob);
+                        
+                        const downloadURL = await storageRef.getDownloadURL();
+                        
+                        // Update metadata with download URL
+                        await state.firestore.collection('videos').doc(videoId).update({
+                            downloadURL: downloadURL,
+                            storagePath: `videos/${state.userId}/${videoId}.webm`
+                        });
+                        
+                        metadata.downloadURL = downloadURL;
+                    } catch (storageError) {
+                        console.warn('Firebase Storage upload failed:', storageError);
+                    }
+                }
+                
+                return { videoId, metadata };
+                
+            } catch (error) {
+                console.error('Firebase save error:', error);
+                throw error;
+            }
+        }
+
+        async function loadFromFirebase() {
+            if (!state.firestore || !state.userId) return [];
+            
+            try {
+                const querySnapshot = await state.firestore
+                    .collection('videos')
+                    .where('userId', '==', state.userId)
+                    .orderBy('uploadedAt', 'desc')
+                    .limit(50)
+                    .get();
+                
+                const cloudVideos = [];
+                
+                for (const doc of querySnapshot.docs) {
+                    const videoData = doc.data();
+                    videoData.id = doc.id;
+                    videoData.fromCloud = true;
+                    videoData.cloudSource = 'firebase';
+                    
+                    // Try to download video if there's a URL
+                    if (videoData.downloadURL) {
+                        try {
+                            const response = await fetch(videoData.downloadURL);
+                            const blob = await response.blob();
+                            videoData.blob = blob;
+                        } catch (error) {
+                            console.warn('Failed to download video from Firebase:', error);
+                            videoData.blob = null;
+                        }
+                    }
+                    
+                    // Check if video already exists locally
+                    const existingIndex = state.videos.findIndex(v => v.id === videoData.id);
+                    if (existingIndex === -1) {
+                        state.videos.push(videoData);
+                    }
+                }
+                
+                return cloudVideos;
+                
+            } catch (error) {
+                console.error('Firebase load error:', error);
+                return [];
+            }
+        }
+
+        // =============== CLOUD SYNC FUNCTIONS ===============
         async function syncToCloud() {
             if (state.isSyncing) return;
             
@@ -1765,16 +2261,30 @@
             try {
                 showToast('Syncing data to cloud...', 'info');
                 
-                const success = await saveCloudData();
+                let success = false;
+                
+                // Try Firebase first if available
+                if (state.firestore && state.userId) {
+                    success = await syncToFirebase();
+                }
+                
+                // If Firebase fails or not available, use multi-device sync
+                if (!success && CLOUD_CONFIG.MULTI_DEVICE_ENABLED) {
+                    success = await saveToMultiDevice();
+                }
+                
+                // Also save local backup
+                await saveLocalData();
                 
                 if (success) {
+                    state.lastSync = new Date();
                     showToast('Cloud sync successful!', 'success');
                     elements.cloudStatus.textContent = 'Synced';
                     elements.cloudStatus.style.color = 'var(--success)';
                 } else {
-                    showToast('Cloud sync failed', 'error');
-                    elements.cloudStatus.textContent = 'Sync Failed';
-                    elements.cloudStatus.style.color = 'var(--danger)';
+                    showToast('Cloud sync failed - using local storage', 'warning');
+                    elements.cloudStatus.textContent = 'Local Only';
+                    elements.cloudStatus.style.color = 'var(--warning)';
                 }
                 
                 updateSyncStatus();
@@ -1789,6 +2299,35 @@
             }
         }
 
+        async function syncToFirebase() {
+            try {
+                // Upload unsynced videos to Firebase
+                const unsyncedVideos = state.videos.filter(v => !v.cloudSource);
+                let uploadedCount = 0;
+                
+                for (const video of unsyncedVideos) {
+                    try {
+                        await saveToFirebase(video);
+                        video.cloudSource = 'firebase';
+                        video.synced = true;
+                        uploadedCount++;
+                    } catch (error) {
+                        console.warn('Failed to upload video to Firebase:', error);
+                    }
+                }
+                
+                if (uploadedCount > 0) {
+                    console.log(`Uploaded ${uploadedCount} videos to Firebase`);
+                    return true;
+                }
+                
+                return false;
+            } catch (error) {
+                console.error('Firebase sync error:', error);
+                return false;
+            }
+        }
+
         async function syncFromCloud() {
             state.isSyncing = true;
             elements.cloudStatus.textContent = 'Downloading...';
@@ -1797,9 +2336,20 @@
             try {
                 showToast('Downloading data from cloud...', 'info');
                 
-                await loadCloudData();
+                // Try to load from Firebase first
+                if (state.firestore) {
+                    await loadFromFirebase();
+                }
+                
+                // Also load from multi-device
+                if (CLOUD_CONFIG.MULTI_DEVICE_ENABLED) {
+                    await loadMultiDeviceData();
+                }
+                
+                // Update everything
                 updateVideoGrid();
                 updateSystemStats();
+                updateStorageUI();
                 
                 showToast('Cloud data downloaded!', 'success');
                 elements.cloudStatus.textContent = 'Downloaded';
@@ -1827,13 +2377,6 @@
                     syncToCloud();
                 }
             }, interval);
-            
-            // Initial sync
-            setTimeout(() => {
-                if (state.autoSyncEnabled) {
-                    syncToCloud();
-                }
-            }, 5000);
         }
 
         function updateSyncStatus() {
@@ -1867,16 +2410,21 @@
         // =============== ENCRYPTION FUNCTIONS ===============
         function encryptData(data) {
             // Simple XOR encryption for demonstration
-            // In production, use proper encryption like Web Crypto API
-            let result = '';
-            const key = CLOUD_CONFIG.ENCRYPTION_KEY;
-            
-            for (let i = 0; i < data.length; i++) {
-                const charCode = data.charCodeAt(i) ^ key.charCodeAt(i % key.length);
-                result += String.fromCharCode(charCode);
+            // In production, use Web Crypto API
+            try {
+                let result = '';
+                const key = CLOUD_CONFIG.ENCRYPTION_KEY;
+                
+                for (let i = 0; i < data.length; i++) {
+                    const charCode = data.charCodeAt(i) ^ key.charCodeAt(i % key.length);
+                    result += String.fromCharCode(charCode);
+                }
+                
+                return 'ENCRYPTED:' + btoa(result);
+            } catch (error) {
+                console.error('Encryption error:', error);
+                return data;
             }
-            
-            return 'ENCRYPTED:' + btoa(result);
         }
 
         function decryptData(encryptedData) {
@@ -1897,51 +2445,290 @@
             }
         }
 
-        // =============== BACKUP & RESTORE FUNCTIONS ===============
-        function createBackupData() {
-            const backup = {
-                videos: state.videos.map(video => {
-                    // Convert blob to base64 for backup
-                    const { blob, ...videoData } = video;
-                    if (blob) {
-                        return new Promise((resolve) => {
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                                resolve({
-                                    ...videoData,
-                                    blobData: reader.result
-                                });
-                            };
-                            reader.readAsDataURL(blob);
-                        });
-                    }
-                    return Promise.resolve(videoData);
-                }),
-                deviceId: state.deviceId,
-                cloudData: state.cloudData,
-                timestamp: new Date().toISOString(),
-                version: '2.0'
-            };
-
-            return Promise.all(backup.videos).then(videos => ({
-                ...backup,
-                videos
-            }));
-        }
-
-        async function showBackupModal() {
-            showProgress('Creating backup data...');
+        // =============== PORTABLE DATABASE SYSTEM ===============
+        async function createPortableDatabase() {
+            showProgress('Creating portable database...');
             
             try {
-                const backupData = await createBackupData();
-                const backupString = JSON.stringify(backupData, null, 2);
+                const dbExport = {
+                    schemaVersion: '3.0',
+                    exportDate: new Date().toISOString(),
+                    deviceInfo: {
+                        id: state.deviceId,
+                        userAgent: navigator.userAgent,
+                        platform: navigator.platform
+                    },
+                    videos: [],
+                    settings: {
+                        autoSync: state.autoSyncEnabled,
+                        encryptData: state.encryptDataEnabled,
+                        quality: document.querySelector('input[name="quality"]:checked').value,
+                        frameRate: parseInt(elements.fpsSlider.value)
+                    },
+                    totalVideos: state.videos.length
+                };
                 
-                elements.backupData.value = backupString;
-                elements.backupModal.style.display = 'flex';
+                // Export video metadata and small videos
+                for (let i = 0; i < state.videos.length; i++) {
+                    const video = state.videos[i];
+                    const videoExport = {
+                        id: video.id,
+                        title: video.title,
+                        duration: video.duration,
+                        size: video.size,
+                        date: video.date,
+                        quality: video.quality,
+                        hasBlob: !!video.blob,
+                        blobSize: video.blob ? video.blob.size : 0,
+                        source: video.fromOtherDevice ? 'other-device' : 'local',
+                        sourceDevice: video.sourceDevice || state.deviceId
+                    };
+                    
+                    // Include small videos directly in export (max 5MB)
+                    if (video.blob && video.blob.size < 5 * 1024 * 1024) {
+                        try {
+                            const base64 = await blobToBase64(video.blob);
+                            videoExport.blobData = base64;
+                        } catch (error) {
+                            console.warn('Failed to convert blob to base64:', error);
+                        }
+                    }
+                    
+                    dbExport.videos.push(videoExport);
+                    
+                    updateProgress((i + 1) / state.videos.length * 100, 
+                        `Processing video ${i + 1} of ${state.videos.length}`);
+                }
+                
+                const exportString = JSON.stringify(dbExport, null, 2);
+                const encryptedExport = state.encryptDataEnabled 
+                    ? encryptData(exportString)
+                    : exportString;
+                
+                // Create download
+                const blob = new Blob([encryptedExport], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `screen_recorder_db_${formatDateForFilename()}.srdb`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                setTimeout(() => URL.revokeObjectURL(url), 100);
+                
                 hideProgress();
+                showToast(`Portable database exported with ${state.videos.length} videos!`, 'success');
+                
+                return exportString;
                 
             } catch (error) {
                 hideProgress();
+                showToast('Database export failed: ' + error.message, 'error');
+                throw error;
+            }
+        }
+
+        async function importPortableDatabase(file) {
+            if (!file) return;
+            
+            showProgress('Importing database...');
+            
+            const reader = new FileReader();
+            
+            reader.onload = async (event) => {
+                try {
+                    let data = event.target.result;
+                    
+                    // Decrypt if needed
+                    if (data.startsWith('ENCRYPTED:')) {
+                        data = decryptData(data.substring(10));
+                    }
+                    
+                    const dbImport = JSON.parse(data);
+                    
+                    // Validate format
+                    if (!dbImport.schemaVersion || !dbImport.videos) {
+                        throw new Error('Invalid database format');
+                    }
+                    
+                    // Backup current data
+                    const backupVideos = [...state.videos];
+                    
+                    // Clear existing data
+                    state.videos = [];
+                    state.storageUsed = 0;
+                    
+                    // Import videos
+                    let importedCount = 0;
+                    let skippedCount = 0;
+                    
+                    for (const videoImport of dbImport.videos) {
+                        // Check if video already exists
+                        const exists = backupVideos.some(v => v.id === videoImport.id);
+                        if (exists) {
+                            skippedCount++;
+                            continue;
+                        }
+                        
+                        let blob = null;
+                        
+                        if (videoImport.blobData) {
+                            // Convert base64 back to blob
+                            blob = await base64ToBlob(videoImport.blobData, 'video/webm');
+                        }
+                        
+                        const video = {
+                            id: videoImport.id,
+                            title: videoImport.title || `Imported_${importedCount + 1}`,
+                            duration: videoImport.duration || 0,
+                            size: videoImport.size || (blob ? blob.size : 0),
+                            date: videoImport.date || new Date().toISOString(),
+                            quality: videoImport.quality || '720p',
+                            blob: blob,
+                            imported: true,
+                            importDate: new Date().toISOString(),
+                            sourceDevice: videoImport.sourceDevice || dbImport.deviceInfo?.id || 'unknown'
+                        };
+                        
+                        state.videos.push(video);
+                        
+                        if (blob) {
+                            // Save to IndexedDB
+                            await saveBlobToIndexedDB(video.id, blob);
+                            state.storageUsed += blob.size;
+                        }
+                        
+                        importedCount++;
+                        
+                        updateProgress((importedCount / dbImport.videos.length) * 100,
+                            `Importing video ${importedCount} of ${dbImport.videos.length}`);
+                    }
+                    
+                    // Import settings if available
+                    if (dbImport.settings) {
+                        state.autoSyncEnabled = dbImport.settings.autoSync ?? true;
+                        state.encryptDataEnabled = dbImport.settings.encryptData ?? true;
+                        
+                        elements.autoSync.checked = state.autoSyncEnabled;
+                        elements.encryptData.checked = state.encryptDataEnabled;
+                        
+                        // Update quality setting
+                        if (dbImport.settings.quality) {
+                            document.querySelectorAll('input[name="quality"]').forEach(radio => {
+                                if (radio.value === dbImport.settings.quality) {
+                                    radio.checked = true;
+                                    radio.closest('.quality-option').classList.add('selected');
+                                } else {
+                                    radio.closest('.quality-option').classList.remove('selected');
+                                }
+                            });
+                        }
+                        
+                        if (dbImport.settings.frameRate) {
+                            elements.fpsSlider.value = dbImport.settings.frameRate;
+                            elements.fpsValue.textContent = `${dbImport.settings.frameRate} FPS`;
+                        }
+                    }
+                    
+                    // Save all data
+                    await saveLocalData();
+                    
+                    // Update UI
+                    updateVideoGrid();
+                    updateSystemStats();
+                    updateStorageUI();
+                    
+                    hideProgress();
+                    showToast(`Successfully imported ${importedCount} videos! ${skippedCount} duplicates skipped.`, 'success');
+                    
+                } catch (error) {
+                    hideProgress();
+                    showToast('Import failed: ' + error.message, 'error');
+                }
+            };
+            
+            reader.onerror = () => {
+                hideProgress();
+                showToast('Failed to read file', 'error');
+            };
+            
+            reader.readAsText(file);
+        }
+
+        // =============== BACKUP & RESTORE FUNCTIONS ===============
+        async function createBackupData() {
+            showProgress('Creating backup data...');
+            
+            try {
+                const backup = {
+                    videos: [],
+                    deviceId: state.deviceId,
+                    timestamp: new Date().toISOString(),
+                    version: '3.0',
+                    totalVideos: state.videos.length
+                };
+                
+                // Process videos for backup
+                for (let i = 0; i < Math.min(state.videos.length, 20); i++) {
+                    const video = state.videos[i];
+                    
+                    if (video.blob && video.blob.size < 2 * 1024 * 1024) {
+                        // Include small videos in backup
+                        const base64Data = await blobToBase64(video.blob);
+                        backup.videos.push({
+                            metadata: {
+                                id: video.id,
+                                title: video.title,
+                                duration: video.duration,
+                                size: video.size,
+                                date: video.date,
+                                quality: video.quality
+                            },
+                            data: base64Data
+                        });
+                    } else {
+                        // Include metadata only for large videos
+                        backup.videos.push({
+                            metadata: {
+                                id: video.id,
+                                title: video.title,
+                                duration: video.duration,
+                                size: video.size,
+                                date: video.date,
+                                quality: video.quality
+                            },
+                            data: null,
+                            note: video.blob ? 'Video too large for backup' : 'No video data'
+                        });
+                    }
+                    
+                    updateProgress((i + 1) / Math.min(state.videos.length, 20) * 100,
+                        `Processing video ${i + 1} of ${Math.min(state.videos.length, 20)}`);
+                }
+                
+                const backupString = JSON.stringify(backup, null, 2);
+                const encryptedBackup = state.encryptDataEnabled 
+                    ? encryptData(backupString)
+                    : backupString;
+                
+                hideProgress();
+                return encryptedBackup;
+                
+            } catch (error) {
+                hideProgress();
+                showToast('Backup creation failed: ' + error.message, 'error');
+                throw error;
+            }
+        }
+
+        async function showBackupModal() {
+            try {
+                const backupData = await createBackupData();
+                elements.backupData.value = backupData;
+                elements.backupModal.style.display = 'flex';
+                
+            } catch (error) {
                 showToast('Failed to create backup: ' + error.message, 'error');
             }
         }
@@ -1950,44 +2737,61 @@
             showProgress('Restoring data from backup...');
             
             try {
-                const backupData = JSON.parse(backupString);
+                let data = backupString;
+                
+                // Decrypt if needed
+                if (data.startsWith('ENCRYPTED:')) {
+                    data = decryptData(data.substring(10));
+                }
+                
+                const backupData = JSON.parse(data);
                 
                 if (!backupData.videos || !Array.isArray(backupData.videos)) {
                     throw new Error('Invalid backup format');
                 }
+                
+                // Create backup of current data
+                const backupVideos = [...state.videos];
                 
                 // Clear existing data
                 state.videos = [];
                 state.storageUsed = 0;
                 
                 // Restore videos
+                let restoredCount = 0;
+                
                 for (const videoData of backupData.videos) {
                     let blob = null;
                     
-                    if (videoData.blobData) {
+                    if (videoData.data) {
                         // Convert base64 back to blob
-                        const response = await fetch(videoData.blobData);
-                        blob = await response.blob();
+                        blob = await base64ToBlob(videoData.data, 'video/webm');
                     }
                     
                     const video = {
-                        ...videoData,
+                        ...videoData.metadata,
                         blob: blob,
-                        id: videoData.id || `restored_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+                        id: videoData.metadata.id || `restored_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        restored: true,
+                        restoreDate: new Date().toISOString()
                     };
                     
-                    state.videos.push(video);
-                    state.storageUsed += video.size || 0;
+                    // Check if video already exists
+                    const exists = backupVideos.some(v => v.id === video.id);
+                    if (!exists) {
+                        state.videos.push(video);
+                        if (blob) {
+                            state.storageUsed += blob.size;
+                        }
+                        restoredCount++;
+                    }
+                    
+                    updateProgress((restoredCount / backupData.videos.length) * 100,
+                        `Restoring video ${restoredCount} of ${backupData.videos.length}`);
                 }
                 
-                // Update cloud data
-                if (backupData.cloudData) {
-                    state.cloudData = backupData.cloudData;
-                }
-                
-                // Save to localStorage
+                // Save to local storage
                 await saveLocalData();
-                await saveCloudData();
                 
                 // Update UI
                 updateVideoGrid();
@@ -1996,7 +2800,7 @@
                 updateSyncStatus();
                 
                 hideProgress();
-                showToast(`Successfully restored ${state.videos.length} videos!`, 'success');
+                showToast(`Successfully restored ${restoredCount} videos!`, 'success');
                 elements.backupModal.style.display = 'none';
                 
             } catch (error) {
@@ -2018,13 +2822,22 @@
                     videos: videosMetadata,
                     storageUsed: state.storageUsed,
                     lastUpdated: new Date().toISOString(),
-                    deviceId: state.deviceId
+                    deviceId: state.deviceId,
+                    settings: {
+                        autoSync: state.autoSyncEnabled,
+                        encryptData: state.encryptDataEnabled,
+                        chunkRecording: state.chunkRecordingEnabled,
+                        autoCleanup: state.autoCleanupEnabled
+                    }
                 };
                 
-                localStorage.setItem('screen_recorder_local_data', JSON.stringify(localData));
+                localStorage.setItem('screen_recorder_local_data_v3', JSON.stringify(localData));
                 
-                // Save blobs separately
+                // Save blobs to IndexedDB
                 await saveVideoBlobs();
+                
+                // Update device registry
+                await saveToMultiDevice();
                 
                 return true;
             } catch (error) {
@@ -2034,21 +2847,17 @@
         }
 
         async function saveVideoBlobs() {
-            // Save blobs to IndexedDB if available, otherwise use localStorage with size limit
+            // Save blobs to IndexedDB
             for (const video of state.videos) {
                 if (video.blob && video.id) {
                     try {
-                        // Save blob to IndexedDB
                         await saveBlobToIndexedDB(video.id, video.blob);
                     } catch (error) {
                         console.warn('Failed to save blob to IndexedDB:', error);
-                        // Fallback: Save small blobs to localStorage
-                        if (video.blob.size < 5 * 1024 * 1024) { // 5MB limit
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                                localStorage.setItem(`video_blob_${video.id}`, reader.result);
-                            };
-                            reader.readAsDataURL(video.blob);
+                        // Fallback for small videos
+                        if (video.blob.size < 5 * 1024 * 1024) {
+                            const base64 = await blobToBase64(video.blob);
+                            localStorage.setItem(`video_blob_${video.id}`, base64);
                         }
                     }
                 }
@@ -2057,7 +2866,7 @@
 
         async function loadLocalData() {
             try {
-                const localData = localStorage.getItem('screen_recorder_local_data');
+                const localData = localStorage.getItem('screen_recorder_local_data_v3');
                 if (!localData) return;
                 
                 const parsedData = JSON.parse(localData);
@@ -2078,7 +2887,7 @@
                             } else {
                                 // Try to load from localStorage fallback
                                 const blobData = localStorage.getItem(`video_blob_${videoMetadata.id}`);
-                                if (blobData) {
+                                if (blobData && blobData.startsWith('data:')) {
                                     const response = await fetch(blobData);
                                     const blob = await response.blob();
                                     state.videos.push({
@@ -2100,6 +2909,19 @@
                 state.storageUsed = parsedData.storageUsed || 0;
                 state.deviceId = parsedData.deviceId || state.deviceId;
                 
+                // Load settings
+                if (parsedData.settings) {
+                    state.autoSyncEnabled = parsedData.settings.autoSync ?? true;
+                    state.encryptDataEnabled = parsedData.settings.encryptData ?? true;
+                    state.chunkRecordingEnabled = parsedData.settings.chunkRecording ?? false;
+                    state.autoCleanupEnabled = parsedData.settings.autoCleanup ?? true;
+                    
+                    elements.autoSync.checked = state.autoSyncEnabled;
+                    elements.encryptData.checked = state.encryptDataEnabled;
+                    elements.chunkRecording.checked = state.chunkRecordingEnabled;
+                    elements.autoCleanup.checked = state.autoCleanupEnabled;
+                }
+                
             } catch (error) {
                 console.error('Load local data error:', error);
             }
@@ -2108,7 +2930,7 @@
         // =============== INDEXEDDB FUNCTIONS ===============
         async function saveBlobToIndexedDB(id, blob) {
             return new Promise((resolve, reject) => {
-                const request = indexedDB.open('ScreenRecorderBlobs', 1);
+                const request = indexedDB.open('ScreenRecorderBlobs_v3', 1);
                 
                 request.onerror = () => reject(request.error);
                 
@@ -2140,7 +2962,7 @@
 
         async function loadBlobFromIndexedDB(id) {
             return new Promise((resolve, reject) => {
-                const request = indexedDB.open('ScreenRecorderBlobs', 1);
+                const request = indexedDB.open('ScreenRecorderBlobs_v3', 1);
                 
                 request.onerror = () => reject(request.error);
                 
@@ -2162,59 +2984,7 @@
             });
         }
 
-        // =============== EXPORT/IMPORT FUNCTIONS ===============
-        async function exportToJson() {
-            showProgress('Exporting data to JSON...');
-            
-            try {
-                const exportData = await createBackupData();
-                const jsonString = JSON.stringify(exportData, null, 2);
-                const blob = new Blob([jsonString], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `screen_recorder_backup_${formatDateForFilename()}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                
-                setTimeout(() => URL.revokeObjectURL(url), 100);
-                
-                hideProgress();
-                showToast('Export successful!', 'success');
-                
-            } catch (error) {
-                hideProgress();
-                showToast('Export failed: ' + error.message, 'error');
-            }
-        }
-
-        async function importFromJson(file) {
-            if (!file) return;
-            
-            showProgress('Importing data from JSON...');
-            
-            const reader = new FileReader();
-            
-            reader.onload = async (event) => {
-                try {
-                    await restoreFromBackup(event.target.result);
-                } catch (error) {
-                    hideProgress();
-                    showToast('Import failed: ' + error.message, 'error');
-                }
-            };
-            
-            reader.onerror = () => {
-                hideProgress();
-                showToast('Failed to read file', 'error');
-            };
-            
-            reader.readAsText(file);
-        }
-
-        // =============== BASIC FUNCTIONS (Sama seperti sebelumnya) ===============
+        // =============== BASIC RECORDING FUNCTIONS ===============
         async function calculateStorageUsage() {
             if (state.videos.length === 0) {
                 state.storageUsed = 0;
@@ -2256,16 +3026,22 @@
             // Cloud controls
             elements.backupBtn.addEventListener('click', showBackupModal);
             elements.restoreBtn.addEventListener('click', showBackupModal);
-            elements.exportJsonBtn.addEventListener('click', exportToJson);
+            elements.exportJsonBtn.addEventListener('click', async () => {
+                await createPortableDatabase();
+            });
             elements.importJsonBtn.addEventListener('click', () => {
                 const input = document.createElement('input');
                 input.type = 'file';
-                input.accept = '.json';
+                input.accept = '.json,.srdb';
                 input.onchange = (e) => {
                     const file = e.target.files[0];
-                    if (file) importFromJson(file);
+                    if (file) importPortableDatabase(file);
                 };
                 input.click();
+            });
+            elements.multiDeviceBtn.addEventListener('click', () => {
+                elements.deviceModal.style.display = 'flex';
+                updateDeviceList();
             });
             
             // Backup modal
@@ -2274,7 +3050,6 @@
                 document.execCommand('copy');
                 showToast('Backup data copied to clipboard!', 'success');
             });
-            
             elements.restoreBackupBtn.addEventListener('click', () => {
                 const backupString = elements.restoreData.value.trim();
                 if (backupString) {
@@ -2283,9 +3058,40 @@
                     showToast('Please paste backup data first', 'warning');
                 }
             });
-            
             elements.closeBackupModal.addEventListener('click', () => {
                 elements.backupModal.style.display = 'none';
+            });
+            
+            // Device modal
+            elements.syncAllDevicesBtn.addEventListener('click', syncAllDevices);
+            elements.importFromDeviceBtn.addEventListener('click', () => {
+                const selectedDevice = document.querySelector('.device-item.selected');
+                if (selectedDevice) {
+                    const deviceId = selectedDevice.dataset.deviceId;
+                    syncFromDevice(deviceId);
+                } else {
+                    showToast('Please select a device first', 'warning');
+                }
+            });
+            elements.refreshDevicesBtn.addEventListener('click', () => {
+                updateDeviceList();
+                showToast('Device list refreshed', 'info');
+            });
+            elements.closeDeviceModal.addEventListener('click', () => {
+                elements.deviceModal.style.display = 'none';
+            });
+            elements.closeModalBtn.addEventListener('click', () => {
+                elements.deviceModal.style.display = 'none';
+            });
+            
+            // Device selection
+            elements.deviceList.addEventListener('click', (e) => {
+                if (e.target.closest('.device-item')) {
+                    document.querySelectorAll('.device-item').forEach(item => {
+                        item.classList.remove('selected');
+                    });
+                    e.target.closest('.device-item').classList.add('selected');
+                }
             });
             
             // Settings
@@ -2301,11 +3107,13 @@
                     }
                     showToast('Auto sync disabled', 'info');
                 }
+                saveLocalData();
             });
             
             elements.encryptData.addEventListener('change', (e) => {
                 state.encryptDataEnabled = e.target.checked;
                 showToast(`Data encryption ${state.encryptDataEnabled ? 'enabled' : 'disabled'}`, 'info');
+                saveLocalData();
             });
             
             elements.syncIntervalSlider.addEventListener('input', (e) => {
@@ -2317,7 +3125,6 @@
                 }
             });
             
-            // ... (sisanya sama seperti kode sebelumnya untuk recording, library, modal, dll.)
             // Library
             elements.search.addEventListener('input', updateVideoGrid);
             elements.clearOldBtn.addEventListener('click', clearOldVideos);
@@ -2339,11 +3146,13 @@
             elements.chunkRecording.addEventListener('change', (e) => {
                 state.chunkRecordingEnabled = e.target.checked;
                 showToast(`Chunk Recording ${state.chunkRecordingEnabled ? 'enabled' : 'disabled'}`, 'info');
+                saveLocalData();
             });
             
             elements.autoCleanup.addEventListener('change', (e) => {
                 state.autoCleanupEnabled = e.target.checked;
                 showToast(`Auto Cleanup ${state.autoCleanupEnabled ? 'enabled' : 'disabled'}`, 'info');
+                saveLocalData();
             });
             
             // Quality settings
@@ -2382,10 +3191,10 @@
                 }
                 
                 // Save data before closing
+                await saveLocalData();
                 if (state.autoSyncEnabled) {
                     await syncToCloud();
                 }
-                await saveLocalData();
             });
             
             // Hotkeys
@@ -2416,6 +3225,9 @@
                     if (elements.backupModal.style.display === 'flex') {
                         elements.backupModal.style.display = 'none';
                     }
+                    if (elements.deviceModal.style.display === 'flex') {
+                        elements.deviceModal.style.display = 'none';
+                    }
                 }
                 
                 if (e.key === ' ' && state.isRecording) {
@@ -2436,9 +3248,15 @@
                     elements.backupModal.style.display = 'none';
                 }
             });
+            
+            elements.deviceModal.addEventListener('click', (e) => {
+                if (e.target === elements.deviceModal) {
+                    elements.deviceModal.style.display = 'none';
+                }
+            });
         }
 
-        // =============== RECORDING FUNCTIONS (Sama seperti sebelumnya) ===============
+        // =============== RECORDING FUNCTIONS ===============
         async function startRecording() {
             try {
                 if (state.storageUsed > 95 * 1024 * 1024 * 1024) {
@@ -2691,7 +3509,7 @@
                     
                     // Delete blob from IndexedDB
                     try {
-                        const request = indexedDB.open('ScreenRecorderBlobs', 1);
+                        const request = indexedDB.open('ScreenRecorderBlobs_v3', 1);
                         request.onsuccess = () => {
                             const db = request.result;
                             if (db.objectStoreNames.contains('blobs')) {
@@ -2735,7 +3553,7 @@
             }
         }
 
-        // =============== UI FUNCTIONS (Sama seperti sebelumnya) ===============
+        // =============== UI FUNCTIONS ===============
         function startTimer() {
             state.timerInterval = setInterval(() => {
                 const elapsed = Math.floor((Date.now() - state.recordingStartTime) / 1000);
@@ -2769,6 +3587,7 @@
             state.totalRecordingTime = state.videos.reduce((total, video) => total + (video.duration || 0), 0);
             elements.totalDuration.textContent = formatTime(state.totalRecordingTime);
             elements.videoCount.textContent = state.videos.length;
+            elements.totalVideosCount.textContent = state.videos.length;
         }
 
         function updateVideoGrid() {
@@ -2779,8 +3598,9 @@
             
             if (searchTerm) {
                 filteredVideos = state.videos.filter(video => 
-                    video.title.toLowerCase().includes(searchTerm) ||
-                    video.date.toLowerCase().includes(searchTerm)
+                    (video.title && video.title.toLowerCase().includes(searchTerm)) ||
+                    (video.date && video.date.toLowerCase().includes(searchTerm)) ||
+                    (video.quality && video.quality.toLowerCase().includes(searchTerm))
                 );
             }
             
@@ -2813,7 +3633,15 @@
                         ${duration}
                     </div>
                     ${video.fromCloud ? 
-                        '<div style="position: absolute; top: 10px; right: 10px; background: rgba(16, 185, 129, 0.8); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.7rem;"><i class="fas fa-cloud"></i></div>' : 
+                        '<div style="position: absolute; top: 10px; left: 10px; background: rgba(16, 185, 129, 0.8); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.7rem;"><i class="fas fa-cloud"></i> Cloud</div>' : 
+                        ''
+                    }
+                    ${video.fromOtherDevice ? 
+                        '<div style="position: absolute; top: 10px; right: 10px; background: rgba(245, 158, 11, 0.8); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.7rem;"><i class="fas fa-laptop"></i> Other PC</div>' : 
+                        ''
+                    }
+                    ${video.imported ? 
+                        '<div style="position: absolute; bottom: 10px; left: 10px; background: rgba(79, 70, 229, 0.8); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.7rem;"><i class="fas fa-file-import"></i></div>' : 
                         ''
                     }
                 </div>
@@ -2823,7 +3651,10 @@
                         <div><i class="fas fa-expand-alt"></i> ${getQualityLabel(video.quality)}</div>
                         <div><i class="fas fa-file-alt"></i> ${size}</div>
                         <div><i class="fas fa-calendar"></i> ${date}</div>
-                        ${video.deviceId ? `<div><i class="fas fa-laptop"></i> ${video.deviceId.substring(0, 8)}</div>` : ''}
+                        ${video.deviceId && video.deviceId !== state.deviceId ? 
+                            `<div><i class="fas fa-laptop"></i> ${video.deviceId.substring(0, 8)}</div>` : 
+                            ''
+                        }
                     </div>
                     <div class="video-actions">
                         <button class="action-btn play-btn" title="Play">
@@ -2865,6 +3696,19 @@
                 }
                 
                 if (!blob) {
+                    // Try to load from source device if available
+                    if (video.sourceDevice && video.sourceDevice !== state.deviceId) {
+                        const deviceDataKey = `screen_recorder_video_${video.sourceDevice}_${videoId}`;
+                        const videoData = localStorage.getItem(deviceDataKey);
+                        
+                        if (videoData && videoData.startsWith('data:')) {
+                            const response = await fetch(videoData);
+                            blob = await response.blob();
+                        }
+                    }
+                }
+                
+                if (!blob) {
                     throw new Error('Video data not found');
                 }
                 
@@ -2885,8 +3729,10 @@
                         <div><i class="fas fa-calendar"></i> <strong>Date:</strong> ${formatDate(video.date)}</div>
                         <div><i class="fas fa-microphone"></i> <strong>Microphone:</strong> ${video.audioMic ? 'Yes' : 'No'}</div>
                         <div><i class="fas fa-bolt"></i> <strong>Bitrate:</strong> ${bitrate}</div>
-                        ${video.deviceId ? `<div><i class="fas fa-laptop"></i> <strong>Recorded on:</strong> ${video.deviceId}</div>` : ''}
+                        <div><i class="fas fa-laptop"></i> <strong>Device:</strong> ${video.deviceId || state.deviceId}</div>
                         ${video.fromCloud ? `<div><i class="fas fa-cloud"></i> <strong>Source:</strong> Cloud</div>` : ''}
+                        ${video.fromOtherDevice ? `<div><i class="fas fa-laptop-house"></i> <strong>Source:</strong> Other Device</div>` : ''}
+                        ${video.imported ? `<div><i class="fas fa-file-import"></i> <strong>Imported:</strong> ${formatDate(video.importDate)}</div>` : ''}
                     </div>
                 `;
                 
@@ -3143,14 +3989,18 @@
         }
 
         function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('id-ID', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (e) {
+                return dateString;
+            }
         }
 
         function formatDateForFilename() {
@@ -3161,6 +4011,20 @@
                    ('0' + now.getHours()).slice(-2) +
                    ('0' + now.getMinutes()).slice(-2) +
                    ('0' + now.getSeconds()).slice(-2);
+        }
+
+        async function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        async function base64ToBlob(base64, mimeType) {
+            const response = await fetch(base64);
+            return await response.blob();
         }
 
         // =============== UI HELPER FUNCTIONS ===============
@@ -3234,8 +4098,14 @@
             syncToCloud,
             syncFromCloud,
             showBackupModal,
-            exportToJson
+            createPortableDatabase,
+            syncFromDevice,
+            syncAllDevices
         };
+
+        console.log('Screen Recorder Cloud v3.0 loaded with multi-device sync');
+        console.log('Device ID:', state.deviceId);
+        console.log('Total videos:', state.videos.length);
 
     </script>
     <!-- JSZip for export functionality -->
