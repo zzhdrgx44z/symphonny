@@ -13,6 +13,12 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
+    <!-- Meta untuk PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#4f46e5">
+    
     <style>
         :root {
             --primary: #4f46e5;
@@ -187,6 +193,7 @@
             height: 100%;
             object-fit: contain;
             display: none;
+            background: #000;
         }
 
         .video-overlay {
@@ -223,6 +230,7 @@
             gap: 10px;
             font-weight: 600;
             animation: pulse 2s infinite;
+            z-index: 100;
         }
 
         @keyframes pulse {
@@ -259,6 +267,7 @@
             gap: 10px;
             position: relative;
             overflow: hidden;
+            min-height: 44px;
         }
 
         .btn:hover:not(:disabled) {
@@ -291,6 +300,11 @@
             opacity: 0.5;
             cursor: not-allowed;
             transform: none !important;
+        }
+
+        .btn:focus, .action-btn:focus, input:focus {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
         }
 
         /* Stats */
@@ -630,6 +644,12 @@
             transition: var(--transition);
             border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .video-card:hover {
@@ -691,6 +711,7 @@
             gap: 5px;
             font-size: 0.9rem;
             transition: var(--transition);
+            min-height: 44px;
         }
 
         .action-btn:hover {
@@ -701,6 +722,11 @@
             text-align: center;
             padding: 40px;
             color: rgba(255, 255, 255, 0.6);
+            display: none;
+        }
+
+        .empty-library.active {
+            display: block;
         }
 
         /* Footer */
@@ -743,6 +769,10 @@
             justify-content: center;
             padding: 20px;
             backdrop-filter: blur(10px);
+        }
+
+        .modal.active {
+            display: flex;
         }
 
         .modal-content {
@@ -841,6 +871,7 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+            pointer-events: none;
         }
 
         .toast {
@@ -857,6 +888,7 @@
             align-items: center;
             gap: 15px;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            pointer-events: auto;
         }
 
         @keyframes slideInRight {
@@ -993,6 +1025,10 @@
             backdrop-filter: blur(10px);
         }
 
+        .backup-modal.active {
+            display: flex;
+        }
+
         .backup-content {
             background: var(--gradient-glass);
             backdrop-filter: blur(20px);
@@ -1038,10 +1074,20 @@
             align-items: center;
             padding: 10px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+        }
+
+        .device-item:hover {
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .device-item:last-child {
             border-bottom: none;
+        }
+
+        .device-item.selected {
+            background: rgba(79, 70, 229, 0.1);
+            border: 1px solid var(--primary);
         }
 
         .device-info {
@@ -1072,11 +1118,15 @@
             }
             
             .controls {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr !important;
             }
             
             .stats {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            
+            .recording-options {
+                grid-template-columns: 1fr !important;
             }
             
             .library-header {
@@ -1096,13 +1146,13 @@
                 flex-direction: column;
                 gap: 15px;
             }
-            
-            .recording-options {
-                grid-template-columns: 1fr;
-            }
         }
 
         @media (max-width: 480px) {
+            .container {
+                padding: 10px !important;
+            }
+            
             .stats {
                 grid-template-columns: 1fr;
             }
@@ -1114,7 +1164,7 @@
             .recorder-section,
             .settings,
             .library {
-                padding: 20px;
+                padding: 15px !important;
             }
             
             .modal-content,
@@ -1140,6 +1190,22 @@
 
         ::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(135deg, var(--accent), var(--secondary));
+        }
+
+        /* Fix untuk Firefox */
+        @-moz-document url-prefix() {
+            .slider {
+                background: rgba(255, 255, 255, 0.2);
+            }
+        }
+
+        /* Fix untuk Safari */
+        @media not all and (min-resolution:.001dpcm) {
+            @supports (-webkit-appearance:none) {
+                .video-preview {
+                    object-fit: contain;
+                }
+            }
         }
     </style>
 </head>
@@ -1620,7 +1686,7 @@
             DEVICE_ID_KEY: 'screen_recorder_device_id',
             DEVICES_KEY: 'screen_recorder_devices',
             SYNC_HISTORY_KEY: 'screen_recorder_sync_history',
-            MAX_CLOUD_SIZE: 100 * 1024 * 1024, // 100MB max untuk cloud
+            MAX_CLOUD_SIZE: 100 * 1024 * 1024, // 100MB
             SYNC_INTERVAL: 5 * 60 * 1000, // 5 menit
             ENCRYPTION_KEY: 'screen-recorder-secure-key-2024-v3',
             
@@ -1628,7 +1694,7 @@
             MULTI_DEVICE_ENABLED: true,
             DEVICE_SYNC_INTERVAL: 60 * 1000, // 1 menit
             
-            // Firebase config (silahkan isi dengan konfigurasi Firebase Anda)
+            // Firebase config (optional)
             FIREBASE_CONFIG: {
                 apiKey: "AIzaSyDEXAMPLE1234567890abcdef",
                 authDomain: "your-app.firebaseapp.com",
@@ -1657,14 +1723,12 @@
             
             // Cloud Sync Settings
             deviceId: null,
-            cloudData: null,
             lastSync: null,
             isSyncing: false,
             syncInterval: null,
             
             // Multi-device sync
             devices: {},
-            currentDeviceData: null,
             deviceSyncInterval: null,
             
             // Settings
@@ -1673,110 +1737,110 @@
             chunkRecordingEnabled: false,
             autoCleanupEnabled: true,
             totalRecordingTime: 0,
-            systemStatus: 'ready',
-            
-            // Firebase (jika digunakan)
-            firebase: null,
-            firestore: null,
-            storage: null,
-            auth: null,
-            userId: null
+            systemStatus: 'ready'
         };
 
         // =============== DOM ELEMENTS ===============
-        const elements = {
-            loading: document.getElementById('loading'),
-            loadingText: document.getElementById('loading-text'),
-            progress: document.getElementById('progress'),
-            progressTitle: document.getElementById('progress-title'),
-            progressFill: document.getElementById('progress-fill'),
-            progressText: document.getElementById('progress-text'),
-            cancelProgress: document.getElementById('cancel-progress'),
-            preview: document.getElementById('preview'),
-            videoOverlay: document.getElementById('videoOverlay'),
-            recordingStatus: document.getElementById('recordingStatus'),
-            recordBtn: document.getElementById('recordBtn'),
-            stopBtn: document.getElementById('stopBtn'),
-            downloadBtn: document.getElementById('downloadBtn'),
-            cloudSyncBtn: document.getElementById('cloudSyncBtn'),
-            syncIndicator: document.getElementById('syncIndicator'),
-            syncStatusText: document.getElementById('syncStatusText'),
-            syncLastUpdate: document.getElementById('syncLastUpdate'),
-            timer: document.getElementById('timer'),
-            fileSize: document.getElementById('fileSize'),
-            totalDuration: document.getElementById('totalDuration'),
-            videoCount: document.getElementById('videoCount'),
-            totalVideosCount: document.getElementById('totalVideosCount'),
-            videoGrid: document.getElementById('videoGrid'),
-            emptyLibrary: document.getElementById('emptyLibrary'),
-            trySyncBtn: document.getElementById('trySyncBtn'),
-            videoModal: document.getElementById('videoModal'),
-            modalVideo: document.getElementById('modalVideo'),
-            modalVideoTitle: document.getElementById('modalVideoTitle'),
-            modalInfo: document.getElementById('modalInfo'),
-            modalDownloadBtn: document.getElementById('modalDownloadBtn'),
-            modalDeleteBtn: document.getElementById('modalDeleteBtn'),
-            closeModal: document.getElementById('closeModal'),
-            search: document.getElementById('search'),
-            storageStatus: document.getElementById('storageStatus'),
-            totalSize: document.getElementById('totalSize'),
-            storageFill: document.getElementById('storageFill'),
-            usedStorage: document.getElementById('usedStorage'),
-            maxStorage: document.getElementById('maxStorage'),
-            clearOldBtn: document.getElementById('clearOldBtn'),
-            exportAllBtn: document.getElementById('exportAllBtn'),
-            refreshCloudBtn: document.getElementById('refreshCloudBtn'),
-            fpsSlider: document.getElementById('fpsSlider'),
-            fpsValue: document.getElementById('fpsValue'),
-            systemVolumeSlider: document.getElementById('systemVolumeSlider'),
-            systemVolumeValue: document.getElementById('systemVolumeValue'),
-            micVolumeSlider: document.getElementById('micVolumeSlider'),
-            micVolumeValue: document.getElementById('micVolumeValue'),
-            autoSync: document.getElementById('autoSync'),
-            encryptData: document.getElementById('encryptData'),
-            chunkRecording: document.getElementById('chunkRecording'),
-            autoCleanup: document.getElementById('autoCleanup'),
-            syncIntervalSlider: document.getElementById('syncIntervalSlider'),
-            syncIntervalValue: document.getElementById('syncIntervalValue'),
-            deviceId: document.getElementById('deviceId'),
-            cloudStatus: document.getElementById('cloudStatus'),
-            toastContainer: document.getElementById('toastContainer'),
-            backupModal: document.getElementById('backupModal'),
-            backupData: document.getElementById('backupData'),
-            restoreData: document.getElementById('restoreData'),
-            copyBackupBtn: document.getElementById('copyBackupBtn'),
-            restoreBackupBtn: document.getElementById('restoreBackupBtn'),
-            closeBackupModal: document.getElementById('closeBackupModal'),
-            backupBtn: document.getElementById('backupBtn'),
-            restoreBtn: document.getElementById('restoreBtn'),
-            exportJsonBtn: document.getElementById('exportJsonBtn'),
-            importJsonBtn: document.getElementById('importJsonBtn'),
-            multiDeviceBtn: document.getElementById('multiDeviceBtn'),
-            deviceModal: document.getElementById('deviceModal'),
-            deviceList: document.getElementById('deviceList'),
-            currentDeviceId: document.getElementById('currentDeviceId'),
-            syncAllDevicesBtn: document.getElementById('syncAllDevicesBtn'),
-            importFromDeviceBtn: document.getElementById('importFromDeviceBtn'),
-            refreshDevicesBtn: document.getElementById('refreshDevicesBtn'),
-            closeDeviceModal: document.getElementById('closeDeviceModal'),
-            closeModalBtn: document.getElementById('closeModalBtn')
-        };
+        let elements = {};
 
         // =============== INITIALIZATION ===============
         document.addEventListener('DOMContentLoaded', async () => {
+            // Get all DOM elements
+            elements = {
+                loading: document.getElementById('loading'),
+                loadingText: document.getElementById('loading-text'),
+                progress: document.getElementById('progress'),
+                progressTitle: document.getElementById('progress-title'),
+                progressFill: document.getElementById('progress-fill'),
+                progressText: document.getElementById('progress-text'),
+                cancelProgress: document.getElementById('cancel-progress'),
+                preview: document.getElementById('preview'),
+                videoOverlay: document.getElementById('videoOverlay'),
+                recordingStatus: document.getElementById('recordingStatus'),
+                recordBtn: document.getElementById('recordBtn'),
+                stopBtn: document.getElementById('stopBtn'),
+                downloadBtn: document.getElementById('downloadBtn'),
+                cloudSyncBtn: document.getElementById('cloudSyncBtn'),
+                syncIndicator: document.getElementById('syncIndicator'),
+                syncStatusText: document.getElementById('syncStatusText'),
+                syncLastUpdate: document.getElementById('syncLastUpdate'),
+                timer: document.getElementById('timer'),
+                fileSize: document.getElementById('fileSize'),
+                totalDuration: document.getElementById('totalDuration'),
+                videoCount: document.getElementById('videoCount'),
+                totalVideosCount: document.getElementById('totalVideosCount'),
+                videoGrid: document.getElementById('videoGrid'),
+                emptyLibrary: document.getElementById('emptyLibrary'),
+                trySyncBtn: document.getElementById('trySyncBtn'),
+                videoModal: document.getElementById('videoModal'),
+                modalVideo: document.getElementById('modalVideo'),
+                modalVideoTitle: document.getElementById('modalVideoTitle'),
+                modalInfo: document.getElementById('modalInfo'),
+                modalDownloadBtn: document.getElementById('modalDownloadBtn'),
+                modalDeleteBtn: document.getElementById('modalDeleteBtn'),
+                closeModal: document.getElementById('closeModal'),
+                search: document.getElementById('search'),
+                storageStatus: document.getElementById('storageStatus'),
+                totalSize: document.getElementById('totalSize'),
+                storageFill: document.getElementById('storageFill'),
+                usedStorage: document.getElementById('usedStorage'),
+                maxStorage: document.getElementById('maxStorage'),
+                clearOldBtn: document.getElementById('clearOldBtn'),
+                exportAllBtn: document.getElementById('exportAllBtn'),
+                refreshCloudBtn: document.getElementById('refreshCloudBtn'),
+                fpsSlider: document.getElementById('fpsSlider'),
+                fpsValue: document.getElementById('fpsValue'),
+                systemVolumeSlider: document.getElementById('systemVolumeSlider'),
+                systemVolumeValue: document.getElementById('systemVolumeValue'),
+                micVolumeSlider: document.getElementById('micVolumeSlider'),
+                micVolumeValue: document.getElementById('micVolumeValue'),
+                autoSync: document.getElementById('autoSync'),
+                encryptData: document.getElementById('encryptData'),
+                chunkRecording: document.getElementById('chunkRecording'),
+                autoCleanup: document.getElementById('autoCleanup'),
+                syncIntervalSlider: document.getElementById('syncIntervalSlider'),
+                syncIntervalValue: document.getElementById('syncIntervalValue'),
+                deviceId: document.getElementById('deviceId'),
+                cloudStatus: document.getElementById('cloudStatus'),
+                toastContainer: document.getElementById('toastContainer'),
+                backupModal: document.getElementById('backupModal'),
+                backupData: document.getElementById('backupData'),
+                restoreData: document.getElementById('restoreData'),
+                copyBackupBtn: document.getElementById('copyBackupBtn'),
+                restoreBackupBtn: document.getElementById('restoreBackupBtn'),
+                closeBackupModal: document.getElementById('closeBackupModal'),
+                backupBtn: document.getElementById('backupBtn'),
+                restoreBtn: document.getElementById('restoreBtn'),
+                exportJsonBtn: document.getElementById('exportJsonBtn'),
+                importJsonBtn: document.getElementById('importJsonBtn'),
+                multiDeviceBtn: document.getElementById('multiDeviceBtn'),
+                deviceModal: document.getElementById('deviceModal'),
+                deviceList: document.getElementById('deviceList'),
+                currentDeviceId: document.getElementById('currentDeviceId'),
+                syncAllDevicesBtn: document.getElementById('syncAllDevicesBtn'),
+                importFromDeviceBtn: document.getElementById('importFromDeviceBtn'),
+                refreshDevicesBtn: document.getElementById('refreshDevicesBtn'),
+                closeDeviceModal: document.getElementById('closeDeviceModal'),
+                closeModalBtn: document.getElementById('closeModalBtn')
+            };
+
+            // Check browser support
+            if (!MediaRecorder || !navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+                showToast('Browser Anda tidak mendukung fitur screen recording. Silakan gunakan Chrome, Edge, atau Firefox versi terbaru.', 'error');
+                elements.recordBtn.disabled = true;
+                elements.recordBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Browser Not Supported';
+            }
+
             showLoading('Initializing Screen Recorder Cloud...');
             
             try {
                 setupEventListeners();
                 await initializeDevice();
-                await initializeFirebase();
                 await loadLocalData();
-                await loadMultiDeviceData();
                 await calculateStorageUsage();
                 updateVideoGrid();
                 updateSystemStats();
                 updateSyncStatus();
-                updateDeviceList();
                 
                 if (state.autoSyncEnabled) {
                     startAutoSync();
@@ -1796,50 +1860,6 @@
             }
         });
 
-        // =============== FIREBASE INITIALIZATION ===============
-        async function initializeFirebase() {
-            if (!CLOUD_CONFIG.USE_FIREBASE) {
-                console.log('Firebase disabled, using localStorage sync');
-                return;
-            }
-            
-            try {
-                // Check if Firebase is available
-                if (typeof firebase === 'undefined') {
-                    console.warn('Firebase not loaded, falling back to localStorage');
-                    return;
-                }
-                
-                // Initialize Firebase
-                if (!firebase.apps.length) {
-                    firebase.initializeApp(CLOUD_CONFIG.FIREBASE_CONFIG);
-                }
-                
-                state.firebase = firebase;
-                state.firestore = firebase.firestore();
-                state.storage = firebase.storage();
-                state.auth = firebase.auth();
-                
-                // Sign in anonymously
-                await state.auth.signInAnonymously();
-                state.userId = state.auth.currentUser.uid;
-                
-                console.log('Firebase initialized with user:', state.userId);
-                elements.cloudStatus.textContent = 'Firebase Connected';
-                elements.cloudStatus.style.color = 'var(--success)';
-                
-                // Load data from Firebase
-                await loadFromFirebase();
-                
-                return true;
-            } catch (error) {
-                console.error('Firebase initialization error:', error);
-                elements.cloudStatus.textContent = 'Local Storage Only';
-                elements.cloudStatus.style.color = 'var(--warning)';
-                return false;
-            }
-        }
-
         // =============== DEVICE & CLOUD INITIALIZATION ===============
         async function initializeDevice() {
             // Generate atau load device ID
@@ -1849,8 +1869,14 @@
                 localStorage.setItem(CLOUD_CONFIG.DEVICE_ID_KEY, deviceId);
             }
             state.deviceId = deviceId;
-            elements.deviceId.textContent = deviceId.substring(0, 12) + '...';
-            elements.currentDeviceId.textContent = deviceId;
+            
+            // Update UI
+            if (elements.deviceId) {
+                elements.deviceId.textContent = deviceId.substring(0, 12) + '...';
+            }
+            if (elements.currentDeviceId) {
+                elements.currentDeviceId.textContent = deviceId;
+            }
             
             // Initialize device registry
             let devices = localStorage.getItem(CLOUD_CONFIG.DEVICES_KEY);
@@ -1874,21 +1900,14 @@
             // Save device registry
             localStorage.setItem(CLOUD_CONFIG.DEVICES_KEY, JSON.stringify(state.devices));
             
-            // Create device-specific storage
-            state.currentDeviceData = {
-                deviceId: deviceId,
-                videos: [],
-                settings: {},
-                lastUpdated: new Date().toISOString()
-            };
-            
             return deviceId;
         }
 
         // =============== MULTI-DEVICE SYNC SYSTEM ===============
         async function loadMultiDeviceData() {
+            if (!CLOUD_CONFIG.MULTI_DEVICE_ENABLED) return false;
+            
             try {
-                // Load data from all registered devices
                 const allDevices = state.devices;
                 const allVideos = [...state.videos];
                 
@@ -1899,19 +1918,22 @@
                         
                         if (deviceData) {
                             try {
-                                const parsedData = JSON.parse(deviceData);
+                                let parsedData;
+                                if (deviceData.startsWith('ENCRYPTED:')) {
+                                    parsedData = JSON.parse(decryptData(deviceData.substring(10)));
+                                } else {
+                                    parsedData = JSON.parse(deviceData);
+                                }
                                 
                                 if (parsedData.videos && Array.isArray(parsedData.videos)) {
                                     for (const videoMeta of parsedData.videos) {
-                                        // Check if video already exists
                                         const exists = allVideos.some(v => v.id === videoMeta.id);
                                         if (!exists) {
-                                            // Add metadata only, blob will be loaded on demand
                                             allVideos.push({
                                                 ...videoMeta,
                                                 fromOtherDevice: true,
                                                 sourceDevice: deviceId,
-                                                blob: null // Don't load blob immediately
+                                                blob: null
                                             });
                                         }
                                     }
@@ -1932,8 +1954,9 @@
         }
 
         async function saveToMultiDevice() {
+            if (!CLOUD_CONFIG.MULTI_DEVICE_ENABLED) return false;
+            
             try {
-                // Prepare device data (metadata only, no blobs)
                 const deviceData = {
                     deviceId: state.deviceId,
                     videos: state.videos.map(video => ({
@@ -1953,7 +1976,6 @@
                     videoCount: state.videos.length
                 };
                 
-                // Save to device-specific storage
                 const deviceDataKey = `screen_recorder_device_${state.deviceId}`;
                 const dataToSave = state.encryptDataEnabled 
                     ? encryptData(JSON.stringify(deviceData))
@@ -1961,7 +1983,6 @@
                 
                 localStorage.setItem(deviceDataKey, dataToSave);
                 
-                // Update device registry
                 state.devices[state.deviceId] = {
                     ...state.devices[state.deviceId],
                     lastSeen: new Date().toISOString(),
@@ -1979,6 +2000,8 @@
         }
 
         function startDeviceSync() {
+            if (!CLOUD_CONFIG.MULTI_DEVICE_ENABLED) return;
+            
             if (state.deviceSyncInterval) {
                 clearInterval(state.deviceSyncInterval);
             }
@@ -1988,8 +2011,6 @@
                     await saveToMultiDevice();
                     await loadMultiDeviceData();
                     updateDeviceList();
-                    
-                    // Update video grid to show multi-device videos
                     updateVideoGrid();
                 } catch (error) {
                     console.error('Device sync error:', error);
@@ -1998,6 +2019,8 @@
         }
 
         function updateDeviceList() {
+            if (!elements.deviceList) return;
+            
             const deviceList = elements.deviceList;
             deviceList.innerHTML = '';
             
@@ -2041,7 +2064,6 @@
                 
                 deviceList.appendChild(deviceItem);
                 
-                // Add event listener to sync button
                 deviceItem.querySelector('.sync-device-btn').addEventListener('click', async () => {
                     await syncFromDevice(deviceId);
                 });
@@ -2061,7 +2083,6 @@
                     throw new Error('Device data not found');
                 }
                 
-                // Decrypt if needed
                 let parsedData;
                 if (state.encryptDataEnabled && deviceData.startsWith('ENCRYPTED:')) {
                     parsedData = JSON.parse(decryptData(deviceData.substring(10)));
@@ -2076,18 +2097,14 @@
                 let syncedCount = 0;
                 
                 for (const videoMeta of parsedData.videos) {
-                    // Check if video already exists
                     const exists = state.videos.some(v => v.id === videoMeta.id);
                     if (!exists) {
-                        // Try to load actual video data if available
                         const videoDataKey = `screen_recorder_video_${deviceId}_${videoMeta.id}`;
                         const videoData = localStorage.getItem(videoDataKey);
                         
                         let blob = null;
                         if (videoData) {
-                            // Video data available (might be base64 encoded)
                             if (videoData.startsWith('data:')) {
-                                // Base64 encoded video
                                 try {
                                     const response = await fetch(videoData);
                                     blob = await response.blob();
@@ -2097,7 +2114,6 @@
                             }
                         }
                         
-                        // Add video to collection
                         state.videos.push({
                             ...videoMeta,
                             blob: blob,
@@ -2113,10 +2129,8 @@
                     }
                 }
                 
-                // Update local storage
                 await saveLocalData();
                 
-                // Update UI
                 updateVideoGrid();
                 updateSystemStats();
                 
@@ -2152,139 +2166,38 @@
             }
         }
 
-        // =============== FIREBASE FUNCTIONS ===============
-        async function saveToFirebase(videoData) {
-            if (!state.firestore || !state.userId) return null;
-            
-            try {
-                const videoId = videoData.id || `video_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                
-                // Prepare metadata
-                const metadata = {
-                    ...videoData,
-                    blob: null, // Don't store blob in Firestore
-                    userId: state.userId,
-                    deviceId: state.deviceId,
-                    uploadedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    size: videoData.size,
-                    duration: videoData.duration,
-                    title: videoData.title,
-                    quality: videoData.quality,
-                    fromCloud: true
-                };
-                
-                // 1. Save metadata to Firestore
-                await state.firestore.collection('videos').doc(videoId).set(metadata);
-                
-                // 2. Upload blob to Firebase Storage if available
-                if (videoData.blob && videoData.blob.size < 50 * 1024 * 1024) {
-                    try {
-                        const storageRef = state.storage.ref(`videos/${state.userId}/${videoId}.webm`);
-                        await storageRef.put(videoData.blob);
-                        
-                        const downloadURL = await storageRef.getDownloadURL();
-                        
-                        // Update metadata with download URL
-                        await state.firestore.collection('videos').doc(videoId).update({
-                            downloadURL: downloadURL,
-                            storagePath: `videos/${state.userId}/${videoId}.webm`
-                        });
-                        
-                        metadata.downloadURL = downloadURL;
-                    } catch (storageError) {
-                        console.warn('Firebase Storage upload failed:', storageError);
-                    }
-                }
-                
-                return { videoId, metadata };
-                
-            } catch (error) {
-                console.error('Firebase save error:', error);
-                throw error;
-            }
-        }
-
-        async function loadFromFirebase() {
-            if (!state.firestore || !state.userId) return [];
-            
-            try {
-                const querySnapshot = await state.firestore
-                    .collection('videos')
-                    .where('userId', '==', state.userId)
-                    .orderBy('uploadedAt', 'desc')
-                    .limit(50)
-                    .get();
-                
-                const cloudVideos = [];
-                
-                for (const doc of querySnapshot.docs) {
-                    const videoData = doc.data();
-                    videoData.id = doc.id;
-                    videoData.fromCloud = true;
-                    videoData.cloudSource = 'firebase';
-                    
-                    // Try to download video if there's a URL
-                    if (videoData.downloadURL) {
-                        try {
-                            const response = await fetch(videoData.downloadURL);
-                            const blob = await response.blob();
-                            videoData.blob = blob;
-                        } catch (error) {
-                            console.warn('Failed to download video from Firebase:', error);
-                            videoData.blob = null;
-                        }
-                    }
-                    
-                    // Check if video already exists locally
-                    const existingIndex = state.videos.findIndex(v => v.id === videoData.id);
-                    if (existingIndex === -1) {
-                        state.videos.push(videoData);
-                    }
-                }
-                
-                return cloudVideos;
-                
-            } catch (error) {
-                console.error('Firebase load error:', error);
-                return [];
-            }
-        }
-
         // =============== CLOUD SYNC FUNCTIONS ===============
         async function syncToCloud() {
-            if (state.isSyncing) return;
+            if (state.isSyncing) {
+                showToast('Sync already in progress', 'warning');
+                return;
+            }
             
             state.isSyncing = true;
-            elements.cloudStatus.textContent = 'Syncing...';
-            elements.cloudStatus.style.color = 'var(--warning)';
+            
+            if (elements.cloudStatus) {
+                elements.cloudStatus.textContent = 'Syncing...';
+                elements.cloudStatus.style.color = 'var(--warning)';
+            }
             
             try {
                 showToast('Syncing data to cloud...', 'info');
                 
-                let success = false;
-                
-                // Try Firebase first if available
-                if (state.firestore && state.userId) {
-                    success = await syncToFirebase();
-                }
-                
-                // If Firebase fails or not available, use multi-device sync
-                if (!success && CLOUD_CONFIG.MULTI_DEVICE_ENABLED) {
-                    success = await saveToMultiDevice();
-                }
-                
-                // Also save local backup
-                await saveLocalData();
+                const success = await saveToMultiDevice();
                 
                 if (success) {
                     state.lastSync = new Date();
                     showToast('Cloud sync successful!', 'success');
-                    elements.cloudStatus.textContent = 'Synced';
-                    elements.cloudStatus.style.color = 'var(--success)';
+                    if (elements.cloudStatus) {
+                        elements.cloudStatus.textContent = 'Synced';
+                        elements.cloudStatus.style.color = 'var(--success)';
+                    }
                 } else {
                     showToast('Cloud sync failed - using local storage', 'warning');
-                    elements.cloudStatus.textContent = 'Local Only';
-                    elements.cloudStatus.style.color = 'var(--warning)';
+                    if (elements.cloudStatus) {
+                        elements.cloudStatus.textContent = 'Local Only';
+                        elements.cloudStatus.style.color = 'var(--warning)';
+                    }
                 }
                 
                 updateSyncStatus();
@@ -2292,74 +2205,46 @@
             } catch (error) {
                 console.error('Sync error:', error);
                 showToast('Sync error: ' + error.message, 'error');
-                elements.cloudStatus.textContent = 'Error';
-                elements.cloudStatus.style.color = 'var(--danger)';
+                if (elements.cloudStatus) {
+                    elements.cloudStatus.textContent = 'Error';
+                    elements.cloudStatus.style.color = 'var(--danger)';
+                }
             } finally {
                 state.isSyncing = false;
             }
         }
 
-        async function syncToFirebase() {
-            try {
-                // Upload unsynced videos to Firebase
-                const unsyncedVideos = state.videos.filter(v => !v.cloudSource);
-                let uploadedCount = 0;
-                
-                for (const video of unsyncedVideos) {
-                    try {
-                        await saveToFirebase(video);
-                        video.cloudSource = 'firebase';
-                        video.synced = true;
-                        uploadedCount++;
-                    } catch (error) {
-                        console.warn('Failed to upload video to Firebase:', error);
-                    }
-                }
-                
-                if (uploadedCount > 0) {
-                    console.log(`Uploaded ${uploadedCount} videos to Firebase`);
-                    return true;
-                }
-                
-                return false;
-            } catch (error) {
-                console.error('Firebase sync error:', error);
-                return false;
-            }
-        }
-
         async function syncFromCloud() {
             state.isSyncing = true;
-            elements.cloudStatus.textContent = 'Downloading...';
-            elements.cloudStatus.style.color = 'var(--warning)';
+            if (elements.cloudStatus) {
+                elements.cloudStatus.textContent = 'Downloading...';
+                elements.cloudStatus.style.color = 'var(--warning)';
+            }
             
             try {
                 showToast('Downloading data from cloud...', 'info');
                 
-                // Try to load from Firebase first
-                if (state.firestore) {
-                    await loadFromFirebase();
-                }
-                
-                // Also load from multi-device
                 if (CLOUD_CONFIG.MULTI_DEVICE_ENABLED) {
                     await loadMultiDeviceData();
                 }
                 
-                // Update everything
                 updateVideoGrid();
                 updateSystemStats();
                 updateStorageUI();
                 
                 showToast('Cloud data downloaded!', 'success');
-                elements.cloudStatus.textContent = 'Downloaded';
-                elements.cloudStatus.style.color = 'var(--success)';
+                if (elements.cloudStatus) {
+                    elements.cloudStatus.textContent = 'Downloaded';
+                    elements.cloudStatus.style.color = 'var(--success)';
+                }
                 
             } catch (error) {
                 console.error('Download error:', error);
                 showToast('Download error: ' + error.message, 'error');
-                elements.cloudStatus.textContent = 'Error';
-                elements.cloudStatus.style.color = 'var(--danger)';
+                if (elements.cloudStatus) {
+                    elements.cloudStatus.textContent = 'Error';
+                    elements.cloudStatus.style.color = 'var(--danger)';
+                }
             } finally {
                 state.isSyncing = false;
                 updateSyncStatus();
@@ -2383,6 +2268,8 @@
             const syncIndicator = elements.syncIndicator;
             const statusText = elements.syncStatusText;
             const lastUpdate = elements.syncLastUpdate;
+            
+            if (!syncIndicator || !statusText || !lastUpdate) return;
             
             if (state.lastSync) {
                 syncIndicator.className = 'sync-indicator synced';
@@ -2409,8 +2296,6 @@
 
         // =============== ENCRYPTION FUNCTIONS ===============
         function encryptData(data) {
-            // Simple XOR encryption for demonstration
-            // In production, use Web Crypto API
             try {
                 let result = '';
                 const key = CLOUD_CONFIG.ENCRYPTION_KEY;
@@ -2468,7 +2353,6 @@
                     totalVideos: state.videos.length
                 };
                 
-                // Export video metadata and small videos
                 for (let i = 0; i < state.videos.length; i++) {
                     const video = state.videos[i];
                     const videoExport = {
@@ -2484,7 +2368,6 @@
                         sourceDevice: video.sourceDevice || state.deviceId
                     };
                     
-                    // Include small videos directly in export (max 5MB)
                     if (video.blob && video.blob.size < 5 * 1024 * 1024) {
                         try {
                             const base64 = await blobToBase64(video.blob);
@@ -2505,7 +2388,6 @@
                     ? encryptData(exportString)
                     : exportString;
                 
-                // Create download
                 const blob = new Blob([encryptedExport], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -2540,31 +2422,25 @@
                 try {
                     let data = event.target.result;
                     
-                    // Decrypt if needed
                     if (data.startsWith('ENCRYPTED:')) {
                         data = decryptData(data.substring(10));
                     }
                     
                     const dbImport = JSON.parse(data);
                     
-                    // Validate format
                     if (!dbImport.schemaVersion || !dbImport.videos) {
                         throw new Error('Invalid database format');
                     }
                     
-                    // Backup current data
                     const backupVideos = [...state.videos];
                     
-                    // Clear existing data
                     state.videos = [];
                     state.storageUsed = 0;
                     
-                    // Import videos
                     let importedCount = 0;
                     let skippedCount = 0;
                     
                     for (const videoImport of dbImport.videos) {
-                        // Check if video already exists
                         const exists = backupVideos.some(v => v.id === videoImport.id);
                         if (exists) {
                             skippedCount++;
@@ -2574,7 +2450,6 @@
                         let blob = null;
                         
                         if (videoImport.blobData) {
-                            // Convert base64 back to blob
                             blob = await base64ToBlob(videoImport.blobData, 'video/webm');
                         }
                         
@@ -2594,7 +2469,6 @@
                         state.videos.push(video);
                         
                         if (blob) {
-                            // Save to IndexedDB
                             await saveBlobToIndexedDB(video.id, blob);
                             state.storageUsed += blob.size;
                         }
@@ -2605,15 +2479,13 @@
                             `Importing video ${importedCount} of ${dbImport.videos.length}`);
                     }
                     
-                    // Import settings if available
                     if (dbImport.settings) {
                         state.autoSyncEnabled = dbImport.settings.autoSync ?? true;
                         state.encryptDataEnabled = dbImport.settings.encryptData ?? true;
                         
-                        elements.autoSync.checked = state.autoSyncEnabled;
-                        elements.encryptData.checked = state.encryptDataEnabled;
+                        if (elements.autoSync) elements.autoSync.checked = state.autoSyncEnabled;
+                        if (elements.encryptData) elements.encryptData.checked = state.encryptDataEnabled;
                         
-                        // Update quality setting
                         if (dbImport.settings.quality) {
                             document.querySelectorAll('input[name="quality"]').forEach(radio => {
                                 if (radio.value === dbImport.settings.quality) {
@@ -2625,16 +2497,14 @@
                             });
                         }
                         
-                        if (dbImport.settings.frameRate) {
+                        if (dbImport.settings.frameRate && elements.fpsSlider) {
                             elements.fpsSlider.value = dbImport.settings.frameRate;
                             elements.fpsValue.textContent = `${dbImport.settings.frameRate} FPS`;
                         }
                     }
                     
-                    // Save all data
                     await saveLocalData();
                     
-                    // Update UI
                     updateVideoGrid();
                     updateSystemStats();
                     updateStorageUI();
@@ -2669,12 +2539,10 @@
                     totalVideos: state.videos.length
                 };
                 
-                // Process videos for backup
                 for (let i = 0; i < Math.min(state.videos.length, 20); i++) {
                     const video = state.videos[i];
                     
                     if (video.blob && video.blob.size < 2 * 1024 * 1024) {
-                        // Include small videos in backup
                         const base64Data = await blobToBase64(video.blob);
                         backup.videos.push({
                             metadata: {
@@ -2688,7 +2556,6 @@
                             data: base64Data
                         });
                     } else {
-                        // Include metadata only for large videos
                         backup.videos.push({
                             metadata: {
                                 id: video.id,
@@ -2727,6 +2594,7 @@
                 const backupData = await createBackupData();
                 elements.backupData.value = backupData;
                 elements.backupModal.style.display = 'flex';
+                elements.backupModal.classList.add('active');
                 
             } catch (error) {
                 showToast('Failed to create backup: ' + error.message, 'error');
@@ -2739,7 +2607,6 @@
             try {
                 let data = backupString;
                 
-                // Decrypt if needed
                 if (data.startsWith('ENCRYPTED:')) {
                     data = decryptData(data.substring(10));
                 }
@@ -2750,21 +2617,17 @@
                     throw new Error('Invalid backup format');
                 }
                 
-                // Create backup of current data
                 const backupVideos = [...state.videos];
                 
-                // Clear existing data
                 state.videos = [];
                 state.storageUsed = 0;
                 
-                // Restore videos
                 let restoredCount = 0;
                 
                 for (const videoData of backupData.videos) {
                     let blob = null;
                     
                     if (videoData.data) {
-                        // Convert base64 back to blob
                         blob = await base64ToBlob(videoData.data, 'video/webm');
                     }
                     
@@ -2776,7 +2639,6 @@
                         restoreDate: new Date().toISOString()
                     };
                     
-                    // Check if video already exists
                     const exists = backupVideos.some(v => v.id === video.id);
                     if (!exists) {
                         state.videos.push(video);
@@ -2790,10 +2652,8 @@
                         `Restoring video ${restoredCount} of ${backupData.videos.length}`);
                 }
                 
-                // Save to local storage
                 await saveLocalData();
                 
-                // Update UI
                 updateVideoGrid();
                 updateSystemStats();
                 updateStorageUI();
@@ -2802,6 +2662,7 @@
                 hideProgress();
                 showToast(`Successfully restored ${restoredCount} videos!`, 'success');
                 elements.backupModal.style.display = 'none';
+                elements.backupModal.classList.remove('active');
                 
             } catch (error) {
                 hideProgress();
@@ -2812,7 +2673,6 @@
         // =============== LOCAL STORAGE FUNCTIONS ===============
         async function saveLocalData() {
             try {
-                // Save videos metadata (without blobs)
                 const videosMetadata = state.videos.map(video => {
                     const { blob, ...metadata } = video;
                     return metadata;
@@ -2833,10 +2693,8 @@
                 
                 localStorage.setItem('screen_recorder_local_data_v3', JSON.stringify(localData));
                 
-                // Save blobs to IndexedDB
                 await saveVideoBlobs();
                 
-                // Update device registry
                 await saveToMultiDevice();
                 
                 return true;
@@ -2847,14 +2705,12 @@
         }
 
         async function saveVideoBlobs() {
-            // Save blobs to IndexedDB
             for (const video of state.videos) {
                 if (video.blob && video.id) {
                     try {
                         await saveBlobToIndexedDB(video.id, video.blob);
                     } catch (error) {
                         console.warn('Failed to save blob to IndexedDB:', error);
-                        // Fallback for small videos
                         if (video.blob.size < 5 * 1024 * 1024) {
                             const base64 = await blobToBase64(video.blob);
                             localStorage.setItem(`video_blob_${video.id}`, base64);
@@ -2867,7 +2723,10 @@
         async function loadLocalData() {
             try {
                 const localData = localStorage.getItem('screen_recorder_local_data_v3');
-                if (!localData) return;
+                if (!localData) {
+                    console.log('No local data found, starting fresh');
+                    return;
+                }
                 
                 const parsedData = JSON.parse(localData);
                 
@@ -2876,7 +2735,6 @@
                     
                     for (const videoMetadata of parsedData.videos) {
                         try {
-                            // Try to load blob from IndexedDB
                             const blob = await loadBlobFromIndexedDB(videoMetadata.id);
                             
                             if (blob) {
@@ -2885,7 +2743,6 @@
                                     blob: blob
                                 });
                             } else {
-                                // Try to load from localStorage fallback
                                 const blobData = localStorage.getItem(`video_blob_${videoMetadata.id}`);
                                 if (blobData && blobData.startsWith('data:')) {
                                     const response = await fetch(blobData);
@@ -2895,7 +2752,6 @@
                                         blob: blob
                                     });
                                 } else {
-                                    // Video without blob (metadata only)
                                     state.videos.push(videoMetadata);
                                 }
                             }
@@ -2909,21 +2765,23 @@
                 state.storageUsed = parsedData.storageUsed || 0;
                 state.deviceId = parsedData.deviceId || state.deviceId;
                 
-                // Load settings
                 if (parsedData.settings) {
                     state.autoSyncEnabled = parsedData.settings.autoSync ?? true;
                     state.encryptDataEnabled = parsedData.settings.encryptData ?? true;
                     state.chunkRecordingEnabled = parsedData.settings.chunkRecording ?? false;
                     state.autoCleanupEnabled = parsedData.settings.autoCleanup ?? true;
                     
-                    elements.autoSync.checked = state.autoSyncEnabled;
-                    elements.encryptData.checked = state.encryptDataEnabled;
-                    elements.chunkRecording.checked = state.chunkRecordingEnabled;
-                    elements.autoCleanup.checked = state.autoCleanupEnabled;
+                    if (elements.autoSync) elements.autoSync.checked = state.autoSyncEnabled;
+                    if (elements.encryptData) elements.encryptData.checked = state.encryptDataEnabled;
+                    if (elements.chunkRecording) elements.chunkRecording.checked = state.chunkRecordingEnabled;
+                    if (elements.autoCleanup) elements.autoCleanup.checked = state.autoCleanupEnabled;
                 }
+                
+                console.log(`Loaded ${state.videos.length} videos from local storage`);
                 
             } catch (error) {
                 console.error('Load local data error:', error);
+                localStorage.removeItem('screen_recorder_local_data_v3');
             }
         }
 
@@ -2999,161 +2857,257 @@
             const maxGB = 100;
             const percentage = (state.storageUsed / (100 * 1024 * 1024 * 1024)) * 100;
             
-            elements.totalSize.textContent = `${usedGB} GB`;
-            elements.storageFill.style.width = `${Math.min(percentage, 100)}%`;
-            elements.usedStorage.textContent = `${usedGB} GB used`;
-            elements.maxStorage.textContent = `${maxGB} GB maximum`;
+            if (elements.totalSize) elements.totalSize.textContent = `${usedGB} GB`;
+            if (elements.storageFill) elements.storageFill.style.width = `${Math.min(percentage, 100)}%`;
+            if (elements.usedStorage) elements.usedStorage.textContent = `${usedGB} GB used`;
+            if (elements.maxStorage) elements.maxStorage.textContent = `${maxGB} GB maximum`;
             
-            if (percentage > 95) {
-                elements.storageStatus.innerHTML = `<span style="color: #ef4444;">Storage almost full!</span>`;
-            } else if (percentage > 80) {
-                elements.storageStatus.innerHTML = `<span style="color: #f59e0b;">Storage getting full</span>`;
-            } else {
-                elements.storageStatus.textContent = `${(100 - Math.min(percentage, 100)).toFixed(1)}% available`;
+            if (elements.storageStatus) {
+                if (percentage > 95) {
+                    elements.storageStatus.innerHTML = `<span style="color: #ef4444;">Storage almost full!</span>`;
+                } else if (percentage > 80) {
+                    elements.storageStatus.innerHTML = `<span style="color: #f59e0b;">Storage getting full</span>`;
+                } else {
+                    elements.storageStatus.textContent = `${(100 - Math.min(percentage, 100)).toFixed(1)}% available`;
+                }
             }
         }
 
         // =============== EVENT LISTENERS ===============
         function setupEventListeners() {
             // Main controls
-            elements.recordBtn.addEventListener('click', startRecording);
-            elements.stopBtn.addEventListener('click', stopRecording);
-            elements.downloadBtn.addEventListener('click', downloadRecording);
-            elements.cloudSyncBtn.addEventListener('click', syncToCloud);
-            elements.trySyncBtn.addEventListener('click', syncFromCloud);
-            elements.refreshCloudBtn.addEventListener('click', syncFromCloud);
+            if (elements.recordBtn) {
+                elements.recordBtn.addEventListener('click', startRecording);
+            }
+            if (elements.stopBtn) {
+                elements.stopBtn.addEventListener('click', stopRecording);
+            }
+            if (elements.downloadBtn) {
+                elements.downloadBtn.addEventListener('click', downloadRecording);
+            }
+            if (elements.cloudSyncBtn) {
+                elements.cloudSyncBtn.addEventListener('click', syncToCloud);
+            }
+            if (elements.trySyncBtn) {
+                elements.trySyncBtn.addEventListener('click', syncFromCloud);
+            }
+            if (elements.refreshCloudBtn) {
+                elements.refreshCloudBtn.addEventListener('click', syncFromCloud);
+            }
             
             // Cloud controls
-            elements.backupBtn.addEventListener('click', showBackupModal);
-            elements.restoreBtn.addEventListener('click', showBackupModal);
-            elements.exportJsonBtn.addEventListener('click', async () => {
-                await createPortableDatabase();
-            });
-            elements.importJsonBtn.addEventListener('click', () => {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = '.json,.srdb';
-                input.onchange = (e) => {
-                    const file = e.target.files[0];
-                    if (file) importPortableDatabase(file);
-                };
-                input.click();
-            });
-            elements.multiDeviceBtn.addEventListener('click', () => {
-                elements.deviceModal.style.display = 'flex';
-                updateDeviceList();
-            });
+            if (elements.backupBtn) {
+                elements.backupBtn.addEventListener('click', showBackupModal);
+            }
+            if (elements.restoreBtn) {
+                elements.restoreBtn.addEventListener('click', showBackupModal);
+            }
+            if (elements.exportJsonBtn) {
+                elements.exportJsonBtn.addEventListener('click', async () => {
+                    await createPortableDatabase();
+                });
+            }
+            if (elements.importJsonBtn) {
+                elements.importJsonBtn.addEventListener('click', () => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.json,.srdb';
+                    input.onchange = (e) => {
+                        const file = e.target.files[0];
+                        if (file) importPortableDatabase(file);
+                    };
+                    input.click();
+                });
+            }
+            if (elements.multiDeviceBtn) {
+                elements.multiDeviceBtn.addEventListener('click', () => {
+                    if (elements.deviceModal) {
+                        elements.deviceModal.style.display = 'flex';
+                        elements.deviceModal.classList.add('active');
+                        updateDeviceList();
+                    }
+                });
+            }
             
             // Backup modal
-            elements.copyBackupBtn.addEventListener('click', () => {
-                elements.backupData.select();
-                document.execCommand('copy');
-                showToast('Backup data copied to clipboard!', 'success');
-            });
-            elements.restoreBackupBtn.addEventListener('click', () => {
-                const backupString = elements.restoreData.value.trim();
-                if (backupString) {
-                    restoreFromBackup(backupString);
-                } else {
-                    showToast('Please paste backup data first', 'warning');
-                }
-            });
-            elements.closeBackupModal.addEventListener('click', () => {
-                elements.backupModal.style.display = 'none';
-            });
+            if (elements.copyBackupBtn) {
+                elements.copyBackupBtn.addEventListener('click', () => {
+                    if (elements.backupData) {
+                        elements.backupData.select();
+                        document.execCommand('copy');
+                        showToast('Backup data copied to clipboard!', 'success');
+                    }
+                });
+            }
+            
+            if (elements.restoreBackupBtn) {
+                elements.restoreBackupBtn.addEventListener('click', () => {
+                    const backupString = elements.restoreData ? elements.restoreData.value.trim() : '';
+                    if (backupString) {
+                        restoreFromBackup(backupString);
+                    } else {
+                        showToast('Please paste backup data first', 'warning');
+                    }
+                });
+            }
+            
+            if (elements.closeBackupModal) {
+                elements.closeBackupModal.addEventListener('click', () => {
+                    if (elements.backupModal) {
+                        elements.backupModal.style.display = 'none';
+                        elements.backupModal.classList.remove('active');
+                    }
+                });
+            }
             
             // Device modal
-            elements.syncAllDevicesBtn.addEventListener('click', syncAllDevices);
-            elements.importFromDeviceBtn.addEventListener('click', () => {
-                const selectedDevice = document.querySelector('.device-item.selected');
-                if (selectedDevice) {
-                    const deviceId = selectedDevice.dataset.deviceId;
-                    syncFromDevice(deviceId);
-                } else {
-                    showToast('Please select a device first', 'warning');
-                }
-            });
-            elements.refreshDevicesBtn.addEventListener('click', () => {
-                updateDeviceList();
-                showToast('Device list refreshed', 'info');
-            });
-            elements.closeDeviceModal.addEventListener('click', () => {
-                elements.deviceModal.style.display = 'none';
-            });
-            elements.closeModalBtn.addEventListener('click', () => {
-                elements.deviceModal.style.display = 'none';
-            });
+            if (elements.syncAllDevicesBtn) {
+                elements.syncAllDevicesBtn.addEventListener('click', syncAllDevices);
+            }
+            
+            if (elements.importFromDeviceBtn) {
+                elements.importFromDeviceBtn.addEventListener('click', () => {
+                    const selectedDevice = document.querySelector('.device-item.selected');
+                    if (selectedDevice) {
+                        const deviceId = selectedDevice.dataset.deviceId;
+                        syncFromDevice(deviceId);
+                    } else {
+                        showToast('Please select a device first', 'warning');
+                    }
+                });
+            }
+            
+            if (elements.refreshDevicesBtn) {
+                elements.refreshDevicesBtn.addEventListener('click', () => {
+                    updateDeviceList();
+                    showToast('Device list refreshed', 'info');
+                });
+            }
+            
+            if (elements.closeDeviceModal) {
+                elements.closeDeviceModal.addEventListener('click', () => {
+                    if (elements.deviceModal) {
+                        elements.deviceModal.style.display = 'none';
+                        elements.deviceModal.classList.remove('active');
+                    }
+                });
+            }
+            
+            if (elements.closeModalBtn) {
+                elements.closeModalBtn.addEventListener('click', () => {
+                    if (elements.deviceModal) {
+                        elements.deviceModal.style.display = 'none';
+                        elements.deviceModal.classList.remove('active');
+                    }
+                });
+            }
             
             // Device selection
-            elements.deviceList.addEventListener('click', (e) => {
-                if (e.target.closest('.device-item')) {
-                    document.querySelectorAll('.device-item').forEach(item => {
-                        item.classList.remove('selected');
-                    });
-                    e.target.closest('.device-item').classList.add('selected');
-                }
-            });
+            if (elements.deviceList) {
+                elements.deviceList.addEventListener('click', (e) => {
+                    if (e.target.closest('.device-item')) {
+                        document.querySelectorAll('.device-item').forEach(item => {
+                            item.classList.remove('selected');
+                        });
+                        e.target.closest('.device-item').classList.add('selected');
+                    }
+                });
+            }
             
             // Settings
-            elements.autoSync.addEventListener('change', (e) => {
-                state.autoSyncEnabled = e.target.checked;
-                if (state.autoSyncEnabled) {
-                    startAutoSync();
-                    showToast('Auto sync enabled', 'success');
-                } else {
-                    if (state.syncInterval) {
-                        clearInterval(state.syncInterval);
-                        state.syncInterval = null;
+            if (elements.autoSync) {
+                elements.autoSync.addEventListener('change', (e) => {
+                    state.autoSyncEnabled = e.target.checked;
+                    if (state.autoSyncEnabled) {
+                        startAutoSync();
+                        showToast('Auto sync enabled', 'success');
+                    } else {
+                        if (state.syncInterval) {
+                            clearInterval(state.syncInterval);
+                            state.syncInterval = null;
+                        }
+                        showToast('Auto sync disabled', 'info');
                     }
-                    showToast('Auto sync disabled', 'info');
-                }
-                saveLocalData();
-            });
+                    saveLocalData();
+                });
+            }
             
-            elements.encryptData.addEventListener('change', (e) => {
-                state.encryptDataEnabled = e.target.checked;
-                showToast(`Data encryption ${state.encryptDataEnabled ? 'enabled' : 'disabled'}`, 'info');
-                saveLocalData();
-            });
+            if (elements.encryptData) {
+                elements.encryptData.addEventListener('change', (e) => {
+                    state.encryptDataEnabled = e.target.checked;
+                    showToast(`Data encryption ${state.encryptDataEnabled ? 'enabled' : 'disabled'}`, 'info');
+                    saveLocalData();
+                });
+            }
             
-            elements.syncIntervalSlider.addEventListener('input', (e) => {
-                const minutes = parseInt(e.target.value);
-                elements.syncIntervalValue.textContent = `${minutes} min`;
-                
-                if (state.autoSyncEnabled) {
-                    startAutoSync();
-                }
-            });
+            if (elements.syncIntervalSlider) {
+                elements.syncIntervalSlider.addEventListener('input', (e) => {
+                    const minutes = parseInt(e.target.value);
+                    if (elements.syncIntervalValue) {
+                        elements.syncIntervalValue.textContent = `${minutes} min`;
+                    }
+                    
+                    if (state.autoSyncEnabled) {
+                        startAutoSync();
+                    }
+                });
+            }
             
             // Library
-            elements.search.addEventListener('input', updateVideoGrid);
-            elements.clearOldBtn.addEventListener('click', clearOldVideos);
-            elements.exportAllBtn.addEventListener('click', exportAllVideos);
+            if (elements.search) {
+                let searchTimeout;
+                elements.search.addEventListener('input', () => {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(updateVideoGrid, 300);
+                });
+            }
+            
+            if (elements.clearOldBtn) {
+                elements.clearOldBtn.addEventListener('click', clearOldVideos);
+            }
+            
+            if (elements.exportAllBtn) {
+                elements.exportAllBtn.addEventListener('click', exportAllVideos);
+            }
             
             // Modal
-            elements.closeModal.addEventListener('click', closeModal);
-            elements.modalDownloadBtn.addEventListener('click', () => {
-                if (state.currentVideoId) downloadVideo(state.currentVideoId);
-            });
-            elements.modalDeleteBtn.addEventListener('click', () => {
-                if (state.currentVideoId) deleteVideo(state.currentVideoId);
-            });
+            if (elements.closeModal) {
+                elements.closeModal.addEventListener('click', closeModal);
+            }
+            
+            if (elements.modalDownloadBtn) {
+                elements.modalDownloadBtn.addEventListener('click', () => {
+                    if (state.currentVideoId) downloadVideo(state.currentVideoId);
+                });
+            }
+            
+            if (elements.modalDeleteBtn) {
+                elements.modalDeleteBtn.addEventListener('click', () => {
+                    if (state.currentVideoId) deleteVideo(state.currentVideoId);
+                });
+            }
             
             // Progress
-            elements.cancelProgress.addEventListener('click', hideProgress);
+            if (elements.cancelProgress) {
+                elements.cancelProgress.addEventListener('click', hideProgress);
+            }
             
             // Recording settings
-            elements.chunkRecording.addEventListener('change', (e) => {
-                state.chunkRecordingEnabled = e.target.checked;
-                showToast(`Chunk Recording ${state.chunkRecordingEnabled ? 'enabled' : 'disabled'}`, 'info');
-                saveLocalData();
-            });
+            if (elements.chunkRecording) {
+                elements.chunkRecording.addEventListener('change', (e) => {
+                    state.chunkRecordingEnabled = e.target.checked;
+                    showToast(`Chunk Recording ${state.chunkRecordingEnabled ? 'enabled' : 'disabled'}`, 'info');
+                    saveLocalData();
+                });
+            }
             
-            elements.autoCleanup.addEventListener('change', (e) => {
-                state.autoCleanupEnabled = e.target.checked;
-                showToast(`Auto Cleanup ${state.autoCleanupEnabled ? 'enabled' : 'disabled'}`, 'info');
-                saveLocalData();
-            });
+            if (elements.autoCleanup) {
+                elements.autoCleanup.addEventListener('change', (e) => {
+                    state.autoCleanupEnabled = e.target.checked;
+                    showToast(`Auto Cleanup ${state.autoCleanupEnabled ? 'enabled' : 'disabled'}`, 'info');
+                    saveLocalData();
+                });
+            }
             
             // Quality settings
             document.querySelectorAll('input[name="quality"]').forEach(radio => {
@@ -3167,20 +3121,32 @@
             });
             
             // Sliders
-            elements.fpsSlider.addEventListener('input', (e) => {
-                const fps = parseInt(e.target.value);
-                elements.fpsValue.textContent = `${fps} FPS`;
-            });
+            if (elements.fpsSlider) {
+                elements.fpsSlider.addEventListener('input', (e) => {
+                    const fps = parseInt(e.target.value);
+                    if (elements.fpsValue) {
+                        elements.fpsValue.textContent = `${fps} FPS`;
+                    }
+                });
+            }
             
-            elements.systemVolumeSlider.addEventListener('input', (e) => {
-                const volume = parseInt(e.target.value);
-                elements.systemVolumeValue.textContent = `${volume}%`;
-            });
+            if (elements.systemVolumeSlider) {
+                elements.systemVolumeSlider.addEventListener('input', (e) => {
+                    const volume = parseInt(e.target.value);
+                    if (elements.systemVolumeValue) {
+                        elements.systemVolumeValue.textContent = `${volume}%`;
+                    }
+                });
+            }
             
-            elements.micVolumeSlider.addEventListener('input', (e) => {
-                const volume = parseInt(e.target.value);
-                elements.micVolumeValue.textContent = `${volume}%`;
-            });
+            if (elements.micVolumeSlider) {
+                elements.micVolumeSlider.addEventListener('input', (e) => {
+                    const volume = parseInt(e.target.value);
+                    if (elements.micVolumeValue) {
+                        elements.micVolumeValue.textContent = `${volume}%`;
+                    }
+                });
+            }
             
             // Window events
             window.addEventListener('beforeunload', async (e) => {
@@ -3190,7 +3156,6 @@
                     return e.returnValue;
                 }
                 
-                // Save data before closing
                 await saveLocalData();
                 if (state.autoSyncEnabled) {
                     await syncToCloud();
@@ -3219,14 +3184,16 @@
                 }
                 
                 if (e.key === 'Escape') {
-                    if (elements.videoModal.style.display === 'flex') {
+                    if (elements.videoModal && elements.videoModal.classList.contains('active')) {
                         closeModal();
                     }
-                    if (elements.backupModal.style.display === 'flex') {
+                    if (elements.backupModal && elements.backupModal.classList.contains('active')) {
                         elements.backupModal.style.display = 'none';
+                        elements.backupModal.classList.remove('active');
                     }
-                    if (elements.deviceModal.style.display === 'flex') {
+                    if (elements.deviceModal && elements.deviceModal.classList.contains('active')) {
                         elements.deviceModal.style.display = 'none';
+                        elements.deviceModal.classList.remove('active');
                     }
                 }
                 
@@ -3237,23 +3204,31 @@
             });
             
             // Modal click outside
-            elements.videoModal.addEventListener('click', (e) => {
-                if (e.target === elements.videoModal) {
-                    closeModal();
-                }
-            });
+            if (elements.videoModal) {
+                elements.videoModal.addEventListener('click', (e) => {
+                    if (e.target === elements.videoModal) {
+                        closeModal();
+                    }
+                });
+            }
             
-            elements.backupModal.addEventListener('click', (e) => {
-                if (e.target === elements.backupModal) {
-                    elements.backupModal.style.display = 'none';
-                }
-            });
+            if (elements.backupModal) {
+                elements.backupModal.addEventListener('click', (e) => {
+                    if (e.target === elements.backupModal) {
+                        elements.backupModal.style.display = 'none';
+                        elements.backupModal.classList.remove('active');
+                    }
+                });
+            }
             
-            elements.deviceModal.addEventListener('click', (e) => {
-                if (e.target === elements.deviceModal) {
-                    elements.deviceModal.style.display = 'none';
-                }
-            });
+            if (elements.deviceModal) {
+                elements.deviceModal.addEventListener('click', (e) => {
+                    if (e.target === elements.deviceModal) {
+                        elements.deviceModal.style.display = 'none';
+                        elements.deviceModal.classList.remove('active');
+                    }
+                });
+            }
         }
 
         // =============== RECORDING FUNCTIONS ===============
@@ -3272,9 +3247,7 @@
                 
                 const displayConstraints = {
                     video: {
-                        width: { ideal: getResolutionWidth(quality) },
-                        height: { ideal: getResolutionHeight(quality) },
-                        frameRate: { ideal: getFrameRate(quality) }
+                        cursor: "always"
                     },
                     audio: audioSettings.system
                 };
@@ -3290,14 +3263,30 @@
                         });
                         
                         const videoTrack = displayStream.getVideoTracks()[0];
+                        const audioContext = new AudioContext();
+                        const destination = audioContext.createMediaStreamDestination();
+                        
+                        if (displayStream.getAudioTracks().length > 0) {
+                            const systemSource = audioContext.createMediaStreamSource(
+                                new MediaStream([displayStream.getAudioTracks()[0]])
+                            );
+                            systemSource.connect(destination);
+                        }
+                        
+                        if (micStream.getAudioTracks().length > 0) {
+                            const micSource = audioContext.createMediaStreamSource(
+                                new MediaStream([micStream.getAudioTracks()[0]])
+                            );
+                            micSource.connect(destination);
+                        }
+                        
                         finalStream = new MediaStream([
                             videoTrack,
-                            ...displayStream.getAudioTracks(),
-                            ...micStream.getAudioTracks()
+                            destination.stream.getAudioTracks()[0]
                         ]);
                         
                     } catch (micError) {
-                        console.log('Microphone access skipped');
+                        console.log('Microphone access skipped:', micError);
                     }
                 }
                 
@@ -3307,12 +3296,30 @@
                 state.isPaused = false;
                 state.totalRecordedSize = 0;
                 
-                elements.preview.srcObject = finalStream;
-                elements.preview.style.display = 'block';
-                elements.videoOverlay.style.display = 'none';
+                if (elements.preview) {
+                    elements.preview.srcObject = finalStream;
+                    elements.preview.style.display = 'block';
+                }
+                if (elements.videoOverlay) {
+                    elements.videoOverlay.style.display = 'none';
+                }
+                
+                // Set video constraints based on quality
+                const videoTrack = finalStream.getVideoTracks()[0];
+                const constraints = videoTrack.getConstraints();
+                
+                if (!constraints.width) {
+                    videoTrack.applyConstraints({
+                        width: { ideal: getResolutionWidth(quality) },
+                        height: { ideal: getResolutionHeight(quality) },
+                        frameRate: { ideal: getFrameRate(quality) }
+                    });
+                }
                 
                 const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') 
                     ? 'video/webm;codecs=vp9,opus'
+                    : MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
+                    ? 'video/webm;codecs=vp8,opus'
                     : 'video/webm';
                 
                 const bitrate = getBitrate(quality) * 1000000;
@@ -3322,7 +3329,12 @@
                     audioBitsPerSecond: 128000
                 };
                 
-                state.mediaRecorder = new MediaRecorder(finalStream, options);
+                try {
+                    state.mediaRecorder = new MediaRecorder(finalStream, options);
+                } catch (e) {
+                    console.warn('Failed to create MediaRecorder with options:', options, 'Error:', e);
+                    state.mediaRecorder = new MediaRecorder(finalStream);
+                }
                 
                 state.mediaRecorder.ondataavailable = (event) => {
                     if (event.data && event.data.size > 0) {
@@ -3335,11 +3347,12 @@
                 state.mediaRecorder.onstop = async () => {
                     try {
                         if (state.recordedChunks.length === 0) {
+                            cleanupRecording();
                             return;
                         }
                         
                         const blob = new Blob(state.recordedChunks, { 
-                            type: options.mimeType 
+                            type: state.mediaRecorder.mimeType 
                         });
                         
                         const duration = Math.floor((Date.now() - state.recordingStartTime) / 1000);
@@ -3354,29 +3367,35 @@
                             blob: blob,
                             audioSystem: audioSettings.system,
                             audioMic: audioSettings.mic,
-                            mimeType: options.mimeType,
+                            mimeType: state.mediaRecorder.mimeType,
                             bitrate: bitrate,
                             deviceId: state.deviceId
                         };
                         
                         await saveVideo(videoData);
                         
-                        elements.downloadBtn.disabled = false;
-                        elements.timer.textContent = formatTime(duration);
-                        elements.fileSize.textContent = formatFileSize(size);
+                        if (elements.downloadBtn) {
+                            elements.downloadBtn.disabled = false;
+                        }
+                        if (elements.timer) {
+                            elements.timer.textContent = formatTime(duration);
+                        }
+                        if (elements.fileSize) {
+                            elements.fileSize.textContent = formatFileSize(size);
+                        }
                         
                         updateVideoGrid();
                         updateSystemStats();
                         
                         showToast(`Recording saved (${formatTime(duration)})`, 'success');
                         
-                        // Auto sync jika enabled
                         if (state.autoSyncEnabled) {
                             setTimeout(() => syncToCloud(), 1000);
                         }
                         
                     } catch (error) {
                         console.error('Error saving recording:', error);
+                        showToast('Error saving recording: ' + error.message, 'error');
                     } finally {
                         cleanupRecording();
                     }
@@ -3392,7 +3411,6 @@
                 
                 showToast('Recording started!', 'success');
                 
-                // Handle stream end
                 finalStream.getVideoTracks()[0].onended = () => {
                     if (state.isRecording) {
                         showToast('Screen sharing stopped', 'info');
@@ -3405,6 +3423,8 @@
                 
                 if (error.name === 'NotAllowedError') {
                     showToast('Permission denied. Please allow screen sharing.', 'error');
+                } else if (error.name === 'NotFoundError') {
+                    showToast('No screen source selected.', 'error');
                 } else {
                     showToast('Failed to start recording: ' + error.message, 'error');
                 }
@@ -3426,6 +3446,8 @@
                 }
                 
                 showToast('Recording stopped', 'info');
+            } else {
+                showToast('No active recording to stop', 'warning');
             }
         }
 
@@ -3454,10 +3476,12 @@
                 state.currentStream = null;
             }
             
-            if (elements.preview.srcObject) {
+            if (elements.preview && elements.preview.srcObject) {
                 elements.preview.srcObject = null;
                 elements.preview.style.display = 'none';
-                elements.videoOverlay.style.display = 'flex';
+                if (elements.videoOverlay) {
+                    elements.videoOverlay.style.display = 'flex';
+                }
             }
             
             state.isRecording = false;
@@ -3478,14 +3502,25 @@
             state.videos.unshift(video);
             state.storageUsed += videoData.size;
             
-            // Save blob to IndexedDB
             try {
                 await saveBlobToIndexedDB(videoId, videoData.blob);
             } catch (error) {
                 console.warn('Failed to save blob to IndexedDB:', error);
+                if (videoData.blob.size < 5 * 1024 * 1024) {
+                    const base64 = await blobToBase64(videoData.blob);
+                    localStorage.setItem(`video_blob_${videoId}`, base64);
+                }
             }
             
-            // Update local storage
+            state.devices[state.deviceId] = {
+                ...state.devices[state.deviceId],
+                lastSeen: new Date().toISOString(),
+                videoCount: state.videos.length,
+                lastSync: new Date().toISOString()
+            };
+            
+            localStorage.setItem(CLOUD_CONFIG.DEVICES_KEY, JSON.stringify(state.devices));
+            
             await saveLocalData();
             
             updateStorageUI();
@@ -3507,7 +3542,6 @@
                     state.storageUsed -= state.videos[index].size || 0;
                     state.videos.splice(index, 1);
                     
-                    // Delete blob from IndexedDB
                     try {
                         const request = indexedDB.open('ScreenRecorderBlobs_v3', 1);
                         request.onsuccess = () => {
@@ -3522,14 +3556,11 @@
                         console.warn('Failed to delete blob:', error);
                     }
                     
-                    // Delete from localStorage fallback
                     localStorage.removeItem(`video_blob_${videoId}`);
                 }
                 
-                // Update local storage
                 await saveLocalData();
                 
-                // Sync to cloud
                 if (state.autoSyncEnabled) {
                     await syncToCloud();
                 }
@@ -3557,7 +3588,9 @@
         function startTimer() {
             state.timerInterval = setInterval(() => {
                 const elapsed = Math.floor((Date.now() - state.recordingStartTime) / 1000);
-                elements.timer.textContent = formatTime(elapsed);
+                if (elements.timer) {
+                    elements.timer.textContent = formatTime(elapsed);
+                }
             }, 1000);
         }
 
@@ -3569,31 +3602,39 @@
         }
 
         function updateUI() {
-            elements.recordBtn.disabled = state.isRecording;
-            elements.stopBtn.disabled = !state.isRecording;
-            elements.recordingStatus.style.display = state.isRecording ? 'flex' : 'none';
+            if (elements.recordBtn) elements.recordBtn.disabled = state.isRecording;
+            if (elements.stopBtn) elements.stopBtn.disabled = !state.isRecording;
+            if (elements.recordingStatus) {
+                elements.recordingStatus.style.display = state.isRecording ? 'flex' : 'none';
+            }
             
-            if (!state.isRecording) {
+            if (!state.isRecording && elements.timer) {
                 elements.timer.textContent = '00:00:00';
+            }
+            if (!state.isRecording && elements.fileSize) {
                 elements.fileSize.textContent = '0 MB';
             }
         }
 
         function updateFileSize() {
-            elements.fileSize.textContent = formatFileSize(state.totalRecordedSize);
+            if (elements.fileSize) {
+                elements.fileSize.textContent = formatFileSize(state.totalRecordedSize);
+            }
         }
 
         function updateSystemStats() {
             state.totalRecordingTime = state.videos.reduce((total, video) => total + (video.duration || 0), 0);
-            elements.totalDuration.textContent = formatTime(state.totalRecordingTime);
-            elements.videoCount.textContent = state.videos.length;
-            elements.totalVideosCount.textContent = state.videos.length;
+            if (elements.totalDuration) elements.totalDuration.textContent = formatTime(state.totalRecordingTime);
+            if (elements.videoCount) elements.videoCount.textContent = state.videos.length;
+            if (elements.totalVideosCount) elements.totalVideosCount.textContent = state.videos.length;
         }
 
         function updateVideoGrid() {
+            if (!elements.videoGrid) return;
+            
             elements.videoGrid.innerHTML = '';
             
-            const searchTerm = elements.search.value.toLowerCase();
+            const searchTerm = elements.search ? elements.search.value.toLowerCase() : '';
             let filteredVideos = state.videos;
             
             if (searchTerm) {
@@ -3605,11 +3646,17 @@
             }
             
             if (filteredVideos.length === 0) {
-                elements.emptyLibrary.style.display = 'block';
+                if (elements.emptyLibrary) {
+                    elements.emptyLibrary.style.display = 'block';
+                    elements.emptyLibrary.classList.add('active');
+                }
                 return;
             }
             
-            elements.emptyLibrary.style.display = 'none';
+            if (elements.emptyLibrary) {
+                elements.emptyLibrary.style.display = 'none';
+                elements.emptyLibrary.classList.remove('active');
+            }
             
             filteredVideos.forEach(video => {
                 const card = createVideoCard(video);
@@ -3632,16 +3679,8 @@
                     <div style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.8rem;">
                         ${duration}
                     </div>
-                    ${video.fromCloud ? 
-                        '<div style="position: absolute; top: 10px; left: 10px; background: rgba(16, 185, 129, 0.8); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.7rem;"><i class="fas fa-cloud"></i> Cloud</div>' : 
-                        ''
-                    }
                     ${video.fromOtherDevice ? 
-                        '<div style="position: absolute; top: 10px; right: 10px; background: rgba(245, 158, 11, 0.8); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.7rem;"><i class="fas fa-laptop"></i> Other PC</div>' : 
-                        ''
-                    }
-                    ${video.imported ? 
-                        '<div style="position: absolute; bottom: 10px; left: 10px; background: rgba(79, 70, 229, 0.8); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.7rem;"><i class="fas fa-file-import"></i></div>' : 
+                        '<div style="position: absolute; top: 10px; right: 10px; background: rgba(245, 158, 11, 0.8); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.7rem;"><i class="fas fa-laptop"></i> Other Device</div>' : 
                         ''
                     }
                 </div>
@@ -3651,14 +3690,13 @@
                         <div><i class="fas fa-expand-alt"></i> ${getQualityLabel(video.quality)}</div>
                         <div><i class="fas fa-file-alt"></i> ${size}</div>
                         <div><i class="fas fa-calendar"></i> ${date}</div>
-                        ${video.deviceId && video.deviceId !== state.deviceId ? 
-                            `<div><i class="fas fa-laptop"></i> ${video.deviceId.substring(0, 8)}</div>` : 
-                            ''
-                        }
                     </div>
                     <div class="video-actions">
                         <button class="action-btn play-btn" title="Play">
                             <i class="fas fa-play"></i> Play
+                        </button>
+                        <button class="action-btn download-card-btn" title="Download">
+                            <i class="fas fa-download"></i>
                         </button>
                         <button class="action-btn delete-btn" title="Delete">
                             <i class="fas fa-trash"></i>
@@ -3668,9 +3706,11 @@
             `;
             
             const playBtn = card.querySelector('.play-btn');
+            const downloadBtn = card.querySelector('.download-card-btn');
             const deleteBtn = card.querySelector('.delete-btn');
             
             playBtn.addEventListener('click', () => playVideo(video.id));
+            downloadBtn.addEventListener('click', () => downloadVideo(video.id));
             deleteBtn.addEventListener('click', () => deleteVideo(video.id));
             
             return card;
@@ -3691,15 +3731,13 @@
                 let blob = video.blob;
                 
                 if (!blob) {
-                    // Try to load from IndexedDB
                     blob = await loadBlobFromIndexedDB(videoId);
                 }
                 
                 if (!blob) {
-                    // Try to load from source device if available
                     if (video.sourceDevice && video.sourceDevice !== state.deviceId) {
-                        const deviceDataKey = `screen_recorder_video_${video.sourceDevice}_${videoId}`;
-                        const videoData = localStorage.getItem(deviceDataKey);
+                        const videoDataKey = `screen_recorder_video_${video.sourceDevice}_${videoId}`;
+                        const videoData = localStorage.getItem(videoDataKey);
                         
                         if (videoData && videoData.startsWith('data:')) {
                             const response = await fetch(videoData);
@@ -3714,41 +3752,47 @@
                 
                 const videoUrl = URL.createObjectURL(blob);
                 
-                elements.modalVideo.src = videoUrl;
-                elements.modalVideoTitle.textContent = video.title;
+                if (elements.modalVideo) elements.modalVideo.src = videoUrl;
+                if (elements.modalVideoTitle) elements.modalVideoTitle.textContent = video.title;
                 
                 const qualityLabel = getQualityLabel(video.quality);
                 const bitrate = video.bitrate ? formatFileSize(video.bitrate / 8) + '/s' : 'N/A';
                 
-                elements.modalInfo.innerHTML = `
-                    <h3 style="margin-bottom: 15px;">${video.title}</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                        <div><i class="fas fa-expand-alt"></i> <strong>Quality:</strong> ${qualityLabel}</div>
-                        <div><i class="fas fa-clock"></i> <strong>Duration:</strong> ${formatTime(video.duration)}</div>
-                        <div><i class="fas fa-file-alt"></i> <strong>Size:</strong> ${formatFileSize(video.size)}</div>
-                        <div><i class="fas fa-calendar"></i> <strong>Date:</strong> ${formatDate(video.date)}</div>
-                        <div><i class="fas fa-microphone"></i> <strong>Microphone:</strong> ${video.audioMic ? 'Yes' : 'No'}</div>
-                        <div><i class="fas fa-bolt"></i> <strong>Bitrate:</strong> ${bitrate}</div>
-                        <div><i class="fas fa-laptop"></i> <strong>Device:</strong> ${video.deviceId || state.deviceId}</div>
-                        ${video.fromCloud ? `<div><i class="fas fa-cloud"></i> <strong>Source:</strong> Cloud</div>` : ''}
-                        ${video.fromOtherDevice ? `<div><i class="fas fa-laptop-house"></i> <strong>Source:</strong> Other Device</div>` : ''}
-                        ${video.imported ? `<div><i class="fas fa-file-import"></i> <strong>Imported:</strong> ${formatDate(video.importDate)}</div>` : ''}
-                    </div>
-                `;
+                if (elements.modalInfo) {
+                    elements.modalInfo.innerHTML = `
+                        <h3 style="margin-bottom: 15px;">${video.title}</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                            <div><i class="fas fa-expand-alt"></i> <strong>Quality:</strong> ${qualityLabel}</div>
+                            <div><i class="fas fa-clock"></i> <strong>Duration:</strong> ${formatTime(video.duration)}</div>
+                            <div><i class="fas fa-file-alt"></i> <strong>Size:</strong> ${formatFileSize(video.size)}</div>
+                            <div><i class="fas fa-calendar"></i> <strong>Date:</strong> ${formatDate(video.date)}</div>
+                            <div><i class="fas fa-microphone"></i> <strong>Microphone:</strong> ${video.audioMic ? 'Yes' : 'No'}</div>
+                            <div><i class="fas fa-bolt"></i> <strong>Bitrate:</strong> ${bitrate}</div>
+                            <div><i class="fas fa-laptop"></i> <strong>Device:</strong> ${video.deviceId || state.deviceId}</div>
+                            ${video.fromOtherDevice ? `<div><i class="fas fa-laptop-house"></i> <strong>Source:</strong> Other Device</div>` : ''}
+                            ${video.imported ? `<div><i class="fas fa-file-import"></i> <strong>Imported:</strong> ${formatDate(video.importDate)}</div>` : ''}
+                        </div>
+                    `;
+                }
                 
-                elements.videoModal.style.display = 'flex';
+                if (elements.videoModal) {
+                    elements.videoModal.style.display = 'flex';
+                    elements.videoModal.classList.add('active');
+                }
                 hideProgress();
                 
-                const playPromise = elements.modalVideo.play();
+                const playPromise = elements.modalVideo ? elements.modalVideo.play() : null;
                 if (playPromise !== undefined) {
                     playPromise.catch(e => {
                         console.warn('Autoplay prevented:', e);
                     });
                 }
                 
-                elements.modalVideo.onended = () => {
-                    URL.revokeObjectURL(videoUrl);
-                };
+                if (elements.modalVideo) {
+                    elements.modalVideo.onended = () => {
+                        URL.revokeObjectURL(videoUrl);
+                    };
+                }
                 
             } catch (error) {
                 hideProgress();
@@ -3757,9 +3801,12 @@
         }
 
         function closeModal() {
-            elements.videoModal.style.display = 'none';
+            if (elements.videoModal) {
+                elements.videoModal.style.display = 'none';
+                elements.videoModal.classList.remove('active');
+            }
             
-            if (elements.modalVideo.src) {
+            if (elements.modalVideo && elements.modalVideo.src) {
                 elements.modalVideo.pause();
                 elements.modalVideo.currentTime = 0;
                 try {
@@ -4029,31 +4076,33 @@
 
         // =============== UI HELPER FUNCTIONS ===============
         function showLoading(text) {
-            elements.loadingText.textContent = text;
-            elements.loading.style.display = 'flex';
+            if (elements.loadingText) elements.loadingText.textContent = text;
+            if (elements.loading) elements.loading.style.display = 'flex';
         }
 
         function hideLoading() {
-            elements.loading.style.display = 'none';
+            if (elements.loading) elements.loading.style.display = 'none';
         }
 
         function showProgress(title) {
-            elements.progressTitle.textContent = title;
-            elements.progressFill.style.width = '0%';
-            elements.progressText.textContent = '0%';
-            elements.progress.style.display = 'flex';
+            if (elements.progressTitle) elements.progressTitle.textContent = title;
+            if (elements.progressFill) elements.progressFill.style.width = '0%';
+            if (elements.progressText) elements.progressText.textContent = '0%';
+            if (elements.progress) elements.progress.style.display = 'flex';
         }
 
         function updateProgress(percent, text) {
-            elements.progressFill.style.width = percent + '%';
-            elements.progressText.textContent = Math.round(percent) + '% - ' + text;
+            if (elements.progressFill) elements.progressFill.style.width = percent + '%';
+            if (elements.progressText) elements.progressText.textContent = Math.round(percent) + '% - ' + text;
         }
 
         function hideProgress() {
-            elements.progress.style.display = 'none';
+            if (elements.progress) elements.progress.style.display = 'none';
         }
 
         function showToast(message, type = 'info') {
+            if (!elements.toastContainer) return;
+            
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
             
