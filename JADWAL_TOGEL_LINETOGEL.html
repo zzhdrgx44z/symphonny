@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Space+Grotesk:wght@300;500;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-deep: #09090b;
@@ -451,6 +451,195 @@
             100% { box-shadow: 0 0 0 0 rgba(255, 0, 85, 0); }
         }
 
+        /* --- UNIQUE RESULT OVERLAY (NEW) --- */
+        .result-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 5, 10, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 3000; /* Di atas semua */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            /* Grid Background Effect */
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .result-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .hologram-card {
+            width: 90%;
+            max-width: 600px;
+            background: rgba(10, 10, 15, 0.8);
+            border: 1px solid var(--neon-blue);
+            padding: 3rem;
+            text-align: center;
+            position: relative;
+            /* Bentuk Sudut Tech */
+            clip-path: polygon(
+                10% 0, 100% 0, 100% 85%, 90% 100%, 0 100%, 0 15%
+            );
+            box-shadow: 0 0 50px rgba(0, 242, 234, 0.2);
+        }
+
+        /* Garis Berkedip di atas kartu */
+        .hologram-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: var(--neon-blue);
+            box-shadow: 0 0 10px var(--neon-blue);
+            animation: scanTop 2s infinite;
+        }
+
+        @keyframes scanTop {
+            0% { opacity: 0.2; }
+            50% { opacity: 1; box-shadow: 0 0 20px var(--neon-blue); }
+            100% { opacity: 0.2; }
+        }
+
+        /* API Animation Styles */
+        .res-status {
+            font-family: 'Space Mono', monospace;
+            font-size: 1rem;
+            color: var(--neon-blue);
+            margin-bottom: 0.5rem;
+            min-height: 1.5rem; /* Agar layout tidak loncat */
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .res-label {
+            color: var(--neon-blue);
+            font-family: 'Space Grotesk';
+            font-size: 1rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .res-market {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            font-family: 'Space Grotesk', sans-serif;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Angka Result Besar */
+        .res-number {
+            font-family: 'Space Mono', monospace;
+            font-size: 5rem;
+            font-weight: 700;
+            color: var(--neon-gold);
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+            line-height: 1;
+            margin-bottom: 2rem;
+            letter-spacing: 0.1em;
+            position: relative;
+            display: inline-block;
+        }
+
+        /* Efek Angka "Mati" saat loading */
+        .res-number.loading {
+            color: #333;
+            text-shadow: none;
+            animation: pulseLoading 1s infinite alternate;
+        }
+
+        @keyframes pulseLoading {
+            from { opacity: 0.3; }
+            to { opacity: 0.8; }
+        }
+
+        /* Dekorasi Sudut */
+        .corner-deco {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid white;
+            transition: 0.3s;
+        }
+        .c-tl { top: 10px; left: 10px; border-bottom: none; border-right: none; }
+        .c-br { bottom: 10px; right: 10px; border-top: none; border-left: none; }
+
+        /* Progress Bar Timer */
+        .timer-bar-bg {
+            width: 100%;
+            height: 4px;
+            background: #333;
+            margin-top: 2rem;
+            position: relative;
+            overflow: hidden;
+            border-radius: 2px;
+        }
+
+        .timer-bar-fill {
+            height: 100%;
+            background: var(--neon-purple);
+            width: 100%;
+            box-shadow: 0 0 10px var(--neon-purple);
+            transition: width 1s linear;
+        }
+
+        .close-btn-custom {
+            margin-top: 2rem;
+            background: transparent;
+            border: 1px solid var(--text-muted);
+            color: var(--text-muted);
+            padding: 0.8rem 2.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Space Grotesk';
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: 0.3s;
+            position: relative;
+            z-index: 10;
+        }
+        .close-btn-custom:hover {
+            border-color: var(--neon-blue);
+            color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 242, 234, 0.2);
+        }
+        
+        /* Status Text Sukses */
+        .res-status.success {
+            color: #00ff9d; /* Hijau Neon */
+            text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+        }
+
+        /* Loading Bar Biru (Proses API) */
+        .res-load-bar {
+            width: 100%;
+            height: 4px;
+            background: #1a1a1a;
+            margin-bottom: 2rem;
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid #333;
+        }
+
+        .res-load-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--neon-blue);
+            box-shadow: 0 0 15px var(--neon-blue);
+            transition: width 0.1s linear;
+        }
+
         /* --- MODAL & TOAST --- */
         .toast {
             position: fixed; top: 30px; right: 30px;
@@ -565,7 +754,7 @@
         @media (max-width: 600px) {
             .nav-floater { width: 100%; overflow-x: auto; border-radius: 12px; }
             .nav-glass { flex: 1; padding: 0.8rem; font-size: 0.8rem; }
-            .card-actions { grid-template-columns: 1fr; }
+            .card-actions, .live-actions { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -590,7 +779,38 @@
         <div style="text-align: right; margin-top: 0.5rem; font-family: 'Space Grotesk'; color: var(--neon-blue);" id="vol-val">70%</div>
     </div>
 
-    <!-- MODAL -->
+    <!-- UNIQUE RESULT OVERLAY -->
+    <div class="result-overlay" id="result-overlay">
+        <div class="hologram-card">
+            <div class="corner-deco c-tl"></div>
+            <div class="corner-deco c-br"></div>
+            
+            <!-- Status Text (API Feedback) -->
+            <div id="res-status" class="res-status">WAITING FOR SIGNAL...</div>
+
+            <div class="res-label">DATA PACKET</div>
+            <div class="res-market" id="res-market-name">MARKET NAME</div>
+            
+            <!-- Loading Bar Fake API -->
+            <div id="res-load-bar" class="res-load-bar">
+                <div id="res-load-fill" class="res-load-fill"></div>
+            </div>
+            
+            <!-- Angka akan dimasukkan via JS -->
+            <div class="res-number" id="res-number-display">0000</div>
+            
+            <div style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Result Time: <span id="res-time-display" style="color:white">00:00</span> WIB</div>
+
+            <!-- Timer Auto-Close (Bar Ungu) -->
+            <div class="timer-bar-bg">
+                <div class="timer-bar-fill" id="res-timer-bar"></div>
+            </div>
+            
+            <button class="close-btn-custom" onclick="closeUniqueResult()">Close Transmission</button>
+        </div>
+    </div>
+
+    <!-- MODAL (TEST BUTTON / FALLBACK) -->
     <div class="modal-overlay" id="modal">
         <div class="modal-glass">
             <div class="modal-header">
@@ -702,7 +922,7 @@
                     <div style="font-size: 3.5rem; font-weight: 700; color: white; font-family: 'Space Grotesk';" id="stat-active">0</div>
                 </div>
                 <div class="glass-card" style="text-align: center;">
-                    <i class="fas fa-hourglass-half" style="font-size: 3rem; color: var(--neon-gold); margin-bottom: 1rem;"></i>
+                    <i class="fas fa-hourglass-half" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
                     <div style="font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted);">Pending</div>
                     <div style="font-size: 3.5rem; font-weight: 700; color: white; font-family: 'Space Grotesk';" id="stat-pending">0</div>
                 </div>
@@ -720,7 +940,7 @@
     </div>
 
     <script>
-        /* --- DATA ENGINE (IDENTICAL) --- */
+        /* --- DATA ENGINE (USER PROVIDED) --- */
         const scheduleData = [
             { pasaran: "TOTO MACAU PAGI", jamBetclosed: "00:00", jamResult: "00:15", linkSitus: "http://totomacau-pools.us/", linkStreaming: "https://kick.com/live-ttm4d", category: "International" },
             { pasaran: "KENTUCKY MIDDAY", jamBetclosed: "01:05", jamResult: "01:20", linkSitus: "https://www.kylottery.com/apps/draw_games/pick4/", linkStreaming: "", category: "USA" },
@@ -789,12 +1009,13 @@
             });
         }
 
-        /* --- LOGIC (IDENTICAL) --- */
+        /* --- LOGIC (USER PROVIDED) --- */
         let soundOn = true, alarmOn = true, curFilter = 'all', vol = 0.7;
         let audioCtx = null, triggered = new Set();
         let alarmIntervalId = null; 
         let alarmTimeouts = []; 
         let alarmDuration = 30;
+        let resultTimerInterval; // New var for unique result timer
 
         function initAudio() {
             if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -882,24 +1103,118 @@
         }
         setInterval(updateClock, 1000);
 
-        function showResultNotification(marketName, resultTime) {
-            showToast(`Result: ${marketName}`);
-            document.getElementById('modal-msg').innerText = `${marketName} - Time: ${resultTime} WIB`;
-            document.getElementById('modal').style.display = 'flex';
+        /* --- UNIQUE RESULT LOGIC (NEW) --- */
+        
+        // Helper untuk delay (async/await)
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Timer untuk auto-close
+        async function showResultNotification(marketName, resultTime) {
+            // --- STEP 0: RESET & SHOW OVERLAY ---
+            const overlay = document.getElementById('result-overlay');
+            const marketEl = document.getElementById('res-market-name');
+            const timeEl = document.getElementById('res-time-display');
+            const numEl = document.getElementById('res-number-display');
+            const statusEl = document.getElementById('res-status');
+            const loadBar = document.getElementById('res-load-fill');
+            const barEl = document.getElementById('res-timer-bar');
+
+            overlay.classList.add('show');
+            
+            // Reset tampilan ke kondisi awal
+            marketEl.innerText = marketName;
+            timeEl.innerText = resultTime;
+            numEl.innerText = "0000";
+            numEl.classList.add('loading'); // Matikan angka
+            statusEl.innerText = "INITIALIZING CONNECTION...";
+            statusEl.classList.remove('success');
+            loadBar.style.width = "0%";
+            loadBar.parentElement.style.opacity = "1";
+            barEl.style.width = '100%';
+            
+            // Jalankan Alarm
             playAlarm();
             
+            // Update Header
             const bcText = document.getElementById('bc-text');
             const bcIndicator = document.getElementById('bc-indicator');
-            bcText.innerHTML = `RESULT: <strong style="color:white">${marketName}</strong>`;
+            bcText.innerHTML = `FETCHING: <strong style="color:white">${marketName}</strong>`;
             bcText.classList.add('active');
-            bcIndicator.style.background = 'var(--neon-purple)';
-            bcIndicator.style.boxShadow = '0 0 10px var(--neon-purple)';
+            bcIndicator.style.background = 'var(--neon-blue)';
+            bcIndicator.style.boxShadow = '0 0 10px var(--neon-blue)';
+
+            // --- STEP 1: HANDSHAKE (0.6s) ---
+            await sleep(600);
+            statusEl.innerText = "AUTHENTICATING SERVER...";
+
+            // --- STEP 2: DOWNLOADING DATA (1.5s) ---
+            statusEl.innerText = "DOWNLOADING DATA PACKET...";
+            loadBar.style.width = "20%";
+            await sleep(300);
+            loadBar.style.width = "50%";
+            await sleep(300);
+            loadBar.style.width = "80%";
+            await sleep(300);
+            loadBar.style.width = "100%";
+            await sleep(300);
+
+            // --- STEP 3: DECRYPTING (0.5s) ---
+            statusEl.innerText = "DECRYPTING SEQUENCE...";
+            // Hilangkan loading bar biar angka fokus
+            loadBar.parentElement.style.opacity = "0";
+            await sleep(500);
+
+            // --- STEP 4: SCRAMBLE & REVEAL ---
+            statusEl.innerText = "TRANSMISSION COMPLETE";
+            statusEl.classList.add('success');
             
-            setTimeout(() => {
-                triggered.delete("main_loop");
-                stopAlarm();
-                setTimeout(updateBetClosedMonitor, 1000);
-            }, alarmDuration * 1000);
+            // Generate Angka Random
+            const randomResult = Math.floor(1000 + Math.random() * 9000).toString();
+            
+            // Hapus kelas loading supaya warna muncul
+            numEl.classList.remove('loading');
+            
+            // Jalankan efek huruf kacau
+            scrambleText(numEl, randomResult, 2500);
+
+            // --- STEP 5: TIMER AUTO-CLOSE ---
+            let timeLeft = 10;
+            barEl.style.width = '100%';
+            
+            // Bersihkan timer lama jika ada
+            if(resultTimerInterval) clearInterval(resultTimerInterval);
+
+            resultTimerInterval = setInterval(() => {
+                timeLeft--;
+                const percentage = (timeLeft / 10) * 100;
+                barEl.style.width = `${percentage}%`;
+
+                if(timeLeft <= 0) {
+                    closeUniqueResult();
+                }
+            }, 1000);
+        }
+
+        function closeUniqueResult() {
+            const overlay = document.getElementById('result-overlay');
+            overlay.classList.remove('show');
+            
+            // Stop Alarm
+            triggered.delete("main_loop");
+            stopAlarm();
+            
+            // Bersihkan Timer
+            if(resultTimerInterval) clearInterval(resultTimerInterval);
+            
+            // Reset Header
+            setTimeout(updateBetClosedMonitor, 500);
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+            stopAlarm();
         }
 
         function showToast(msg) {
@@ -907,11 +1222,6 @@
             document.getElementById('toast-msg').innerText = msg;
             t.classList.add('show');
             setTimeout(()=>t.classList.remove('show'), 3000);
-        }
-
-        function closeModal() {
-            document.getElementById('modal').style.display = 'none';
-            stopAlarm();
         }
 
         function copyToClipboard(text, btnElement) {
@@ -935,7 +1245,29 @@
             showToast("Data Copied to Clipboard");
         }
 
-        /* --- UI RENDERING (ADAPTED TO NEW STYLE) --- */
+        function scrambleText(element, finalString, duration = 1000) {
+            const chars = '!<>-_\\/[]{}—=+*^?#________'; // Karakter acak
+            let iterations = 0;
+            const interval = setInterval(() => {
+                element.innerText = finalString
+                    .split("")
+                    .map((letter, index) => {
+                        if (index < iterations) {
+                            return finalString[index];
+                        }
+                        return chars[Math.floor(Math.random() * chars.length)];
+                    })
+                    .join("");
+                
+                if (iterations >= finalString.length) { 
+                    clearInterval(interval);
+                }
+                
+                iterations += 1 / 2; 
+            }, 30);
+        }
+
+        /* --- UI RENDERING --- */
         function initMarketDropdown() {
             const select = document.getElementById('market-select');
             scheduleData.forEach(item => {
@@ -1167,7 +1499,7 @@
             const currentSecond = now.getSeconds();
             
             updateBetClosedMonitor();
-            renderLiveSection();
+            renderLiveSection(); // Re-render structure (optional, or just update timers via JS logic below)
             
             scheduleData.forEach(s => {
                 const [rh, rm] = s.jamResult.split(':').map(Number);
