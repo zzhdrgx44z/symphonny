@@ -3,20 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CYBER GRID // LIVE TRACKING</title>
+    <title>CYBER GRID // ULTIMATE TRACKING</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Space+Grotesk:wght@300;500;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Noto+Serif+SC:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Space+Grotesk:wght@300;500;700;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Noto+Serif+SC:wght@500;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-deep: #050508;
             --glass-bg: rgba(255, 255, 255, 0.03);
             --glass-border: rgba(255, 255, 255, 0.08);
             
-            /* Dynamic Primary Color */
-            --primary-color: #00f2ea; 
-            --neon-blue: #00f2ea; /* Fallback */
+            --primary-color: #00f2ea; /* Default Neon Blue */
+            --neon-blue: #00f2ea;
             --neon-purple: #ff0055;
             --neon-gold: #ffd700;
             
@@ -28,30 +27,61 @@
             
             --radius: 20px;
             --shadow-glow: 0 0 20px rgba(0, 242, 234, 0.15);
+            --card-grid-cols: repeat(auto-fill, minmax(320px, 1fr));
         }
+
+        /* --- LAYOUT OVERRIDES --- */
+        /* Compact Mode */
+        body.is-compact {
+            --card-grid-cols: repeat(auto-fill, minmax(250px, 1fr));
+        }
+        body.is-compact .glass-card { padding: 1rem; }
+        body.is-compact .market-name { font-size: 1.1rem; }
+        body.is-compact .control-deck { padding: 1rem; gap: 1rem; }
+
+        /* List Mode */
+        body.is-list .grid-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        body.is-list .glass-card {
+            flex-direction: row;
+            align-items: center;
+            padding: 1rem;
+            height: auto;
+        }
+        body.is-list .card-header { margin-bottom: 0; min-width: 200px; }
+        body.is-list .card-data { margin-bottom: 0; padding: 0 10px; border-bottom: none; }
+        body.is-list .card-actions { margin-top: 0; padding-top: 0; }
+        body.is-list .market-cat { display: none; }
+        body.is-list .badge-status { font-size: 0.7rem; padding: 2px 8px; }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             background-color: var(--bg-deep);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             color: var(--text-main);
             font-family: 'Outfit', sans-serif;
             min-height: 100vh;
             overflow-x: hidden;
             position: relative;
+            transition: background 0.5s ease;
         }
 
-        /* --- ANIMATED BACKGROUND LAYERS --- */
-        
-        /* Layer 1: Cyber Grid Canvas */
+        /* --- BACKGROUND --- */
         #cyber-canvas {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            z-index: -2; /* Di bawah lantern */
+            z-index: -2;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
         }
 
-        /* Layer 2: Ambient Glows (CSS) */
         body::before, body::after {
             content: '';
             position: fixed;
@@ -63,6 +93,7 @@
             z-index: -1;
             animation: floatBlob 25s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
             pointer-events: none;
+            transition: opacity 0.5s ease;
         }
 
         body::before {
@@ -81,29 +112,25 @@
             100% { transform: translate(100px, 100px) scale(1.3); }
         }
 
-        /* --- LANTERN BACKGROUND (IMLEK CSS ANIMATION) --- */
+        /* --- LANTERNS --- */
         .lantern-container {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
             z-index: -1;
             overflow: hidden;
+            transition: opacity 0.5s ease;
         }
 
         .lantern-wrapper {
             position: absolute;
-            width: 40px;
-            height: 100px;
+            width: 40px; height: 100px;
             animation: floatAround linear infinite;
             will-change: transform;
         }
 
         .lantern {
-            width: 40px;
-            height: 50px;
+            width: 40px; height: 50px;
             background: radial-gradient(circle at 30% 30%, #ff5e62, #8a0e1e);
             border-radius: 10px 10px 5px 5px;
             box-shadow: 0 0 25px rgba(255, 94, 98, 0.6), inset 0 0 15px rgba(255, 215, 0, 0.3);
@@ -111,53 +138,20 @@
             opacity: 0.9;
             position: relative;
         }
-
         .lantern::before {
-            content: '';
-            position: absolute;
-            top: -20px;
-            left: 50%;
-            width: 2px;
-            height: 20px;
-            background: rgba(255,255,255,0.5);
-            transform: translateX(-50%);
+            content: ''; position: absolute; top: -20px; left: 50%; width: 2px; height: 20px;
+            background: rgba(255,255,255,0.5); transform: translateX(-50%);
         }
-        
         .lantern::after {
-            content: '';
-            position: absolute;
-            bottom: -20px;
-            left: 50%;
-            width: 4px;
-            height: 20px;
-            background: var(--neon-gold);
-            transform: translateX(-50%);
+            content: ''; position: absolute; bottom: -20px; left: 50%; width: 4px; height: 20px;
+            background: var(--neon-gold); transform: translateX(-50%);
             box-shadow: 0 0 15px var(--neon-gold);
         }
 
-        @keyframes swingLantern {
-            from { transform: rotate(-8deg); }
-            to { transform: rotate(8deg); }
-        }
+        @keyframes swingLantern { from { transform: rotate(-8deg); } to { transform: rotate(8deg); } }
+        @keyframes floatAround { 0% { transform: translate(0, 0); } 25% { transform: translate(15px, -25px); } 50% { transform: translate(-15px, -40px); } 75% { transform: translate(-25px, -15px); } 100% { transform: translate(0, 0); } }
 
-        @keyframes floatAround {
-            0% { transform: translate(0, 0); }
-            25% { transform: translate(15px, -25px); }
-            50% { transform: translate(-15px, -40px); }
-            75% { transform: translate(-25px, -15px); }
-            100% { transform: translate(0, 0); }
-        }
-
-        /* --- LAYOUT --- */
-        .app-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem 1.5rem;
-            position: relative;
-            z-index: 10;
-        }
-
-        /* --- GLASS HEADER --- */
+        /* --- HEADER (UPDATED WITH GLITCH) --- */
         header {
             background: rgba(20, 20, 25, 0.7);
             backdrop-filter: blur(25px);
@@ -174,26 +168,86 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
         }
 
-        .brand h1 {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.8rem;
-            font-weight: 700;
-            letter-spacing: -1px;
-            background: linear-gradient(90deg, #fff, var(--primary-color)); /* Dynamic color */
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-transform: uppercase;
-        }
-        
-        .brand span {
-            font-size: 0.8rem;
-            letter-spacing: 2px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            display: block;
-            margin-top: -5px;
+        .brand-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
         }
 
+        .brand h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.8rem; /* Adjusted slightly for better fit */
+            font-weight: 900; 
+            letter-spacing: -2px;
+            text-transform: uppercase;
+            color: white;
+            position: relative;
+            display: inline-block;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .brand h1 span {
+            background: linear-gradient(90deg, #fff, var(--primary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Scanline Overlay */
+        .brand h1::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0) 50%, rgba(0, 242, 234, 0.4) 51%, rgba(255,255,255,0) 100%);
+            background-size: 100% 4px;
+            animation: scanText 2s linear infinite;
+            pointer-events: none;
+        }
+
+        /* Glitch Animation on Hover */
+        .brand:hover .brand h1 {
+            animation: glitchText 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+            color: var(--neon-blue);
+        }
+        
+        .brand:hover .brand h1::after { display: none; }
+
+        @keyframes scanText {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 100%; }
+        }
+
+        @keyframes glitchText {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        .brand-sub {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--neon-blue);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            opacity: 0.8;
+            animation: typing 3s steps(30, end) infinite;
+            white-space: nowrap;
+            overflow: hidden;
+            border-right: 2px solid var(--neon-blue);
+            padding-right: 5px;
+            display: inline-block;
+            margin-top: 4px;
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        /* --- HUD WRAPPER --- */
         .hud-wrapper {
             display: flex;
             gap: 1rem;
@@ -236,10 +290,7 @@
             animation: pulseText 1.5s infinite;
         }
 
-        @keyframes pulseText {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
+        @keyframes pulseText { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
         /* --- NAVIGATION --- */
         .nav-floater {
@@ -358,7 +409,7 @@
         /* --- CARDS GRID --- */
         .grid-layout {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            grid-template-columns: var(--card-grid-cols);
             gap: 2rem;
         }
 
@@ -397,10 +448,7 @@
             animation: scanLine 2s linear infinite;
         }
 
-        @keyframes scanLine {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
+        @keyframes scanLine { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 
         .card-header {
             display: flex;
@@ -845,23 +893,33 @@
 
         /* --- NEW: SETTINGS & ANALYTICS STYLES --- */
         .settings-container {
-            display: flex; flex-direction: column; gap: 1.5rem; max-width: 600px; margin: 0 auto;
+            display: flex; flex-direction: column; gap: 1.5rem; max-width: 700px; margin: 0 auto;
         }
-        .setting-item {
-            background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); padding: 1.5rem;
-            border-radius: 12px; display: flex; justify-content: space-between; align-items: center;
-        }
+        .setting-item { background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); padding: 1.5rem; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
         .setting-info h4 { margin-bottom: 5px; color: white; font-family: 'Space Grotesk'; }
         .setting-info p { color: var(--text-muted); font-size: 0.85rem; }
-        .toggle-switch {
-            position: relative; width: 50px; height: 26px; background: #333; border-radius: 13px; cursor: pointer; transition: 0.3s;
-        }
+        .toggle-switch { position: relative; width: 50px; height: 26px; background: #333; border-radius: 13px; cursor: pointer; transition: 0.3s; }
         .toggle-switch.active { background: var(--primary-color); }
-        .toggle-knob {
-            position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: white; border-radius: 50%;
-            transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        }
+        .toggle-knob { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
         .toggle-switch.active .toggle-knob { transform: translateX(24px); }
+        
+        /* Wallpaper & Layout Controls */
+        .control-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+            margin-top: 10px;
+        }
+        .wallpaper-thumb {
+            height: 60px; border-radius: 8px; border: 2px solid transparent; cursor: pointer; background-size: cover; background-position: center; position: relative;
+        }
+        .wallpaper-thumb.active { border-color: var(--primary-color); box-shadow: 0 0 10px var(--primary-color); }
+        .wallpaper-thumb span {
+            position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); color: white; font-size: 0.6rem; padding: 2px; text-align: center; border-radius: 0 0 6px;
+        }
+        .layout-btn {
+            flex: 1; padding: 0.8rem; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.05); color: var(--text-muted); border-radius: 8px; cursor: pointer; text-align: center; transition: 0.2s; font-size: 0.8rem;
+        }
+        .layout-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+        .layout-btn.active { background: var(--primary-color); color: #000; font-weight: 700; border-color: var(--primary-color); }
 
         .theme-options { display: flex; gap: 10px; }
         .theme-circle { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
@@ -973,11 +1031,13 @@
     </div>
 
     <div class="app-container">
-        <!-- HEADER -->
+        <!-- HEADER (UPDATED) -->
         <header>
-            <div class="brand">
-                <h1>Cyber<span style="color: var(--neon-purple)">Grid</span></h1>
-                <span>Lottery Intelligence System</span>
+            <div class="brand-container">
+                <div class="brand">
+                    <h1>CYBER <span>GRID</span></h1>
+                    <div class="brand-sub">LOTTERY INTELLIGENCE SYSTEM</div>
+                </div>
             </div>
             <div class="hud-wrapper">
                 <div class="hud-panel">
@@ -1054,7 +1114,7 @@
             <div class="grid-layout" id="grid"></div>
         </div>
 
-        <!-- STATS TAB (UPGRADED) -->
+        <!-- STATS TAB -->
         <div id="stats-tab" style="display: none;">
             <div class="grid-layout">
                 <div class="glass-card" style="text-align: center; border-color: var(--neon-blue);">
@@ -1085,7 +1145,7 @@
             </div>
         </div>
 
-        <!-- SETTINGS TAB (UPGRADED) -->
+        <!-- SETTINGS TAB -->
         <div id="settings-tab" style="display: none;">
             <div class="settings-container">
                 <div class="glass-card">
@@ -1114,6 +1174,47 @@
                         </div>
                     </div>
 
+                    <!-- NEW: WALLPAPER SECTION -->
+                    <div class="setting-item" style="display: block;">
+                        <div class="setting-info">
+                            <h4>Wallpaper</h4>
+                            <p>Select background style.</p>
+                        </div>
+                        <div class="control-grid">
+                            <div class="wallpaper-thumb active" style="background: #050508;" onclick="setWallpaper('cyber', this)">
+                                <span>Cyber</span>
+                            </div>
+                            <div class="wallpaper-thumb" style="background: linear-gradient(to bottom, #000000, #1a1a2e);" onclick="setWallpaper('deep', this)">
+                                <span>Deep Space</span>
+                            </div>
+                            <div class="wallpaper-thumb" style="background: linear-gradient(to bottom, #2b0a1a, #000000);" onclick="setWallpaper('nebula', this)">
+                                <span>Red Nebula</span>
+                            </div>
+                            <div class="wallpaper-thumb" style="background: linear-gradient(to bottom, #1a1500, #000000);" onclick="setWallpaper('gold', this)">
+                                <span>Gold Lux</span>
+                            </div>
+                        </div>
+                        <div style="margin-top:10px; display:flex; gap:10px;">
+                             <label for="custom-wallpaper" class="layout-btn" style="width: auto; padding: 5px 15px;">
+                                <i class="fas fa-upload"></i> Upload Custom
+                             </label>
+                             <input type="file" id="custom-wallpaper" accept="image/*" style="display: none;" onchange="handleWallpaperUpload(this)">
+                        </div>
+                    </div>
+
+                    <!-- NEW: LAYOUT SECTION -->
+                    <div class="setting-item" style="display: block;">
+                        <div class="setting-info">
+                            <h4>Layout View</h4>
+                            <p>Change card display style.</p>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <div class="layout-btn active" onclick="setLayout('grid', this)"><i class="fas fa-th-large"></i> Grid</div>
+                            <div class="layout-btn" onclick="setLayout('list', this)"><i class="fas fa-list"></i> List</div>
+                            <div class="layout-btn" onclick="toggleCompact(this)"><i class="fas fa-compress"></i> Compact</div>
+                        </div>
+                    </div>
+
                     <div class="setting-item" style="display:block">
                         <div class="setting-info" style="margin-bottom:1rem">
                             <h4>System Actions</h4>
@@ -1129,7 +1230,7 @@
     </div>
 
     <script>
-        /* --- DATA ENGINE (SESUAI DATA ANDA) --- */
+        /* --- DATA ENGINE --- */
         const scheduleData = [
             { pasaran: "TOTO MACAU PAGI", jamBetclosed: "00:00", jamResult: "00:15", linkSitus: "http://totomacau-pools.us/", linkStreaming: "https://kick.com/live-ttm4d", category: "International" },
             { pasaran: "KENTUCKY MIDDAY", jamBetclosed: "01:05", jamResult: "01:20", linkSitus: "https://www.kylottery.com/apps/draw_games/pick4/", linkStreaming: "", category: "USA" },
@@ -1326,7 +1427,7 @@
                     this.z = Math.random() * 2 + 0.5; // Speed/Depth
                     this.size = Math.random() * 3 + 1;
                     this.type = Math.random() > 0.7 ? 'binary' : 'gold'; // 30% Binary, 70% Gold Dust
-                    
+                        
                     if (this.type === 'binary') {
                         this.char = Math.random() > 0.5 ? '1' : '0';
                         this.color = `rgba(0, 242, 234, ${Math.random() * 0.3})`; // Neon Blue
@@ -1892,7 +1993,6 @@
             document.querySelectorAll('.theme-circle').forEach(c=>c.classList.remove('active'));
             el.classList.add('active');
             
-            // Refresh Charts if active
             if(document.getElementById('stats-tab').style.display !== 'none') renderStatsDistribution();
         }
 
@@ -1909,6 +2009,94 @@
         function updateVol() {
             vol = document.getElementById('vol-slider').value/100;
             document.getElementById('vol-val').innerText = document.getElementById('vol-slider').value+'%';
+        }
+        
+        /* --- WALLPAPER & LAYOUT LOGIC --- */
+        function setWallpaper(type, el) {
+            // Reset active states
+            document.querySelectorAll('.wallpaper-thumb').forEach(e => e.classList.remove('active'));
+            el.classList.add('active');
+
+            const body = document.body;
+            const canvas = document.getElementById('cyber-canvas');
+            const lanterns = document.getElementById('lantern-bg');
+            const blobs = document.querySelectorAll('body::before, body::after');
+
+            // Reset styles
+            body.style.backgroundImage = 'none';
+            body.style.backgroundColor = '#050508';
+            canvas.style.opacity = '1';
+            lanterns.style.opacity = '1';
+            blobs.forEach(b => b.style.opacity = '0.4');
+
+            if (type === 'cyber') {
+                body.style.backgroundColor = '#050508';
+                canvas.style.opacity = '1';
+                lanterns.style.opacity = '1';
+            } else if (type === 'deep') {
+                body.style.backgroundColor = '#000000';
+                canvas.style.opacity = '0.3'; // Dim canvas
+                lanterns.style.opacity = '0.2'; // Dim lanterns
+            } else if (type === 'nebula') {
+                body.style.backgroundColor = '#1a0505';
+                body.style.backgroundImage = 'radial-gradient(circle at 50% 50%, #4a0000 0%, #000 100%)';
+                canvas.style.opacity = '0'; // Hide canvas
+                lanterns.style.opacity = '0';
+                blobs.forEach(b => b.style.opacity = '0');
+            } else if (type === 'gold') {
+                body.style.backgroundColor = '#1a1500';
+                body.style.backgroundImage = 'radial-gradient(circle at 50% 50%, #332200 0%, #000 100%)';
+                canvas.style.opacity = '0';
+                lanterns.style.opacity = '0';
+                blobs.forEach(b => b.style.opacity = '0');
+            }
+
+            showToast(`Wallpaper: ${type.toUpperCase()}`);
+        }
+
+        function handleWallpaperUpload(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.body.style.backgroundImage = `url(${e.target.result})`;
+                    document.getElementById('cyber-canvas').style.opacity = '0';
+                    document.getElementById('lantern-bg').style.opacity = '0';
+                    document.querySelectorAll('body::before, body::after').forEach(b => b.style.opacity = '0');
+                    showToast("Custom Wallpaper Applied");
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function setLayout(type, el) {
+            const body = document.body;
+            document.querySelectorAll('.layout-btn').forEach(b => {
+                if(!b.classList.contains('compact-chip')) b.classList.remove('active');
+            });
+            el.classList.add('active');
+
+            if (type === 'grid') {
+                body.classList.remove('is-list');
+                body.classList.remove('is-compact');
+            } else if (type === 'list') {
+                body.classList.add('is-list');
+                body.classList.remove('is-compact');
+            }
+            showToast(`Layout: ${type.toUpperCase()}`);
+        }
+
+        function toggleCompact(el) {
+            const body = document.body;
+            body.classList.toggle('is-compact');
+            
+            // Visual toggle for button itself
+            if(body.classList.contains('is-compact')) {
+                el.classList.add('active');
+                showToast("Compact View Enabled");
+            } else {
+                el.classList.remove('active');
+                showToast("Compact View Disabled");
+            }
         }
         
         /* --- SYSTEM ACTIONS --- */
