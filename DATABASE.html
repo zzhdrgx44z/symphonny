@@ -398,6 +398,48 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
+    /* Toast Notification */
+    #notif-container {
+      position: fixed;
+      bottom: 110px;
+      right: 30px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .toast-notification {
+      background: #000;
+      border: 1px solid #333;
+      border-left: 4px solid var(--accent-warning);
+      padding: 15px 20px;
+      color: #fff;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+      animation: slideIn 0.3s ease-out;
+      max-width: 300px;
+    }
+    .toast-exit { animation: slideOut 0.3s ease-in forwards; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes slideOut { to { transform: translateX(100%); opacity: 0; } }
+    .toast-icon { color: var(--accent-warning); font-size: 1.2rem; }
+
+    /* Loading Screen */
+    #loader {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: #000; z-index: 99999;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+      transition: opacity 0.5s, visibility 0.5s;
+    }
+    #loader.hidden { opacity: 0; visibility: hidden; }
+    .loader-bar-container { width: 300px; height: 4px; background: #222; position: relative; overflow: hidden; }
+    .loader-bar { height: 100%; width: 0; background: var(--accent-warning); transition: width 0.2s; }
+    .loader-text { font-family: 'IBM Plex Mono'; color: #666; font-size: 0.8rem; letter-spacing: 1px; }
+
     @media (max-width: 900px) {
       .top-nav { height: auto; flex-direction: column; padding: 15px; gap: 15px; margin-top: 4px; }
       .brand { border-right: none; border-bottom: 2px solid #333; padding-right: 0; padding-bottom: 15px; width: 100%; justify-content: center; }
@@ -412,7 +454,6 @@
       .content-wrapper { box-shadow: none; }
       #notif-container { bottom: 70px; width: calc(100% - 20px); left: 10px; right: 10px; }
       
-      /* Mobile adjustments for sidebar layout */
       .layout-split {
         flex-direction: column;
       }
@@ -434,22 +475,16 @@
 
   <!-- Animation Layer: Enhanced Cyber Rover -->
   <div class="animation-layer">
-    <!-- Road -->
     <div class="road">
       <div class="road-stripe"></div>
     </div>
-
-    <!-- Speed Lines -->
     <div class="speed-line" style="top: 20px; animation-delay: 0.1s;"></div>
     <div class="speed-line" style="top: 40px; animation-delay: 0.4s;"></div>
     <div class="speed-line" style="top: 60px; animation-delay: 0.6s;"></div>
     <div class="speed-line" style="top: 30px; animation-delay: 0.2s;"></div>
 
-    <!-- Car -->
     <div class="cyber-rover">
       <div class="underglow"></div>
-      
-      <!-- SVG Car Body -->
       <svg class="car-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
         <path class="car-body" d="M20,60 Q30,20 80,20 L160,20 Q190,20 190,50 L190,70 Q190,80 180,80 L20,80 Q10,80 10,70 L10,60 Z" />
         <path class="car-window" d="M35,25 Q40,10 70,10 L100,10 Q110,10 110,20 L35,25 Z" fill="#222" />
@@ -459,18 +494,9 @@
         <rect x="12" y="55" width="5" height="10" fill="#FF3333" />
         <rect x="183" y="35" width="8" height="15" class="car-light-front" />
       </svg>
-
       <div class="light-beam"></div>
-
-      <!-- Wheels -->
-      <div class="wheel-container wc-front">
-        <div class="wheel"></div>
-      </div>
-      <div class="wheel-container wc-back">
-        <div class="wheel"></div>
-      </div>
-
-      <!-- Dust -->
+      <div class="wheel-container wc-front"><div class="wheel"></div></div>
+      <div class="wheel-container wc-back"><div class="wheel"></div></div>
       <div class="dust-container">
         <div class="dust" style="width: 4px; height: 4px; top: 10px; left: 0; animation-delay: 0.1s;"></div>
         <div class="dust" style="width: 6px; height: 6px; top: 5px; left: 10px; animation-delay: 0.3s;"></div>
@@ -544,7 +570,7 @@
 
     let allData = {};
     let currentSheet = 'datalogin';
-    let activeSidebarIndex = 0; // To track active item in sidebar
+    let activeSidebarIndex = 0; 
 
     const loader = document.getElementById('loader');
     const loaderBar = document.getElementById('loaderBar');
@@ -745,6 +771,7 @@
             <div class="sidebar-list" id="sidebarListContainer">
               ${data.map((row, index) => {
                 const key = row[keys[0]] || `Item ${index + 1}`;
+                // Sidebar items are not buttons, they just select
                 return `<div class="sidebar-item" data-index="${index}">
                           <i class="fas fa-chevron-right"></i>
                           ${escapeHTML(key)}
@@ -801,7 +828,7 @@
       const val = row[keys[1]] || '-';
       const desc = row[keys[2]] || '-';
 
-      const valEscaped = escapeHTML(val).replace(/"/g, '&quot;');
+      // Only escape description for the button attribute
       const descEscaped = escapeHTML(desc).replace(/"/g, '&quot;');
 
       detailPanel.innerHTML = `
@@ -816,8 +843,8 @@
           <div class="detail-desc-text">${escapeHTML(desc)}</div>
 
           <div class="detail-actions">
-            <button class="btn-industrial" data-val="${valEscaped}" data-desc="${descEscaped}">
-              <i class="fas fa-copy"></i> Copy Value
+            <button class="btn-industrial" data-desc-only="${descEscaped}">
+              <i class="fas fa-copy"></i> Copy Description
             </button>
           </div>
         </div>
@@ -851,7 +878,6 @@
         // If the currently active item is hidden, select the first visible one
         const activeItem = document.querySelector('.sidebar-item.active');
         if (activeItem && activeItem.style.display === 'none' && firstVisibleIndex !== -1) {
-           // Click the first visible item programmatically to update detail
            const nextItem = document.querySelector(`.sidebar-item[data-index="${firstVisibleIndex}"]`);
            if(nextItem) nextItem.click();
         }
@@ -884,7 +910,14 @@
 
       let textToCopy = '';
 
-      if (btn.dataset.val && btn.dataset.desc) {
+      // Logic for PK_anti_audit Detail View (Copy Description Only)
+      if (btn.dataset.descOnly) {
+        const txtArea = document.createElement('textarea');
+        txtArea.innerHTML = btn.dataset.descOnly;
+        textToCopy = txtArea.value;
+      }
+      // Logic for Standard Tables (Value + Desc)
+      else if (btn.dataset.val && btn.dataset.desc) {
         const val = btn.dataset.val;
         const desc = btn.dataset.desc;
         
@@ -900,25 +933,28 @@
              textToCopy = decodedVal;
         }
       } 
+      // Logic for QnA Tables
       else if (btn.dataset.text) {
         const txtArea = document.createElement('textarea');
         txtArea.innerHTML = btn.dataset.text;
         textToCopy = txtArea.value;
       }
 
-      try {
-        await navigator.clipboard.writeText(textToCopy);
-        btn.classList.add('success');
-        btn.innerText = 'OK';
-        showNotification('Data copied to clipboard');
-        setTimeout(() => {
-          btn.classList.remove('success');
-          btn.innerText = 'Copy Value'; // Changed from 'Copy' to match detail view
-          // If it's in a table, revert to just 'Copy'
-          if(btn.closest('table')) btn.innerText = 'Copy';
-        }, 1500);
-      } catch (err) {
-        console.error('Failed to copy:', err);
+      if(textToCopy) {
+        try {
+          await navigator.clipboard.writeText(textToCopy);
+          btn.classList.add('success');
+          // Change text based on button type
+          const originalText = btn.innerText;
+          btn.innerText = 'OK';
+          showNotification('Data copied to clipboard');
+          setTimeout(() => {
+            btn.classList.remove('success');
+            btn.innerText = originalText; 
+          }, 1500);
+        } catch (err) {
+          console.error('Failed to copy:', err);
+        }
       }
     });
 
