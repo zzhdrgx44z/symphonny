@@ -817,6 +817,9 @@
       });
     }
 
+    // ==========================================
+    // REVISION: HIDE VALUE FOR PK_anti_audit
+    // ==========================================
     function updateDetail(index) {
       const detailPanel = document.getElementById('detailPanel');
       const data = allData[currentSheet];
@@ -828,17 +831,24 @@
       const val = row[keys[1]] || '-';
       const desc = row[keys[2]] || '-';
 
-      // Only escape description for the button attribute
       const descEscaped = escapeHTML(desc).replace(/"/g, '&quot;');
 
-      detailPanel.innerHTML = `
+      // Build HTML without Value for PK_anti_audit
+      let detailHtml = `
         <div class="detail-content">
           <div class="detail-label">ID / Key</div>
           <div style="font-size: 1rem; color: #fff; margin-bottom: 15px;">${escapeHTML(key)}</div>
+      `;
 
-          <div class="detail-label">Value</div>
-          <div class="detail-value">${escapeHTML(val)}</div>
+      // Only show Value block if NOT PK_anti_audit
+      if (currentSheet !== 'PK_anti_audit') {
+          detailHtml += `
+            <div class="detail-label">Value</div>
+            <div class="detail-value">${escapeHTML(val)}</div>
+          `;
+      }
 
+      detailHtml += `
           <div class="detail-desc-label">Deskripsi</div>
           <div class="detail-desc-text">${escapeHTML(desc)}</div>
 
@@ -849,6 +859,8 @@
           </div>
         </div>
       `;
+
+      detailPanel.innerHTML = detailHtml;
     }
 
     function filterHandler(e) {
