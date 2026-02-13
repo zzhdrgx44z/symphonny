@@ -32,120 +32,135 @@
     }
 
     /* =========================================== */
-    /* === ANIMATION: CYBER ROVER ENHANCED === */
+    /* === ANIMATION: CYBER ROAD ENHANCED === */
     /* =========================================== */
     
     .animation-layer {
-      position: fixed; bottom: 0; left: 0; width: 100%; height: 120px;
+      position: fixed; bottom: 0; left: 0; width: 100%; height: 140px;
       z-index: 999; pointer-events: none; overflow: hidden;
+      background: linear-gradient(to top, #000 0%, transparent 100%);
     }
 
-    /* Road */
-    .road { position: absolute; bottom: 0; width: 100%; height: 50px; background: #080808; border-top: 3px solid #222; }
-    .road-stripe { position: absolute; top: 25px; width: 100%; height: 4px; background: repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(255,255,255,0.15) 50px, rgba(255,255,255,0.15) 100px); animation: roadMove 0.4s linear infinite; }
-    
-    /* Kerb (Pinggir Jalan) */
-    .road-kerb {
-      position: absolute; bottom: 50px; width: 100%; height: 10px;
-      background: repeating-linear-gradient(90deg, #111 0, #111 20px, #000 20px, #000 40px);
-      border-bottom: 2px solid #333;
-    }
-
-    @keyframes roadMove { 0% { background-position-x: 0; } 100% { background-position-x: -100px; } }
-
-    /* Speed Lines */
-    .speed-line {
+    /* 1. CITY BACKGROUND (Parallax Layer 1 - Slowest) */
+    .city-bg {
       position: absolute;
-      height: 2px; background: rgba(255, 214, 0, 0.2);
-      animation: speedLine 1.5s linear infinite;
+      bottom: 50px; left: 0;
+      width: 200%; height: 100px;
+      background-image: 
+        linear-gradient(90deg, transparent 0%, transparent 49%, rgba(255,255,255,0.05) 49%, rgba(255,255,255,0.05) 51%, transparent 51%), /* gaps */
+        linear-gradient(transparent 95%, #111 95%);
+      background-size: 100px 100%, 100% 100%;
+      animation: cityMove 20s linear infinite;
+      opacity: 0.5;
+    }
+    /* Building shapes using pseudo element for variety */
+    .city-buildings {
+      position: absolute; bottom: 50px; left: 0;
+      width: 200%; height: 60px;
+      background: repeating-linear-gradient(90deg, 
+        #0a0a0a 0, #0a0a0a 20px, 
+        transparent 20px, transparent 25px,
+        #0a0a0a 25px, #0a0a0a 60px,
+        transparent 60px, transparent 70px
+      );
+      animation: cityMove 25s linear infinite;
+    }
+
+    @keyframes cityMove {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* 2. ROAD & LINES (Parallax Layer 2 - Fast) */
+    .road-container {
+      position: absolute; bottom: 0; left: 0; width: 100%; height: 50px;
+      background: #080808;
+      border-top: 2px solid #222;
+      perspective: 100px; /* slight 3D feel */
+    }
+    
+    .road-lines {
+      position: absolute; top: 25px; left: 0; width: 200%; height: 4px;
+      background: repeating-linear-gradient(90deg, 
+        transparent, transparent 20px, 
+        rgba(255, 214, 0, 0.2) 20px, rgba(255, 214, 0, 0.2) 40px
+      );
+      animation: roadFastMove 0.8s linear infinite;
       box-shadow: 0 0 5px rgba(255, 214, 0, 0.3);
     }
-    @keyframes speedLine {
-      0% { transform: translateX(100vw); opacity: 0; width: 0; }
-      50% { opacity: 1; width: 100px; }
-      100% { transform: translateX(-200px); opacity: 0; width: 50px; }
-    }
 
-    /* Car Container Base */
-    .cyber-rover {
-      position: absolute; bottom: 30px; 
-      width: 180px; height: 70px;
-      animation: suspension 0.2s ease-in-out infinite;
-      filter: drop-shadow(0 0 15px rgba(255, 214, 0, 0.3));
-    }
-
-    /* Car 1: Right to Left (Yellow) */
-    .car-1 {
-      right: -300px;
-      animation: driveCarRTL 14s linear infinite, suspension 0.2s ease-in-out infinite;
-    }
-
-    /* Car 2: Left to Right (Red) */
-    .car-2 {
-      left: -300px;
-      filter: drop-shadow(0 0 15px rgba(255, 50, 50, 0.4));
-      animation: driveCarLTR 18s linear infinite, suspension 0.25s ease-in-out infinite;
-    }
-
-    @keyframes driveCarRTL {
+    @keyframes roadFastMove {
       0% { transform: translateX(0); }
-      100% { transform: translateX(calc(-100vw - 400px)); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* 3. CARS (Layer 3 - Objects) */
+    
+    /* Car Base */
+    .cyber-car {
+      position: absolute; bottom: 10px; 
+      width: 160px; height: 60px;
+      filter: drop-shadow(0 0 10px rgba(255, 214, 0, 0.3));
+      transform-origin: center bottom;
+    }
+
+    /* Car 1: The Cruiser (Yellow) - Moves Right to Left */
+    .car-cruiser {
+      right: -200px;
+      animation: driveCar1 10s linear infinite;
+      z-index: 3;
     }
     
-    @keyframes driveCarLTR {
-      0% { transform: translateX(0) scaleX(-1); }
-      100% { transform: translateX(calc(100vw + 400px)) scaleX(-1); }
+    /* Car 2: The Interceptor (Red) - Moves Left to Right (Faster) */
+    .car-interceptor {
+      left: -200px;
+      filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.4));
+      animation: driveCar2 7s linear infinite;
+      z-index: 2; /* Behind cruiser */
+      bottom: 15px; /* Slightly offset */
+      transform: scale(0.8); /* Farther away */
     }
 
+    @keyframes driveCar1 {
+      0% { transform: translateX(0) rotate(0deg); }
+      20% { transform: translateX(-30vw) rotate(0deg); }
+      40% { transform: translateX(-60vw) rotate(-1deg); } /* Slight swerve */
+      60% { transform: translateX(-90vw) rotate(0deg); }
+      100% { transform: translateX(calc(-100vw - 250px)) rotate(0deg); }
+    }
+
+    @keyframes driveCar2 {
+      0% { transform: translateX(0) scaleX(-1) rotate(0deg); }
+      100% { transform: translateX(calc(100vw + 250px)) scaleX(-1) rotate(0deg); }
+    }
+
+    /* Suspension Animation */
+    .car-body-anim {
+      animation: suspension 0.3s ease-in-out infinite;
+    }
     @keyframes suspension {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(1px); }
     }
 
-    /* Underglow */
+    /* Neon Underglow */
     .underglow {
-      position: absolute; bottom: -10px; left: 20px; width: 80%; height: 15px;
-      background: radial-gradient(ellipse at center, rgba(212, 255, 0, 0.6) 0%, transparent 70%);
-      filter: blur(8px);
+      position: absolute; bottom: -5px; left: 10px; width: 80%; height: 15px;
+      background: radial-gradient(ellipse at center, var(--car-color) 0%, transparent 70%);
+      filter: blur(6px);
       z-index: -1;
-    }
-    .car-2 .underglow {
-      background: radial-gradient(ellipse at center, rgba(255, 50, 50, 0.6) 0%, transparent 70%);
-    }
-
-    /* SVG Styling */
-    .car-svg { width: 100%; height: 100%; overflow: visible; }
-    .car-body { fill: #1a1a1a; stroke: var(--accent-warning); stroke-width: 2; }
-    .car-body-red { fill: #1a1a1a; stroke: #FF3333; stroke-width: 2; }
-    
-    .car-window { fill: #111; stroke: #333; stroke-width: 1; }
-    .car-light-front { fill: #ffffff; filter: drop-shadow(0 0 10px #fff); }
-    .car-light-back { fill: #FF3333; filter: drop-shadow(0 0 5px #FF3333); }
-    
-    /* Headlight Beam */
-    .light-beam {
-      position: absolute; top: 25px; right: 0;
-      width: 150px; height: 30px;
-      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 100%);
-      clip-path: polygon(0 0, 100% 100%, 100% 0);
-      transform: skewX(-20deg);
       opacity: 0.8;
     }
-    /* Beam for Car 2 (moving left to right, so beam flips) */
-    .car-2 .light-beam {
-      right: auto; left: 0;
-      background: linear-gradient(90deg, rgba(255,255,255,0.2) 0%, transparent 100%);
-      clip-path: polygon(0 0, 0 100%, 100% 0);
-      transform: skewX(20deg);
-    }
+    .car-cruiser { --car-color: rgba(255, 214, 0, 0.6); }
+    .car-interceptor { --car-color: rgba(255, 50, 50, 0.6); }
 
     /* Wheels */
-    .wheel-container { position: absolute; bottom: -5px; }
     .wheel {
-      width: 22px; height: 22px;
-      background: #000; border: 3px solid #333;
+      position: absolute; bottom: -5px;
+      width: 18px; height: 18px;
+      background: #000;
+      border: 2px solid #333;
       border-radius: 50%;
-      position: relative;
       animation: spinWheel 0.2s linear infinite;
       box-shadow: inset 0 0 5px rgba(255,255,255,0.1);
     }
@@ -154,21 +169,45 @@
       transform: translate(-50%, -50%);
       width: 6px; height: 6px; background: #444; border-radius: 50%;
     }
-    .wc-front { right: 15px; }
-    .wc-back { left: 20px; }
+    .w-front { right: 15px; }
+    .w-back { left: 20px; }
 
     @keyframes spinWheel { to { transform: rotate(360deg); } }
 
-    /* Exhaust Smoke */
-    .smoke-particle {
+    /* Headlight Beams */
+    .light-beam-container {
       position: absolute;
-      background: rgba(255,255,255,0.1);
-      border-radius: 50%;
-      animation: smokeFade 0.8s linear infinite;
+      top: 50%;
+      width: 150px;
+      height: 20px;
+      transform: translateY(-50%);
+      pointer-events: none;
     }
-    @keyframes smokeFade {
-      0% { transform: scale(0.5); opacity: 0.5; }
-      100% { transform: scale(2); opacity: 0; }
+    .beam-right { right: -10px; } /* Front of car going left */
+    .beam-left { left: -10px; transform: translateY(-50%) scaleX(-1); } /* Front of car going right (flipped) */
+    
+    .light-beam {
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, rgba(255,255,255,0.2) 0%, transparent 100%);
+      clip-path: polygon(0 0, 100% 100%, 100% 0);
+      filter: blur(2px);
+    }
+
+    /* Exhaust Smoke Particles */
+    .exhaust {
+      position: absolute; bottom: 10px;
+      width: 6px; height: 6px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      filter: blur(1px);
+      animation: smokePuff 0.4s linear infinite;
+    }
+    .ex-left { left: 0; }
+    .ex-right { right: 0; }
+    
+    @keyframes smokePuff {
+      0% { transform: scale(0.5); opacity: 0.4; }
+      100% { transform: scale(1.5) translateX(20px); opacity: 0; }
     }
 
     /* =========================================== */
@@ -198,7 +237,7 @@
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     .time-val { color: var(--accent-warning); font-weight: 600; }
 
-    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 25px; padding-bottom: 120px; background: var(--hazard-stripe); min-height: 0; }
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 25px; padding-bottom: 140px; background: var(--hazard-stripe); min-height: 0; }
 
     .content-wrapper { flex: 1; background: var(--bg-panel); border: 1px solid #333; display: flex; flex-direction: column; position: relative; box-shadow: 10px 10px 0 rgba(0,0,0,0.5); min-height: 0; overflow: hidden; animation: contentFadeIn 0.8s ease-out; }
     @keyframes contentFadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -216,7 +255,6 @@
     .glitch::after { left: -2px; text-shadow: -1px 0 blue; clip: rect(85px, 550px, 140px, 0); animation: glitch-anim 2s infinite linear alternate-reverse; }
     @keyframes glitch-anim { 0% { clip: rect(11px, 9999px, 86px, 0); } 5% { clip: rect(62px, 9999px, 41px, 0); } 10% { clip: rect(12px, 9999px, 86px, 0); transform: translate(-2px, 2px); } 15% { clip: rect(45px, 9999px, 2px, 0); transform: translate(2px, -2px); } 20% { clip: rect(99px, 9999px, 23px, 0); } 100% { clip: rect(1px, 9999px, 1px, 0); transform: translate(0); } }
 
-    /* Header Actions Wrapper */
     .header-actions { display: flex; align-items: center; gap: 15px; }
     
     .search-box { position: relative; width: 300px; z-index: 2; }
@@ -236,11 +274,10 @@
     table { width: 100%; border-collapse: collapse; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; }
     th { text-align: left; color: #666; text-transform: uppercase; font-size: 0.7rem; padding: 12px 15px; letter-spacing: 1px; border-bottom: 2px solid #333; background: #000; position: sticky; top: 0; z-index: 1; }
     
-    /* UPDATED: QNA Table for 4 columns */
-    table.qna-table th:nth-child(1) { width: 30%; } /* Query */
-    table.qna-table th:nth-child(2) { width: 8%; text-align: center; } /* Copy Query */
-    table.qna-table th:nth-child(3) { width: 52%; } /* Response */
-    table.qna-table th:nth-child(4) { width: 10%; text-align: right; } /* Copy Response */
+    table.qna-table th:nth-child(1) { width: 30%; }
+    table.qna-table th:nth-child(2) { width: 8%; text-align: center; }
+    table.qna-table th:nth-child(3) { width: 52%; }
+    table.qna-table th:nth-child(4) { width: 10%; text-align: right; }
 
     td { padding: 15px; color: #ccc; border-bottom: 1px solid #222; vertical-align: top; }
     
@@ -259,13 +296,11 @@
     .btn-industrial:hover { border-color: var(--accent-warning); color: #000; background: var(--accent-warning); }
     .btn-industrial:active { transform: scale(0.95); box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
     .btn-industrial.success { background: #fff; color: #000; border-color: #fff; }
-    
-    /* Spinning Icon for Refresh */
     .btn-industrial.loading i { animation: spin 1s linear infinite; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
     /* =========================================== */
-    /* === ASSETS GRID CARD STYLE (REVAMPED) === */
+    /* === ASSETS GRID CARD STYLE === */
     /* =========================================== */
     
     .assets-grid {
@@ -332,7 +367,6 @@
       box-shadow: 0 0 10px #00ff00;
     }
 
-    /* LCD Display Style */
     .asset-display {
       margin: 15px;
       background: #050505;
@@ -392,7 +426,6 @@
       padding-top: 15px;
     }
 
-    /* Action button styling */
     .btn-copy-action {
       background: transparent; 
       border: 1px solid #333; 
@@ -424,21 +457,13 @@
     /* === SIDEBAR LAYOUT CUSTOM CSS === */
     /* =========================================== */
     
-    .layout-split {
-      display: flex;
-      height: 100%;
-      gap: 0;
-      overflow: hidden;
-    }
+    .layout-split { display: flex; height: 100%; gap: 0; overflow: hidden; }
 
     .sidebar-col {
-      width: 280px;
-      min-width: 280px;
+      width: 280px; min-width: 280px;
       background: #0a0a0a;
       border-right: 2px solid #222;
-      display: flex;
-      flex-direction: column;
-      height: 100%;
+      display: flex; flex-direction: column; height: 100%;
     }
 
     .sidebar-header {
@@ -455,12 +480,7 @@
       align-items: center;
     }
 
-    .sidebar-list {
-      flex: 1;
-      overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: #333 #000;
-    }
+    .sidebar-list { flex: 1; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #333 #000; }
     .sidebar-list::-webkit-scrollbar { width: 6px; }
     .sidebar-list::-webkit-scrollbar-thumb { background: #333; }
 
@@ -477,35 +497,16 @@
       font-size: 0.9rem;
       position: relative;
     }
-    .sidebar-item i {
-      color: #444;
-      font-size: 0.8rem;
-    }
+    .sidebar-item i { color: #444; font-size: 0.8rem; }
     .sidebar-item::before {
       content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      background: transparent;
-      transition: background 0.2s;
+      position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+      background: transparent; transition: background 0.2s;
     }
-    .sidebar-item:hover {
-      background: #111;
-      color: #fff;
-    }
-    .sidebar-item.active {
-      background: #111;
-      color: var(--accent-warning);
-    }
-    .sidebar-item.active::before {
-      background: var(--accent-warning);
-      box-shadow: 0 0 10px var(--accent-warning);
-    }
-    .sidebar-item.active i {
-      color: var(--accent-warning);
-    }
+    .sidebar-item:hover { background: #111; color: #fff; }
+    .sidebar-item.active { background: #111; color: var(--accent-warning); }
+    .sidebar-item.active::before { background: var(--accent-warning); box-shadow: 0 0 10px var(--accent-warning); }
+    .sidebar-item.active i { color: var(--accent-warning); }
 
     .detail-col {
       flex: 1;
@@ -527,90 +528,22 @@
       animation: cardFadeIn 0.3s ease-out;
     }
 
-    .detail-label {
-      font-size: 0.75rem;
-      color: #666;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 5px;
-      font-family: 'IBM Plex Mono', monospace;
-    }
+    .detail-label { font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; font-family: 'IBM Plex Mono', monospace; }
+    .detail-value { font-size: 1.2rem; color: var(--accent-warning); font-weight: 600; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px dashed #333; word-break: break-all; }
+    .detail-desc-label { font-size: 0.85rem; color: #888; margin-bottom: 10px; text-transform: uppercase; }
+    .detail-desc-text { font-size: 1rem; color: #ccc; line-height: 1.6; white-space: pre-wrap; }
+    .detail-actions { margin-top: auto; padding-top: 20px; border-top: 1px solid #222; display: flex; justify-content: flex-end; gap: 10px; }
+    .empty-state { display: flex; align-items: center; justify-content: center; height: 100%; color: #333; text-transform: uppercase; letter-spacing: 2px; font-size: 0.9rem; background: #0a0a0a; border-left: 2px solid #222; }
 
-    .detail-value {
-      font-size: 1.2rem;
-      color: var(--accent-warning);
-      font-weight: 600;
-      margin-bottom: 20px;
-      padding-bottom: 20px;
-      border-bottom: 1px dashed #333;
-      word-break: break-all;
-    }
-
-    .detail-desc-label {
-      font-size: 0.85rem;
-      color: #888;
-      margin-bottom: 10px;
-      text-transform: uppercase;
-    }
-
-    .detail-desc-text {
-      font-size: 1rem;
-      color: #ccc;
-      line-height: 1.6;
-      white-space: pre-wrap;
-    }
-
-    .detail-actions {
-      margin-top: auto;
-      padding-top: 20px;
-      border-top: 1px solid #222;
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-    }
-
-    .empty-state {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      color: #333;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      font-size: 0.9rem;
-      background: #0a0a0a;
-      border-left: 2px solid #222;
-    }
-
-    @keyframes cardFadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    @keyframes cardFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
     /* Toast Notification */
-    #notif-container {
-      position: fixed;
-      bottom: 130px; /* Adjusted for taller animation layer */
-      right: 30px;
-      z-index: 10000;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+    #notif-container { position: fixed; bottom: 150px; right: 30px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; }
     .toast-notification {
-      background: #000;
-      border: 1px solid #333;
-      border-left: 4px solid var(--accent-warning);
-      padding: 15px 20px;
-      color: #fff;
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 0.9rem;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-      animation: slideIn 0.3s ease-out;
-      max-width: 300px;
+      background: #000; border: 1px solid #333; border-left: 4px solid var(--accent-warning);
+      padding: 15px 20px; color: #fff; font-family: 'Rajdhani', sans-serif; font-size: 0.9rem;
+      display: flex; align-items: center; gap: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+      animation: slideIn 0.3s ease-out; max-width: 300px;
     }
     .toast-exit { animation: slideOut 0.3s ease-in forwards; }
     @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
@@ -640,9 +573,9 @@
       .header-actions { width: 100%; flex-direction: column; }
       .search-box { width: 100%; }
       .title-main h1 { font-size: 1.5rem; }
-      .main { padding: 10px; padding-bottom: 130px; } /* More padding bottom for mobile */
+      .main { padding: 10px; padding-bottom: 140px; }
       .content-wrapper { box-shadow: none; }
-      #notif-container { bottom: 140px; width: calc(100% - 20px); left: 10px; right: 10px; }
+      #notif-container { bottom: 150px; width: calc(100% - 20px); left: 10px; right: 10px; }
       
       .layout-split { flex-direction: column; }
       .sidebar-col { width: 100%; min-width: 100%; height: 40%; border-right: none; border-bottom: 2px solid #222; }
@@ -656,59 +589,90 @@
       .assets-grid { grid-template-columns: 1fr; }
       
       /* Hide one car on mobile to save space */
-      .car-2 { display: none; }
+      .car-interceptor { display: none; }
+      .city-buildings, .city-bg { animation-duration: 40s; } /* Slow down bg on mobile to save CPU */
     }
   </style>
 </head>
 <body>
 
-  <!-- Animation Layer: Double Cyber Rover -->
+  <!-- Animation Layer: Cyber Road -->
   <div class="animation-layer">
-    <div class="road-kerb"></div>
-    <div class="road">
-      <div class="road-stripe"></div>
+    <!-- Parallax Background: City -->
+    <div class="city-bg"></div>
+    <div class="city-buildings"></div>
+
+    <!-- Road -->
+    <div class="road-container">
+      <div class="road-lines"></div>
     </div>
 
-    <!-- Speed Lines -->
-    <div class="speed-line" style="top: 20px; animation-delay: 0.1s;"></div>
-    <div class="speed-line" style="top: 40px; animation-delay: 0.4s;"></div>
-    <div class="speed-line" style="top: 60px; animation-delay: 0.6s;"></div>
-
-    <!-- Car 1: Right to Left (Yellow) -->
-    <div class="cyber-rover car-1">
-      <div class="underglow"></div>
-      <svg class="car-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
-        <path class="car-body" d="M20,60 Q30,20 80,20 L160,20 Q190,20 190,50 L190,70 Q190,80 180,80 L20,80 Q10,80 10,70 L10,60 Z" />
-        <path class="car-window" d="M35,25 Q40,10 70,10 L100,10 Q110,10 110,20 L35,25 Z" fill="#222" />
-        <path class="car-window" d="M120,20 L150,20 Q160,20 160,30 L120,30 Z" fill="#222" />
-        <line x1="20" y1="50" x2="50" y2="50" stroke="#FFD600" stroke-width="2" />
-        <line x1="60" y1="50" x2="90" y2="50" stroke="#FFD600" stroke-width="2" />
-        <rect x="12" y="55" width="5" height="10" class="car-light-back" />
-        <rect x="183" y="35" width="8" height="15" class="car-light-front" />
-      </svg>
-      <div class="light-beam"></div>
-      <div class="wheel-container wc-front"><div class="wheel"></div></div>
-      <div class="wheel-container wc-back"><div class="wheel"></div></div>
+    <!-- Car 1: Cruiser (Yellow) - Right to Left -->
+    <div class="cyber-car car-cruiser">
+       <!-- SVG Body -->
+       <svg class="car-body-anim" width="100%" height="100%" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg">
+          <!-- Main Body -->
+          <path d="M20,50 Q30,10 80,10 L160,10 Q190,10 190,40 L190,55 Q190,65 180,65 L20,65 Q10,65 10,55 L10,50 Z" fill="#1a1a1a" stroke="#FFD600" stroke-width="2" />
+          <!-- Windows -->
+          <path d="M40,15 Q45,5 70,5 L95,5 Q105,5 105,15 L40,15 Z" fill="#111" />
+          <path d="M115,10 L150,10 Q160,10 160,25 L115,25 Z" fill="#111" />
+          <!-- Details -->
+          <line x1="20" y1="40" x2="50" y2="40" stroke="#FFD600" stroke-width="2" />
+          <line x1="60" y1="40" x2="90" y2="40" stroke="#FFD600" stroke-width="2" />
+          <!-- Lights -->
+          <rect x="12" y="48" width="4" height="8" fill="#FF3333" class="car-light-back" />
+          <rect x="184" y="30" width="6" height="12" fill="#fff" class="car-light-front" />
+       </svg>
+       <!-- Underglow -->
+       <div class="underglow"></div>
+       <!-- Wheels -->
+       <div class="wheel w-front"></div>
+       <div class="wheel w-back"></div>
+       <!-- Headlight Beam -->
+       <div class="light-beam-container beam-right">
+          <div class="light-beam"></div>
+       </div>
+       <!-- Exhaust -->
+       <div class="exhaust ex-left" style="animation-delay: 0.1s"></div>
+       <div class="exhaust ex-left" style="animation-delay: 0.3s; bottom: 12px;"></div>
     </div>
 
-    <!-- Car 2: Left to Right (Red Interceptor) -->
-    <div class="cyber-rover car-2">
-      <div class="underglow"></div>
-      <svg class="car-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
-        <path class="car-body-red" d="M20,60 Q30,20 80,20 L160,20 Q190,20 190,50 L190,70 Q190,80 180,80 L20,80 Q10,80 10,70 L10,60 Z" />
-        <path class="car-window" d="M35,25 Q40,10 70,10 L100,10 Q110,10 110,20 L35,25 Z" fill="#111" />
-        <path class="car-window" d="M120,20 L150,20 Q160,20 160,30 L120,30 Z" fill="#111" />
-        <line x1="20" y1="50" x2="50" y2="50" stroke="#FF3333" stroke-width="2" />
-        <line x1="60" y1="50" x2="90" y2="50" stroke="#FF3333" stroke-width="2" />
-        <!-- Lights flipped for this car direction (visual logic handled by scaleX(-1) but SVG is same, just class colors differ) -->
-        <rect x="12" y="55" width="5" height="10" fill="#fff" filter="drop-shadow(0 0 5px #fff)" /> <!-- Front light (now on left visually) -->
-        <rect x="183" y="35" width="8" height="15" class="car-light-back" /> <!-- Back light (now on right visually) -->
-      </svg>
-      <div class="light-beam"></div>
-      <div class="wheel-container wc-front"><div class="wheel"></div></div>
-      <div class="wheel-container wc-back"><div class="wheel"></div></div>
+    <!-- Car 2: Interceptor (Red) - Left to Right -->
+    <div class="cyber-car car-interceptor">
+       <svg class="car-body-anim" width="100%" height="100%" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg">
+          <!-- Flipped Body Logic: Car faces Left in SVG, but CSS flips it horizontally if needed? 
+               Actually, easier to just draw it facing Left in SVG and let CSS animation drive it Left-to-Right.
+               Wait, if it moves Left-to-Right, the front should be on the Right.
+          -->
+          <!-- Main Body (Facing Right) -->
+          <path d="M10,40 Q10,10 40,10 L120,10 Q170,10 180,50 L180,55 Q180,65 170,65 L20,65 Q10,65 10,55 Z" fill="#1a1a1a" stroke="#FF3333" stroke-width="2" />
+          <!-- Windows -->
+          <path d="M30,15 L30,25 Q30,10 45,10 L80,10 Q90,10 90,15 Z" fill="#111" />
+          <path d="M100,5 L140,5 Q150,5 155,15 L100,15 Z" fill="#111" />
+          <!-- Details -->
+          <line x1="150" y1="40" x2="180" y2="40" stroke="#FF3333" stroke-width="2" />
+          <!-- Lights (Front Right, Back Left) -->
+          <rect x="174" y="48" width="4" height="8" fill="#fff" class="car-light-front" /> <!-- Front -->
+          <rect x="10" y="30" width="6" height="12" fill="#FF3333" class="car-light-back" /> <!-- Back -->
+       </svg>
+       <div class="underglow"></div>
+       <div class="wheel w-front" style="right: 20px; left: auto;"></div>
+       <div class="wheel w-back" style="left: 25px; right: auto;"></div>
+       <!-- Headlight Beam (Facing Right) -->
+       <div class="light-beam-container beam-right">
+          <div class="light-beam"></div>
+       </div>
+       <!-- Exhaust (Coming from Left side of this car ->) -->
+       <div class="exhaust ex-right" style="animation-name: smokePuffRight;"></div>
     </div>
-
+    
+    <style>
+      /* Specific keyframes for car 2 exhaust moving right */
+      @keyframes smokePuffRight {
+        0% { transform: scale(0.5); opacity: 0.4; }
+        100% { transform: scale(1.5) translateX(-20px); opacity: 0; } /* Move left behind car */
+      }
+    </style>
   </div>
 
   <div class="scanlines"></div>
@@ -756,7 +720,6 @@
           <h1 id="pageTitle" class="glitch" data-text="Data Access">Data Access</h1>
         </div>
         
-        <!-- Header Actions with Search and Refresh -->
         <div class="header-actions">
             <div class="search-box">
               <input type="text" id="searchInput" placeholder="Search Database...">
@@ -876,7 +839,6 @@
         return;
       }
 
-      // Special Layout for PK_anti_audit
       if (sheetName === 'PK_anti_audit') {
         activeSidebarIndex = 0;
         tableContainer.innerHTML = renderSidebarLayout(data);
@@ -928,15 +890,12 @@
                 <span class="asset-id-badge">${escapeHTML(id)}</span>
                 <div class="asset-status"></div>
              </div>
-
              <div class="asset-display">
                 <div class="asset-value">${escapeHTML(val)}</div>
              </div>
-
              <div class="asset-info">
                 <div class="asset-label">System Note</div>
                 <div class="asset-desc">${escapeHTML(desc)}</div>
-                
                 <div class="asset-actions">
                      <button class="btn-copy-action" data-val="${valEscaped}" data-desc="${descEscaped}">
                         <i class="fas fa-download"></i> Extract Data
@@ -983,8 +942,6 @@
       html += '</tbody></table>';
       return html;
     }
-
-    // --- SIDEBAR LAYOUT LOGIC ---
 
     function renderSidebarLayout(data) {
       const keys = data.length > 0 ? Object.keys(data[0]) : [];
