@@ -36,106 +36,138 @@
     /* =========================================== */
     
     .animation-layer {
-      position: fixed; bottom: 0; left: 0; width: 100%; height: 100px;
+      position: fixed; bottom: 0; left: 0; width: 100%; height: 120px;
       z-index: 999; pointer-events: none; overflow: hidden;
     }
 
-    /* Speed Lines Background */
+    /* Road */
+    .road { position: absolute; bottom: 0; width: 100%; height: 50px; background: #080808; border-top: 3px solid #222; }
+    .road-stripe { position: absolute; top: 25px; width: 100%; height: 4px; background: repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(255,255,255,0.15) 50px, rgba(255,255,255,0.15) 100px); animation: roadMove 0.4s linear infinite; }
+    
+    /* Kerb (Pinggir Jalan) */
+    .road-kerb {
+      position: absolute; bottom: 50px; width: 100%; height: 10px;
+      background: repeating-linear-gradient(90deg, #111 0, #111 20px, #000 20px, #000 40px);
+      border-bottom: 2px solid #333;
+    }
+
+    @keyframes roadMove { 0% { background-position-x: 0; } 100% { background-position-x: -100px; } }
+
+    /* Speed Lines */
     .speed-line {
       position: absolute;
-      height: 2px; background: rgba(255, 214, 0, 0.3);
-      animation: speedLine 0.8s linear infinite;
-      box-shadow: 0 0 5px rgba(255, 214, 0, 0.5);
+      height: 2px; background: rgba(255, 214, 0, 0.2);
+      animation: speedLine 1.5s linear infinite;
+      box-shadow: 0 0 5px rgba(255, 214, 0, 0.3);
     }
     @keyframes speedLine {
-      0% { transform: translateX(100vw); opacity: 1; width: 0; }
-      50% { width: 100px; opacity: 1; }
+      0% { transform: translateX(100vw); opacity: 0; width: 0; }
+      50% { opacity: 1; width: 100px; }
       100% { transform: translateX(-200px); opacity: 0; width: 50px; }
     }
 
-    /* Road */
-    .road { position: absolute; bottom: 0; width: 100%; height: 40px; background: #111; border-top: 2px solid #333; }
-    .road-stripe { position: absolute; top: 20px; width: 100%; height: 4px; background: repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(255,255,255,0.1) 50px, rgba(255,255,255,0.1) 100px); animation: roadMove 0.5s linear infinite; }
-    @keyframes roadMove { 0% { background-position-x: 0; } 100% { background-position-x: -100px; } }
-
-    /* Car Container */
+    /* Car Container Base */
     .cyber-rover {
-      position: absolute; bottom: 20px; right: -300px;
-      width: 200px; height: 80px;
-      animation: driveCar 12s linear infinite, suspension 0.3s ease-in-out infinite;
+      position: absolute; bottom: 30px; 
+      width: 180px; height: 70px;
+      animation: suspension 0.2s ease-in-out infinite;
       filter: drop-shadow(0 0 15px rgba(255, 214, 0, 0.3));
     }
 
-    @keyframes driveCar {
+    /* Car 1: Right to Left (Yellow) */
+    .car-1 {
+      right: -300px;
+      animation: driveCarRTL 14s linear infinite, suspension 0.2s ease-in-out infinite;
+    }
+
+    /* Car 2: Left to Right (Red) */
+    .car-2 {
+      left: -300px;
+      filter: drop-shadow(0 0 15px rgba(255, 50, 50, 0.4));
+      animation: driveCarLTR 18s linear infinite, suspension 0.25s ease-in-out infinite;
+    }
+
+    @keyframes driveCarRTL {
       0% { transform: translateX(0); }
       100% { transform: translateX(calc(-100vw - 400px)); }
     }
-    @keyframes suspension {
-      0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
-      50% { transform: translateX(0) translateY(2px) rotate(0.5deg); }
+    
+    @keyframes driveCarLTR {
+      0% { transform: translateX(0) scaleX(-1); }
+      100% { transform: translateX(calc(100vw + 400px)) scaleX(-1); }
     }
 
-    /* Neon Underglow Effect */
+    @keyframes suspension {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(1px); }
+    }
+
+    /* Underglow */
     .underglow {
-      position: absolute; bottom: -15px; left: 20px; width: 80%; height: 20px;
+      position: absolute; bottom: -10px; left: 20px; width: 80%; height: 15px;
       background: radial-gradient(ellipse at center, rgba(212, 255, 0, 0.6) 0%, transparent 70%);
       filter: blur(8px);
       z-index: -1;
+    }
+    .car-2 .underglow {
+      background: radial-gradient(ellipse at center, rgba(255, 50, 50, 0.6) 0%, transparent 70%);
     }
 
     /* SVG Styling */
     .car-svg { width: 100%; height: 100%; overflow: visible; }
     .car-body { fill: #1a1a1a; stroke: var(--accent-warning); stroke-width: 2; }
+    .car-body-red { fill: #1a1a1a; stroke: #FF3333; stroke-width: 2; }
+    
     .car-window { fill: #111; stroke: #333; stroke-width: 1; }
     .car-light-front { fill: #ffffff; filter: drop-shadow(0 0 10px #fff); }
+    .car-light-back { fill: #FF3333; filter: drop-shadow(0 0 5px #FF3333); }
     
     /* Headlight Beam */
     .light-beam {
-      position: absolute; top: 30px; right: 10px;
-      width: 300px; height: 40px;
-      background: linear-gradient(90deg, rgba(255,255,255,0.3) 0%, transparent 100%);
+      position: absolute; top: 25px; right: 0;
+      width: 150px; height: 30px;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 100%);
       clip-path: polygon(0 0, 100% 100%, 100% 0);
       transform: skewX(-20deg);
+      opacity: 0.8;
+    }
+    /* Beam for Car 2 (moving left to right, so beam flips) */
+    .car-2 .light-beam {
+      right: auto; left: 0;
+      background: linear-gradient(90deg, rgba(255,255,255,0.2) 0%, transparent 100%);
+      clip-path: polygon(0 0, 0 100%, 100% 0);
+      transform: skewX(20deg);
     }
 
     /* Wheels */
-    .wheel-container { position: absolute; bottom: 5px; }
+    .wheel-container { position: absolute; bottom: -5px; }
     .wheel {
-      width: 24px; height: 24px;
+      width: 22px; height: 22px;
       background: #000; border: 3px solid #333;
       border-radius: 50%;
       position: relative;
-      animation: spinWheel 0.3s linear infinite;
+      animation: spinWheel 0.2s linear infinite;
       box-shadow: inset 0 0 5px rgba(255,255,255,0.1);
     }
     .wheel::after {
       content: ''; position: absolute; top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 8px; height: 8px; background: #444; border-radius: 50%;
-      border: 1px solid #555;
+      width: 6px; height: 6px; background: #444; border-radius: 50%;
     }
-    .wheel::before {
-      content: ''; position: absolute; top: 50%; left: 50%;
-      width: 20px; height: 2px; background: #333;
-      transform: translate(-50%, -50%);
-    }
-    .wc-front { right: 20px; }
-    .wc-back { left: 25px; }
+    .wc-front { right: 15px; }
+    .wc-back { left: 20px; }
 
     @keyframes spinWheel { to { transform: rotate(360deg); } }
 
-    /* Dust Particles */
-    .dust-container {
-      position: absolute; bottom: 10px; left: -20px;
-      width: 40px; height: 20px;
-    }
-    .dust {
-      position: absolute; background: rgba(255, 255, 255, 0.3);
+    /* Exhaust Smoke */
+    .smoke-particle {
+      position: absolute;
+      background: rgba(255,255,255,0.1);
       border-radius: 50%;
-      animation: dustFade 0.5s linear infinite;
+      animation: smokeFade 0.8s linear infinite;
     }
-    @keyframes dustFade {
-      0% { transform: scale(0.5); opacity: 0.8; }
+    @keyframes smokeFade {
+      0% { transform: scale(0.5); opacity: 0.5; }
       100% { transform: scale(2); opacity: 0; }
     }
 
@@ -166,7 +198,7 @@
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     .time-val { color: var(--accent-warning); font-weight: 600; }
 
-    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 25px; padding-bottom: 100px; background: var(--hazard-stripe); min-height: 0; }
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 25px; padding-bottom: 120px; background: var(--hazard-stripe); min-height: 0; }
 
     .content-wrapper { flex: 1; background: var(--bg-panel); border: 1px solid #333; display: flex; flex-direction: column; position: relative; box-shadow: 10px 10px 0 rgba(0,0,0,0.5); min-height: 0; overflow: hidden; animation: contentFadeIn 0.8s ease-out; }
     @keyframes contentFadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -204,11 +236,6 @@
     table { width: 100%; border-collapse: collapse; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; }
     th { text-align: left; color: #666; text-transform: uppercase; font-size: 0.7rem; padding: 12px 15px; letter-spacing: 1px; border-bottom: 2px solid #333; background: #000; position: sticky; top: 0; z-index: 1; }
     
-    table.table-4-col th:nth-child(1) { width: 15%; }
-    table.table-4-col th:nth-child(2) { width: 25%; }
-    table.table-4-col th:nth-child(3) { width: 50%; }
-    table.table-4-col th:nth-child(4) { width: 10%; text-align: right; }
-
     /* UPDATED: QNA Table for 4 columns */
     table.qna-table th:nth-child(1) { width: 30%; } /* Query */
     table.qna-table th:nth-child(2) { width: 8%; text-align: center; } /* Copy Query */
@@ -221,9 +248,6 @@
     @keyframes rowFadeIn { to { opacity: 1; transform: translateY(0); } }
     tr:hover { background: rgba(255, 214, 0, 0.05); }
     tr:hover td { color: #fff; }
-    
-    .table-4-col td:nth-child(1) { color: #666; }
-    .table-4-col td:nth-child(2) { color: #fff; font-weight: 600; background: linear-gradient(90deg, rgba(255,214,0,0.1) 0%, transparent 100%); }
     
     .btn-industrial {
       background: transparent; border: 2px solid #444; color: #888;
@@ -263,7 +287,6 @@
       transform: translateY(20px);
       animation: cardFadeIn 0.5s ease-out forwards;
       height: 100%;
-      /* Technical look background */
       background-image: 
         linear-gradient(rgba(20, 20, 20, 0.8) 1px, transparent 1px),
         linear-gradient(90deg, rgba(20, 20, 20, 0.8) 1px, transparent 1px);
@@ -274,39 +297,6 @@
       border-color: var(--accent-warning);
       transform: translateY(-5px);
       box-shadow: 0 0 20px rgba(255, 214, 0, 0.15), inset 0 0 30px rgba(255, 214, 0, 0.05);
-    }
-
-    /* Animated Border */
-    .asset-card::before {
-      content: '';
-      position: absolute;
-      top: -2px; left: -2px; right: -2px; bottom: -2px;
-      background: transparent;
-      z-index: -1;
-      transition: all 0.3s;
-    }
-    .asset-card:hover::before {
-      background: var(--accent-warning);
-      animation: borderPulse 2s infinite;
-    }
-
-    /* Decorative Vents Top */
-    .asset-vents {
-      height: 4px;
-      width: 100%;
-      background: #000;
-      display: flex;
-      justify-content: flex-end;
-      padding-right: 10px;
-      gap: 5px;
-      border-bottom: 1px solid #222;
-      padding-top: 5px;
-    }
-    .vent-hole {
-      width: 30px;
-      height: 2px;
-      background: #1a1a1a;
-      border-radius: 0 0 2px 2px;
     }
 
     .asset-header {
@@ -324,20 +314,10 @@
       padding: 4px 8px;
       font-family: 'IBM Plex Mono', monospace;
       font-size: 0.7rem;
-      color: #888;
+      color: #ccc; 
       text-transform: uppercase;
       letter-spacing: 1px;
       position: relative;
-    }
-    /* Triangle cut on ID badge */
-    .asset-id-badge::after {
-      content: '';
-      position: absolute;
-      top: 0; right: 0;
-      width: 0; height: 0;
-      border-style: solid;
-      border-width: 0 6px 6px 0;
-      border-color: transparent #0d0d0d transparent transparent;
     }
 
     .asset-status {
@@ -360,25 +340,13 @@
       padding: 15px;
       position: relative;
       box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
-      /* Screw details */
     }
-    .asset-display::before, .asset-display::after {
-      content: '';
-      position: absolute;
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: #111;
-      border: 1px solid #333;
-      top: -3px;
-    }
-    .asset-display::before { left: 10px; }
-    .asset-display::after { right: 10px; }
 
     .asset-value {
       font-family: 'IBM Plex Mono', monospace;
       font-size: 1.2rem;
       color: var(--accent-warning);
-      text-shadow: 0 0 5px rgba(255, 214, 0, 0.4);
+      text-shadow: 0 0 8px rgba(255, 214, 0, 0.8); 
       text-transform: uppercase;
       word-break: break-all;
       line-height: 1.3;
@@ -389,30 +357,6 @@
       justify-content: center;
       text-align: center;
     }
-    /* Glitch effect on hover */
-    .asset-card:hover .asset-value {
-      animation: textGlitch 0.2s linear;
-    }
-    @keyframes textGlitch {
-      0% { transform: translate(0) }
-      20% { transform: translate(-2px, 2px) }
-      40% { transform: translate(-2px, -2px) }
-      60% { transform: translate(2px, 2px) }
-      80% { transform: translate(2px, -2px) }
-      100% { transform: translate(0) }
-    }
-
-    /* Scanline over display */
-    .asset-display-scanline {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 2px;
-      background: rgba(255, 255, 255, 0.1);
-      animation: scanlineMove 3s linear infinite;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    .asset-card:hover .asset-display-scanline { opacity: 1; }
-    @keyframes scanlineMove { 0% { top: 0%; } 100% { top: 100%; } }
 
     .asset-info {
       padding: 0 15px 15px;
@@ -423,7 +367,7 @@
 
     .asset-label {
       font-size: 0.7rem;
-      color: #444;
+      color: #888;
       text-transform: uppercase;
       letter-spacing: 1px;
       margin-bottom: 5px;
@@ -432,7 +376,7 @@
 
     .asset-desc {
       font-size: 0.9rem;
-      color: #666;
+      color: #bbb; 
       line-height: 1.4;
       margin-bottom: 15px;
       flex: 1;
@@ -646,7 +590,7 @@
     /* Toast Notification */
     #notif-container {
       position: fixed;
-      bottom: 110px;
+      bottom: 130px; /* Adjusted for taller animation layer */
       right: 30px;
       z-index: 10000;
       display: flex;
@@ -696,51 +640,42 @@
       .header-actions { width: 100%; flex-direction: column; }
       .search-box { width: 100%; }
       .title-main h1 { font-size: 1.5rem; }
-      .main { padding: 10px; padding-bottom: 60px; }
+      .main { padding: 10px; padding-bottom: 130px; } /* More padding bottom for mobile */
       .content-wrapper { box-shadow: none; }
-      #notif-container { bottom: 70px; width: calc(100% - 20px); left: 10px; right: 10px; }
+      #notif-container { bottom: 140px; width: calc(100% - 20px); left: 10px; right: 10px; }
       
-      .layout-split {
-        flex-direction: column;
-      }
-      .sidebar-col {
-        width: 100%;
-        min-width: 100%;
-        height: 40%;
-        border-right: none;
-        border-bottom: 2px solid #222;
-      }
-      .detail-col {
-        height: 60%;
-        padding: 15px;
-      }
+      .layout-split { flex-direction: column; }
+      .sidebar-col { width: 100%; min-width: 100%; height: 40%; border-right: none; border-bottom: 2px solid #222; }
+      .detail-col { height: 60%; padding: 15px; }
       
-      /* Responsive Table for QnA */
       table.qna-table th:nth-child(1) { width: 25%; }
       table.qna-table th:nth-child(2) { width: 15%; }
       table.qna-table th:nth-child(3) { width: 45%; }
       table.qna-table th:nth-child(4) { width: 15%; }
 
-      /* Responsive Assets Grid */
-      .assets-grid {
-        grid-template-columns: 1fr;
-      }
+      .assets-grid { grid-template-columns: 1fr; }
+      
+      /* Hide one car on mobile to save space */
+      .car-2 { display: none; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Animation Layer: Enhanced Cyber Rover -->
+  <!-- Animation Layer: Double Cyber Rover -->
   <div class="animation-layer">
+    <div class="road-kerb"></div>
     <div class="road">
       <div class="road-stripe"></div>
     </div>
+
+    <!-- Speed Lines -->
     <div class="speed-line" style="top: 20px; animation-delay: 0.1s;"></div>
     <div class="speed-line" style="top: 40px; animation-delay: 0.4s;"></div>
     <div class="speed-line" style="top: 60px; animation-delay: 0.6s;"></div>
-    <div class="speed-line" style="top: 30px; animation-delay: 0.2s;"></div>
 
-    <div class="cyber-rover">
+    <!-- Car 1: Right to Left (Yellow) -->
+    <div class="cyber-rover car-1">
       <div class="underglow"></div>
       <svg class="car-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
         <path class="car-body" d="M20,60 Q30,20 80,20 L160,20 Q190,20 190,50 L190,70 Q190,80 180,80 L20,80 Q10,80 10,70 L10,60 Z" />
@@ -748,18 +683,32 @@
         <path class="car-window" d="M120,20 L150,20 Q160,20 160,30 L120,30 Z" fill="#222" />
         <line x1="20" y1="50" x2="50" y2="50" stroke="#FFD600" stroke-width="2" />
         <line x1="60" y1="50" x2="90" y2="50" stroke="#FFD600" stroke-width="2" />
-        <rect x="12" y="55" width="5" height="10" fill="#FF3333" />
+        <rect x="12" y="55" width="5" height="10" class="car-light-back" />
         <rect x="183" y="35" width="8" height="15" class="car-light-front" />
       </svg>
       <div class="light-beam"></div>
       <div class="wheel-container wc-front"><div class="wheel"></div></div>
       <div class="wheel-container wc-back"><div class="wheel"></div></div>
-      <div class="dust-container">
-        <div class="dust" style="width: 4px; height: 4px; top: 10px; left: 0; animation-delay: 0.1s;"></div>
-        <div class="dust" style="width: 6px; height: 6px; top: 5px; left: 10px; animation-delay: 0.3s;"></div>
-        <div class="dust" style="width: 3px; height: 3px; top: 15px; left: 5px; animation-delay: 0.5s;"></div>
-      </div>
     </div>
+
+    <!-- Car 2: Left to Right (Red Interceptor) -->
+    <div class="cyber-rover car-2">
+      <div class="underglow"></div>
+      <svg class="car-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+        <path class="car-body-red" d="M20,60 Q30,20 80,20 L160,20 Q190,20 190,50 L190,70 Q190,80 180,80 L20,80 Q10,80 10,70 L10,60 Z" />
+        <path class="car-window" d="M35,25 Q40,10 70,10 L100,10 Q110,10 110,20 L35,25 Z" fill="#111" />
+        <path class="car-window" d="M120,20 L150,20 Q160,20 160,30 L120,30 Z" fill="#111" />
+        <line x1="20" y1="50" x2="50" y2="50" stroke="#FF3333" stroke-width="2" />
+        <line x1="60" y1="50" x2="90" y2="50" stroke="#FF3333" stroke-width="2" />
+        <!-- Lights flipped for this car direction (visual logic handled by scaleX(-1) but SVG is same, just class colors differ) -->
+        <rect x="12" y="55" width="5" height="10" fill="#fff" filter="drop-shadow(0 0 5px #fff)" /> <!-- Front light (now on left visually) -->
+        <rect x="183" y="35" width="8" height="15" class="car-light-back" /> <!-- Back light (now on right visually) -->
+      </svg>
+      <div class="light-beam"></div>
+      <div class="wheel-container wc-front"><div class="wheel"></div></div>
+      <div class="wheel-container wc-back"><div class="wheel"></div></div>
+    </div>
+
   </div>
 
   <div class="scanlines"></div>
@@ -936,10 +885,8 @@
       else if (sheetName === 'datalogin') {
         tableContainer.innerHTML = renderList(data);
       } else if (sheetName === 'bonus') {
-        // CHANGED: Use new renderAssetsGrid function
         tableContainer.innerHTML = renderAssetsGrid(data); 
       } else {
-        // report & PK_LULUS_SENSOR_AUDIT uses QnA Table
         tableContainer.innerHTML = renderQna(data);
       }
     }
@@ -961,7 +908,6 @@
       return html;
     }
 
-    // --- NEW: Revamped Assets Grid Renderer ---
     function renderAssetsGrid(data) {
       if (!data.length) return '';
       
@@ -973,26 +919,17 @@
         const val = row[keys[1]] || '-';
         const desc = row[keys[2]] || '-';
         
-        // Sanitize for data attributes
         const valEscaped = escapeHTML(val).replace(/"/g, '&quot;');
         const descEscaped = escapeHTML(desc).replace(/"/g, '&quot;');
         
         html += `
           <div class="asset-card" style="animation-delay: ${index * 0.05}s">
-             <!-- Decorative Vents -->
-             <div class="asset-vents">
-                <div class="vent-hole"></div>
-                <div class="vent-hole"></div>
-                <div class="vent-hole"></div>
-             </div>
-
              <div class="asset-header">
                 <span class="asset-id-badge">${escapeHTML(id)}</span>
                 <div class="asset-status"></div>
              </div>
 
              <div class="asset-display">
-                <div class="asset-display-scanline"></div>
                 <div class="asset-value">${escapeHTML(val)}</div>
              </div>
 
@@ -1014,14 +951,12 @@
       return html;
     }
 
-    // --- UPDATED: QnA Table with Copy Query & Copy Response ---
     function renderQna(data) {
       if (!data.length) return '';
       
-      // Added new header for Copy Query
       let html = '<table class="qna-table"><thead><tr>';
       html += '<th>QUERY</th>';
-      html += '<th>COPY</th>'; // New Column
+      html += '<th>COPY</th>';
       html += '<th>RESPONSE</th>';
       html += '<th>COPY</th>';
       html += '</tr></thead><tbody>';
@@ -1049,14 +984,13 @@
       return html;
     }
 
-    // --- NEW SIDEBAR LAYOUT LOGIC ---
+    // --- SIDEBAR LAYOUT LOGIC ---
 
     function renderSidebarLayout(data) {
       const keys = data.length > 0 ? Object.keys(data[0]) : [];
       
       let html = `
         <div class="layout-split">
-          <!-- Sidebar Column -->
           <div class="sidebar-col">
             <div class="sidebar-header">
               <span>Daftar Item</span>
@@ -1073,7 +1007,6 @@
             </div>
           </div>
 
-          <!-- Detail Column -->
           <div class="detail-col" id="detailPanel">
             <div class="empty-state">
               <span>Pilih Item untuk Melihat Detail</span>
@@ -1186,7 +1119,6 @@
           if (currentSheet === 'datalogin') {
             htmlResult = renderList(filtered);
           } else if (currentSheet === 'bonus') {
-            // CHANGED: Filter now uses renderAssetsGrid
             htmlResult = renderAssetsGrid(filtered);
           } else {
             htmlResult = renderQna(filtered);
@@ -1200,7 +1132,6 @@
 
     document.addEventListener('click', async (e) => {
       const btn = e.target.closest('.btn-industrial');
-      // Check for the new asset button class as well
       const btnAsset = e.target.closest('.btn-copy-action');
       
       const btnTarget = btn || btnAsset;
@@ -1208,13 +1139,11 @@
 
       let textToCopy = '';
 
-      // Logic for PK_anti_audit Detail View (Copy Description Only)
       if (btnTarget.dataset.descOnly) {
         const txtArea = document.createElement('textarea');
         txtArea.innerHTML = btnTarget.dataset.descOnly;
         textToCopy = txtArea.value;
       }
-      // Logic for Standard Tables (Value + Desc)
       else if (btnTarget.dataset.val && btnTarget.dataset.desc) {
         const val = btnTarget.dataset.val;
         const desc = btnTarget.dataset.desc;
@@ -1231,7 +1160,6 @@
              textToCopy = decodedVal;
         }
       } 
-      // Logic for QnA Tables (Query or Response)
       else if (btnTarget.dataset.text) {
         const txtArea = document.createElement('textarea');
         txtArea.innerHTML = btnTarget.dataset.text;
@@ -1244,15 +1172,12 @@
           btnTarget.classList.add('success');
           const originalText = btnTarget.innerText;
           
-          // Change text temporarily
           if (btnAsset) {
              btnTarget.innerHTML = '<i class="fas fa-check"></i> Extracted';
           } else {
-             // Only change text if it's not an icon button
              if (!btnTarget.querySelector('i') || btnTarget.innerText.trim() !== '') {
                 btnTarget.innerText = 'OK';
              } else {
-                // If it's icon only, maybe flash it or keep it simple
                 btnTarget.innerHTML = '<i class="fas fa-check"></i>';
              }
           }
@@ -1260,9 +1185,7 @@
           showNotification('Data copied to clipboard');
           setTimeout(() => {
             btnTarget.classList.remove('success');
-            // Restore original content
             if (btnTarget.dataset.text && !btnTarget.dataset.val) {
-               // If it was the new query copy button (icon only), restore icon
                if(originalText.trim() === '') {
                   btnTarget.innerHTML = '<i class="fas fa-copy"></i>';
                } else {
@@ -1288,7 +1211,6 @@
 
     searchInput.addEventListener('input', filterHandler);
 
-    // --- REFRESH BUTTON LOGIC ---
     refreshBtn.addEventListener('click', async function() {
       this.classList.add('loading');
       this.style.pointerEvents = 'none';
