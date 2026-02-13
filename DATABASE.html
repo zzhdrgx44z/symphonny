@@ -209,9 +209,11 @@
     table.table-4-col th:nth-child(3) { width: 50%; }
     table.table-4-col th:nth-child(4) { width: 10%; text-align: right; }
 
-    table.qna-table th:nth-child(1) { width: 30%; }
-    table.qna-table th:nth-child(2) { width: 60%; }
-    table.qna-table th:nth-child(3) { width: 10%; text-align: right; }
+    /* UPDATED: QNA Table for 4 columns */
+    table.qna-table th:nth-child(1) { width: 30%; } /* Query */
+    table.qna-table th:nth-child(2) { width: 8%; text-align: center; } /* Copy Query */
+    table.qna-table th:nth-child(3) { width: 52%; } /* Response */
+    table.qna-table th:nth-child(4) { width: 10%; text-align: right; } /* Copy Response */
 
     td { padding: 15px; color: #ccc; border-bottom: 1px solid #222; vertical-align: top; }
     
@@ -476,6 +478,12 @@
         height: 60%;
         padding: 15px;
       }
+      
+      /* Responsive Table for QnA */
+      table.qna-table th:nth-child(1) { width: 25%; }
+      table.qna-table th:nth-child(2) { width: 15%; }
+      table.qna-table th:nth-child(3) { width: 45%; }
+      table.qna-table th:nth-child(4) { width: 15%; }
     }
   </style>
 </head>
@@ -535,7 +543,6 @@
 
     <div class="nav-menu">
       <div class="nav-item active" data-sheet="datalogin"><i class="fas fa-user-lock"></i><span>Access</span></div>
-      <!-- Menu Signal Dihilangkan di sini -->
       <div class="nav-item" data-sheet="bonus"><i class="fas fa-cube"></i><span>Assets</span></div>
       <div class="nav-item" data-sheet="report"><i class="fas fa-file-alt"></i><span>ALL REPORT KENDALA </span></div>
       <div class="nav-item" data-sheet="PK_anti_audit"><i class="fas fa-toolbox"></i><span> PK TANPA KENA AUDIT NEW</span></div>
@@ -559,7 +566,7 @@
           <h1 id="pageTitle" class="glitch" data-text="Data Access">Data Access</h1>
         </div>
         
-        <!-- NEW: Header Actions with Search and Refresh -->
+        <!-- Header Actions with Search and Refresh -->
         <div class="header-actions">
             <div class="search-box">
               <input type="text" id="searchInput" placeholder="Search Database...">
@@ -579,7 +586,6 @@
 
   <script>
     const SPREADSHEET_ID = '19AodSFSw4shpSZVZ4I-_sD91eU1HPITMeg4cwLiEV1c';
-    // 'linknawala' dihapus dari daftar sheet names
     const SHEET_NAMES    = ['datalogin', 'bonus', 'report', 'PK_anti_audit', 'PK_LULUS_SENSOR_AUDIT'];
 
     let allData = {};
@@ -687,11 +693,11 @@
         initSidebarInteraction();
       } 
       else if (sheetName === 'datalogin') {
-        // Kondisi khusus untuk datalogin (sebelumnya linknawala juga di sini, sekarang dihapus)
         tableContainer.innerHTML = renderList(data);
       } else if (sheetName === 'bonus') {
         tableContainer.innerHTML = render4ColTable(data); 
       } else {
+        // report & PK_LULUS_SENSOR_AUDIT uses QnA Table
         tableContainer.innerHTML = renderQna(data);
       }
     }
@@ -745,25 +751,34 @@
       return html;
     }
 
+    // --- UPDATED: QnA Table with Copy Query & Copy Response ---
     function renderQna(data) {
       if (!data.length) return '';
+      
+      // Added new header for Copy Query
       let html = '<table class="qna-table"><thead><tr>';
       html += '<th>QUERY</th>';
+      html += '<th>COPY</th>'; // New Column
       html += '<th>RESPONSE</th>';
-      html += '<th>ACTION</th>';
+      html += '<th>COPY</th>';
       html += '</tr></thead><tbody>';
       
       data.forEach((row, index) => {
         const keys = Object.keys(row);
         const q = row[keys[1]] || row[keys[0]] || '-';
         const a = row[keys[2]] || row[keys[1]] || '-';
-        const safeText = escapeHTML(a).replace(/"/g, '&quot;');
+        
+        const qSafe = escapeHTML(q).replace(/"/g, '&quot;');
+        const aSafe = escapeHTML(a).replace(/"/g, '&quot;');
         
         html += `<tr style="animation-delay: ${index * 0.03}s">
           <td>${escapeHTML(q)}</td>
+          <td style="text-align: center;">
+            <button class="btn-industrial" data-text="${qSafe}" title="Copy Query" style="padding: 5px 10px; font-size: 0.75rem;"><i class="fas fa-copy"></i></button>
+          </td>
           <td>${escapeHTML(a)}</td>
           <td style="text-align: right;">
-            <button class="btn-industrial" data-text="${safeText}">Copy</button>
+            <button class="btn-industrial" data-text="${aSafe}" title="Copy Response">Copy</button>
           </td>
         </tr>`;
       });
@@ -787,7 +802,6 @@
             <div class="sidebar-list" id="sidebarListContainer">
               ${data.map((row, index) => {
                 const key = row[keys[0]] || `Item ${index + 1}`;
-                // Sidebar items are not buttons, they just select
                 return `<div class="sidebar-item" data-index="${index}">
                           <i class="fas fa-chevron-right"></i>
                           ${escapeHTML(key)}
@@ -813,7 +827,6 @@
       
       if (items.length === 0) return;
 
-      // Activate first item by default
       if (activeSidebarIndex === 0 && items[0]) {
         items[0].classList.add('active');
         updateDetail(0);
@@ -821,9 +834,7 @@
 
       items.forEach(item => {
         item.addEventListener('click', function() {
-          // Remove active from all
           items.forEach(i => i.classList.remove('active'));
-          // Add active to clicked
           this.classList.add('active');
           
           const index = parseInt(this.dataset.index);
@@ -833,9 +844,6 @@
       });
     }
 
-    // ==========================================
-    // REVISION: HIDE VALUE FOR PK_anti_audit
-    // ==========================================
     function updateDetail(index) {
       const detailPanel = document.getElementById('detailPanel');
       const data = allData[currentSheet];
@@ -849,14 +857,12 @@
 
       const descEscaped = escapeHTML(desc).replace(/"/g, '&quot;');
 
-      // Build HTML without Value for PK_anti_audit
       let detailHtml = `
         <div class="detail-content">
           <div class="detail-label">ID / Key</div>
           <div style="font-size: 1rem; color: #fff; margin-bottom: 15px;">${escapeHTML(key)}</div>
       `;
 
-      // Only show Value block if NOT PK_anti_audit
       if (currentSheet !== 'PK_anti_audit') {
           detailHtml += `
             <div class="detail-label">Value</div>
@@ -884,14 +890,12 @@
       const data = allData[currentSheet] || [];
       if (!data.length) return;
 
-      // Special handling for Sidebar Layout
       if (currentSheet === 'PK_anti_audit') {
         const items = document.querySelectorAll('.sidebar-item');
         let firstVisibleIndex = -1;
 
         items.forEach((item, index) => {
           const row = data[index];
-          // Search in all columns
           const isMatch = Object.values(row).some(val => 
             val && val.toString().toLowerCase().includes(query)
           );
@@ -903,7 +907,6 @@
           }
         });
 
-        // If the currently active item is hidden, select the first visible one
         const activeItem = document.querySelector('.sidebar-item.active');
         if (activeItem && activeItem.style.display === 'none' && firstVisibleIndex !== -1) {
            const nextItem = document.querySelector(`.sidebar-item[data-index="${firstVisibleIndex}"]`);
@@ -911,7 +914,6 @@
         }
       } 
       else {
-        // Standard Table Filtering
         let filtered = data.filter(row => {
           return Object.values(row).some(val => val && val.toString().toLowerCase().includes(query));
         });
@@ -961,7 +963,7 @@
              textToCopy = decodedVal;
         }
       } 
-      // Logic for QnA Tables
+      // Logic for QnA Tables (Query or Response)
       else if (btn.dataset.text) {
         const txtArea = document.createElement('textarea');
         txtArea.innerHTML = btn.dataset.text;
@@ -972,13 +974,29 @@
         try {
           await navigator.clipboard.writeText(textToCopy);
           btn.classList.add('success');
-          // Change text based on button type
           const originalText = btn.innerText;
-          btn.innerText = 'OK';
+          // Only change text if it's not an icon button
+          if (!btn.querySelector('i') || btn.innerText.trim() !== '') {
+             btn.innerText = 'OK';
+          } else {
+             // If it's icon only, maybe flash it or keep it simple
+             btn.innerHTML = '<i class="fas fa-check"></i>';
+          }
+          
           showNotification('Data copied to clipboard');
           setTimeout(() => {
             btn.classList.remove('success');
-            btn.innerText = originalText; 
+            // Restore original content
+            if (btn.dataset.text && !btn.dataset.val) {
+               // If it was the new query copy button (icon only), restore icon
+               if(originalText.trim() === '') {
+                  btn.innerHTML = '<i class="fas fa-copy"></i>';
+               } else {
+                  btn.innerText = originalText;
+               }
+            } else {
+               btn.innerText = originalText;
+            }
           }, 1500);
         } catch (err) {
           console.error('Failed to copy:', err);
@@ -996,16 +1014,13 @@
 
     // --- REFRESH BUTTON LOGIC ---
     refreshBtn.addEventListener('click', async function() {
-      // Add loading state
       this.classList.add('loading');
-      this.style.pointerEvents = 'none'; // Prevent double clicks
+      this.style.pointerEvents = 'none';
       
       showNotification('Memperbarui data...');
 
-      // Re-fetch all data
       await loadAllSheets();
 
-      // Remove loading state
       this.classList.remove('loading');
       this.style.pointerEvents = 'auto';
       
@@ -1026,4 +1041,3 @@
   </script>
 </body>
 </html>
-
