@@ -3,612 +3,570 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYMPHONNY // GLITCH_PROTOCOL</title>
+    <title>SYMPHONNY // CYBER_OPS</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Font Agresif & Tech -->
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
-        /* --- VARIABLES --- */
         :root {
-            --bg-color: #000000;
-            --card-bg: #050505;
-            --border-color: #1a1a1a;
-            
-            --neon-red: #ff003c; /* Crimson Glitch */
-            --neon-white: #ffffff;
-            --text-dim: #666666;
-            
-            --font-head: 'Bebas Neue', sans-serif;
-            --font-code: 'Roboto Mono', monospace;
+            --bg-dark: #03050a;
+            --glass: rgba(10, 20, 30, 0.6);
+            --neon-cyan: #00f3ff;
+            --neon-pink: #ff0055;
+            --neon-green: #0aff10;
+            --text-primary: #e0e6ed;
+            --text-secondary: #6d7d8a;
+            --border-light: rgba(255, 255, 255, 0.1);
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            cursor: crosshair;
+            user-select: none;
         }
 
         body {
-            font-family: var(--font-code);
-            background-color: var(--bg-color);
-            color: var(--neon-white);
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
             min-height: 100vh;
             overflow-x: hidden;
-            /* Noise Background */
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+            perspective: 1000px;
+        }
+
+        /* --- ANIMATED BACKGROUND --- */
+        #bg-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+            opacity: 0.3;
         }
 
         /* --- LOADER --- */
-        .loading-screen {
+        .loader-container {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: #000;
-            z-index: 10000;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            border: 2px solid var(--neon-red);
-            box-shadow: 0 0 50px rgba(255, 0, 60, 0.2) inset;
+            flex-direction: column;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
         }
-        .loading-screen.hidden { opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+        .loader-container.hide { opacity: 0; pointer-events: none; }
 
-        .loader-text {
-            font-family: var(--font-head);
-            font-size: 3rem;
-            color: var(--neon-red);
-            animation: glitchText 1s infinite;
-            letter-spacing: 5px;
-        }
-        @keyframes glitchText {
-            0% { transform: translate(0); }
-            20% { transform: translate(-2px, 2px); }
-            40% { transform: translate(-2px, -2px); }
-            60% { transform: translate(2px, 2px); }
-            80% { transform: translate(2px, -2px); }
-            100% { transform: translate(0); }
-        }
-
-        .progress-track {
-            width: 400px;
-            height: 4px;
-            background: #1a1a1a;
-            margin-top: 20px;
+        .spinner {
+            width: 100px; height: 100px;
             position: relative;
         }
-        .progress-fill {
-            height: 100%;
-            background: var(--neon-red);
-            width: 0%;
-            box-shadow: 0 0 10px var(--neon-red);
-            transition: width 0.1s linear;
+        .spinner::before, .spinner::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            animation: spin 2s linear infinite;
         }
+        .spinner::before {
+            width: 100%; height: 100%;
+            border: 4px solid transparent;
+            border-top-color: var(--neon-cyan);
+            border-bottom-color: var(--neon-pink);
+        }
+        .spinner::after {
+            width: 70%; height: 70%;
+            top: 15%; left: 15%;
+            border: 4px solid transparent;
+            border-left-color: var(--neon-green);
+            border-right-color: var(--neon-cyan);
+            animation-direction: reverse;
+            animation-duration: 1.5s;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
         /* --- HEADER --- */
-        .main-header {
-            text-align: center;
+        header {
             padding: 80px 20px 40px;
+            text-align: center;
             position: relative;
         }
 
-        .logo-title {
-            font-family: var(--font-head);
-            font-size: 6rem;
-            color: #fff;
+        .title-main {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4.5rem;
+            font-weight: 900;
+            letter-spacing: 5px;
+            color: transparent;
+            background: linear-gradient(90deg, #fff, var(--neon-cyan));
+            -webkit-background-clip: text;
+            text-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
             position: relative;
-            text-transform: uppercase;
-            line-height: 0.9;
-            letter-spacing: -2px;
+            display: inline-block;
         }
-
-        /* Glitch Layers */
-        .logo-title::before, .logo-title::after {
-            content: "SYMPHONNY";
+        
+        /* Efek Garis Dekoratif */
+        .title-main::after {
+            content: '';
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            opacity: 0.8;
-            mix-blend-mode: hard-light;
-        }
-        .logo-title::before {
-            color: cyan;
-            left: 2px;
-            text-shadow: -2px 0 #ff003c;
-            animation: glitch-anim-1 2.5s infinite linear alternate-reverse;
-            clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
-        }
-        .logo-title::after {
-            color: yellow;
-            left: -2px;
-            text-shadow: 2px 0 #ff003c;
-            animation: glitch-anim-2 3s infinite linear alternate-reverse;
-            clip-path: polygon(0 45%, 100% 45%, 100% 100%, 0 100%);
-        }
-
-        @keyframes glitch-anim-1 {
-            0% { clip-path: inset(50% 0 30% 0); transform: translate(-2px,0); }
-            20% { clip-path: inset(10% 0 60% 0); transform: translate(2px,0); }
-            40% { clip-path: inset(80% 0 5% 0); transform: translate(-2px,0); }
-            60% { clip-path: inset(40% 0 40% 0); transform: translate(2px,0); }
-            80% { clip-path: inset(20% 0 70% 0); transform: translate(-2px,0); }
-            100% { clip-path: inset(60% 0 20% 0); transform: translate(2px,0); }
-        }
-        @keyframes glitch-anim-2 {
-            0% { clip-path: inset(60% 0 20% 0); transform: translate(2px,0); }
-            20% { clip-path: inset(20% 0 70% 0); transform: translate(-2px,0); }
-            40% { clip-path: inset(80% 0 5% 0); transform: translate(2px,0); }
-            60% { clip-path: inset(10% 0 60% 0); transform: translate(-2px,0); }
-            80% { clip-path: inset(40% 0 40% 0); transform: translate(2px,0); }
-            100% { clip-path: inset(50% 0 30% 0); transform: translate(-2px,0); }
+            bottom: -10px; left: 50%;
+            transform: translateX(-50%);
+            width: 60%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
         }
 
         .subtitle {
-            display: inline-block;
-            background: var(--neon-red);
-            color: #000;
-            padding: 5px 10px;
-            font-family: var(--font-code);
-            font-weight: 700;
+            margin-top: 20px;
+            font-size: 1rem;
+            color: var(--neon-pink);
+            letter-spacing: 8px;
             text-transform: uppercase;
-            margin-top: 10px;
-            font-size: 1.2rem;
-            letter-spacing: 2px;
+            opacity: 0.8;
         }
 
-        /* --- SEARCH --- */
-        .search-wrapper {
-            max-width: 700px;
+        /* --- SEARCH BAR --- */
+        .search-container {
+            max-width: 600px;
             margin: 40px auto;
             position: relative;
             z-index: 10;
         }
 
-        .search-input-wrapper {
+        .search-wrapper {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-light);
+            border-radius: 50px;
+            padding: 5px;
             display: flex;
-            background: #0a0a0a;
-            border: 2px solid var(--border-color);
-            transform: skewX(-10deg);
-            transition: 0.3s;
+            align-items: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
         }
 
-        .search-input-wrapper:focus-within {
-            border-color: var(--neon-red);
-            box-shadow: 0 0 20px rgba(255, 0, 60, 0.3);
+        .search-wrapper:focus-within {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+        }
+
+        .search-icon {
+            padding: 15px 20px;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
         }
 
         .search-input {
             flex: 1;
             background: transparent;
             border: none;
-            padding: 20px 30px;
-            color: #fff;
-            font-family: var(--font-head);
-            font-size: 1.5rem;
             outline: none;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            transform: skewX(10deg); /* Counter skew text */
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 500;
+            padding-right: 20px;
         }
-
-        .search-btn {
-            background: transparent;
-            border: none;
-            padding: 0 40px;
-            color: var(--neon-red);
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .search-btn:hover { color: #fff; }
 
         .search-results {
             position: absolute;
-            top: 110%; left: -10px; right: -10px;
-            background: #0a0a0a;
-            border: 2px solid var(--neon-red);
+            top: 120%; left: 0; right: 0;
+            background: rgba(5, 10, 15, 0.95);
+            border: 1px solid var(--neon-cyan);
+            border-radius: 15px;
+            max-height: 300px;
+            overflow-y: auto;
             display: none;
-            z-index: 99;
-            transform: skewX(-10deg);
+            z-index: 100;
+            backdrop-filter: blur(10px);
         }
-        .search-results div {
-            padding: 15px 25px;
-            border-bottom: 1px solid #222;
-            color: #fff;
-            font-family: var(--font-code);
-            font-size: 1rem;
-            transition: 0.2s;
-            cursor: pointer;
-            transform: skewX(10deg);
-        }
-        .search-results div:hover {
-            background: var(--neon-red);
-            color: #000;
-            padding-left: 35px;
-        }
+        .search-results.show { display: block; animation: fadeIn 0.2s; }
 
-        /* --- CARDS --- */
-        .container {
+        .result-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .result-item:hover {
+            background: rgba(0, 243, 255, 0.1);
+            padding-left: 30px;
+        }
+        .result-item i { color: var(--neon-cyan); }
+        .result-item span { font-weight: 600; }
+
+        /* --- GRID CONTAINER --- */
+        .main-container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 0 20px 100px;
+            padding: 20px 40px 100px;
         }
 
-        .engine-grid {
+        .grid-system {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 30px;
         }
 
-        .glitch-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
+        /* --- CARD STYLE --- */
+        .tech-card {
+            background: linear-gradient(145deg, rgba(10, 15, 25, 0.6), rgba(5, 5, 10, 0.9));
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
             position: relative;
-            padding: 0; /* Padding handled inside */
-            transition: all 0.3s ease;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
             opacity: 0;
-            transform: translateY(20px);
-            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+            transform: translateY(50px);
+        }
+        
+        .tech-card.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
-        .glitch-card.visible {
-            animation: slideUp 0.5s forwards;
-        }
-
-        .glitch-card:hover {
-            border-color: var(--neon-red);
-            transform: translateY(-10px) skewX(-2deg);
-            box-shadow: -10px 10px 0px var(--neon-red);
-            z-index: 5;
-        }
-
-        /* Tech Line Top */
-        .glitch-card::before {
+        /* Garis Sudut Kartu */
+        .tech-card::before {
             content: '';
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 2px;
-            background: var(--border-color);
-        }
-        .glitch-card:hover::before {
-            background: var(--neon-red);
-            animation: glitchLine 0.3s infinite;
-        }
-        @keyframes glitchLine {
-            0% { transform: translateX(0); }
-            50% { transform: translateX(-5px); }
-            100% { transform: translateX(5px); }
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(45deg, transparent 40%, rgba(0, 243, 255, 0.1) 50%, transparent 60%);
+            background-size: 200% 200%;
+            transition: all 0.5s;
+            opacity: 0;
         }
 
-        .card-content {
-            padding: 30px;
+        .tech-card:hover::before {
+            animation: shine 1.5s infinite;
+            opacity: 1;
         }
 
-        .card-header {
+        .tech-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: rgba(0, 243, 255, 0.3);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.1);
+        }
+
+        @keyframes shine {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+
+        .card-top {
             display: flex;
             justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .card-icon-box {
+            width: 50px; height: 50px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            display: flex;
             align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 1px dashed #333;
-            padding-bottom: 15px;
-        }
-
-        .card-title {
-            font-family: var(--font-head);
-            font-size: 1.8rem;
-            text-transform: uppercase;
-            color: #fff;
-        }
-
-        .card-icon {
+            justify-content: center;
             font-size: 1.5rem;
-            color: var(--neon-red);
+            color: var(--neon-cyan);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.1);
+            transition: 0.3s;
         }
 
-        .card-desc {
-            color: var(--text-dim);
-            font-size: 0.9rem;
-            margin-bottom: 25px;
-            line-height: 1.5;
+        .tech-card:hover .card-icon-box {
+            background: var(--neon-cyan);
+            color: #000;
+            box-shadow: 0 0 20px var(--neon-cyan);
         }
 
-        .warning-tag {
-            display: inline-block;
-            background: rgba(255, 0, 60, 0.1);
-            border: 1px solid var(--neon-red);
-            color: var(--neon-red);
-            padding: 4px 8px;
+        .card-header-text h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4rem;
+            margin-bottom: 5px;
+        }
+
+        .card-status {
             font-size: 0.7rem;
-            margin-bottom: 20px;
-            font-family: var(--font-code);
-            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(10, 255, 16, 0.1);
+            color: var(--neon-green);
+            border: 1px solid rgba(10, 255, 16, 0.2);
+            text-transform: uppercase;
             letter-spacing: 1px;
         }
 
-        .card-btn {
+        .card-body {
+            flex-grow: 1;
+            margin-bottom: 20px;
+        }
+        
+        .card-desc {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .card-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 20px;
+            margin-top: auto;
+        }
+
+        .btn-connect {
             width: 100%;
-            background: #1a1a1a;
-            color: #fff;
-            border: none;
-            padding: 15px;
-            font-family: var(--font-head);
-            font-size: 1.2rem;
-            letter-spacing: 2px;
+            padding: 12px;
+            background: transparent;
+            border: 1px solid var(--text-secondary);
+            color: var(--text-primary);
+            border-radius: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
             cursor: pointer;
-            transition: 0.2s;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
             text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
-        .card-btn:hover {
-            background: var(--neon-red);
-            color: #000;
+        .btn-connect:hover {
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+            background: rgba(0, 243, 255, 0.05);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
         }
-
-        /* --- TERMINAL --- */
-        .terminal-glitch {
-            position: fixed;
-            bottom: 40px;
-            right: 40px;
-            width: 350px;
-            background: #000;
-            border: 2px solid var(--neon-red);
-            z-index: 100;
-            font-family: var(--font-code);
-            display: none;
-            box-shadow: 0 0 30px rgba(255, 0, 60, 0.2);
-        }
-        .terminal-glitch.active { display: block; animation: popIn 0.2s ease; }
-
-        .term-head {
-            background: var(--neon-red);
-            color: #000;
-            padding: 5px 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-            display: flex;
-            justify-content: space-between;
-        }
-        .term-body {
-            padding: 15px;
-            color: var(--neon-red);
-            max-height: 200px;
-            overflow-y: auto;
-            font-size: 0.85rem;
-        }
-        .term-line { margin-bottom: 5px; display: block; }
-        .term-line::before { content: '> '; opacity: 0.5; }
 
         /* --- FOOTER --- */
         .footer-bar {
             position: fixed;
-            bottom: 0; left: 0; width: 100%;
-            background: #000;
-            border-top: 2px solid var(--border-color);
-            padding: 10px 40px;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 15px 40px;
             display: flex;
             justify-content: space-between;
-            font-family: var(--font-code);
-            color: var(--text-dim);
-            font-size: 0.8rem;
-            z-index: 90;
-            text-transform: uppercase;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            z-index: 50;
         }
-        
-        @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
-        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .dot {
+            width: 8px; height: 8px;
+            background: var(--neon-green);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--neon-green);
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink { 50% { opacity: 0.3; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Responsive */
         @media (max-width: 768px) {
-            .logo-title { font-size: 3.5rem; }
-            .terminal-glitch { width: 90%; right: 5%; bottom: 20px; }
-            .footer-bar { flex-direction: column; gap: 5px; text-align: center; }
+            .title-main { font-size: 2.5rem; letter-spacing: 2px; }
+            .main-container { padding: 20px; }
+            .footer-bar { flex-direction: column; gap: 10px; text-align: center; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Loading Screen -->
-    <div class="loading-screen" id="loadingScreen">
-        <div class="loader-text">SYSTEM BREACH</div>
-        <div class="progress-track">
-            <div class="progress-fill" id="biosProgress"></div>
-        </div>
+    <!-- Loader -->
+    <div class="loader-container" id="loader">
+        <div class="spinner"></div>
+        <p style="margin-top: 20px; letter-spacing: 5px; color: #fff;">INITIALIZING SYSTEM</p>
     </div>
 
+    <!-- Background Animation Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
     <!-- Header -->
-    <header class="main-header">
-        <div class="logo-title">SYMPHONNY</div>
-        <div class="subtitle">/// GLITCH PROTOCOL ///</div>
+    <header>
+        <h1 class="title-main">SYMPHONNY</h1>
+        <div class="subtitle">Secure Network Portal</div>
     </header>
 
     <!-- Search -->
-    <div class="search-wrapper">
-        <div class="search-input-wrapper">
-            <input type="text" class="search-input" id="searchInput" placeholder="SEARCH_DATABASE..." autocomplete="off">
-            <i class="fas fa-search search-btn" onclick="performSearch()"></i>
+    <div class="search-container">
+        <div class="search-wrapper">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" class="search-input" id="searchInput" placeholder="Search database..." autocomplete="off">
         </div>
         <div class="search-results" id="searchResults"></div>
     </div>
 
-    <!-- Grid -->
-    <div class="container">
-        <div class="engine-grid" id="engines"></div>
-    </div>
-
-    <!-- Terminal -->
-    <div class="terminal-glitch" id="terminal">
-        <div class="term-head">
-            <span>CMD_ROOT</span>
-            <span onclick="toggleTerminal()" style="cursor:pointer;">[X]</span>
-        </div>
-        <div class="term-body" id="terminalContent"></div>
+    <!-- Content -->
+    <div class="main-container">
+        <div class="grid-system" id="engineGrid"></div>
     </div>
 
     <!-- Footer -->
-    <div class="footer-bar">
-        <div>SYSTEM: <span style="color:var(--neon-red)">CRITICAL</span></div>
-        <div id="datetime">00:00:00</div>
-    </div>
+    <footer class="footer-bar">
+        <div class="status-indicator"><div class="dot"></div> Connection Encrypted</div>
+        <div id="timeDisplay">--:--:--</div>
+    </footer>
 
     <script>
-        // --- DATA (UPDATED) ---
-        const database = [
-            // ITEM BARU: ALL PK
-            { title: "ALL PK", desc: "Database lengkap semua PK", url: "https://symphonny.vercel.app/DATABASE.html", icon: "fa-database" },
-            
-            // ITEM LAINNYA
-            { title: "Pemutar Video", desc: "Video streaming & visualizer", url: "https://symphonny.vercel.app/pemutar_video.html", icon: "fa-play" },
-            { title: "Event Scatter", desc: "Visualisasi data real-time", url: "https://symphonny.vercel.app/Scatter_Event.html", icon: "fa-chart-scatter" },
-            { title: "Jadwal Togel", desc: "Jadwal 24/7 lengkap", url: "https://symphonny.vercel.app/JADWAL_TOGEL_LINETOGEL.html", icon: "fa-calendar-alt" },
-            { title: "Live Games", desc: "Live dealer streaming", url: "https://symphonny.vercel.app/LIVEGAMES_GAMEPLAY.html", icon: "fa-gamepad" },
-            { title: "Togel Engine", desc: "Algoritma probabilitas", url: "https://symphonny.vercel.app/Gameplay_Togel.html", icon: "fa-dice" },
-            { title: "Kalkulator AI", desc: "Prediksi pintar AI", url: "https://symphonny.vercel.app/Perhitungan_togel.html", icon: "fa-calculator" },
-            { title: "QRIS Payment", desc: "Pembayaran instan", url: "https://symphonny.vercel.app/Bukti-qris.html", icon: "fa-qrcode" },
-            { title: "Live Casino", desc: "Casino premium VIP", url: "https://symphonny.vercel.app/Live_games.html", icon: "fa-play-circle" },
-            { title: "Link Alternatif", desc: "Akses anti blokir", url: "https://symphonny.vercel.app/all_dashboard.html", icon: "fa-link" },
-            { title: "Bonus Line Togel", desc: "All bonus Line togel", url: "https://symphonny.vercel.app/bonuslinetogel.html", icon: "fa-gift" },
-            { title: "Hadiah Togel", desc: "Max prize 4D/3D/2D", url: "https://symphonny.vercel.app/hadiah_togel.html", icon: "fa-trophy" },
-            { title: "IDN Poker", desc: "Fairplay Player vs Player", url: "https://symphonny.vercel.app/IDN_POKER.html", icon: "fa-spade" },
-            { title: "Gaple", desc: "Domino klasik modern", url: "https://symphonny.vercel.app/IDN_GAPLE.html", icon: "fa-chess-board" },
-            { title: "Screen Rec", desc: "Rekam layar HD gratis", url: "https://symphonny.vercel.app/SCREEN_RECORDER_PRIVATE.html", icon: "fa-video" },
-            { title: "GAME SLOT TERSEDIA", desc: "Koleksi lengkap slot", url: "https://symphonny.vercel.app/games_slot.html", icon: "fa-dice-d20" },
-            { title: "PERMAINAN SLOT", desc: "Putar Reel Keberuntungan", url: "https://symphonny.vercel.app/Gameplay_Slot.html", icon: "fa-gem" },
-            { title: "Generate Kata", desc: "Generator kata kunci & kalimat", url: "https://symphonny.vercel.app/generate_kata.html", icon: "fa-font" }
+        // --- DATA ENGINE ---
+        const dataEngine = [
+            { id: 1, title: "ALL PK", desc: "Database pusat seluruh PK yang tersedia.", url: "https://symphonny.vercel.app/DATABASE.html", icon: "fa-database" },
+            { id: 2, title: "Pemutar Video", desc: "Platform streaming dengan kualitas tinggi.", url: "https://symphonny.vercel.app/pemutar_video.html", icon: "fa-play" },
+            { id: 3, title: "Event Scatter", desc: "Pemantauan event scatter secara real-time.", url: "https://symphonny.vercel.app/Scatter_Event.html", icon: "fa-bolt" },
+            { id: 4, title: "Jadwal Togel", desc: "Jadwal lengkap undian 24/7 non-stop.", url: "https://symphonny.vercel.app/JADWAL_TOGEL_LINETOGEL.html", icon: "fa-calendar-alt" },
+            { id: 5, title: "Live Games", desc: "Streaming dealer langsung dari studio.", url: "https://symphonny.vercel.app/LIVEGAMES_GAMEPLAY.html", icon: "fa-video" },
+            { id: 6, title: "Togel Engine", desc: "Mesin analisis probabilitas angka.", url: "https://symphonny.vercel.app/Gameplay_Togel.html", icon: "fa-cogs" },
+            { id: 7, title: "Kalkulator AI", desc: "Prediksi cerdas berbasis kecerdasan buatan.", url: "https://symphonny.vercel.app/Perhitungan_togel.html", icon: "fa-brain" },
+            { id: 8, title: "QRIS Payment", desc: "Ger pembayaran cepat QRIS.", url: "https://symphonny.vercel.app/Bukti-qris.html", icon: "fa-qrcode" },
+            { id: 9, title: "Live Casino", desc: "Akses VIP ruang casino premium.", url: "https://symphonny.vercel.app/Live_games.html", icon: "fa-dice" },
+            { id: 10, title: "Link Alternatif", desc: "Cadangan akses anti-blokir.", url: "https://symphonny.vercel.app/all_dashboard.html", icon: "fa-link" },
+            { id: 11, title: "Bonus Line", desc: "Informasi bonus dan promosi terbaru.", url: "https://symphonny.vercel.app/bonuslinetogel.html", icon: "fa-gift" },
+            { id: 12, title: "Hadiah Togel", desc: "Daftar hadiah maximal 4D/3D/2D.", url: "https://symphonny.vercel.app/hadiah_togel.html", icon: "fa-trophy" },
+            { id: 13, title: "IDN Poker", desc: "Arena player vs player terpercaya.", url: "https://symphonny.vercel.app/IDN_POKER.html", icon: "fa-club" },
+            { id: 14, title: "Gaple Online", desc: "Permainan domino klasik modern.", url: "https://symphonny.vercel.app/IDN_GAPLE.html", icon: "fa-table" },
+            { id: 15, title: "Screen Rec", desc: "Alat perekam layar private.", url: "https://symphonny.vercel.app/SCREEN_RECORDER_PRIVATE.html", icon: "fa-record-vinyl" },
+            { id: 16, title: "Galeri Slot", desc: "Katalog game slot terlengkap.", url: "https://symphonny.vercel.app/games_slot.html", icon: "fa-th-large" },
+            { id: 17, title: "Gameplay Slot", desc: "Putar reel dan raih kemenangan.", url: "https://symphonny.vercel.app/Gameplay_Slot.html", icon: "fa-coins" },
+            { id: 18, title: "Text Gen", desc: "Generator kata kunci otomatis.", url: "https://symphonny.vercel.app/generate_kata.html", icon: "fa-font" }
         ];
 
         // --- RENDER CARDS ---
-        function renderCards() {
-            const grid = document.getElementById('engines');
-            
-            database.forEach((item, index) => {
-                const card = document.createElement('article');
-                card.className = 'glitch-card';
-                card.style.transitionDelay = `${index * 0.05}s`; 
-                
-                card.innerHTML = `
-                    <div class="card-content">
-                        <div class="card-header">
-                            <h3 class="card-title">${item.title}</h3>
-                            <i class="fas ${item.icon} card-icon"></i>
-                        </div>
-                        <p class="card-desc">${item.desc}</p>
-                        <div class="warning-tag">ACTIVE MODULE</div>
-                        <button class="card-btn">INITIALIZE</button>
+        const grid = document.getElementById('engineGrid');
+
+        dataEngine.forEach((item, index) => {
+            const card = document.createElement('div');
+            card.className = 'tech-card';
+            card.style.transitionDelay = `${index * 50}ms`;
+
+            card.innerHTML = `
+                <div class="card-top">
+                    <div class="card-header-text">
+                        <h3>${item.title}</h3>
+                        <span class="card-status">System Active</span>
                     </div>
-                `;
-                
-                card.onclick = (e) => activateMachine(e, item.url, item.title);
-                grid.appendChild(card);
+                    <div class="card-icon-box">
+                        <i class="fas ${item.icon}"></i>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="card-desc">${item.desc}</p>
+                </div>
+                <div class="card-footer">
+                    <button class="btn-connect" onclick="window.open('${item.url}', '_blank')">
+                        Connect <i class="fas fa-arrow-right" style="margin-left:10px;"></i>
+                    </button>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+
+        // --- ANIMATIONS & OBSERVER ---
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
             });
+        }, { threshold: 0.1 });
 
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.1 });
+        document.querySelectorAll('.tech-card').forEach(card => observer.observe(card));
 
-            document.querySelectorAll('.glitch-card').forEach(card => observer.observe(card));
-        }
+        // --- SEARCH LOGIC ---
+        const searchInput = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
 
-        // --- LOGIC ---
-        function performSearch() {
-            const input = document.getElementById('searchInput').value.toLowerCase();
-            const results = document.getElementById('searchResults');
-            results.innerHTML = '';
+        searchInput.addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase();
+            if (val.length < 2) {
+                searchResults.classList.remove('show');
+                return;
+            }
+
+            const found = dataEngine.filter(d => d.title.toLowerCase().includes(val));
             
-            if(!input) { results.style.display = 'none'; return; }
-
-            const matches = database.filter(i => i.title.toLowerCase().includes(input));
-            
-            if(matches.length > 0) {
-                matches.forEach(item => {
-                    const div = document.createElement('div');
-                    div.innerHTML = `<span>[ACCESS]</span> ${item.title.toUpperCase()}`;
-                    div.onclick = () => window.open(item.url, '_blank');
-                    results.appendChild(div);
-                });
-                results.style.display = 'block';
+            if (found.length > 0) {
+                searchResults.innerHTML = found.map(f => `
+                    <div class="result-item" onclick="window.open('${f.url}', '_blank')">
+                        <i class="fas ${f.icon}"></i>
+                        <span>${f.title}</span>
+                    </div>
+                `).join('');
+                searchResults.classList.add('show');
             } else {
-                results.style.display = 'none';
+                searchResults.innerHTML = '<div class="result-item"><span>No results found</span></div>';
+                searchResults.classList.add('show');
+            }
+        });
+
+        // Close search on outside click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-container')) {
+                searchResults.classList.remove('show');
+            }
+        });
+
+        // --- TIME DISPLAY ---
+        setInterval(() => {
+            const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+            document.getElementById('timeDisplay').innerText = time;
+        }, 1000);
+
+        // --- BACKGROUND MATRIX RAIN ---
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        const letters = "010101010101 SYMPHONNY SYSTEM DATA";
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = "rgba(3, 5, 10, 0.05)"; // Trail effect
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = "#00f3ff"; // Text color
+            ctx.font = fontSize + "px arial";
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = letters.charAt(Math.floor(Math.random() * letters.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
             }
         }
 
-        function toggleTerminal() {
-            const term = document.getElementById('terminal');
-            term.classList.toggle('active');
-            if(term.classList.contains('active')) addLog("ROOT ACCESS GRANTED.");
-        }
+        setInterval(drawMatrix, 33);
 
-        function addLog(msg) {
-            const content = document.getElementById('terminalContent');
-            const line = document.createElement('span');
-            line.className = 'term-line';
-            line.innerText = `> ${msg}`;
-            content.appendChild(line);
-            content.scrollTop = content.scrollHeight;
-        }
-
-        function activateMachine(e, url, title) {
-            e.preventDefault();
-            const btn = e.currentTarget.querySelector('.card-btn');
-            const oldText = btn.innerText;
-            
-            btn.innerText = "BREACHING...";
-            btn.style.background = "var(--neon-red)";
-            btn.style.color = "#fff";
-            addLog(`BREACH: ${title}...`);
-            
-            setTimeout(() => {
-                window.open(url, '_blank');
-                btn.innerText = "SUCCESS";
-                setTimeout(() => { 
-                    btn.innerText = oldText; 
-                    btn.style.background = ""; 
-                    btn.style.color = ""; 
-                }, 1000);
-                addLog(`ACCESS CONFIRMED.`);
-            }, 800);
-        }
-
-        // --- BIOS LOADER ---
-        function runBiosLoader() {
-            const progress = document.getElementById('biosProgress');
-            let width = 0;
-            const interval = setInterval(() => {
-                if(width >= 100) {
-                    clearInterval(interval);
-                    setTimeout(() => {
-                        document.getElementById('loadingScreen').classList.add('hidden');
-                    }, 500);
-                } else {
-                    width += Math.random() * 5;
-                    if(width > 100) width = 100;
-                    progress.style.width = width + '%';
-                }
-            }, 50);
-        }
-
+        // --- LOADER ---
         window.onload = () => {
-            runBiosLoader();
-            renderCards();
-
-            setInterval(() => {
-                const now = new Date();
-                document.getElementById('datetime').innerText = now.toLocaleTimeString('id-ID');
-            }, 1000);
-
-            document.getElementById('searchInput').addEventListener('keypress', (e) => {
-                if(e.key === 'Enter') performSearch();
-            });
-            document.addEventListener('click', (e) => {
-                if(!e.target.closest('.search-wrapper')) {
-                    document.getElementById('searchResults').style.display = 'none';
-                }
-            });
+            setTimeout(() => {
+                document.getElementById('loader').classList.add('hide');
+            }, 1500);
         };
 
-        // --- ANTI DEBUG & PROTECTION SCRIPT ---
+        // --- PROTECTION (Preserved) ---
         const shortcut = {
             all_shortcuts: {},
             add: function(combo, callback, options) {
@@ -663,7 +621,6 @@
             img.style.width = "100%";
             img.style.height = "100vh";
             img.style.objectFit = "cover";
-            img.alt = "Background Image";
             document.body.appendChild(img);
             restoreTimeout = setTimeout(() => { restoreOriginalContent(); }, 1000);
         }
