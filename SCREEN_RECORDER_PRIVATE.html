@@ -20,6 +20,7 @@
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             color: white;
             min-height: 100vh;
+            line-height: 1.6;
             padding: 20px;
         }
 
@@ -35,6 +36,7 @@
             padding: 40px 20px;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 20px;
+            backdrop-filter: blur(10px);
         }
 
         .header h1 {
@@ -64,6 +66,12 @@
             padding: 25px;
             text-align: center;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .stat-icon {
@@ -89,6 +97,16 @@
             border-radius: 20px;
             padding: 30px;
             margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #00d2ff;
         }
 
         .video-container {
@@ -213,11 +231,6 @@
             color: white;
         }
 
-        .btn.danger {
-            background: #ef4444;
-            color: white;
-        }
-
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -229,15 +242,7 @@
             border-radius: 20px;
             padding: 30px;
             margin-bottom: 30px;
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #00d2ff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .settings-grid {
@@ -261,6 +266,7 @@
             border-radius: 10px;
             cursor: pointer;
             border: 2px solid transparent;
+            transition: all 0.3s;
         }
 
         .quality-option:hover {
@@ -355,6 +361,7 @@
             border-radius: 20px;
             padding: 30px;
             margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .library-header {
@@ -428,7 +435,6 @@
             max-height: 700px;
             overflow-y: auto;
             padding: 15px 5px;
-            min-height: 200px;
         }
 
         .video-card {
@@ -437,6 +443,7 @@
             overflow: hidden;
             transition: all 0.3s;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
         }
 
         .video-card:hover {
@@ -545,10 +552,6 @@
             display: none;
         }
 
-        .empty-library.active {
-            display: block;
-        }
-
         .empty-library i {
             font-size: 5rem;
             margin-bottom: 20px;
@@ -582,6 +585,7 @@
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .modal-header {
@@ -671,6 +675,32 @@
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
         }
 
+        /* Share Modal */
+        .share-link {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .share-link input {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+        }
+
+        .copy-btn {
+            padding: 12px 25px;
+            background: #00d2ff;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
         /* Toast */
         .toast-container {
             position: fixed;
@@ -757,6 +787,10 @@
             .header h1 {
                 font-size: 2rem;
             }
+            
+            .modal-content {
+                padding: 20px;
+            }
         }
 
         /* Scrollbar */
@@ -773,6 +807,10 @@
         ::-webkit-scrollbar-thumb {
             background: linear-gradient(135deg, #00d2ff, #3a7bd5);
             border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00d2ff;
         }
     </style>
 </head>
@@ -840,6 +878,12 @@
                     <i class="fas fa-download"></i> DOWNLOAD LATEST
                 </button>
             </div>
+
+            <!-- Recording Stats -->
+            <div style="display: flex; gap: 20px; justify-content: center; margin-top: 10px;">
+                <div><i class="fas fa-clock"></i> <span id="timer">00:00</span></div>
+                <div><i class="fas fa-hdd"></i> <span id="fileSize">0 MB</span></div>
+            </div>
         </div>
 
         <!-- Settings Section -->
@@ -901,6 +945,17 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Storage Info -->
+            <div class="storage-info">
+                <div class="storage-header">
+                    <span><i class="fas fa-hdd"></i> Penyimpanan Browser</span>
+                    <span id="browserStorage">0 MB / Unlimited</span>
+                </div>
+                <div class="storage-bar">
+                    <div class="storage-fill" id="browserStorageFill"></div>
+                </div>
+            </div>
         </div>
 
         <!-- Database Tools Section -->
@@ -910,16 +965,6 @@
                 <span>Database Tools - Video Tidak Akan Hilang</span>
             </div>
 
-            <div class="storage-info">
-                <div class="storage-header">
-                    <span><i class="fas fa-hdd"></i> Penyimpanan Browser</span>
-                    <span id="browserStorage">0 MB</span>
-                </div>
-                <div class="storage-bar">
-                    <div class="storage-fill" id="browserStorageFill"></div>
-                </div>
-            </div>
-
             <div class="db-tools">
                 <button class="btn success" id="exportDBBtn">
                     <i class="fas fa-file-export"></i> Export Database
@@ -927,20 +972,25 @@
                 <button class="btn warning" id="importDBBtn">
                     <i class="fas fa-file-import"></i> Import Database
                 </button>
-                <button class="btn danger" id="clearAllBtn">
-                    <i class="fas fa-trash"></i> Hapus Semua
+                <button class="btn primary" id="shareDBBtn">
+                    <i class="fas fa-share-alt"></i> Share Database
                 </button>
-                <button class="btn primary" id="testVideoBtn">
-                    <i class="fas fa-video"></i> Test Video
+                <button class="btn primary" id="backupBtn">
+                    <i class="fas fa-cloud-upload-alt"></i> Backup ke File
                 </button>
             </div>
+
+            <p style="margin-top: 20px; font-size: 0.9rem; background: rgba(0, 210, 255, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #00d2ff;">
+                <i class="fas fa-lightbulb"></i> <strong>Tips:</strong> Export database secara berkala untuk backup permanen. 
+                Video dapat dipulihkan kapan saja dengan mengimport file database.
+            </p>
         </div>
 
         <!-- Public Video Library -->
         <div class="library-section">
             <div class="section-title">
                 <i class="fas fa-film"></i>
-                <span>Public Video Library - Video akan muncul di sini</span>
+                <span>Public Video Library - Akses Siapapun</span>
             </div>
 
             <div class="library-header">
@@ -953,20 +1003,18 @@
                     <button class="filter-btn" data-filter="1080p">Full HD</button>
                     <button class="filter-btn" data-filter="720p">HD</button>
                     <button class="filter-btn" data-filter="480p">SD</button>
+                    <button class="filter-btn" id="clearAllBtn">Hapus Semua</button>
                 </div>
             </div>
 
             <div class="video-grid" id="videoGrid">
-                <!-- Videos akan muncul di sini -->
+                <!-- Video cards akan ditampilkan di sini -->
             </div>
 
             <div class="empty-library" id="emptyLibrary">
                 <i class="fas fa-video-slash"></i>
                 <h3>Belum ada video</h3>
-                <p>Klik RECORD untuk mulai merekam, video akan muncul di sini</p>
-                <button class="btn primary" id="testVideoBtn2" style="margin-top: 20px;">
-                    <i class="fas fa-video"></i> Buat Video Test
-                </button>
+                <p>Klik RECORD untuk mulai merekam video pertama Anda</p>
             </div>
         </div>
 
@@ -996,6 +1044,24 @@
         </div>
     </div>
 
+    <!-- Share Modal -->
+    <div class="modal" id="shareModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-share-alt"></i> Share Database</h2>
+                <button class="close-modal" id="closeShareModal"><i class="fas fa-times"></i></button>
+            </div>
+            <p style="margin-bottom: 20px;">Bagikan link ini untuk mengakses database yang sama di perangkat lain:</p>
+            <div class="share-link">
+                <input type="text" id="shareLink" readonly>
+                <button class="copy-btn" id="copyLinkBtn">Copy</button>
+            </div>
+            <p style="margin-top: 20px; font-size: 0.9rem; opacity: 0.7;">
+                <i class="fas fa-info-circle"></i> Simpan link ini. Dengan link yang sama, semua orang bisa mengakses video yang sama.
+            </p>
+        </div>
+    </div>
+
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
@@ -1019,6 +1085,7 @@
                 micVolume: 0
             },
             
+            dbId: null,
             filter: 'all'
         };
 
@@ -1059,11 +1126,16 @@
             modalDeleteBtn: document.getElementById('modalDeleteBtn'),
             closeModal: document.getElementById('closeModal'),
             
+            shareModal: document.getElementById('shareModal'),
+            shareLink: document.getElementById('shareLink'),
+            copyLinkBtn: document.getElementById('copyLinkBtn'),
+            closeShareModal: document.getElementById('closeShareModal'),
+            
             exportDBBtn: document.getElementById('exportDBBtn'),
             importDBBtn: document.getElementById('importDBBtn'),
+            shareDBBtn: document.getElementById('shareDBBtn'),
+            backupBtn: document.getElementById('backupBtn'),
             clearAllBtn: document.getElementById('clearAllBtn'),
-            testVideoBtn: document.getElementById('testVideoBtn'),
-            testVideoBtn2: document.getElementById('testVideoBtn2'),
             
             toastContainer: document.getElementById('toastContainer'),
             
@@ -1072,27 +1144,23 @@
 
         // =============== INITIALIZE ===============
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM Loaded - Initializing...');
+            // Generate or load database ID
+            state.dbId = localStorage.getItem('screen_recorder_db_id') || generateDBId();
+            localStorage.setItem('screen_recorder_db_id', state.dbId);
+            
             setupEventListeners();
             loadVideos();
             updateStats();
             updateStorageInfo();
             showToast('Public Screen Recorder siap digunakan!', 'success');
-            
-            // Test jika ada video
-            setTimeout(() => {
-                if (state.videos.length === 0) {
-                    console.log('No videos found. Use Test Video button to create test video.');
-                } else {
-                    console.log('Videos loaded:', state.videos.length);
-                }
-            }, 1000);
         });
+
+        function generateDBId() {
+            return 'db_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
 
         // =============== EVENT LISTENERS ===============
         function setupEventListeners() {
-            console.log('Setting up event listeners...');
-            
             elements.recordBtn.addEventListener('click', startRecording);
             elements.stopBtn.addEventListener('click', stopRecording);
             elements.downloadBtn.addEventListener('click', downloadLatest);
@@ -1106,14 +1174,8 @@
                 input.onchange = (e) => importDatabase(e.target.files[0]);
                 input.click();
             });
-            
-            if (elements.testVideoBtn) {
-                elements.testVideoBtn.addEventListener('click', createTestVideo);
-            }
-            
-            if (elements.testVideoBtn2) {
-                elements.testVideoBtn2.addEventListener('click', createTestVideo);
-            }
+            elements.shareDBBtn.addEventListener('click', showShareModal);
+            elements.backupBtn.addEventListener('click', backupToFile);
             
             elements.fpsSlider.addEventListener('input', (e) => {
                 elements.fpsValue.textContent = e.target.value + ' FPS';
@@ -1154,6 +1216,11 @@
             });
             
             elements.closeModal.addEventListener('click', closeModal);
+            elements.closeShareModal.addEventListener('click', () => {
+                elements.shareModal.classList.remove('active');
+            });
+            
+            elements.copyLinkBtn.addEventListener('click', copyShareLink);
             
             elements.modalDownloadBtn.addEventListener('click', () => {
                 if (state.currentVideoId) {
@@ -1174,50 +1241,12 @@
                     closeModal();
                 }
             });
-        }
-
-        // =============== TEST VIDEO FUNCTION ===============
-        function createTestVideo() {
-            console.log('Creating test video...');
             
-            // Buat canvas untuk thumbnail
-            const canvas = document.createElement('canvas');
-            canvas.width = 640;
-            canvas.height = 360;
-            const ctx = canvas.getContext('2d');
-            
-            // Gambar background
-            ctx.fillStyle = '#00d2ff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = 'white';
-            ctx.font = 'bold 40px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('TEST VIDEO', canvas.width/2, canvas.height/2);
-            
-            // Konversi ke data URL
-            const thumbnailData = canvas.toDataURL('image/png');
-            
-            // Buat video dummy (sebenarnya hanya gambar)
-            const videoData = {
-                id: 'test_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8),
-                title: 'Video Test ' + new Date().toLocaleString(),
-                quality: '1080p',
-                duration: 120, // 2 menit
-                size: 1024 * 1024 * 5, // 5 MB
-                date: new Date().toISOString(),
-                data: thumbnailData, // Gunakan gambar sebagai placeholder
-                views: 0
-            };
-            
-            // Simpan ke localStorage
-            let videos = JSON.parse(localStorage.getItem('screen_recorder_videos') || '[]');
-            videos.unshift(videoData);
-            localStorage.setItem('screen_recorder_videos', JSON.stringify(videos));
-            
-            // Update state dan UI
-            loadVideos();
-            
-            showToast('Video test berhasil dibuat!', 'success');
+            elements.shareModal.addEventListener('click', (e) => {
+                if (e.target === elements.shareModal) {
+                    elements.shareModal.classList.remove('active');
+                }
+            });
         }
 
         // =============== RECORDING FUNCTIONS ===============
@@ -1274,6 +1303,7 @@
                         
                     } catch (micError) {
                         console.log('Microphone error:', micError);
+                        showToast('Microphone tidak tersedia', 'warning');
                     }
                 }
                 
@@ -1300,6 +1330,7 @@
                 const mimeTypes = [
                     'video/webm;codecs=vp9,opus',
                     'video/webm;codecs=vp8,opus',
+                    'video/webm;codecs=h264,opus',
                     'video/webm'
                 ];
                 
@@ -1320,6 +1351,7 @@
                         audioBitsPerSecond: 128000
                     });
                 } catch (e) {
+                    console.warn('Failed to create MediaRecorder with options:', e);
                     state.mediaRecorder = new MediaRecorder(finalStream);
                 }
                 
@@ -1343,25 +1375,19 @@
                     
                     const duration = Math.floor((Date.now() - state.recordingStartTime) / 1000);
                     
-                    // Konversi blob ke base64
-                    const reader = new FileReader();
-                    reader.readAsDataURL(blob);
-                    
-                    reader.onloadend = function() {
-                        const videoData = {
-                            id: 'video_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8),
-                            title: 'Rekaman ' + new Date().toLocaleString(),
-                            quality: quality,
-                            duration: duration,
-                            size: blob.size,
-                            date: new Date().toISOString(),
-                            data: reader.result,
-                            views: 0
-                        };
-                        
-                        saveVideo(videoData);
+                    const videoData = {
+                        id: 'video_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8),
+                        title: 'Rekaman ' + new Date().toLocaleString(),
+                        quality: quality,
+                        duration: duration,
+                        size: blob.size,
+                        date: new Date().toISOString(),
+                        blob: blob,
+                        dbId: state.dbId,
+                        views: 0
                     };
                     
+                    saveVideo(videoData);
                     cleanupRecording();
                 };
                 
@@ -1400,6 +1426,8 @@
                 if (state.currentStream) {
                     state.currentStream.getTracks().forEach(track => track.stop());
                 }
+                
+                showToast('Rekaman selesai', 'success');
             }
         }
 
@@ -1441,31 +1469,43 @@
 
         // =============== VIDEO MANAGEMENT ===============
         function saveVideo(videoData) {
-            console.log('Saving video:', videoData.id);
-            
             // Baca video yang sudah ada
             let videos = JSON.parse(localStorage.getItem('screen_recorder_videos') || '[]');
             
-            videos.unshift(videoData);
+            // Konversi blob ke base64
+            const reader = new FileReader();
+            reader.readAsDataURL(videoData.blob);
             
-            // Simpan ke localStorage
-            localStorage.setItem('screen_recorder_videos', JSON.stringify(videos));
-            
-            // Update state
-            loadVideos();
-            
-            elements.downloadBtn.disabled = false;
-            
-            showToast('Video tersimpan di library!', 'success');
+            reader.onloadend = function() {
+                const video = {
+                    id: videoData.id,
+                    title: videoData.title,
+                    quality: videoData.quality,
+                    duration: videoData.duration,
+                    size: videoData.size,
+                    date: videoData.date,
+                    data: reader.result,
+                    dbId: videoData.dbId,
+                    views: 0
+                };
+                
+                videos.unshift(video);
+                
+                // Tidak ada batasan - semua video disimpan
+                localStorage.setItem('screen_recorder_videos', JSON.stringify(videos));
+                
+                // Update state
+                loadVideos();
+                
+                elements.downloadBtn.disabled = false;
+                
+                showToast('Video tersimpan di library publik!', 'success');
+            };
         }
 
         function loadVideos() {
-            console.log('Loading videos from localStorage...');
-            
             const videos = JSON.parse(localStorage.getItem('screen_recorder_videos') || '[]');
             state.videos = videos;
-            
-            console.log('Videos loaded:', videos.length);
             
             updateVideoGrid();
             updateStats();
@@ -1476,6 +1516,13 @@
             if (!elements.videoGrid) return;
             
             elements.videoGrid.innerHTML = '';
+            
+            if (state.videos.length === 0) {
+                elements.emptyLibrary.style.display = 'block';
+                return;
+            }
+            
+            elements.emptyLibrary.style.display = 'none';
             
             const searchTerm = elements.search.value.toLowerCase();
             let filteredVideos = state.videos;
@@ -1491,13 +1538,6 @@
             if (state.filter !== 'all') {
                 filteredVideos = filteredVideos.filter(v => v.quality === state.filter);
             }
-            
-            if (filteredVideos.length === 0) {
-                elements.emptyLibrary.classList.add('active');
-                return;
-            }
-            
-            elements.emptyLibrary.classList.remove('active');
             
             filteredVideos.forEach(video => {
                 const card = createVideoCard(video);
@@ -1574,6 +1614,7 @@
                 <div class="info-item"><i class="fas fa-file-alt"></i> Ukuran: ${size}</div>
                 <div class="info-item"><i class="fas fa-calendar"></i> Tanggal: ${date}</div>
                 <div class="info-item"><i class="fas fa-eye"></i> Dilihat: ${video.views || 0}x</div>
+                <div class="info-item"><i class="fas fa-database"></i> Database: ${video.dbId || 'Publik'}</div>
             `;
             
             elements.videoModal.classList.add('active');
@@ -1606,7 +1647,7 @@
         }
 
         function deleteVideo(videoId) {
-            if (!confirm('Hapus video ini dari library?')) return;
+            if (!confirm('Hapus video ini dari library publik?')) return;
             
             let videos = JSON.parse(localStorage.getItem('screen_recorder_videos') || '[]');
             videos = videos.filter(v => v.id !== videoId);
@@ -1623,7 +1664,7 @@
                 return;
             }
             
-            if (!confirm('Hapus SEMUA video dari library?')) return;
+            if (!confirm('Hapus SEMUA video dari library publik?')) return;
             
             localStorage.removeItem('screen_recorder_videos');
             loadVideos();
@@ -1653,8 +1694,18 @@
             const exportData = {
                 version: '1.0',
                 exportedAt: new Date().toISOString(),
+                dbId: state.dbId,
                 totalVideos: videos.length,
-                videos: videos
+                videos: videos.map(v => ({
+                    id: v.id,
+                    title: v.title,
+                    quality: v.quality,
+                    duration: v.duration,
+                    size: v.size,
+                    date: v.date,
+                    data: v.data,
+                    views: v.views || 0
+                }))
             };
             
             const dataStr = JSON.stringify(exportData, null, 2);
@@ -1709,6 +1760,22 @@
             reader.readAsText(file);
         }
 
+        function showShareModal() {
+            const shareUrl = window.location.href + '?db=' + state.dbId;
+            elements.shareLink.value = shareUrl;
+            elements.shareModal.classList.add('active');
+        }
+
+        function copyShareLink() {
+            elements.shareLink.select();
+            document.execCommand('copy');
+            showToast('Link disalin! Bagikan ke teman Anda.', 'success');
+        }
+
+        function backupToFile() {
+            exportDatabase();
+        }
+
         // =============== STATS FUNCTIONS ===============
         function updateStats() {
             const totalVideos = state.videos.length;
@@ -1723,10 +1790,11 @@
         function updateStorageInfo() {
             const totalSize = state.videos.reduce((sum, v) => sum + (v.size || 0), 0);
             
-            elements.browserStorage.textContent = formatFileSize(totalSize);
+            elements.browserStorage.textContent = `${formatFileSize(totalSize)} / Unlimited`;
             
             // Hanya untuk visual, tidak ada batasan
-            const percentage = Math.min((totalSize / (500 * 1024 * 1024)) * 100, 100);
+            const maxSize = 1024 * 1024 * 1024; // 1GB untuk referensi
+            const percentage = Math.min((totalSize / maxSize) * 100, 100);
             elements.browserStorageFill.style.width = percentage + '%';
         }
 
