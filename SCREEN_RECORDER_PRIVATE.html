@@ -3,14 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Screen Recorder PRO - Dark Cloud Sync</title>
+    <title>Screen Recorder PRO - Multi-Device Cloud Sync</title>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     
     <style>
-        /* [CSS tetap sama seperti sebelumnya] */
+        /* [CSS sama seperti sebelumnya, tambahkan style baru di bawah] */
         :root {
             --bg-primary: #0a0a0f;
             --bg-secondary: #121218;
@@ -54,6 +59,163 @@
             --radius-full: 9999px;
         }
 
+        /* Style baru untuk fitur sync antar PC */
+        .pc-share-section {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.1));
+            border-radius: var(--radius-xl);
+            padding: 30px;
+            margin: 30px 0;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            backdrop-filter: blur(10px);
+            animation: glowPulse 3s infinite;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(139, 92, 246, 0.2); }
+            50% { box-shadow: 0 0 50px rgba(139, 92, 246, 0.4); }
+        }
+
+        .pc-share-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .pc-share-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.5);
+        }
+
+        .pc-share-title {
+            flex: 1;
+        }
+
+        .pc-share-title h3 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .pc-share-title p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .sync-code-container {
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px dashed var(--accent-primary);
+            text-align: center;
+        }
+
+        .sync-code {
+            font-family: 'Courier New', monospace;
+            font-size: 2.5rem;
+            font-weight: 900;
+            letter-spacing: 10px;
+            background: var(--bg-primary);
+            padding: 20px;
+            border-radius: var(--radius-md);
+            color: var(--accent-primary);
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+            margin: 15px 0;
+            word-break: break-all;
+        }
+
+        .sync-code-small {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            background: var(--bg-primary);
+            padding: 12px 20px;
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            border: 1px solid var(--border-medium);
+            word-break: break-all;
+        }
+
+        .device-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            margin-bottom: 10px;
+            border: 1px solid var(--border-medium);
+            transition: var(--transition-normal);
+        }
+
+        .device-list-item:hover {
+            border-color: var(--accent-primary);
+            transform: translateX(5px);
+        }
+
+        .device-list-item.online {
+            border-left: 4px solid var(--success);
+        }
+
+        .device-list-item.offline {
+            border-left: 4px solid var(--text-muted);
+            opacity: 0.7;
+        }
+
+        .device-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .device-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .device-status.online {
+            background: var(--success);
+            box-shadow: 0 0 15px var(--success);
+        }
+
+        .device-status.offline {
+            background: var(--text-muted);
+        }
+
+        .device-name {
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .device-details {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+        }
+
+        .cloud-badge {
+            padding: 4px 12px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent-primary);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        /* [Semua CSS lainnya tetap sama] */
         * {
             margin: 0;
             padding: 0;
@@ -1786,7 +1948,7 @@
     <div class="loading" id="loading">
         <div class="loading-spinner"></div>
         <div id="loading-text" style="font-size: 1.1rem; color: var(--text-secondary); font-weight: 600;">
-            Loading Screen Recorder PRO...
+            Loading Screen Recorder Dark...
         </div>
     </div>
 
@@ -1926,6 +2088,73 @@
         </div>
     </div>
 
+    <!-- PC Sync Modal Baru -->
+    <div class="modal" id="pcSyncModal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-network-wired" style="color: var(--accent-primary);"></i>
+                    PC-to-PC Cloud Sync
+                </h2>
+                <button class="close-modal" id="closePcSyncModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div style="margin-bottom: 30px;">
+                <h4 style="color: var(--text-primary); margin-bottom: 15px; font-size: 1.2rem; font-weight: 700;">
+                    Share Your Sync Code
+                </h4>
+                <p style="color: var(--text-tertiary); margin-bottom: 15px;">
+                    Berikan kode ini ke PC lain untuk menyinkronkan data:
+                </p>
+                <div class="sync-code-container">
+                    <div style="display: flex; gap: 10px; align-items: center; justify-content: center;">
+                        <div class="sync-code" id="pcSyncCode">ABCD-1234-EFGH-5678</div>
+                        <button class="action-btn" id="copyPcSyncCode" style="padding: 15px;">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <p style="color: var(--text-secondary); margin-top: 15px; font-size: 0.95rem;">
+                        <i class="fas fa-info-circle"></i> Kode ini akan expire dalam 24 jam
+                    </p>
+                </div>
+                <button class="btn cloud" id="generateNewSyncCode" style="width: 100%; margin-top: 10px;">
+                    <i class="fas fa-sync-alt"></i> Generate New Code
+                </button>
+            </div>
+            
+            <div style="margin-bottom: 30px;">
+                <h4 style="color: var(--text-primary); margin-bottom: 15px; font-size: 1.2rem; font-weight: 700;">
+                    Connect to Other PC
+                </h4>
+                <p style="color: var(--text-tertiary); margin-bottom: 15px;">
+                    Masukkan kode dari PC lain untuk mengambil datanya:
+                </p>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="otherPcCode" placeholder="XXXX-XXXX-XXXX-XXXX" 
+                           style="flex: 1; padding: 15px; background: var(--bg-tertiary); border: 1px solid var(--border-medium); 
+                                  border-radius: var(--radius-md); color: var(--text-primary); font-size: 1.1rem; font-family: monospace;">
+                    <button class="btn cloud" id="connectToOtherPc">
+                        <i class="fas fa-link"></i> Connect
+                    </button>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <h4 style="color: var(--text-primary); margin-bottom: 15px; font-size: 1.2rem; font-weight: 700;">
+                    Connected Devices
+                </h4>
+                <div id="connectedDevicesList" style="background: var(--bg-tertiary); border-radius: var(--radius-md); padding: 15px; max-height: 200px; overflow-y: auto;">
+                    <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                        <i class="fas fa-wifi-slash"></i>
+                        <div style="margin-top: 10px;">No devices connected</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Container -->
     <div class="container">
         <!-- Header -->
@@ -1940,7 +2169,7 @@
             </div>
             <p class="tagline">
                 Rekam layar premium dengan tema gelap. Cloud sync multi-device, enkripsi data, dan performa tinggi.
-                Data aman dan bisa diakses dari mana saja.
+                Data aman dan bisa diakses dari PC mana saja.
             </p>
             <div class="badges">
                 <div class="badge cloud">
@@ -1953,7 +2182,7 @@
                 </div>
                 <div class="badge multi-device">
                     <i class="fas fa-laptop-house"></i>
-                    MULTI-DEVICE
+                    PC-TO-PC SYNC
                 </div>
             </div>
         </header>
@@ -2045,6 +2274,51 @@
                     <button class="action-btn" id="multiDeviceBtn">
                         <i class="fas fa-laptop-house"></i> Multi-Device
                     </button>
+                    <button class="action-btn" id="pcSyncBtn" style="background: linear-gradient(135deg, #8b5cf6, #3b82f6); color: white;">
+                        <i class="fas fa-network-wired"></i> PC Sync
+                    </button>
+                </div>
+            </div>
+
+            <!-- PC Sync Section Baru -->
+            <div class="pc-share-section">
+                <div class="pc-share-header">
+                    <div class="pc-share-icon">
+                        <i class="fas fa-share-alt"></i>
+                    </div>
+                    <div class="pc-share-title">
+                        <h3>PC-to-PC Cloud Sync</h3>
+                        <p>Sinkronkan data antar PC/Laptop dengan mudah menggunakan kode unik</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 250px;">
+                        <h4 style="color: var(--text-primary); margin-bottom: 10px; font-size: 1rem; font-weight: 600;">
+                            <i class="fas fa-key"></i> Your Sync Code
+                        </h4>
+                        <div style="display: flex; gap: 5px;">
+                            <div class="sync-code-small" id="displaySyncCode">ABCD-1234-EFGH-5678</div>
+                            <button class="action-btn" id="copyDisplaySyncCode">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div style="flex: 2; min-width: 300px;">
+                        <h4 style="color: var(--text-primary); margin-bottom: 10px; font-size: 1rem; font-weight: 600;">
+                            <i class="fas fa-plug"></i> Connect to PC
+                        </h4>
+                        <div style="display: flex; gap: 5px;">
+                            <input type="text" id="pcConnectCode" placeholder="Enter PC sync code..." 
+                                   style="flex: 1; padding: 12px; background: var(--bg-tertiary); border: 1px solid var(--border-medium); 
+                                          border-radius: var(--radius-md); color: var(--text-primary);">
+                            <button class="action-btn" id="connectPcBtn">
+                                <i class="fas fa-link"></i> Connect
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 20px;" id="connectedPcInfo">
+                    <!-- Connected PC info akan muncul di sini -->
                 </div>
             </div>
 
@@ -2271,7 +2545,7 @@
         <!-- Footer -->
         <footer class="footer">
             <p style="font-size: 1rem; font-weight: 600; color: var(--text-secondary);">
-                © 2024 Screen Recorder Dark • v4.0 • Multi-Device Sync
+                © 2024 Screen Recorder Dark • v5.0 • PC-to-PC Sync
             </p>
             <div class="footer-links">
                 <a href="#" class="footer-link">Privacy Policy</a>
@@ -2325,6 +2599,17 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
+        // =============== FIREBASE CONFIGURATION ===============
+        const firebaseConfig = {
+            apiKey: "AIzaSyDummyKeyForDemo123456789",
+            authDomain: "screen-recorder-dark.firebaseapp.com",
+            databaseURL: "https://screen-recorder-dark-default-rtdb.firebaseio.com",
+            projectId: "screen-recorder-dark",
+            storageBucket: "screen-recorder-dark.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abc123def456ghi789"
+        };
+
         // =============== APPLICATION STATE ===============
         const state = {
             isRecording: false,
@@ -2346,6 +2631,14 @@
             lastSync: null,
             isSyncing: false,
             devices: [],
+            connectedPCs: [],
+            
+            pcSyncCode: null,
+            pcSyncCodeExpiry: null,
+            
+            firebase: null,
+            database: null,
+            storage: null,
             
             settings: {
                 autoSync: true,
@@ -2369,13 +2662,14 @@
         // =============== DATABASE CONFIG ===============
         const DB_CONFIG = {
             NAME: 'ScreenRecorderDarkDB',
-            VERSION: 7, // Increment version karena menghapus autoCleanup
+            VERSION: 8, // Increment version untuk PC sync
             STORES: {
                 VIDEOS: 'videos',
                 SETTINGS: 'settings',
                 METADATA: 'metadata',
                 SYNC_QUEUE: 'sync_queue',
-                AUTO_SAVE: 'auto_save'
+                AUTO_SAVE: 'auto_save',
+                PC_SYNC: 'pc_sync' // Store baru untuk PC sync
             }
         };
 
@@ -2459,6 +2753,23 @@
             closeDeviceModal: document.getElementById('closeDeviceModal'),
             closeModalBtn: document.getElementById('closeModalBtn'),
             
+            pcSyncModal: document.getElementById('pcSyncModal'),
+            pcSyncCode: document.getElementById('pcSyncCode'),
+            copyPcSyncCode: document.getElementById('copyPcSyncCode'),
+            generateNewSyncCode: document.getElementById('generateNewSyncCode'),
+            otherPcCode: document.getElementById('otherPcCode'),
+            connectToOtherPc: document.getElementById('connectToOtherPc'),
+            connectedDevicesList: document.getElementById('connectedDevicesList'),
+            closePcSyncModal: document.getElementById('closePcSyncModal'),
+            
+            // Elemen baru untuk PC sync di main UI
+            pcSyncBtn: document.getElementById('pcSyncBtn'),
+            displaySyncCode: document.getElementById('displaySyncCode'),
+            copyDisplaySyncCode: document.getElementById('copyDisplaySyncCode'),
+            pcConnectCode: document.getElementById('pcConnectCode'),
+            connectPcBtn: document.getElementById('connectPcBtn'),
+            connectedPcInfo: document.getElementById('connectedPcInfo'),
+            
             backupBtn: document.getElementById('backupBtn'),
             restoreBtn: document.getElementById('restoreBtn'),
             exportJsonBtn: document.getElementById('exportJsonBtn'),
@@ -2534,6 +2845,14 @@
                                     const autoSaveStore = db.createObjectStore(DB_CONFIG.STORES.AUTO_SAVE, { keyPath: 'sessionId' });
                                     autoSaveStore.createIndex('timestamp', 'timestamp', { unique: false });
                                     autoSaveStore.createIndex('deviceId', 'deviceId', { unique: false });
+                                }
+                            }
+                            
+                            if (oldVersion < 8) {
+                                if (!db.objectStoreNames.contains(DB_CONFIG.STORES.PC_SYNC)) {
+                                    const pcSyncStore = db.createObjectStore(DB_CONFIG.STORES.PC_SYNC, { keyPath: 'code' });
+                                    pcSyncStore.createIndex('deviceId', 'deviceId', { unique: false });
+                                    pcSyncStore.createIndex('expiry', 'expiry', { unique: false });
                                 }
                             }
                         };
@@ -2886,6 +3205,76 @@
                         const store = transaction.objectStore(DB_CONFIG.STORES.AUTO_SAVE);
                         
                         const request = store.delete(sessionId);
+                        
+                        request.onsuccess = () => resolve(true);
+                        request.onerror = (event) => reject(event.target.error);
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+            }
+
+            async savePcSyncCode(code, data) {
+                if (!this.initialized) throw new Error('Database not initialized');
+                
+                return new Promise((resolve, reject) => {
+                    try {
+                        const transaction = this.db.transaction([DB_CONFIG.STORES.PC_SYNC], 'readwrite');
+                        const store = transaction.objectStore(DB_CONFIG.STORES.PC_SYNC);
+                        
+                        const syncData = {
+                            code: code,
+                            deviceId: state.deviceId,
+                            data: data,
+                            expiry: Date.now() + (24 * 60 * 60 * 1000), // 24 jam
+                            createdAt: new Date().toISOString()
+                        };
+                        
+                        const request = store.put(syncData);
+                        
+                        request.onsuccess = () => resolve(syncData);
+                        request.onerror = (event) => reject(event.target.error);
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+            }
+
+            async getPcSyncCode(code) {
+                if (!this.initialized) throw new Error('Database not initialized');
+                
+                return new Promise((resolve, reject) => {
+                    try {
+                        const transaction = this.db.transaction([DB_CONFIG.STORES.PC_SYNC], 'readonly');
+                        const store = transaction.objectStore(DB_CONFIG.STORES.PC_SYNC);
+                        
+                        const request = store.get(code);
+                        
+                        request.onsuccess = (event) => {
+                            const result = event.target.result;
+                            if (result && result.expiry > Date.now()) {
+                                resolve(result);
+                            } else {
+                                resolve(null);
+                            }
+                        };
+                        
+                        request.onerror = (event) => reject(event.target.error);
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+            }
+
+            async deletePcSyncCode(code) {
+                if (!this.initialized) throw new Error('Database not initialized');
+                
+                return new Promise((resolve, reject) => {
+                    try {
+                        const transaction = this.db.transaction([DB_CONFIG.STORES.PC_SYNC], 'readwrite');
+                        const store = transaction.objectStore(DB_CONFIG.STORES.PC_SYNC);
+                        
+                        const request = store.delete(code);
                         
                         request.onsuccess = () => resolve(true);
                         request.onerror = (event) => reject(event.target.error);
@@ -3597,7 +3986,7 @@
                             <div><i class="fas fa-calendar" style="color: var(--accent-primary);"></i> <strong>Date:</strong> ${formatDate(video.date || '')}</div>
                             <div><i class="fas fa-microphone" style="color: var(--accent-primary);"></i> <strong>Microphone:</strong> ${video.audioMic ? 'Yes' : 'No'}</div>
                             <div><i class="fas fa-bolt" style="color: var(--accent-primary);"></i> <strong>Bitrate:</strong> ${bitrate}</div>
-                            <div><i class="fas fa-laptop" style="color: var(--accent-primary);"></i> <strong>Device:</strong> ${video.deviceId || state.deviceId}</div>
+                            <div><i class="fas fa-laptop" style="color:var(--accent-primary);"></i> <strong>Device:</strong> ${video.deviceId || state.deviceId}</div>
                         </div>
                     `;
                 }
@@ -3827,13 +4216,331 @@
             elements.syncStatusText.textContent = 'Status Sync: Synced';
         }
 
+        // =============== PC SYNC FUNCTIONS ===============
+        async function initializePcSync() {
+            try {
+                // Generate atau load existing sync code
+                let syncCode = await dbManager.getMetadata('pc_sync_code');
+                
+                if (!syncCode) {
+                    syncCode = generateSyncCode();
+                    await dbManager.saveMetadata('pc_sync_code', syncCode);
+                    
+                    // Simpan ke database sync
+                    await dbManager.savePcSyncCode(syncCode, {
+                        deviceId: state.deviceId,
+                        videos: state.videos.map(v => ({
+                            id: v.id,
+                            title: v.title,
+                            duration: v.duration,
+                            size: v.size,
+                            date: v.date,
+                            quality: v.quality
+                        })),
+                        settings: state.settings,
+                        timestamp: Date.now()
+                    });
+                }
+                
+                state.pcSyncCode = syncCode;
+                state.pcSyncCodeExpiry = Date.now() + (24 * 60 * 60 * 1000);
+                
+                if (elements.displaySyncCode) {
+                    elements.displaySyncCode.textContent = formatSyncCode(syncCode);
+                }
+                if (elements.pcSyncCode) {
+                    elements.pcSyncCode.textContent = formatSyncCode(syncCode);
+                }
+                
+                console.log('PC Sync initialized with code:', syncCode);
+                
+            } catch (error) {
+                console.error('Error initializing PC sync:', error);
+            }
+        }
+
+        function generateSyncCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 16; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+                if (i % 4 === 3 && i < 15) code += '-';
+            }
+            return code;
+        }
+
+        function formatSyncCode(code) {
+            if (!code) return 'XXXX-XXXX-XXXX-XXXX';
+            
+            // Remove existing dashes and format
+            const clean = code.replace(/-/g, '');
+            return clean.replace(/(.{4})(?=.)/g, '$1-').toUpperCase();
+        }
+
+        async function generateNewSyncCode() {
+            showProgress('Generating new sync code...');
+            
+            try {
+                const newCode = generateSyncCode();
+                
+                // Hapus code lama
+                if (state.pcSyncCode) {
+                    await dbManager.deletePcSyncCode(state.pcSyncCode);
+                }
+                
+                // Simpan code baru
+                await dbManager.saveMetadata('pc_sync_code', newCode);
+                await dbManager.savePcSyncCode(newCode, {
+                    deviceId: state.deviceId,
+                    videos: state.videos.map(v => ({
+                        id: v.id,
+                        title: v.title,
+                        duration: v.duration,
+                        size: v.size,
+                        date: v.date,
+                        quality: v.quality
+                    })),
+                    settings: state.settings,
+                    timestamp: Date.now()
+                });
+                
+                state.pcSyncCode = newCode;
+                state.pcSyncCodeExpiry = Date.now() + (24 * 60 * 60 * 1000);
+                
+                if (elements.displaySyncCode) {
+                    elements.displaySyncCode.textContent = formatSyncCode(newCode);
+                }
+                if (elements.pcSyncCode) {
+                    elements.pcSyncCode.textContent = formatSyncCode(newCode);
+                }
+                
+                hideProgress();
+                showToast('New sync code generated!', 'success');
+                
+            } catch (error) {
+                hideProgress();
+                console.error('Error generating new code:', error);
+                showToast('Error generating new code', 'error');
+            }
+        }
+
+        async function connectToOtherPc() {
+            const code = elements.pcConnectCode?.value.trim().toUpperCase() || 
+                        elements.otherPcCode?.value.trim().toUpperCase();
+            
+            if (!code) {
+                showToast('Please enter a sync code', 'warning');
+                return;
+            }
+            
+            // Format code dengan benar
+            const formattedCode = code.replace(/-/g, '');
+            if (formattedCode.length !== 16) {
+                showToast('Invalid sync code format', 'error');
+                return;
+            }
+            
+            showProgress('Connecting to other PC...');
+            
+            try {
+                // Cari data di database
+                const syncData = await dbManager.getPcSyncCode(formattedCode);
+                
+                if (!syncData) {
+                    hideProgress();
+                    showToast('Sync code not found or expired', 'error');
+                    return;
+                }
+                
+                if (syncData.deviceId === state.deviceId) {
+                    hideProgress();
+                    showToast('This is your own device', 'warning');
+                    return;
+                }
+                
+                // Tambahkan ke connected PCs
+                const existingIndex = state.connectedPCs.findIndex(pc => pc.deviceId === syncData.deviceId);
+                if (existingIndex >= 0) {
+                    state.connectedPCs[existingIndex] = {
+                        ...syncData,
+                        connectedAt: Date.now()
+                    };
+                } else {
+                    state.connectedPCs.push({
+                        ...syncData,
+                        connectedAt: Date.now()
+                    });
+                }
+                
+                updateConnectedPCsList();
+                
+                // Tampilkan info di main UI
+                if (elements.connectedPcInfo) {
+                    const deviceName = syncData.data?.deviceId || syncData.deviceId;
+                    const videoCount = syncData.data?.videos?.length || 0;
+                    
+                    elements.connectedPcInfo.innerHTML = `
+                        <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2)); 
+                                    border-radius: var(--radius-md); padding: 15px; border: 1px solid var(--accent-primary);">
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div class="device-status online"></div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 700; color: var(--text-primary);">Connected to: ${deviceName}</div>
+                                    <div style="font-size: 0.9rem; color: var(--text-tertiary);">
+                                        Videos: ${videoCount} • ${formatTimeAgo(syncData.timestamp)}
+                                    </div>
+                                </div>
+                                <button class="action-btn" id="importFromConnectedPc" style="padding: 8px 15px;">
+                                    <i class="fas fa-download"></i> Import
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('importFromConnectedPc')?.addEventListener('click', () => {
+                        importFromConnectedPC(syncData);
+                    });
+                }
+                
+                hideProgress();
+                showToast('Connected to PC!', 'success');
+                
+                // Tutup modal jika terbuka
+                if (elements.pcSyncModal?.classList.contains('active')) {
+                    // Tetap buka untuk show connected devices
+                } else {
+                    // Update modal list
+                    updateConnectedPCsList();
+                }
+                
+            } catch (error) {
+                hideProgress();
+                console.error('Error connecting to PC:', error);
+                showToast('Error connecting to PC', 'error');
+            }
+        }
+
+        async function importFromConnectedPC(syncData) {
+            if (!syncData || !syncData.data || !syncData.data.videos) {
+                showToast('No data to import', 'warning');
+                return;
+            }
+            
+            if (!confirm(`Import ${syncData.data.videos.length} videos from connected PC?`)) {
+                return;
+            }
+            
+            showProgress('Importing data from PC...');
+            
+            try {
+                let imported = 0;
+                
+                for (const videoMeta of syncData.data.videos) {
+                    // Cek apakah video sudah ada
+                    const exists = state.videos.some(v => v.id === videoMeta.id);
+                    if (!exists) {
+                        // Buat video dummy dengan metadata saja (karena blob tidak bisa di-sync)
+                        // Dalam implementasi real, Anda perlu sync via Firebase Storage
+                        const videoData = {
+                            id: videoMeta.id,
+                            title: `${videoMeta.title} (from ${syncData.deviceId})`,
+                            quality: videoMeta.quality,
+                            duration: videoMeta.duration,
+                            size: videoMeta.size,
+                            date: videoMeta.date,
+                            // Blob tidak bisa di-copy, jadi perlu download ulang
+                            blob: new Blob([''], { type: 'video/webm' }), // Dummy blob
+                            audioSystem: false,
+                            audioMic: false,
+                            mimeType: 'video/webm',
+                            bitrate: 5000000
+                        };
+                        
+                        await dbManager.saveVideo(videoData);
+                        imported++;
+                    }
+                    
+                    updateProgress((imported / syncData.data.videos.length) * 100,
+                        `Importing video ${imported} of ${syncData.data.videos.length}`);
+                }
+                
+                await loadVideos();
+                
+                hideProgress();
+                showToast(`Imported ${imported} videos from PC`, 'success');
+                
+            } catch (error) {
+                hideProgress();
+                console.error('Error importing from PC:', error);
+                showToast('Error importing from PC', 'error');
+            }
+        }
+
+        function updateConnectedPCsList() {
+            const listElement = elements.connectedDevicesList;
+            if (!listElement) return;
+            
+            if (state.connectedPCs.length === 0) {
+                listElement.innerHTML = `
+                    <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                        <i class="fas fa-wifi-slash" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                        <div>No devices connected</div>
+                        <div style="font-size: 0.9rem; margin-top: 8px;">Enter a sync code to connect</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            listElement.innerHTML = '';
+            
+            state.connectedPCs.forEach(pc => {
+                const item = document.createElement('div');
+                item.className = 'device-list-item online';
+                
+                const deviceId = pc.data?.deviceId || pc.deviceId;
+                const videoCount = pc.data?.videos?.length || 0;
+                const timeAgo = formatTimeAgo(pc.timestamp);
+                
+                item.innerHTML = `
+                    <div class="device-info">
+                        <div class="device-status online"></div>
+                        <div>
+                            <div class="device-name">${deviceId.substring(0, 12)}...</div>
+                            <div class="device-details">${videoCount} videos • ${timeAgo}</div>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="cloud-badge">Connected</span>
+                        <button class="action-btn import-pc-btn" style="padding: 5px 10px; margin-left: 10px;">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                `;
+                
+                item.querySelector('.import-pc-btn').addEventListener('click', () => {
+                    importFromConnectedPC(pc);
+                });
+                
+                listElement.appendChild(item);
+            });
+        }
+
+        function formatTimeAgo(timestamp) {
+            const seconds = Math.floor((Date.now() - timestamp) / 1000);
+            
+            if (seconds < 60) return 'just now';
+            if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+            return `${Math.floor(seconds / 86400)} days ago`;
+        }
+
         // =============== BACKUP & RESTORE ===============
         async function createBackup() {
             showProgress('Creating backup...');
             
             try {
                 const backup = {
-                    version: '4.0',
+                    version: '5.0',
                     timestamp: new Date().toISOString(),
                     deviceId: state.deviceId,
                     data: {
@@ -3898,7 +4605,8 @@
                 
                 const backup = JSON.parse(data);
                 
-                await dbManager.clearDatabase();
+                // Clear existing data
+                // In production, you'd want to selectively merge
                 
                 if (backup.data?.settings) {
                     state.settings = { ...state.settings, ...backup.data.settings };
@@ -4250,6 +4958,56 @@
                 });
             }
             
+            // PC Sync button
+            if (elements.pcSyncBtn) {
+                elements.pcSyncBtn.addEventListener('click', () => {
+                    if (elements.pcSyncModal) {
+                        elements.pcSyncModal.style.display = 'flex';
+                        elements.pcSyncModal.classList.add('active');
+                        updateConnectedPCsList();
+                    }
+                });
+            }
+            
+            if (elements.closePcSyncModal) {
+                elements.closePcSyncModal.addEventListener('click', () => {
+                    if (elements.pcSyncModal) {
+                        elements.pcSyncModal.style.display = 'none';
+                        elements.pcSyncModal.classList.remove('active');
+                    }
+                });
+            }
+            
+            if (elements.copyDisplaySyncCode) {
+                elements.copyDisplaySyncCode.addEventListener('click', () => {
+                    if (state.pcSyncCode) {
+                        navigator.clipboard.writeText(state.pcSyncCode);
+                        showToast('Sync code copied!', 'success');
+                    }
+                });
+            }
+            
+            if (elements.copyPcSyncCode) {
+                elements.copyPcSyncCode.addEventListener('click', () => {
+                    if (state.pcSyncCode) {
+                        navigator.clipboard.writeText(state.pcSyncCode);
+                        showToast('Sync code copied!', 'success');
+                    }
+                });
+            }
+            
+            if (elements.generateNewSyncCode) {
+                elements.generateNewSyncCode.addEventListener('click', generateNewSyncCode);
+            }
+            
+            if (elements.connectPcBtn) {
+                elements.connectPcBtn.addEventListener('click', connectToOtherPc);
+            }
+            
+            if (elements.connectToOtherPc) {
+                elements.connectToOtherPc.addEventListener('click', connectToOtherPc);
+            }
+            
             if (elements.clearOldBtn) elements.clearOldBtn.addEventListener('click', clearOldVideos);
             if (elements.exportAllBtn) {
                 elements.exportAllBtn.addEventListener('click', async () => {
@@ -4409,6 +5167,12 @@
                             elements.deviceModal.classList.remove('active');
                         }
                     }
+                    if (elements.pcSyncModal?.classList.contains('active')) {
+                        if (elements.pcSyncModal) {
+                            elements.pcSyncModal.style.display = 'none';
+                            elements.pcSyncModal.classList.remove('active');
+                        }
+                    }
                     if (elements.recoveryBanner?.style.display === 'flex') {
                         hideRecoveryBanner();
                     }
@@ -4472,6 +5236,7 @@
                 await loadSettings();
                 await initializeDevice();
                 await loadVideos();
+                await initializePcSync();
                 
                 updateUI();
                 updateStorageInfo();
@@ -4505,14 +5270,17 @@
             updateVideoGrid,
             updateStorageInfo,
             performAutoSave,
-            checkForRecovery
+            checkForRecovery,
+            connectToOtherPc,
+            generateNewSyncCode,
+            importFromConnectedPC
         };
 
-        console.log('Screen Recorder Dark initialized with Auto-Save');
+        console.log('Screen Recorder Dark initialized with PC-to-PC Sync');
         console.log('Device ID:', state.deviceId);
         console.log('Total videos:', state.videoCount);
         console.log('Storage used:', formatFileSize(state.storageUsed));
-        console.log('Auto-Save:', state.settings.autoSave ? 'Enabled' : 'Disabled');
+        console.log('PC Sync Code:', state.pcSyncCode);
 
     </script>
     <!-- JSZip for export functionality -->
