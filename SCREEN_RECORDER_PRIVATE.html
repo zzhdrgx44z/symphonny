@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Screen Recorder PRO - Raw Video Links Working</title>
+    <title>Screen Recorder PRO - Shareable Video Links</title>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- QR Code Generator -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     
     <style>
         * {
@@ -298,7 +300,7 @@
         .btn.stop { background: linear-gradient(135deg, #4b5563, #374151); color: white; }
         .btn.download { background: linear-gradient(135deg, var(--success), var(--success-dark)); color: white; }
         .btn.cloud { background: var(--accent-gradient); color: white; }
-        .btn.video-link { background: linear-gradient(135deg, var(--info), var(--info-dark)); color: white; }
+        .btn.share { background: linear-gradient(135deg, var(--info), var(--info-dark)); color: white; }
 
         .btn:hover:not(:disabled) {
             transform: translateY(-2px);
@@ -549,7 +551,7 @@
 
         .video-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 20px;
             max-height: 600px;
             overflow-y: auto;
@@ -623,8 +625,8 @@
             transform: translateY(-1px);
         }
 
-        .link-btn {
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        .share-btn {
+            background: linear-gradient(135deg, var(--info), var(--info-dark));
             border-color: transparent;
         }
 
@@ -680,9 +682,9 @@
             background: var(--bg-card);
             border-radius: var(--radius-xl);
             padding: 30px;
-            max-width: 700px;
+            max-width: 800px;
             width: 100%;
-            max-height: 80vh;
+            max-height: 90vh;
             overflow-y: auto;
         }
 
@@ -701,6 +703,130 @@
             cursor: pointer;
         }
 
+        /* Share Modal */
+        .share-container {
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-lg);
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .share-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-medium);
+            padding-bottom: 10px;
+        }
+
+        .share-tab {
+            padding: 10px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .share-tab.active {
+            background: var(--accent-gradient);
+            color: white;
+            border-color: transparent;
+        }
+
+        .share-content {
+            display: none;
+        }
+
+        .share-content.active {
+            display: block;
+        }
+
+        .share-link-box {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .share-link-box input {
+            flex: 1;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: monospace;
+            font-size: 1rem;
+        }
+
+        .qrcode-container {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            background: white;
+            border-radius: var(--radius-lg);
+            margin: 20px 0;
+        }
+
+        .social-share {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .social-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition-normal);
+        }
+
+        .social-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .social-btn.whatsapp { background: #25D366; }
+        .social-btn.telegram { background: #0088cc; }
+        .social-btn.facebook { background: #1877F2; }
+        .social-btn.twitter { background: #1DA1F2; }
+        .social-btn.email { background: #EA4335; }
+
+        .export-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .export-btn {
+            padding: 20px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition-normal);
+        }
+
+        .export-btn:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-2px);
+        }
+
+        .export-btn i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--accent-primary);
+        }
+
+        /* Raw Link Container */
         .raw-link-container {
             background: var(--bg-tertiary);
             border-radius: var(--radius-lg);
@@ -731,24 +857,21 @@
             font-size: 0.9rem;
         }
 
-        .copy-btn {
-            padding: 15px 20px;
+        .copy-btn, .share-now-btn {
+            padding: 15px 25px;
             background: var(--accent-gradient);
             border: none;
             border-radius: var(--radius-md);
             color: white;
             cursor: pointer;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .test-link-btn {
-            padding: 15px 20px;
-            background: var(--success);
-            border: none;
-            border-radius: var(--radius-md);
-            color: white;
-            cursor: pointer;
-            font-weight: 600;
+        .share-now-btn {
+            background: linear-gradient(135deg, var(--info), var(--info-dark));
         }
 
         .embed-code {
@@ -762,44 +885,45 @@
             word-break: break-all;
         }
 
-        /* Video Player Page */
-        .video-player-page {
-            max-width: 900px;
+        /* External Video Player Page */
+        .external-player {
+            max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
+            min-height: 100vh;
         }
 
-        .video-player-container {
+        .external-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
             background: var(--bg-card);
-            border-radius: var(--radius-xl);
-            padding: 20px;
-            margin-top: 20px;
+            border-radius: var(--radius-lg);
         }
 
-        .video-player {
+        .external-video {
             width: 100%;
             border-radius: var(--radius-lg);
             background: #000;
+            max-height: 70vh;
         }
 
-        .video-info-panel {
+        .external-info {
             margin-top: 20px;
             padding: 20px;
             background: var(--bg-tertiary);
             border-radius: var(--radius-lg);
         }
 
-        .back-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 20px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-medium);
-            border-radius: var(--radius-md);
-            color: var(--text-primary);
-            text-decoration: none;
-            margin-bottom: 20px;
+        .visit-counter {
+            display: inline-block;
+            padding: 5px 15px;
+            background: var(--accent-primary);
+            border-radius: var(--radius-full);
+            font-size: 0.9rem;
+            margin-top: 10px;
         }
 
         /* Toast Notifications */
@@ -939,6 +1063,7 @@
             .logo-text h1 { font-size: 1.8rem; }
             .stats { grid-template-columns: 1fr 1fr; }
             .library-header { flex-direction: column; }
+            .share-link-box { flex-direction: column; }
         }
 
         @media (max-width: 480px) {
@@ -985,256 +1110,373 @@
         </div>
     </div>
 
-    <!-- Main Container -->
-    <div class="container" id="mainApp">
-        <!-- Header -->
-        <header class="header">
-            <div class="logo">
-                <div class="logo-icon">
-                    <i class="fas fa-video"></i>
-                </div>
-                <div class="logo-text">
-                    <h1>SCREEN RECORDER PRO</h1>
-                </div>
-            </div>
-            <p class="tagline">
-                Rekam layar dengan auto-save semua data. Video tersimpan otomatis dalam bentuk link mentah.
-            </p>
-            <div class="badges">
-                <div class="badge"><i class="fas fa-cloud"></i> AUTO-SAVE</div>
-                <div class="badge"><i class="fas fa-link"></i> RAW LINKS</div>
-                <div class="badge"><i class="fas fa-play-circle"></i> DIRECT PLAY</div>
-            </div>
-        </header>
-
-        <!-- Recovery Banner -->
-        <div class="recovery-banner" id="recoveryBanner" style="display: none; background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(245,158,11,0.1)); border-radius: var(--radius-lg); padding: 15px; margin-bottom: 20px; align-items: center; justify-content: space-between;">
-            <div>
-                <h3 style="color: var(--warning);">Recovery Available</h3>
-                <p id="recoveryMessage">Found unsaved recording from previous session</p>
-            </div>
-            <div>
-                <button class="action-btn" id="recoverBtn" style="background: var(--warning);">Recover</button>
-                <button class="action-btn" id="dismissRecoveryBtn">Dismiss</button>
-            </div>
-        </div>
-
-        <!-- Recorder Section -->
-        <section class="recorder-section">
-            <div class="video-container">
-                <video class="video-preview" id="preview"></video>
-                <div class="video-overlay" id="videoOverlay">
-                    <i class="fas fa-desktop" style="font-size: 3rem; color: var(--accent-primary);"></i>
-                    <div>
-                        <h3>Ready to Record</h3>
-                        <p>Click START RECORDING to begin</p>
+    <!-- Main App Container -->
+    <div id="mainApp">
+        <div class="container">
+            <!-- Header -->
+            <header class="header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>SCREEN RECORDER PRO</h1>
                     </div>
                 </div>
-                <div class="recording-status" id="recordingStatus">
-                    <div class="recording-dot"></div>
-                    <span>RECORDING</span>
+                <p class="tagline">
+                    Rekam layar dan bagikan video dengan link yang bisa diakses siapa saja!
+                </p>
+                <div class="badges">
+                    <div class="badge"><i class="fas fa-cloud"></i> AUTO-SAVE</div>
+                    <div class="badge"><i class="fas fa-share-alt"></i> SHAREABLE LINKS</div>
+                    <div class="badge"><i class="fas fa-qrcode"></i> QR CODE</div>
+                </div>
+            </header>
+
+            <!-- Recovery Banner -->
+            <div class="recovery-banner" id="recoveryBanner" style="display: none; background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(245,158,11,0.1)); border-radius: var(--radius-lg); padding: 15px; margin-bottom: 20px; align-items: center; justify-content: space-between;">
+                <div>
+                    <h3 style="color: var(--warning);">Recovery Available</h3>
+                    <p id="recoveryMessage">Found unsaved recording from previous session</p>
+                </div>
+                <div>
+                    <button class="action-btn" id="recoverBtn" style="background: var(--warning);">Recover</button>
+                    <button class="action-btn" id="dismissRecoveryBtn">Dismiss</button>
                 </div>
             </div>
 
-            <!-- Main Controls -->
-            <div class="controls">
-                <button class="btn record" id="recordBtn">
-                    <i class="fas fa-circle"></i> START
-                </button>
-                <button class="btn stop" id="stopBtn" disabled>
-                    <i class="fas fa-stop"></i> STOP
-                </button>
-                <button class="btn download" id="downloadBtn" disabled>
-                    <i class="fas fa-download"></i> DOWNLOAD
-                </button>
-                <button class="btn cloud" id="backupHistoryBtn">
-                    <i class="fas fa-history"></i> AUTO-SAVE
-                </button>
-            </div>
-
-            <!-- Stats -->
-            <div class="stats">
-                <div class="stat-card">
-                    <div class="stat-value" id="timer">00:00</div>
-                    <div class="stat-label">DURATION</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="fileSize">0 MB</div>
-                    <div class="stat-label">FILE SIZE</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="totalDuration">00:00</div>
-                    <div class="stat-label">TOTAL TIME</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="videoCount">0</div>
-                    <div class="stat-label">VIDEOS</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="autoSaveCount">0</div>
-                    <div class="stat-label">AUTO-SAVES</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="linkCount">0</div>
-                    <div class="stat-label">ACTIVE LINKS</div>
-                </div>
-            </div>
-
-            <!-- Recording Options -->
-            <div class="recording-options">
-                <div class="option-group">
-                    <h4><i class="fas fa-video"></i> Video</h4>
-                    <div class="option-item">
-                        <label>Frame Rate</label>
-                        <span id="fpsValue">30 FPS</span>
+            <!-- Recorder Section -->
+            <section class="recorder-section">
+                <div class="video-container">
+                    <video class="video-preview" id="preview"></video>
+                    <div class="video-overlay" id="videoOverlay">
+                        <i class="fas fa-desktop" style="font-size: 3rem; color: var(--accent-primary);"></i>
+                        <div>
+                            <h3>Ready to Record</h3>
+                            <p>Click START RECORDING to begin</p>
+                        </div>
                     </div>
-                    <input type="range" min="15" max="60" value="30" class="slider" id="fpsSlider">
-                </div>
-                
-                <div class="option-group">
-                    <h4><i class="fas fa-volume-up"></i> Audio</h4>
-                    <div class="option-item">
-                        <label>System</label>
-                        <span id="systemVolumeValue">100%</span>
-                    </div>
-                    <input type="range" min="0" max="100" value="100" class="slider" id="systemVolumeSlider">
-                    <div class="option-item" style="margin-top: 10px;">
-                        <label>Microphone</label>
-                        <span id="micVolumeValue">0%</span>
-                    </div>
-                    <input type="range" min="0" max="100" value="0" class="slider" id="micVolumeSlider">
-                </div>
-
-                <div class="option-group">
-                    <h4><i class="fas fa-save"></i> Auto-Save</h4>
-                    <div class="option-item">
-                        <label>Interval</label>
-                        <span id="autoSaveIntervalValue">30s</span>
-                    </div>
-                    <input type="range" min="5" max="120" value="30" class="slider" id="autoSaveIntervalSlider">
-                    <div class="option-item" style="margin-top: 10px;">
-                        <label>Max Saves</label>
-                        <span id="maxAutoSaveValue">50</span>
-                    </div>
-                    <input type="range" min="10" max="200" value="50" class="slider" id="maxAutoSaveSlider">
-                </div>
-            </div>
-        </section>
-
-        <!-- Settings -->
-        <section class="settings">
-            <h2 class="section-title">
-                <i class="fas fa-cog"></i> SETTINGS
-            </h2>
-
-            <div class="quality-options">
-                <label class="quality-option selected">
-                    <input type="radio" name="quality" value="1080p" checked>
-                    <span class="quality-label">Full HD (1080p)</span>
-                    <span class="quality-badge">High</span>
-                </label>
-                <label class="quality-option">
-                    <input type="radio" name="quality" value="720p">
-                    <span class="quality-label">HD Ready (720p)</span>
-                    <span class="quality-badge">Recommended</span>
-                </label>
-                <label class="quality-option">
-                    <input type="radio" name="quality" value="480p">
-                    <span class="quality-label">SD (480p)</span>
-                    <span class="quality-badge">Economical</span>
-                </label>
-            </div>
-
-            <div class="storage-info">
-                <div class="storage-header">
-                    <div>
-                        <h4>Storage</h4>
-                        <p id="storageStatus">Data tersimpan otomatis</p>
-                    </div>
-                    <div>
-                        <div id="totalSize">0 GB</div>
+                    <div class="recording-status" id="recordingStatus">
+                        <div class="recording-dot"></div>
+                        <span>RECORDING</span>
                     </div>
                 </div>
-                <div class="storage-bar">
-                    <div class="storage-fill" id="storageFill"></div>
-                </div>
-                <div class="storage-details">
-                    <span id="usedStorage">0 GB used</span>
-                    <span id="maxStorage">500 GB max</span>
-                </div>
-            </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                <label class="checkbox-container">
-                    <input type="checkbox" id="autoSave" checked>
-                    <span class="checkbox-label">Auto-Save Protection</span>
-                </label>
-                <label class="checkbox-container">
-                    <input type="checkbox" id="saveVideoBlob" checked>
-                    <span class="checkbox-label">Save Video Files</span>
-                </label>
-                <label class="checkbox-container">
-                    <input type="checkbox" id="autoGenerateLinks" checked>
-                    <span class="checkbox-label">Auto-Generate Links</span>
-                </label>
-                <label class="checkbox-container">
-                    <input type="checkbox" id="compressData">
-                    <span class="checkbox-label">Compress Data</span>
-                </label>
-            </div>
-        </section>
+                <!-- Main Controls -->
+                <div class="controls">
+                    <button class="btn record" id="recordBtn">
+                        <i class="fas fa-circle"></i> START
+                    </button>
+                    <button class="btn stop" id="stopBtn" disabled>
+                        <i class="fas fa-stop"></i> STOP
+                    </button>
+                    <button class="btn download" id="downloadBtn" disabled>
+                        <i class="fas fa-download"></i> DOWNLOAD
+                    </button>
+                    <button class="btn cloud" id="backupHistoryBtn">
+                        <i class="fas fa-history"></i> AUTO-SAVE
+                    </button>
+                </div>
 
-        <!-- Video Library -->
-        <section class="library">
-            <div class="library-header">
+                <!-- Stats -->
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="timer">00:00</div>
+                        <div class="stat-label">DURATION</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="fileSize">0 MB</div>
+                        <div class="stat-label">FILE SIZE</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalDuration">00:00</div>
+                        <div class="stat-label">TOTAL TIME</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="videoCount">0</div>
+                        <div class="stat-label">VIDEOS</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="autoSaveCount">0</div>
+                        <div class="stat-label">AUTO-SAVES</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="shareCount">0</div>
+                        <div class="stat-label">SHARED</div>
+                    </div>
+                </div>
+
+                <!-- Recording Options -->
+                <div class="recording-options">
+                    <div class="option-group">
+                        <h4><i class="fas fa-video"></i> Video</h4>
+                        <div class="option-item">
+                            <label>Frame Rate</label>
+                            <span id="fpsValue">30 FPS</span>
+                        </div>
+                        <input type="range" min="15" max="60" value="30" class="slider" id="fpsSlider">
+                    </div>
+                    
+                    <div class="option-group">
+                        <h4><i class="fas fa-volume-up"></i> Audio</h4>
+                        <div class="option-item">
+                            <label>System</label>
+                            <span id="systemVolumeValue">100%</span>
+                        </div>
+                        <input type="range" min="0" max="100" value="100" class="slider" id="systemVolumeSlider">
+                        <div class="option-item" style="margin-top: 10px;">
+                            <label>Microphone</label>
+                            <span id="micVolumeValue">0%</span>
+                        </div>
+                        <input type="range" min="0" max="100" value="0" class="slider" id="micVolumeSlider">
+                    </div>
+
+                    <div class="option-group">
+                        <h4><i class="fas fa-share-alt"></i> Sharing</h4>
+                        <div class="option-item">
+                            <label>Link Expiry</label>
+                            <span id="expiryValue">7 days</span>
+                        </div>
+                        <input type="range" min="1" max="30" value="7" class="slider" id="expirySlider">
+                        <label class="checkbox-container" style="margin-top: 10px;">
+                            <input type="checkbox" id="passwordProtect" checked>
+                            <span class="checkbox-label">Password Protect</span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings -->
+            <section class="settings">
                 <h2 class="section-title">
-                    <i class="fas fa-film"></i> VIDEO LIBRARY
+                    <i class="fas fa-cog"></i> SETTINGS
                 </h2>
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="search" placeholder="Search videos...">
+
+                <div class="quality-options">
+                    <label class="quality-option selected">
+                        <input type="radio" name="quality" value="1080p" checked>
+                        <span class="quality-label">Full HD (1080p)</span>
+                        <span class="quality-badge">High</span>
+                    </label>
+                    <label class="quality-option">
+                        <input type="radio" name="quality" value="720p">
+                        <span class="quality-label">HD Ready (720p)</span>
+                        <span class="quality-badge">Recommended</span>
+                    </label>
+                    <label class="quality-option">
+                        <input type="radio" name="quality" value="480p">
+                        <span class="quality-label">SD (480p)</span>
+                        <span class="quality-badge">Economical</span>
+                    </label>
                 </div>
-            </div>
 
-            <div class="video-grid" id="videoGrid"></div>
+                <div class="storage-info">
+                    <div class="storage-header">
+                        <div>
+                            <h4>Storage</h4>
+                            <p id="storageStatus">Data tersimpan otomatis</p>
+                        </div>
+                        <div>
+                            <div id="totalSize">0 GB</div>
+                        </div>
+                    </div>
+                    <div class="storage-bar">
+                        <div class="storage-fill" id="storageFill"></div>
+                    </div>
+                    <div class="storage-details">
+                        <span id="usedStorage">0 GB used</span>
+                        <span id="maxStorage">500 GB max</span>
+                    </div>
+                </div>
 
-            <div class="empty-library" id="emptyLibrary">
-                <i class="fas fa-video-slash"></i>
-                <h3>No Videos Yet</h3>
-                <p>Start recording to see your videos here</p>
-            </div>
-        </section>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="autoSave" checked>
+                        <span class="checkbox-label">Auto-Save Protection</span>
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="saveVideoBlob" checked>
+                        <span class="checkbox-label">Save Video Files</span>
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="autoGenerateLinks" checked>
+                        <span class="checkbox-label">Auto-Generate Share Links</span>
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="compressData">
+                        <span class="checkbox-label">Compress Data</span>
+                    </label>
+                </div>
+            </section>
 
-        <!-- Footer -->
-        <footer class="footer">
-            <p>© 2024 Screen Recorder Pro • Working Raw Links v3.0</p>
-            <div class="footer-info">
-                Videos: <span id="totalVideosCount">0</span> • 
-                Auto-Saves: <span id="totalAutoSaves">0</span> •
-                Links: <span id="totalLinks">0</span> •
-                Storage: <span id="footerStorage">0 GB</span>
-            </div>
-        </footer>
+            <!-- Video Library -->
+            <section class="library">
+                <div class="library-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-film"></i> VIDEO LIBRARY
+                    </h2>
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="search" placeholder="Search videos...">
+                    </div>
+                </div>
+
+                <div class="video-grid" id="videoGrid"></div>
+
+                <div class="empty-library" id="emptyLibrary">
+                    <i class="fas fa-video-slash"></i>
+                    <h3>No Videos Yet</h3>
+                    <p>Start recording to see your videos here</p>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="footer">
+                <p>© 2024 Screen Recorder Pro • Shareable Links v5.0</p>
+                <div class="footer-info">
+                    Videos: <span id="totalVideosCount">0</span> • 
+                    Auto-Saves: <span id="totalAutoSaves">0</span> •
+                    Shared: <span id="totalShared">0</span> •
+                    Storage: <span id="footerStorage">0 GB</span>
+                </div>
+            </footer>
+        </div>
     </div>
 
-    <!-- Video Player Page (Hidden by default) -->
-    <div class="video-player-page" id="videoPlayerPage" style="display: none;">
-        <a href="#" class="back-btn" id="backToApp">
-            <i class="fas fa-arrow-left"></i> Back to Recorder
-        </a>
-        <div class="video-player-container">
-            <h2 id="playerVideoTitle">Raw Video</h2>
-            <video class="video-player" id="rawVideoPlayer" controls autoplay style="width: 100%;"></video>
-            <div class="video-info-panel" id="playerVideoInfo">
-                <p>Loading video information...</p>
+    <!-- Share Modal -->
+    <div class="modal" id="shareModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-share-alt"></i> Share Video</h2>
+                <button class="close-modal" id="closeShareModal">&times;</button>
             </div>
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button class="btn download" id="downloadRawBtn">
-                    <i class="fas fa-download"></i> Download
-                </button>
-                <button class="btn cloud" id="copyRawLinkBtn">
-                    <i class="fas fa-link"></i> Copy Link
-                </button>
+            
+            <div id="shareVideoInfo" style="margin-bottom: 20px;"></div>
+            
+            <div class="share-tabs">
+                <div class="share-tab active" data-tab="link">Link</div>
+                <div class="share-tab" data-tab="qr">QR Code</div>
+                <div class="share-tab" data-tab="social">Social Media</div>
+                <div class="share-tab" data-tab="export">Export</div>
+            </div>
+            
+            <!-- Link Tab -->
+            <div class="share-content active" id="tab-link">
+                <div class="share-container">
+                    <h3>Shareable Link</h3>
+                    <p>Link ini bisa dibuka oleh siapa saja di browser manapun</p>
+                    <div class="share-link-box">
+                        <input type="text" id="shareableLink" readonly value="https://">
+                        <button class="copy-btn" id="copyShareLink">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <h4>Link Settings</h4>
+                        <div style="display: grid; gap: 15px; margin-top: 15px;">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="requirePassword" checked>
+                                <span class="checkbox-label">Require password to view</span>
+                            </label>
+                            <div id="passwordField" style="display: block;">
+                                <input type="text" id="sharePassword" value="123456" placeholder="Password" style="width: 100%; padding: 10px; background: var(--bg-secondary); border: 1px solid var(--border-medium); border-radius: var(--radius-md); color: var(--text-primary);">
+                            </div>
+                            <div>
+                                <label>Link Expires in:</label>
+                                <select id="linkExpiry" style="width: 100%; padding: 10px; background: var(--bg-secondary); border: 1px solid var(--border-medium); border-radius: var(--radius-md); color: var(--text-primary); margin-top: 5px;">
+                                    <option value="1">1 day</option>
+                                    <option value="3">3 days</option>
+                                    <option value="7" selected>7 days</option>
+                                    <option value="30">30 days</option>
+                                    <option value="0">Never</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- QR Code Tab -->
+            <div class="share-content" id="tab-qr">
+                <div class="share-container">
+                    <h3>QR Code</h3>
+                    <p>Scan QR code untuk membuka video di mobile</p>
+                    <div class="qrcode-container" id="qrcode"></div>
+                    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                        <button class="btn download" id="downloadQR">
+                            <i class="fas fa-download"></i> Download QR
+                        </button>
+                        <button class="btn cloud" id="printQR">
+                            <i class="fas fa-print"></i> Print
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Social Media Tab -->
+            <div class="share-content" id="tab-social">
+                <div class="share-container">
+                    <h3>Share via Social Media</h3>
+                    <div class="social-share">
+                        <div class="social-btn whatsapp" id="shareWhatsapp">
+                            <i class="fab fa-whatsapp"></i>
+                        </div>
+                        <div class="social-btn telegram" id="shareTelegram">
+                            <i class="fab fa-telegram-plane"></i>
+                        </div>
+                        <div class="social-btn facebook" id="shareFacebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </div>
+                        <div class="social-btn twitter" id="shareTwitter">
+                            <i class="fab fa-twitter"></i>
+                        </div>
+                        <div class="social-btn email" id="shareEmail">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 30px;">
+                        <h4>Embed Code</h4>
+                        <textarea id="embedCodeText" readonly rows="3" style="width: 100%; padding: 15px; background: var(--bg-secondary); border: 1px solid var(--border-medium); border-radius: var(--radius-md); color: var(--text-primary); font-family: monospace; margin-top: 10px;"></textarea>
+                        <button class="copy-btn" id="copyEmbedCode" style="margin-top: 10px; width: 100%;">
+                            <i class="fas fa-copy"></i> Copy Embed Code
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Export Tab -->
+            <div class="share-content" id="tab-export">
+                <div class="share-container">
+                    <h3>Export Video</h3>
+                    <p>Export video ke berbagai format untuk dibagikan</p>
+                    
+                    <div class="export-options">
+                        <div class="export-btn" id="exportMp4">
+                            <i class="fas fa-file-video"></i>
+                            <div>MP4</div>
+                            <small>Best Quality</small>
+                        </div>
+                        <div class="export-btn" id="exportWebm">
+                            <i class="fas fa-file-video"></i>
+                            <div>WebM</div>
+                            <small>Smaller Size</small>
+                        </div>
+                        <div class="export-btn" id="exportGif">
+                            <i class="fas fa-file-image"></i>
+                            <div>GIF</div>
+                            <small>Animated</small>
+                        </div>
+                        <div class="export-btn" id="exportData">
+                            <i class="fas fa-database"></i>
+                            <div>Data URL</div>
+                            <small>Share as Text</small>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px;" id="exportResult"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -1249,19 +1491,19 @@
             <video class="modal-video" id="modalVideo" controls style="width: 100%; border-radius: var(--radius-md); margin-bottom: 20px;"></video>
             <div id="modalInfo" style="background: var(--bg-tertiary); padding: 15px; border-radius: var(--radius-md); margin-bottom: 20px;"></div>
             
-            <!-- Raw Video Link Section -->
+            <!-- Share Link Section -->
             <div class="raw-link-container" id="rawLinkContainer">
                 <div class="raw-link-header">
-                    <h4><i class="fas fa-link"></i> Raw Video Link</h4>
-                    <span class="badge">Working Link</span>
+                    <h4><i class="fas fa-share-alt"></i> Shareable Video Link</h4>
+                    <span class="badge">Anyone can open</span>
                 </div>
                 <div class="raw-link-box">
                     <input type="text" id="rawVideoLink" readonly value="#">
                     <button class="copy-btn" id="copyRawLinkBtn">
                         <i class="fas fa-copy"></i> Copy
                     </button>
-                    <button class="test-link-btn" id="testRawLinkBtn">
-                        <i class="fas fa-play"></i> Test
+                    <button class="share-now-btn" id="shareNowBtn">
+                        <i class="fas fa-share-alt"></i> Share
                     </button>
                 </div>
                 <div class="embed-code" id="embedCode"></div>
@@ -1289,6 +1531,44 @@
         </div>
     </div>
 
+    <!-- External Video Player Page (Hidden by default, will be shown when accessing share link) -->
+    <div id="externalPlayerPage" style="display: none;">
+        <div class="external-player">
+            <div class="external-header">
+                <a href="#" class="back-button" id="backToSiteBtn">
+                    <i class="fas fa-arrow-left"></i> Back to Recorder
+                </a>
+                <h2 id="externalVideoTitle">Shared Video</h2>
+            </div>
+            <div style="background: var(--bg-card); border-radius: var(--radius-xl); padding: 25px;">
+                <!-- Password Protection -->
+                <div id="passwordPrompt" style="text-align: center; padding: 40px; display: none;">
+                    <i class="fas fa-lock" style="font-size: 3rem; color: var(--warning); margin-bottom: 20px;"></i>
+                    <h3>This video is password protected</h3>
+                    <p>Enter password to continue</p>
+                    <div style="max-width: 300px; margin: 20px auto;">
+                        <input type="password" id="videoPassword" placeholder="Enter password" style="width: 100%; padding: 15px; background: var(--bg-secondary); border: 2px solid var(--border-medium); border-radius: var(--radius-md); color: var(--text-primary); margin-bottom: 10px;">
+                        <button class="btn record" id="submitPassword" style="width: 100%;">Unlock Video</button>
+                    </div>
+                </div>
+                
+                <!-- Video Player -->
+                <div id="videoPlayerContainer" style="display: none;">
+                    <video class="external-video" id="externalVideoPlayer" controls autoplay></video>
+                    <div class="external-info" id="externalVideoInfo"></div>
+                    <div class="visit-counter" id="visitCounter">Views: 1</div>
+                </div>
+                
+                <!-- Video Not Found -->
+                <div id="videoNotFound" style="text-align: center; padding: 50px; display: none;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger); margin-bottom: 20px;"></i>
+                    <h2>Video Not Found</h2>
+                    <p>The video you're looking for has expired or been deleted</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
@@ -1296,13 +1576,13 @@
         // ==================== CONFIGURATION ====================
         const DB_CONFIG = {
             NAME: 'ScreenRecorderDB',
-            VERSION: 3,
+            VERSION: 5,
             STORES: {
                 VIDEOS: 'videos',
                 SETTINGS: 'settings',
                 AUTO_SAVE: 'auto_save',
                 VIDEO_BLOBS: 'video_blobs',
-                VIDEO_LINKS: 'video_links'
+                SHARE_LINKS: 'share_links'  // New store for shareable links
             }
         };
 
@@ -1317,9 +1597,11 @@
             totalRecordedSize: 0,
             
             videos: [],
-            videoLinks: new Map(),
+            shareLinks: new Map(),
+            activeBlobUrls: new Map(),
+            
             videoCount: 0,
-            linkCount: 0,
+            shareCount: 0,
             storageUsed: 0,
             totalRecordingTime: 0,
             
@@ -1332,7 +1614,8 @@
             pendingRecovery: null,
             
             currentVideoId: null,
-            currentRawVideoId: null,
+            currentShareVideoId: null,
+            currentShareToken: null,
             
             settings: {
                 autoSave: true,
@@ -1344,7 +1627,9 @@
                 systemVolume: 100,
                 micVolume: 0,
                 autoSaveInterval: 30,
-                maxAutoSaves: 50
+                maxAutoSaves: 50,
+                linkExpiry: 7,
+                passwordProtect: true
             }
         };
 
@@ -1371,8 +1656,8 @@
             totalVideosCount: document.getElementById('totalVideosCount'),
             autoSaveCount: document.getElementById('autoSaveCount'),
             totalAutoSaves: document.getElementById('totalAutoSaves'),
-            linkCount: document.getElementById('linkCount'),
-            totalLinks: document.getElementById('totalLinks'),
+            shareCount: document.getElementById('shareCount'),
+            totalShared: document.getElementById('totalShared'),
             
             fpsSlider: document.getElementById('fpsSlider'),
             fpsValue: document.getElementById('fpsValue'),
@@ -1380,6 +1665,9 @@
             systemVolumeValue: document.getElementById('systemVolumeValue'),
             micVolumeSlider: document.getElementById('micVolumeSlider'),
             micVolumeValue: document.getElementById('micVolumeValue'),
+            expirySlider: document.getElementById('expirySlider'),
+            expiryValue: document.getElementById('expiryValue'),
+            passwordProtect: document.getElementById('passwordProtect'),
             autoSave: document.getElementById('autoSave'),
             saveVideoBlob: document.getElementById('saveVideoBlob'),
             autoGenerateLinks: document.getElementById('autoGenerateLinks'),
@@ -1400,6 +1688,33 @@
             emptyLibrary: document.getElementById('emptyLibrary'),
             search: document.getElementById('search'),
             
+            // Share Modal
+            shareModal: document.getElementById('shareModal'),
+            closeShareModal: document.getElementById('closeShareModal'),
+            shareVideoInfo: document.getElementById('shareVideoInfo'),
+            shareableLink: document.getElementById('shareableLink'),
+            copyShareLink: document.getElementById('copyShareLink'),
+            requirePassword: document.getElementById('requirePassword'),
+            passwordField: document.getElementById('passwordField'),
+            sharePassword: document.getElementById('sharePassword'),
+            linkExpiry: document.getElementById('linkExpiry'),
+            qrcode: document.getElementById('qrcode'),
+            downloadQR: document.getElementById('downloadQR'),
+            printQR: document.getElementById('printQR'),
+            shareWhatsapp: document.getElementById('shareWhatsapp'),
+            shareTelegram: document.getElementById('shareTelegram'),
+            shareFacebook: document.getElementById('shareFacebook'),
+            shareTwitter: document.getElementById('shareTwitter'),
+            shareEmail: document.getElementById('shareEmail'),
+            embedCodeText: document.getElementById('embedCodeText'),
+            copyEmbedCode: document.getElementById('copyEmbedCode'),
+            exportMp4: document.getElementById('exportMp4'),
+            exportWebm: document.getElementById('exportWebm'),
+            exportGif: document.getElementById('exportGif'),
+            exportData: document.getElementById('exportData'),
+            exportResult: document.getElementById('exportResult'),
+            
+            // Video Modal
             videoModal: document.getElementById('videoModal'),
             modalVideo: document.getElementById('modalVideo'),
             modalVideoTitle: document.getElementById('modalVideoTitle'),
@@ -1411,7 +1726,7 @@
             rawLinkContainer: document.getElementById('rawLinkContainer'),
             rawVideoLink: document.getElementById('rawVideoLink'),
             copyRawLinkBtn: document.getElementById('copyRawLinkBtn'),
-            testRawLinkBtn: document.getElementById('testRawLinkBtn'),
+            shareNowBtn: document.getElementById('shareNowBtn'),
             embedCode: document.getElementById('embedCode'),
             
             backupHistoryModal: document.getElementById('backupHistoryModal'),
@@ -1434,18 +1749,27 @@
             recoverBtn: document.getElementById('recoverBtn'),
             dismissRecoveryBtn: document.getElementById('dismissRecoveryBtn'),
             
+            // External Player
+            externalPlayerPage: document.getElementById('externalPlayerPage'),
+            backToSiteBtn: document.getElementById('backToSiteBtn'),
+            externalVideoTitle: document.getElementById('externalVideoTitle'),
+            passwordPrompt: document.getElementById('passwordPrompt'),
+            videoPlayerContainer: document.getElementById('videoPlayerContainer'),
+            videoNotFound: document.getElementById('videoNotFound'),
+            externalVideoPlayer: document.getElementById('externalVideoPlayer'),
+            externalVideoInfo: document.getElementById('externalVideoInfo'),
+            visitCounter: document.getElementById('visitCounter'),
+            videoPassword: document.getElementById('videoPassword'),
+            submitPassword: document.getElementById('submitPassword'),
+            
             toastContainer: document.getElementById('toastContainer'),
             
-            // Video player page elements
-            mainApp: document.getElementById('mainApp'),
-            videoPlayerPage: document.getElementById('videoPlayerPage'),
-            backToApp: document.getElementById('backToApp'),
-            rawVideoPlayer: document.getElementById('rawVideoPlayer'),
-            playerVideoTitle: document.getElementById('playerVideoTitle'),
-            playerVideoInfo: document.getElementById('playerVideoInfo'),
-            downloadRawBtn: document.getElementById('downloadRawBtn'),
-            copyRawLinkBtn: document.getElementById('copyRawLinkBtn')
+            mainApp: document.getElementById('mainApp')
         };
+
+        // Initialize share tabs
+        const shareTabs = document.querySelectorAll('.share-tab');
+        const shareContents = document.querySelectorAll('.share-content');
 
         // ==================== DATABASE MANAGER ====================
         class DatabaseManager {
@@ -1488,10 +1812,10 @@
                             blobStore.createIndex('timestamp', 'timestamp', { unique: false });
                         }
                         
-                        if (!db.objectStoreNames.contains(DB_CONFIG.STORES.VIDEO_LINKS)) {
-                            const linkStore = db.createObjectStore(DB_CONFIG.STORES.VIDEO_LINKS, { keyPath: 'linkId' });
-                            linkStore.createIndex('videoId', 'videoId', { unique: true });
-                            linkStore.createIndex('created', 'created', { unique: false });
+                        if (!db.objectStoreNames.contains(DB_CONFIG.STORES.SHARE_LINKS)) {
+                            const shareStore = db.createObjectStore(DB_CONFIG.STORES.SHARE_LINKS, { keyPath: 'token' });
+                            shareStore.createIndex('videoId', 'videoId', { unique: false });
+                            shareStore.createIndex('expires', 'expires', { unique: false });
                         }
                     };
                 });
@@ -1510,7 +1834,7 @@
                         size: videoData.size || 0,
                         date: videoData.date || new Date().toISOString(),
                         hasBlob: !!videoData.blob,
-                        hasLink: false
+                        shareCount: 0
                     };
                     
                     const request = store.put(video);
@@ -1520,7 +1844,7 @@
                             await this.saveVideoBlob(video.id, videoData.blob);
                             
                             if (state.settings.autoGenerateLinks) {
-                                await this.generateVideoLink(video.id);
+                                await this.createShareLink(video.id);
                             }
                         }
                         resolve(video);
@@ -1548,83 +1872,90 @@
                 });
             }
 
-            async generateVideoLink(videoId) {
-                const linkId = `raw_${Date.now()}_${Math.random().toString(36).substr(2, 16)}`;
-                const baseUrl = window.location.origin + window.location.pathname;
-                const rawUrl = `${baseUrl}#raw/${linkId}`;
+            async createShareLink(videoId, options = {}) {
+                const token = `vid_${Date.now()}_${Math.random().toString(36).substr(2, 16)}`;
+                const now = Date.now();
+                const expiryDays = options.expiryDays || state.settings.linkExpiry || 7;
+                const expires = expiryDays === 0 ? null : now + (expiryDays * 24 * 60 * 60 * 1000);
                 
-                const linkData = {
-                    linkId: linkId,
+                const shareData = {
+                    token: token,
                     videoId: videoId,
-                    rawUrl: rawUrl,
-                    embedCode: `<video src="${rawUrl}" controls width="100%" style="max-width: 100%;"></video>`,
-                    created: Date.now(),
-                    expires: Date.now() + (30 * 24 * 60 * 60 * 1000),
-                    accessCount: 0
+                    password: options.password || (state.settings.passwordProtect ? '123456' : null),
+                    created: now,
+                    expires: expires,
+                    views: 0,
+                    lastViewed: null
                 };
                 
                 return new Promise((resolve, reject) => {
-                    const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEO_LINKS, DB_CONFIG.STORES.VIDEOS], 'readwrite');
+                    const transaction = this.db.transaction([DB_CONFIG.STORES.SHARE_LINKS, DB_CONFIG.STORES.VIDEOS], 'readwrite');
                     
-                    const linkStore = transaction.objectStore(DB_CONFIG.STORES.VIDEO_LINKS);
-                    const linkRequest = linkStore.put(linkData);
+                    const shareStore = transaction.objectStore(DB_CONFIG.STORES.SHARE_LINKS);
+                    const shareRequest = shareStore.put(shareData);
                     
-                    linkRequest.onsuccess = () => {
+                    shareRequest.onsuccess = () => {
+                        // Update video share count
                         const videoStore = transaction.objectStore(DB_CONFIG.STORES.VIDEOS);
                         const getRequest = videoStore.get(videoId);
                         
                         getRequest.onsuccess = () => {
                             const video = getRequest.result;
                             if (video) {
-                                video.hasLink = true;
-                                video.linkId = linkId;
+                                video.shareCount = (video.shareCount || 0) + 1;
                                 videoStore.put(video);
                             }
                         };
                         
-                        resolve(linkData);
+                        resolve(shareData);
                     };
                     
-                    linkRequest.onerror = () => reject(linkRequest.error);
+                    shareRequest.onerror = () => reject(shareRequest.error);
                 });
             }
 
-            async getVideoLink(videoId) {
+            async getShareLink(token) {
                 return new Promise((resolve, reject) => {
-                    const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEO_LINKS], 'readonly');
-                    const store = transaction.objectStore(DB_CONFIG.STORES.VIDEO_LINKS);
-                    const index = store.index('videoId');
+                    const transaction = this.db.transaction([DB_CONFIG.STORES.SHARE_LINKS], 'readonly');
+                    const store = transaction.objectStore(DB_CONFIG.STORES.SHARE_LINKS);
                     
-                    const request = index.get(videoId);
+                    const request = store.get(token);
                     
                     request.onsuccess = () => {
-                        const link = request.result;
-                        if (link) {
-                            this.incrementLinkAccess(link.linkId);
+                        const share = request.result;
+                        if (share) {
+                            resolve(share);
+                        } else {
+                            resolve(null);
                         }
-                        resolve(link);
                     };
                     
                     request.onerror = () => reject(request.error);
                 });
             }
 
-            async getVideoByLinkId(linkId) {
+            async getVideoByShareToken(token) {
                 return new Promise((resolve, reject) => {
-                    const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEO_LINKS, DB_CONFIG.STORES.VIDEOS, DB_CONFIG.STORES.VIDEO_BLOBS], 'readonly');
+                    const transaction = this.db.transaction([DB_CONFIG.STORES.SHARE_LINKS, DB_CONFIG.STORES.VIDEOS, DB_CONFIG.STORES.VIDEO_BLOBS], 'readonly');
                     
-                    const linkStore = transaction.objectStore(DB_CONFIG.STORES.VIDEO_LINKS);
-                    const linkRequest = linkStore.get(linkId);
+                    const shareStore = transaction.objectStore(DB_CONFIG.STORES.SHARE_LINKS);
+                    const shareRequest = shareStore.get(token);
                     
-                    linkRequest.onsuccess = async () => {
-                        const link = linkRequest.result;
-                        if (!link) {
+                    shareRequest.onsuccess = async () => {
+                        const share = shareRequest.result;
+                        if (!share) {
                             resolve(null);
                             return;
                         }
                         
+                        // Check if expired
+                        if (share.expires && share.expires < Date.now()) {
+                            resolve({ expired: true });
+                            return;
+                        }
+                        
                         const videoStore = transaction.objectStore(DB_CONFIG.STORES.VIDEOS);
-                        const videoRequest = videoStore.get(link.videoId);
+                        const videoRequest = videoStore.get(share.videoId);
                         
                         videoRequest.onsuccess = () => {
                             const video = videoRequest.result;
@@ -1634,7 +1965,7 @@
                                 
                                 blobRequest.onsuccess = () => {
                                     video.blob = blobRequest.result?.blob;
-                                    video.link = link;
+                                    video.shareInfo = share;
                                     resolve(video);
                                 };
                                 
@@ -1647,61 +1978,44 @@
                         videoRequest.onerror = () => reject(videoRequest.error);
                     };
                     
-                    linkRequest.onerror = () => reject(linkRequest.error);
+                    shareRequest.onerror = () => reject(shareRequest.error);
                 });
             }
 
-            async incrementLinkAccess(linkId) {
-                const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEO_LINKS], 'readwrite');
-                const store = transaction.objectStore(DB_CONFIG.STORES.VIDEO_LINKS);
+            async incrementShareView(token) {
+                const transaction = this.db.transaction([DB_CONFIG.STORES.SHARE_LINKS], 'readwrite');
+                const store = transaction.objectStore(DB_CONFIG.STORES.SHARE_LINKS);
                 
-                const request = store.get(linkId);
+                const request = store.get(token);
                 request.onsuccess = () => {
-                    const link = request.result;
-                    if (link) {
-                        link.accessCount = (link.accessCount || 0) + 1;
-                        store.put(link);
+                    const share = request.result;
+                    if (share) {
+                        share.views = (share.views || 0) + 1;
+                        share.lastViewed = Date.now();
+                        store.put(share);
                     }
                 };
             }
 
             async getVideo(videoId) {
                 return new Promise((resolve, reject) => {
-                    const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEOS, DB_CONFIG.STORES.VIDEO_BLOBS, DB_CONFIG.STORES.VIDEO_LINKS], 'readonly');
+                    const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEOS, DB_CONFIG.STORES.VIDEO_BLOBS], 'readonly');
                     const videoStore = transaction.objectStore(DB_CONFIG.STORES.VIDEOS);
                     
                     const videoRequest = videoStore.get(videoId);
                     
                     videoRequest.onsuccess = async () => {
                         const video = videoRequest.result;
-                        if (video) {
-                            if (video.hasBlob) {
-                                const blobStore = transaction.objectStore(DB_CONFIG.STORES.VIDEO_BLOBS);
-                                const blobRequest = blobStore.get(videoId);
-                                
-                                blobRequest.onsuccess = () => {
-                                    video.blob = blobRequest.result?.blob;
-                                    
-                                    if (video.hasLink) {
-                                        const linkStore = transaction.objectStore(DB_CONFIG.STORES.VIDEO_LINKS);
-                                        const linkIndex = linkStore.index('videoId');
-                                        const linkRequest = linkIndex.get(videoId);
-                                        
-                                        linkRequest.onsuccess = () => {
-                                            video.link = linkRequest.result;
-                                            resolve(video);
-                                        };
-                                        
-                                        linkRequest.onerror = () => resolve(video);
-                                    } else {
-                                        resolve(video);
-                                    }
-                                };
-                                
-                                blobRequest.onerror = () => resolve(video);
-                            } else {
+                        if (video && video.hasBlob) {
+                            const blobStore = transaction.objectStore(DB_CONFIG.STORES.VIDEO_BLOBS);
+                            const blobRequest = blobStore.get(videoId);
+                            
+                            blobRequest.onsuccess = () => {
+                                video.blob = blobRequest.result?.blob;
                                 resolve(video);
-                            }
+                            };
+                            
+                            blobRequest.onerror = () => resolve(video);
                         } else {
                             resolve(video);
                         }
@@ -1734,10 +2048,10 @@
                 });
             }
 
-            async getAllLinks() {
+            async getAllShareLinks() {
                 return new Promise((resolve, reject) => {
-                    const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEO_LINKS], 'readonly');
-                    const store = transaction.objectStore(DB_CONFIG.STORES.VIDEO_LINKS);
+                    const transaction = this.db.transaction([DB_CONFIG.STORES.SHARE_LINKS], 'readonly');
+                    const store = transaction.objectStore(DB_CONFIG.STORES.SHARE_LINKS);
                     
                     const links = [];
                     const request = store.openCursor();
@@ -1757,20 +2071,22 @@
             }
 
             async deleteVideo(videoId) {
-                const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEOS, DB_CONFIG.STORES.VIDEO_BLOBS, DB_CONFIG.STORES.VIDEO_LINKS], 'readwrite');
+                const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEOS, DB_CONFIG.STORES.VIDEO_BLOBS, DB_CONFIG.STORES.SHARE_LINKS], 'readwrite');
                 
                 return new Promise((resolve, reject) => {
                     transaction.objectStore(DB_CONFIG.STORES.VIDEOS).delete(videoId);
                     transaction.objectStore(DB_CONFIG.STORES.VIDEO_BLOBS).delete(videoId);
                     
-                    const linkStore = transaction.objectStore(DB_CONFIG.STORES.VIDEO_LINKS);
-                    const linkIndex = linkStore.index('videoId');
-                    const linkRequest = linkIndex.get(videoId);
+                    // Delete associated share links
+                    const shareStore = transaction.objectStore(DB_CONFIG.STORES.SHARE_LINKS);
+                    const shareIndex = shareStore.index('videoId');
+                    const shareRequest = shareIndex.openCursor(videoId);
                     
-                    linkRequest.onsuccess = () => {
-                        const link = linkRequest.result;
-                        if (link) {
-                            linkStore.delete(link.linkId);
+                    shareRequest.onsuccess = (event) => {
+                        const cursor = event.target.result;
+                        if (cursor) {
+                            shareStore.delete(cursor.primaryKey);
+                            cursor.continue();
                         }
                     };
                     
@@ -1862,10 +2178,9 @@
 
             async getStorageUsed() {
                 return new Promise((resolve, reject) => {
-                    const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEOS, DB_CONFIG.STORES.VIDEO_BLOBS], 'readonly');
+                    const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEO_BLOBS], 'readonly');
                     
                     let total = 0;
-                    
                     const blobStore = transaction.objectStore(DB_CONFIG.STORES.VIDEO_BLOBS);
                     const blobRequest = blobStore.openCursor();
                     
@@ -1886,72 +2201,170 @@
 
         const dbManager = new DatabaseManager();
 
-        // ==================== ROUTING FOR RAW LINKS ====================
-        function checkForRawLink() {
+        // ==================== SHARE LINK HANDLER ====================
+        function handleShareLink() {
             const hash = window.location.hash;
-            if (hash && hash.startsWith('#raw/')) {
-                const linkId = hash.replace('#raw/', '');
-                loadRawVideo(linkId);
+            if (hash && hash.startsWith('#share/')) {
+                const token = hash.replace('#share/', '');
+                loadSharedVideo(token);
                 return true;
             }
             return false;
         }
 
-        async function loadRawVideo(linkId) {
-            showProgress('Loading video...');
+        async function loadSharedVideo(token) {
+            showProgress('Loading shared video...');
             
             try {
-                const video = await dbManager.getVideoByLinkId(linkId);
+                const video = await dbManager.getVideoByShareToken(token);
                 
-                if (!video || !video.blob) {
+                if (!video) {
                     hideProgress();
-                    showToast('Video not found or expired', 'error');
+                    showExternalError('Video not found');
                     return;
                 }
                 
-                // Hide main app, show video player
+                if (video.expired) {
+                    hideProgress();
+                    showExternalError('This link has expired');
+                    return;
+                }
+                
+                if (!video || !video.blob) {
+                    hideProgress();
+                    showExternalError('Video not available');
+                    return;
+                }
+                
+                // Hide main app, show external player
                 elements.mainApp.style.display = 'none';
-                elements.videoPlayerPage.style.display = 'block';
+                elements.externalPlayerPage.style.display = 'block';
                 
-                // Create object URL for the video
-                const videoUrl = URL.createObjectURL(video.blob);
-                elements.rawVideoPlayer.src = videoUrl;
-                elements.playerVideoTitle.textContent = video.title || 'Raw Video';
+                // Store current share info
+                state.currentShareToken = token;
+                state.currentShareVideoId = video.id;
                 
-                // Update video info
-                elements.playerVideoInfo.innerHTML = `
-                    <div style="display: grid; gap: 10px;">
-                        <div><strong>Title:</strong> ${video.title}</div>
-                        <div><strong>Duration:</strong> ${formatTime(video.duration)}</div>
-                        <div><strong>Size:</strong> ${formatFileSize(video.size)}</div>
-                        <div><strong>Quality:</strong> ${getQualityLabel(video.quality)}</div>
-                        <div><strong>Uploaded:</strong> ${formatDate(video.date)}</div>
-                        ${video.link ? `<div><strong>Views:</strong> ${video.link.accessCount || 0}</div>` : ''}
-                    </div>
-                `;
-                
-                state.currentRawVideoId = video.id;
-                
-                // Setup download button
-                elements.downloadRawBtn.onclick = () => {
-                    const a = document.createElement('a');
-                    a.href = videoUrl;
-                    a.download = `${video.title}.webm`;
-                    a.click();
-                };
-                
-                // Setup copy link button
-                elements.copyRawLinkBtn.onclick = () => {
-                    copyToClipboard(window.location.href);
-                    showToast('Link copied to clipboard!', 'success');
-                };
+                // Check if password required
+                if (video.shareInfo.password) {
+                    elements.passwordPrompt.style.display = 'block';
+                    elements.videoPlayerContainer.style.display = 'none';
+                    elements.videoNotFound.style.display = 'none';
+                    
+                    // Setup password submit
+                    elements.submitPassword.onclick = async () => {
+                        const enteredPassword = elements.videoPassword.value;
+                        if (enteredPassword === video.shareInfo.password) {
+                            elements.passwordPrompt.style.display = 'none';
+                            await playSharedVideo(video, token);
+                        } else {
+                            showToast('Incorrect password', 'error');
+                        }
+                    };
+                    
+                    elements.videoPassword.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            elements.submitPassword.click();
+                        }
+                    });
+                } else {
+                    elements.passwordPrompt.style.display = 'none';
+                    await playSharedVideo(video, token);
+                }
                 
                 hideProgress();
                 
             } catch (error) {
                 hideProgress();
-                showToast('Error loading video: ' + error.message, 'error');
+                showExternalError('Error loading video');
             }
+        }
+
+        async function playSharedVideo(video, token) {
+            // Increment view count
+            await dbManager.incrementShareView(token);
+            
+            // Create blob URL
+            const videoUrl = URL.createObjectURL(video.blob);
+            
+            // Store for cleanup
+            if (state.activeBlobUrls.has(video.id)) {
+                URL.revokeObjectURL(state.activeBlobUrls.get(video.id));
+            }
+            state.activeBlobUrls.set(video.id, videoUrl);
+            
+            // Show video player
+            elements.videoPlayerContainer.style.display = 'block';
+            elements.externalVideoPlayer.src = videoUrl;
+            elements.externalVideoTitle.textContent = video.title || 'Shared Video';
+            
+            // Update info
+            elements.externalVideoInfo.innerHTML = `
+                <div style="display: grid; gap: 10px;">
+                    <div><strong>Title:</strong> ${video.title}</div>
+                    <div><strong>Duration:</strong> ${formatTime(video.duration)}</div>
+                    <div><strong>Size:</strong> ${formatFileSize(video.size)}</div>
+                    <div><strong>Quality:</strong> ${getQualityLabel(video.quality)}</div>
+                    <div><strong>Uploaded:</strong> ${formatDate(video.date)}</div>
+                </div>
+            `;
+            
+            elements.visitCounter.textContent = `Views: ${(video.shareInfo.views || 0) + 1}`;
+        }
+
+        function showExternalError(message) {
+            elements.mainApp.style.display = 'none';
+            elements.externalPlayerPage.style.display = 'block';
+            elements.passwordPrompt.style.display = 'none';
+            elements.videoPlayerContainer.style.display = 'none';
+            elements.videoNotFound.style.display = 'block';
+            elements.videoNotFound.querySelector('p').textContent = message;
+        }
+
+        // ==================== SHARE MODAL FUNCTIONS ====================
+        async function openShareModal(videoId) {
+            const video = await dbManager.getVideo(videoId);
+            if (!video) return;
+            
+            state.currentVideoId = videoId;
+            
+            // Create or get share link
+            const shareLinks = await dbManager.getAllShareLinks();
+            let shareLink = shareLinks.find(l => l.videoId === videoId);
+            
+            if (!shareLink) {
+                shareLink = await dbManager.createShareLink(videoId, {
+                    expiryDays: parseInt(elements.linkExpiry.value),
+                    password: elements.requirePassword.checked ? elements.sharePassword.value : null
+                });
+            }
+            
+            const shareUrl = window.location.href.split('#')[0] + '#share/' + shareLink.token;
+            
+            // Update UI
+            elements.shareVideoInfo.innerHTML = `
+                <div style="background: var(--bg-tertiary); padding: 15px; border-radius: var(--radius-md);">
+                    <strong>${video.title}</strong><br>
+                    <small>${formatTime(video.duration)} • ${formatFileSize(video.size)}</small>
+                </div>
+            `;
+            
+            elements.shareableLink.value = shareUrl;
+            elements.embedCodeText.value = `<video src="${shareUrl}" controls width="100%" style="max-width: 100%;"></video>`;
+            
+            // Generate QR Code
+            elements.qrcode.innerHTML = '';
+            new QRCode(elements.qrcode, {
+                text: shareUrl,
+                width: 200,
+                height: 200
+            });
+            
+            // Set password field
+            elements.requirePassword.checked = !!shareLink.password;
+            elements.sharePassword.value = shareLink.password || '123456';
+            elements.passwordField.style.display = elements.requirePassword.checked ? 'block' : 'none';
+            
+            elements.shareModal.classList.add('active');
         }
 
         // ==================== AUTO-SAVE FUNCTIONS ====================
@@ -2257,8 +2670,8 @@
             state.videos = await dbManager.getAllVideos();
             state.videoCount = state.videos.length;
             
-            const links = await dbManager.getAllLinks();
-            state.linkCount = links.length;
+            const shareLinks = await dbManager.getAllShareLinks();
+            state.shareCount = shareLinks.length;
             
             state.totalRecordingTime = state.videos.reduce((sum, v) => sum + (v.duration || 0), 0);
             state.storageUsed = await dbManager.getStorageUsed();
@@ -2269,6 +2682,12 @@
         }
 
         async function deleteVideo(videoId) {
+            // Clean up blob URL if exists
+            if (state.activeBlobUrls.has(videoId)) {
+                URL.revokeObjectURL(state.activeBlobUrls.get(videoId));
+                state.activeBlobUrls.delete(videoId);
+            }
+            
             await dbManager.deleteVideo(videoId);
             
             const video = state.videos.find(v => v.id === videoId);
@@ -2276,8 +2695,8 @@
             state.videoCount--;
             state.totalRecordingTime -= video?.duration || 0;
             
-            const links = await dbManager.getAllLinks();
-            state.linkCount = links.length;
+            const shareLinks = await dbManager.getAllShareLinks();
+            state.shareCount = shareLinks.length;
             
             updateVideoGrid();
             updateStats();
@@ -2326,15 +2745,12 @@
                         <div><i class="fas fa-expand-alt"></i> ${getQualityLabel(video.quality)}</div>
                         <div><i class="fas fa-file"></i> ${formatFileSize(video.size)}</div>
                         <div><i class="fas fa-calendar"></i> ${formatDate(video.date)}</div>
-                        ${video.hasLink ? '<div><i class="fas fa-link" style="color: var(--success);"></i> Link Ready</div>' : ''}
+                        ${video.shareCount ? `<div><i class="fas fa-share-alt" style="color: var(--success);"></i> Shared ${video.shareCount}x</div>` : ''}
                     </div>
                     <div class="video-actions">
                         <button class="action-btn play-btn"><i class="fas fa-play"></i></button>
                         <button class="action-btn download-btn"><i class="fas fa-download"></i></button>
-                        ${video.hasLink ? 
-                            '<button class="action-btn link-btn copy-link-btn"><i class="fas fa-link"></i> Copy Link</button>' : 
-                            '<button class="action-btn generate-link-btn"><i class="fas fa-link"></i> Generate</button>'
-                        }
+                        <button class="action-btn share-btn share-video-btn"><i class="fas fa-share-alt"></i> Share</button>
                         <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>
@@ -2342,26 +2758,8 @@
             
             card.querySelector('.play-btn').addEventListener('click', () => playVideo(video.id));
             card.querySelector('.download-btn').addEventListener('click', () => downloadVideo(video.id));
+            card.querySelector('.share-video-btn').addEventListener('click', () => openShareModal(video.id));
             card.querySelector('.delete-btn').addEventListener('click', () => deleteVideo(video.id));
-            
-            const linkBtn = card.querySelector('.copy-link-btn, .generate-link-btn');
-            if (linkBtn) {
-                if (linkBtn.classList.contains('copy-link-btn')) {
-                    linkBtn.addEventListener('click', async () => {
-                        const link = await dbManager.getVideoLink(video.id);
-                        if (link) {
-                            copyToClipboard(link.rawUrl);
-                            showToast('Link copied to clipboard!', 'success');
-                        }
-                    });
-                } else {
-                    linkBtn.addEventListener('click', async () => {
-                        await dbManager.generateVideoLink(video.id);
-                        await loadVideos();
-                        showToast('Link generated successfully!', 'success');
-                    });
-                }
-            }
             
             return card;
         }
@@ -2384,20 +2782,18 @@
                 <div><strong>Duration:</strong> ${formatTime(video.duration)}</div>
                 <div><strong>Size:</strong> ${formatFileSize(video.size)}</div>
                 <div><strong>Date:</strong> ${formatDate(video.date)}</div>
-                ${video.hasLink ? '<div><strong>Link Status:</strong> <span style="color: var(--success);">Active</span></div>' : ''}
+                ${video.shareCount ? `<div><strong>Shared:</strong> ${video.shareCount} times</div>` : ''}
             `;
             
-            if (video.link) {
-                elements.rawVideoLink.value = video.link.rawUrl;
-                elements.embedCode.textContent = video.link.embedCode;
+            // Get share link
+            const shareLinks = await dbManager.getAllShareLinks();
+            const shareLink = shareLinks.find(l => l.videoId === videoId);
+            
+            if (shareLink) {
+                const shareUrl = window.location.href.split('#')[0] + '#share/' + shareLink.token;
+                elements.rawVideoLink.value = shareUrl;
+                elements.embedCode.textContent = `<video src="${shareUrl}" controls width="100%"></video>`;
                 elements.rawLinkContainer.style.display = 'block';
-            } else if (video.hasLink) {
-                const link = await dbManager.getVideoLink(videoId);
-                if (link) {
-                    elements.rawVideoLink.value = link.rawUrl;
-                    elements.embedCode.textContent = link.embedCode;
-                    elements.rawLinkContainer.style.display = 'block';
-                }
             } else {
                 elements.rawLinkContainer.style.display = 'none';
             }
@@ -2420,7 +2816,7 @@
             URL.revokeObjectURL(url);
         }
 
-        // ==================== LINK MANAGEMENT ====================
+        // ==================== SHARE FUNCTIONS ====================
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
                 showToast('Copied to clipboard!', 'success');
@@ -2549,6 +2945,7 @@
             elements.saveVideoBlob.checked = state.settings.saveVideoBlob;
             elements.autoGenerateLinks.checked = state.settings.autoGenerateLinks;
             elements.compressData.checked = state.settings.compressData;
+            elements.passwordProtect.checked = state.settings.passwordProtect;
             
             elements.fpsSlider.value = state.settings.frameRate;
             elements.fpsValue.textContent = `${state.settings.frameRate} FPS`;
@@ -2558,6 +2955,9 @@
             
             elements.micVolumeSlider.value = state.settings.micVolume;
             elements.micVolumeValue.textContent = `${state.settings.micVolume}%`;
+            
+            elements.expirySlider.value = state.settings.linkExpiry;
+            elements.expiryValue.textContent = state.settings.linkExpiry + ' days';
             
             elements.autoSaveIntervalSlider.value = state.settings.autoSaveInterval;
             elements.autoSaveIntervalValue.textContent = `${state.settings.autoSaveInterval}s`;
@@ -2606,8 +3006,8 @@
             elements.totalDuration.textContent = formatTime(state.totalRecordingTime);
             elements.autoSaveCount.textContent = state.autoSaveCount;
             elements.totalAutoSaves.textContent = state.autoSaveCount;
-            elements.linkCount.textContent = state.linkCount;
-            elements.totalLinks.textContent = state.linkCount;
+            elements.shareCount.textContent = state.shareCount;
+            elements.totalShared.textContent = state.shareCount;
         }
 
         function updateStorageInfo() {
@@ -2729,6 +3129,7 @@
 
         // ==================== EVENT LISTENERS ====================
         function setupEventListeners() {
+            // Recording controls
             elements.recordBtn.addEventListener('click', startRecording);
             elements.stopBtn.addEventListener('click', stopRecording);
             
@@ -2743,6 +3144,7 @@
                 elements.backupHistoryModal.classList.remove('active');
             });
             
+            // Video modal
             elements.closeModal.addEventListener('click', () => {
                 elements.videoModal.classList.remove('active');
                 URL.revokeObjectURL(elements.modalVideo.src);
@@ -2759,37 +3161,158 @@
                 }
             });
             
-            if (elements.copyRawLinkBtn) {
-                elements.copyRawLinkBtn.addEventListener('click', () => {
-                    copyToClipboard(elements.rawVideoLink.value);
-                });
-            }
+            elements.copyRawLinkBtn.addEventListener('click', () => {
+                copyToClipboard(elements.rawVideoLink.value);
+            });
             
-            if (elements.testRawLinkBtn) {
-                elements.testRawLinkBtn.addEventListener('click', () => {
-                    const link = elements.rawVideoLink.value;
-                    if (link && link !== '#') {
-                        window.open(link, '_blank');
-                    }
-                });
-            }
+            elements.shareNowBtn.addEventListener('click', () => {
+                if (state.currentVideoId) {
+                    elements.videoModal.classList.remove('active');
+                    openShareModal(state.currentVideoId);
+                }
+            });
             
+            // Share modal
+            elements.closeShareModal.addEventListener('click', () => {
+                elements.shareModal.classList.remove('active');
+            });
+            
+            elements.copyShareLink.addEventListener('click', () => {
+                copyToClipboard(elements.shareableLink.value);
+            });
+            
+            elements.requirePassword.addEventListener('change', () => {
+                elements.passwordField.style.display = elements.requirePassword.checked ? 'block' : 'none';
+            });
+            
+            // Share tabs
+            shareTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabName = tab.dataset.tab;
+                    shareTabs.forEach(t => t.classList.remove('active'));
+                    shareContents.forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById(`tab-${tabName}`).classList.add('active');
+                });
+            });
+            
+            // Social sharing
+            elements.shareWhatsapp.addEventListener('click', () => {
+                const text = encodeURIComponent(`Check out this video: ${elements.shareableLink.value}`);
+                window.open(`https://wa.me/?text=${text}`, '_blank');
+            });
+            
+            elements.shareTelegram.addEventListener('click', () => {
+                const text = encodeURIComponent(`Check out this video: ${elements.shareableLink.value}`);
+                window.open(`https://t.me/share/url?url=${elements.shareableLink.value}&text=${text}`, '_blank');
+            });
+            
+            elements.shareFacebook.addEventListener('click', () => {
+                window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(elements.shareableLink.value)}`, '_blank');
+            });
+            
+            elements.shareTwitter.addEventListener('click', () => {
+                const text = encodeURIComponent('Check out this video');
+                window.open(`https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(elements.shareableLink.value)}`, '_blank');
+            });
+            
+            elements.shareEmail.addEventListener('click', () => {
+                const subject = encodeURIComponent('Shared Video');
+                const body = encodeURIComponent(`Here's a video I'd like to share with you:\n\n${elements.shareableLink.value}`);
+                window.open(`mailto:?subject=${subject}&body=${body}`);
+            });
+            
+            elements.copyEmbedCode.addEventListener('click', () => {
+                copyToClipboard(elements.embedCodeText.value);
+            });
+            
+            // QR Code
+            elements.downloadQR.addEventListener('click', () => {
+                const canvas = elements.qrcode.querySelector('canvas');
+                if (canvas) {
+                    const link = document.createElement('a');
+                    link.download = 'qrcode.png';
+                    link.href = canvas.toDataURL();
+                    link.click();
+                }
+            });
+            
+            elements.printQR.addEventListener('click', () => {
+                const canvas = elements.qrcode.querySelector('canvas');
+                if (canvas) {
+                    const win = window.open('');
+                    win.document.write('<img src="' + canvas.toDataURL() + '"/>');
+                    win.print();
+                }
+            });
+            
+            // Export
+            elements.exportMp4.addEventListener('click', async () => {
+                if (!state.currentVideoId) return;
+                const video = await dbManager.getVideo(state.currentVideoId);
+                if (video && video.blob) {
+                    const url = URL.createObjectURL(video.blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${video.title}.mp4`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                }
+            });
+            
+            elements.exportWebm.addEventListener('click', async () => {
+                if (!state.currentVideoId) return;
+                const video = await dbManager.getVideo(state.currentVideoId);
+                if (video && video.blob) {
+                    const url = URL.createObjectURL(video.blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${video.title}.webm`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                }
+            });
+            
+            elements.exportGif.addEventListener('click', () => {
+                elements.exportResult.innerHTML = '<p>GIF conversion not available in browser. Please download as video and convert externally.</p>';
+            });
+            
+            elements.exportData.addEventListener('click', async () => {
+                if (!state.currentVideoId) return;
+                const video = await dbManager.getVideo(state.currentVideoId);
+                if (video && video.blob) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const dataUrl = reader.result;
+                        elements.exportResult.innerHTML = `
+                            <p>Video as Data URL (click to copy):</p>
+                            <textarea readonly rows="3" style="width: 100%; padding: 10px; background: var(--bg-secondary); border: 1px solid var(--border-medium); border-radius: var(--radius-md); color: var(--text-primary);">${dataUrl.substring(0, 100)}... (truncated)</textarea>
+                            <button class="copy-btn" style="margin-top: 10px;" onclick="copyToClipboard('${dataUrl}')">Copy Full URL</button>
+                        `;
+                    };
+                    reader.readAsDataURL(video.blob);
+                }
+            });
+            
+            // Search
             elements.search.addEventListener('input', updateVideoGrid);
             
+            // Recovery
             elements.recoverBtn.addEventListener('click', recoverSession);
             elements.dismissRecoveryBtn.addEventListener('click', hideRecoveryBanner);
             
             elements.cancelProgress.addEventListener('click', hideProgress);
             
-            elements.backToApp.addEventListener('click', (e) => {
+            // Back to main
+            elements.backToSiteBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                elements.videoPlayerPage.style.display = 'none';
+                elements.externalPlayerPage.style.display = 'none';
                 elements.mainApp.style.display = 'block';
-                elements.rawVideoPlayer.src = '';
+                elements.externalVideoPlayer.src = '';
                 window.location.hash = '';
             });
             
-            // Settings changes
+            // Settings
             elements.autoSave.addEventListener('change', (e) => {
                 state.settings.autoSave = e.target.checked;
                 saveSettings();
@@ -2814,6 +3337,11 @@
                 saveSettings();
             });
             
+            elements.passwordProtect.addEventListener('change', (e) => {
+                state.settings.passwordProtect = e.target.checked;
+                saveSettings();
+            });
+            
             elements.fpsSlider.addEventListener('input', (e) => {
                 state.settings.frameRate = parseInt(e.target.value);
                 elements.fpsValue.textContent = state.settings.frameRate + ' FPS';
@@ -2829,6 +3357,12 @@
             elements.micVolumeSlider.addEventListener('input', (e) => {
                 state.settings.micVolume = parseInt(e.target.value);
                 elements.micVolumeValue.textContent = state.settings.micVolume + '%';
+                saveSettings();
+            });
+            
+            elements.expirySlider.addEventListener('input', (e) => {
+                state.settings.linkExpiry = parseInt(e.target.value);
+                elements.expiryValue.textContent = state.settings.linkExpiry + ' days';
                 saveSettings();
             });
             
@@ -2856,10 +3390,14 @@
                 });
             });
             
+            // Keyboard shortcuts
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
                     if (elements.videoModal.classList.contains('active')) {
                         elements.videoModal.classList.remove('active');
+                    }
+                    if (elements.shareModal.classList.contains('active')) {
+                        elements.shareModal.classList.remove('active');
                     }
                     if (elements.backupHistoryModal.classList.contains('active')) {
                         elements.backupHistoryModal.classList.remove('active');
@@ -2867,6 +3405,7 @@
                 }
             });
             
+            // Before unload
             window.addEventListener('beforeunload', async (e) => {
                 if (state.isRecording && state.settings.autoSave) {
                     await performAutoSave();
@@ -2877,8 +3416,9 @@
                 await saveSettings();
             });
             
+            // Hash change
             window.addEventListener('hashchange', () => {
-                if (checkForRawLink()) {
+                if (handleShareLink()) {
                     // Link handled
                 }
             });
@@ -2899,15 +3439,15 @@
                 
                 await checkForRecovery();
                 
-                // Check for raw link in URL
-                if (!checkForRawLink()) {
+                // Check for share link
+                if (!handleShareLink()) {
                     elements.mainApp.style.display = 'block';
-                    elements.videoPlayerPage.style.display = 'none';
+                    elements.externalPlayerPage.style.display = 'none';
                 }
                 
                 setTimeout(() => {
-                    elements.loading.style.display = 'none';
-                    showToast('Screen Recorder ready with Working Raw Links', 'success');
+                    aAngga4d.loading.style.display = 'none';
+                    showToast('Screen Recorder ready with SHAREABLE links!', 'success');
                 }, 1000);
                 
             } catch (error) {
@@ -2918,6 +3458,7 @@
         });
 
         window.app = { state, dbManager };
+        window.copyToClipboard = copyToClipboard;
     </script>
 </body>
 </html>
