@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Screen Recorder PRO - Auto Save All Data</title>
+    <title>Screen Recorder PRO - Auto Save & Raw Video Links</title>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <style>
+        /* [Previous styles remain exactly the same until video-card section] */
         * {
             margin: 0;
             padding: 0;
@@ -549,7 +550,7 @@
 
         .video-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 20px;
             max-height: 600px;
             overflow-y: auto;
@@ -601,6 +602,7 @@
         .video-actions {
             display: flex;
             gap: 8px;
+            flex-wrap: wrap;
         }
 
         .action-btn {
@@ -620,6 +622,30 @@
         .action-btn:hover {
             border-color: var(--accent-primary);
             transform: translateY(-1px);
+        }
+
+        .link-btn {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-color: transparent;
+        }
+
+        .link-field {
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            display: flex;
+            gap: 5px;
+        }
+
+        .link-field input {
+            flex: 1;
+            padding: 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 0.8rem;
         }
 
         /* Empty Library */
@@ -655,7 +681,7 @@
             background: var(--bg-card);
             border-radius: var(--radius-xl);
             padding: 30px;
-            max-width: 600px;
+            max-width: 700px;
             width: 100%;
             max-height: 80vh;
             overflow-y: auto;
@@ -674,6 +700,57 @@
             color: var(--text-tertiary);
             font-size: 1.5rem;
             cursor: pointer;
+        }
+
+        .raw-link-container {
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .raw-link-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .raw-link-box {
+            display: flex;
+            gap: 10px;
+        }
+
+        .raw-link-box input {
+            flex: 1;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .copy-btn {
+            padding: 15px 20px;
+            background: var(--accent-gradient);
+            border: none;
+            border-radius: var(--radius-md);
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .embed-code {
+            margin-top: 15px;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            word-break: break-all;
         }
 
         /* Toast Notifications */
@@ -872,12 +949,12 @@
                 </div>
             </div>
             <p class="tagline">
-                Rekam layar dengan auto-save semua data. Video tersimpan otomatis setiap saat.
+                Rekam layar dengan auto-save semua data. Video tersimpan otomatis dalam bentuk link mentah.
             </p>
             <div class="badges">
                 <div class="badge"><i class="fas fa-cloud"></i> AUTO-SAVE</div>
+                <div class="badge"><i class="fas fa-link"></i> RAW LINKS</div>
                 <div class="badge"><i class="fas fa-crown"></i> PRO</div>
-                <div class="badge"><i class="fas fa-shield-alt"></i> AMAN</div>
             </div>
         </header>
 
@@ -947,6 +1024,10 @@
                 <div class="stat-card">
                     <div class="stat-value" id="autoSaveCount">0</div>
                     <div class="stat-label">AUTO-SAVES</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="linkCount">0</div>
+                    <div class="stat-label">RAW LINKS</div>
                 </div>
             </div>
 
@@ -1044,6 +1125,10 @@
                     <span class="checkbox-label">Save Video Files</span>
                 </label>
                 <label class="checkbox-container">
+                    <input type="checkbox" id="autoGenerateLinks" checked>
+                    <span class="checkbox-label">Auto-Generate Links</span>
+                </label>
+                <label class="checkbox-container">
                     <input type="checkbox" id="compressData">
                     <span class="checkbox-label">Compress Data</span>
                 </label>
@@ -1073,10 +1158,11 @@
 
         <!-- Footer -->
         <footer class="footer">
-            <p>© 2024 Screen Recorder Pro • Auto-Save v1.0</p>
+            <p>© 2024 Screen Recorder Pro • Raw Video Links v2.0</p>
             <div class="footer-info">
                 Videos: <span id="totalVideosCount">0</span> • 
                 Auto-Saves: <span id="totalAutoSaves">0</span> •
+                Links: <span id="totalLinks">0</span> •
                 Storage: <span id="footerStorage">0 GB</span>
             </div>
         </footer>
@@ -1091,7 +1177,23 @@
             </div>
             <video class="modal-video" id="modalVideo" controls style="width: 100%; border-radius: var(--radius-md); margin-bottom: 20px;"></video>
             <div id="modalInfo" style="background: var(--bg-tertiary); padding: 15px; border-radius: var(--radius-md); margin-bottom: 20px;"></div>
-            <div style="display: flex; gap: 10px;">
+            
+            <!-- Raw Video Link Section -->
+            <div class="raw-link-container" id="rawLinkContainer">
+                <div class="raw-link-header">
+                    <h4><i class="fas fa-link"></i> Raw Video Link</h4>
+                    <span class="badge">Direct Access</span>
+                </div>
+                <div class="raw-link-box">
+                    <input type="text" id="rawVideoLink" readonly value="https://app.local/raw/video/...">
+                    <button class="copy-btn" id="copyRawLinkBtn">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                </div>
+                <div class="embed-code" id="embedCode"></div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
                 <button class="btn download" id="modalDownloadBtn" style="flex: 1;">Download</button>
                 <button class="btn stop" id="modalDeleteBtn" style="flex: 1;">Delete</button>
             </div>
@@ -1120,12 +1222,13 @@
         // ==================== CONFIGURATION ====================
         const DB_CONFIG = {
             NAME: 'ScreenRecorderDB',
-            VERSION: 1,
+            VERSION: 2, // Increased version for new store
             STORES: {
                 VIDEOS: 'videos',
                 SETTINGS: 'settings',
                 AUTO_SAVE: 'auto_save',
-                VIDEO_BLOBS: 'video_blobs'
+                VIDEO_BLOBS: 'video_blobs',
+                VIDEO_LINKS: 'video_links' // New store for links
             }
         };
 
@@ -1140,7 +1243,9 @@
             totalRecordedSize: 0,
             
             videos: [],
+            videoLinks: new Map(), // Store generated links
             videoCount: 0,
+            linkCount: 0,
             storageUsed: 0,
             totalRecordingTime: 0,
             
@@ -1152,9 +1257,12 @@
             autoSaveInterval: null,
             pendingRecovery: null,
             
+            currentVideoId: null,
+            
             settings: {
                 autoSave: true,
                 saveVideoBlob: true,
+                autoGenerateLinks: true,
                 compressData: false,
                 quality: '1080p',
                 frameRate: 30,
@@ -1188,6 +1296,8 @@
             totalVideosCount: document.getElementById('totalVideosCount'),
             autoSaveCount: document.getElementById('autoSaveCount'),
             totalAutoSaves: document.getElementById('totalAutoSaves'),
+            linkCount: document.getElementById('linkCount'),
+            totalLinks: document.getElementById('totalLinks'),
             
             fpsSlider: document.getElementById('fpsSlider'),
             fpsValue: document.getElementById('fpsValue'),
@@ -1197,6 +1307,7 @@
             micVolumeValue: document.getElementById('micVolumeValue'),
             autoSave: document.getElementById('autoSave'),
             saveVideoBlob: document.getElementById('saveVideoBlob'),
+            autoGenerateLinks: document.getElementById('autoGenerateLinks'),
             compressData: document.getElementById('compressData'),
             autoSaveIntervalSlider: document.getElementById('autoSaveIntervalSlider'),
             autoSaveIntervalValue: document.getElementById('autoSaveIntervalValue'),
@@ -1221,6 +1332,11 @@
             modalDownloadBtn: document.getElementById('modalDownloadBtn'),
             modalDeleteBtn: document.getElementById('modalDeleteBtn'),
             closeModal: document.getElementById('closeModal'),
+            
+            rawLinkContainer: document.getElementById('rawLinkContainer'),
+            rawVideoLink: document.getElementById('rawVideoLink'),
+            copyRawLinkBtn: document.getElementById('copyRawLinkBtn'),
+            embedCode: document.getElementById('embedCode'),
             
             backupHistoryModal: document.getElementById('backupHistoryModal'),
             backupHistoryList: document.getElementById('backupHistoryList'),
@@ -1285,6 +1401,13 @@
                             const blobStore = db.createObjectStore(DB_CONFIG.STORES.VIDEO_BLOBS, { keyPath: 'videoId' });
                             blobStore.createIndex('timestamp', 'timestamp', { unique: false });
                         }
+                        
+                        // New store for video links
+                        if (!db.objectStoreNames.contains(DB_CONFIG.STORES.VIDEO_LINKS)) {
+                            const linkStore = db.createObjectStore(DB_CONFIG.STORES.VIDEO_LINKS, { keyPath: 'linkId' });
+                            linkStore.createIndex('videoId', 'videoId', { unique: true });
+                            linkStore.createIndex('created', 'created', { unique: false });
+                        }
                     };
                 });
             }
@@ -1295,13 +1418,14 @@
                     const store = transaction.objectStore(DB_CONFIG.STORES.VIDEOS);
                     
                     const video = {
-                        id: videoData.id || `video_${Date.now()}`,
+                        id: videoData.id || `video_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
                         title: videoData.title || 'Untitled',
                         quality: videoData.quality || '1080p',
                         duration: videoData.duration || 0,
                         size: videoData.size || 0,
                         date: videoData.date || new Date().toISOString(),
-                        hasBlob: !!videoData.blob
+                        hasBlob: !!videoData.blob,
+                        hasLink: false
                     };
                     
                     const request = store.put(video);
@@ -1309,6 +1433,11 @@
                     request.onsuccess = async () => {
                         if (videoData.blob && state.settings.saveVideoBlob) {
                             await this.saveVideoBlob(video.id, videoData.blob);
+                            
+                            // Auto-generate link if enabled
+                            if (state.settings.autoGenerateLinks) {
+                                await this.generateVideoLink(video.id);
+                            }
                         }
                         resolve(video);
                     };
@@ -1335,25 +1464,121 @@
                 });
             }
 
+            async generateVideoLink(videoId) {
+                const linkId = `link_${Date.now()}_${Math.random().toString(36).substr(2, 12)}`;
+                const baseUrl = window.location.origin;
+                const rawUrl = `${baseUrl}/raw/video/${linkId}`;
+                
+                const linkData = {
+                    linkId: linkId,
+                    videoId: videoId,
+                    rawUrl: rawUrl,
+                    embedCode: `<video src="${rawUrl}" controls width="100%"></video>`,
+                    created: Date.now(),
+                    expires: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
+                    accessCount: 0
+                };
+                
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEO_LINKS, DB_CONFIG.STORES.VIDEOS], 'readwrite');
+                    
+                    const linkStore = transaction.objectStore(DB_CONFIG.STORES.VIDEO_LINKS);
+                    const linkRequest = linkStore.put(linkData);
+                    
+                    linkRequest.onsuccess = () => {
+                        // Update video hasLink flag
+                        const videoStore = transaction.objectStore(DB_CONFIG.STORES.VIDEOS);
+                        const getRequest = videoStore.get(videoId);
+                        
+                        getRequest.onsuccess = () => {
+                            const video = getRequest.result;
+                            if (video) {
+                                video.hasLink = true;
+                                video.linkId = linkId;
+                                videoStore.put(video);
+                            }
+                        };
+                        
+                        resolve(linkData);
+                    };
+                    
+                    linkRequest.onerror = () => reject(linkRequest.error);
+                });
+            }
+
+            async getVideoLink(videoId) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEO_LINKS], 'readonly');
+                    const store = transaction.objectStore(DB_CONFIG.STORES.VIDEO_LINKS);
+                    const index = store.index('videoId');
+                    
+                    const request = index.get(videoId);
+                    
+                    request.onsuccess = () => {
+                        const link = request.result;
+                        if (link) {
+                            // Increment access count
+                            this.incrementLinkAccess(link.linkId);
+                        }
+                        resolve(link);
+                    };
+                    
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async incrementLinkAccess(linkId) {
+                const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEO_LINKS], 'readwrite');
+                const store = transaction.objectStore(DB_CONFIG.STORES.VIDEO_LINKS);
+                
+                const request = store.get(linkId);
+                request.onsuccess = () => {
+                    const link = request.result;
+                    if (link) {
+                        link.accessCount = (link.accessCount || 0) + 1;
+                        store.put(link);
+                    }
+                };
+            }
+
             async getVideo(videoId) {
                 return new Promise((resolve, reject) => {
-                    const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEOS, DB_CONFIG.STORES.VIDEO_BLOBS], 'readonly');
+                    const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEOS, DB_CONFIG.STORES.VIDEO_BLOBS, DB_CONFIG.STORES.VIDEO_LINKS], 'readonly');
                     const videoStore = transaction.objectStore(DB_CONFIG.STORES.VIDEOS);
                     
                     const videoRequest = videoStore.get(videoId);
                     
                     videoRequest.onsuccess = async () => {
                         const video = videoRequest.result;
-                        if (video && video.hasBlob) {
-                            const blobStore = transaction.objectStore(DB_CONFIG.STORES.VIDEO_BLOBS);
-                            const blobRequest = blobStore.get(videoId);
-                            
-                            blobRequest.onsuccess = () => {
-                                video.blob = blobRequest.result?.blob;
+                        if (video) {
+                            if (video.hasBlob) {
+                                const blobStore = transaction.objectStore(DB_CONFIG.STORES.VIDEO_BLOBS);
+                                const blobRequest = blobStore.get(videoId);
+                                
+                                blobRequest.onsuccess = () => {
+                                    video.blob = blobRequest.result?.blob;
+                                    
+                                    // Get link if exists
+                                    if (video.hasLink) {
+                                        const linkStore = transaction.objectStore(DB_CONFIG.STORES.VIDEO_LINKS);
+                                        const linkIndex = linkStore.index('videoId');
+                                        const linkRequest = linkIndex.get(videoId);
+                                        
+                                        linkRequest.onsuccess = () => {
+                                            video.link = linkRequest.result;
+                                            resolve(video);
+                                        };
+                                        
+                                        linkRequest.onerror = () => resolve(video);
+                                    } else {
+                                        resolve(video);
+                                    }
+                                };
+                                
+                                blobRequest.onerror = () => resolve(video);
+                            } else {
                                 resolve(video);
-                            };
-                            
-                            blobRequest.onerror = () => reject(blobRequest.error);
+                            }
                         } else {
                             resolve(video);
                         }
@@ -1386,12 +1611,49 @@
                 });
             }
 
+            async getAllLinks() {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEO_LINKS], 'readonly');
+                    const store = transaction.objectStore(DB_CONFIG.STORES.VIDEO_LINKS);
+                    
+                    const links = [];
+                    const request = store.openCursor();
+                    
+                    request.onsuccess = (event) => {
+                        const cursor = event.target.result;
+                        if (cursor) {
+                            links.push(cursor.value);
+                            cursor.continue();
+                        } else {
+                            resolve(links);
+                        }
+                    };
+                    
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
             async deleteVideo(videoId) {
-                const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEOS, DB_CONFIG.STORES.VIDEO_BLOBS], 'readwrite');
+                const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEOS, DB_CONFIG.STORES.VIDEO_BLOBS, DB_CONFIG.STORES.VIDEO_LINKS], 'readwrite');
                 
                 return new Promise((resolve, reject) => {
+                    // Delete video
                     transaction.objectStore(DB_CONFIG.STORES.VIDEOS).delete(videoId);
+                    
+                    // Delete blob
                     transaction.objectStore(DB_CONFIG.STORES.VIDEO_BLOBS).delete(videoId);
+                    
+                    // Delete associated links
+                    const linkStore = transaction.objectStore(DB_CONFIG.STORES.VIDEO_LINKS);
+                    const linkIndex = linkStore.index('videoId');
+                    const linkRequest = linkIndex.get(videoId);
+                    
+                    linkRequest.onsuccess = () => {
+                        const link = linkRequest.result;
+                        if (link) {
+                            linkStore.delete(link.linkId);
+                        }
+                    };
                     
                     transaction.oncomplete = () => resolve();
                     transaction.onerror = () => reject(transaction.error);
@@ -1809,17 +2071,6 @@
         }
 
         // ==================== VIDEO MANAGEMENT ====================
-        async function loadVideos() {
-            state.videos = await dbManager.getAllVideos();
-            state.videoCount = state.videos.length;
-            state.totalRecordingTime = state.videos.reduce((sum, v) => sum + (v.duration || 0), 0);
-            state.storageUsed = await dbManager.getStorageUsed();
-            
-            updateVideoGrid();
-            updateStats();
-            updateStorageInfo();
-        }
-
         async function saveVideo(videoData) {
             const video = await dbManager.saveVideo(videoData);
             state.videos.unshift(video);
@@ -1832,6 +2083,22 @@
             return video;
         }
 
+        async function loadVideos() {
+            state.videos = await dbManager.getAllVideos();
+            state.videoCount = state.videos.length;
+            
+            // Load links count
+            const links = await dbManager.getAllLinks();
+            state.linkCount = links.length;
+            
+            state.totalRecordingTime = state.videos.reduce((sum, v) => sum + (v.duration || 0), 0);
+            state.storageUsed = await dbManager.getStorageUsed();
+            
+            updateVideoGrid();
+            updateStats();
+            updateStorageInfo();
+        }
+
         async function deleteVideo(videoId) {
             await dbManager.deleteVideo(videoId);
             
@@ -1839,6 +2106,10 @@
             state.videos = state.videos.filter(v => v.id !== videoId);
             state.videoCount--;
             state.totalRecordingTime -= video?.duration || 0;
+            
+            // Update link count
+            const links = await dbManager.getAllLinks();
+            state.linkCount = links.length;
             
             updateVideoGrid();
             updateStats();
@@ -1887,10 +2158,15 @@
                         <div><i class="fas fa-expand-alt"></i> ${getQualityLabel(video.quality)}</div>
                         <div><i class="fas fa-file"></i> ${formatFileSize(video.size)}</div>
                         <div><i class="fas fa-calendar"></i> ${formatDate(video.date)}</div>
+                        ${video.hasLink ? '<div><i class="fas fa-link" style="color: var(--success);"></i> Link Ready</div>' : ''}
                     </div>
                     <div class="video-actions">
                         <button class="action-btn play-btn"><i class="fas fa-play"></i></button>
                         <button class="action-btn download-btn"><i class="fas fa-download"></i></button>
+                        ${video.hasLink ? 
+                            '<button class="action-btn link-btn copy-link-btn"><i class="fas fa-link"></i> Copy Link</button>' : 
+                            '<button class="action-btn generate-link-btn"><i class="fas fa-link"></i> Generate</button>'
+                        }
                         <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>
@@ -1899,6 +2175,25 @@
             card.querySelector('.play-btn').addEventListener('click', () => playVideo(video.id));
             card.querySelector('.download-btn').addEventListener('click', () => downloadVideo(video.id));
             card.querySelector('.delete-btn').addEventListener('click', () => deleteVideo(video.id));
+            
+            const linkBtn = card.querySelector('.copy-link-btn, .generate-link-btn');
+            if (linkBtn) {
+                if (linkBtn.classList.contains('copy-link-btn')) {
+                    linkBtn.addEventListener('click', async () => {
+                        const link = await dbManager.getVideoLink(video.id);
+                        if (link) {
+                            copyToClipboard(link.rawUrl);
+                            showToast('Link copied to clipboard!', 'success');
+                        }
+                    });
+                } else {
+                    linkBtn.addEventListener('click', async () => {
+                        await dbManager.generateVideoLink(video.id);
+                        await loadVideos();
+                        showToast('Link generated successfully!', 'success');
+                    });
+                }
+            }
             
             return card;
         }
@@ -1921,7 +2216,24 @@
                 <div><strong>Duration:</strong> ${formatTime(video.duration)}</div>
                 <div><strong>Size:</strong> ${formatFileSize(video.size)}</div>
                 <div><strong>Date:</strong> ${formatDate(video.date)}</div>
+                ${video.hasLink ? '<div><strong>Link Status:</strong> <span style="color: var(--success);">Active</span></div>' : ''}
             `;
+            
+            // Update raw link section
+            if (video.link) {
+                elements.rawVideoLink.value = video.link.rawUrl;
+                elements.embedCode.textContent = video.link.embedCode;
+                elements.rawLinkContainer.style.display = 'block';
+            } else if (video.hasLink) {
+                const link = await dbManager.getVideoLink(videoId);
+                if (link) {
+                    elements.rawVideoLink.value = link.rawUrl;
+                    elements.embedCode.textContent = link.embedCode;
+                    elements.rawLinkContainer.style.display = 'block';
+                }
+            } else {
+                elements.rawLinkContainer.style.display = 'none';
+            }
             
             elements.videoModal.classList.add('active');
         }
@@ -1939,6 +2251,22 @@
             a.download = `${video.title}.webm`;
             a.click();
             URL.revokeObjectURL(url);
+        }
+
+        // ==================== LINK MANAGEMENT ====================
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Copied to clipboard!', 'success');
+            }).catch(() => {
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast('Copied to clipboard!', 'success');
+            });
         }
 
         // ==================== BACKUP HISTORY ====================
@@ -2053,6 +2381,7 @@
         function applySettingsToUI() {
             elements.autoSave.checked = state.settings.autoSave;
             elements.saveVideoBlob.checked = state.settings.saveVideoBlob;
+            elements.autoGenerateLinks.checked = state.settings.autoGenerateLinks;
             elements.compressData.checked = state.settings.compressData;
             
             elements.fpsSlider.value = state.settings.frameRate;
@@ -2111,6 +2440,8 @@
             elements.totalDuration.textContent = formatTime(state.totalRecordingTime);
             elements.autoSaveCount.textContent = state.autoSaveCount;
             elements.totalAutoSaves.textContent = state.autoSaveCount;
+            elements.linkCount.textContent = state.linkCount;
+            elements.totalLinks.textContent = state.linkCount;
         }
 
         function updateStorageInfo() {
@@ -2144,6 +2475,10 @@
             if (!seconds) return '00:00';
             const mins = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
+            const hours = Math.floor(mins / 60);
+            if (hours > 0) {
+                return `${hours.toString().padStart(2, '0')}:${(mins % 60).toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
             return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
 
@@ -2166,7 +2501,8 @@
                 String(d.getMonth() + 1).padStart(2, '0') + 
                 String(d.getDate()).padStart(2, '0') + '_' +
                 String(d.getHours()).padStart(2, '0') +
-                String(d.getMinutes()).padStart(2, '0');
+                String(d.getMinutes()).padStart(2, '0') +
+                String(d.getSeconds()).padStart(2, '0');
         }
 
         function formatTimeAgo(timestamp) {
@@ -2257,6 +2593,10 @@
                 }
             });
             
+            elements.copyRawLinkBtn.addEventListener('click', () => {
+                copyToClipboard(elements.rawVideoLink.value);
+            });
+            
             elements.search.addEventListener('input', updateVideoGrid);
             
             elements.recoverBtn.addEventListener('click', recoverSession);
@@ -2276,6 +2616,11 @@
             
             elements.saveVideoBlob.addEventListener('change', (e) => {
                 state.settings.saveVideoBlob = e.target.checked;
+                saveSettings();
+            });
+            
+            elements.autoGenerateLinks.addEventListener('change', (e) => {
+                state.settings.autoGenerateLinks = e.target.checked;
                 saveSettings();
             });
             
@@ -2365,7 +2710,7 @@
                 
                 setTimeout(() => {
                     elements.loading.style.display = 'none';
-                    showToast('Screen Recorder ready', 'success');
+                    showToast('Screen Recorder ready with Raw Links', 'success');
                 }, 1000);
                 
             } catch (error) {
