@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Screen Recorder PRO - Auto Save & Raw Video Links</title>
+    <title>Screen Recorder PRO - Raw Video Links Working</title>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <style>
-        /* [Previous styles remain exactly the same until video-card section] */
         * {
             margin: 0;
             padding: 0;
@@ -71,7 +70,6 @@
             padding: 0 20px;
         }
 
-        /* Header */
         .header {
             text-align: center;
             padding: 40px 0 30px;
@@ -300,6 +298,7 @@
         .btn.stop { background: linear-gradient(135deg, #4b5563, #374151); color: white; }
         .btn.download { background: linear-gradient(135deg, var(--success), var(--success-dark)); color: white; }
         .btn.cloud { background: var(--accent-gradient); color: white; }
+        .btn.video-link { background: linear-gradient(135deg, var(--info), var(--info-dark)); color: white; }
 
         .btn:hover:not(:disabled) {
             transform: translateY(-2px);
@@ -742,6 +741,16 @@
             font-weight: 600;
         }
 
+        .test-link-btn {
+            padding: 15px 20px;
+            background: var(--success);
+            border: none;
+            border-radius: var(--radius-md);
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
         .embed-code {
             margin-top: 15px;
             padding: 15px;
@@ -751,6 +760,46 @@
             font-size: 0.8rem;
             color: var(--text-tertiary);
             word-break: break-all;
+        }
+
+        /* Video Player Page */
+        .video-player-page {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .video-player-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .video-player {
+            width: 100%;
+            border-radius: var(--radius-lg);
+            background: #000;
+        }
+
+        .video-info-panel {
+            margin-top: 20px;
+            padding: 20px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-lg);
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            text-decoration: none;
+            margin-bottom: 20px;
         }
 
         /* Toast Notifications */
@@ -937,7 +986,7 @@
     </div>
 
     <!-- Main Container -->
-    <div class="container">
+    <div class="container" id="mainApp">
         <!-- Header -->
         <header class="header">
             <div class="logo">
@@ -954,12 +1003,12 @@
             <div class="badges">
                 <div class="badge"><i class="fas fa-cloud"></i> AUTO-SAVE</div>
                 <div class="badge"><i class="fas fa-link"></i> RAW LINKS</div>
-                <div class="badge"><i class="fas fa-crown"></i> PRO</div>
+                <div class="badge"><i class="fas fa-play-circle"></i> DIRECT PLAY</div>
             </div>
         </header>
 
         <!-- Recovery Banner -->
-        <div class="recovery-banner" id="recoveryBanner" style="display: none; background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(245,158,11,0.1)); border-radius: var(--radius-lg); padding: 15px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+        <div class="recovery-banner" id="recoveryBanner" style="display: none; background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(245,158,11,0.1)); border-radius: var(--radius-lg); padding: 15px; margin-bottom: 20px; align-items: center; justify-content: space-between;">
             <div>
                 <h3 style="color: var(--warning);">Recovery Available</h3>
                 <p id="recoveryMessage">Found unsaved recording from previous session</p>
@@ -1027,7 +1076,7 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-value" id="linkCount">0</div>
-                    <div class="stat-label">RAW LINKS</div>
+                    <div class="stat-label">ACTIVE LINKS</div>
                 </div>
             </div>
 
@@ -1158,7 +1207,7 @@
 
         <!-- Footer -->
         <footer class="footer">
-            <p>© 2024 Screen Recorder Pro • Raw Video Links v2.0</p>
+            <p>© 2024 Screen Recorder Pro • Working Raw Links v3.0</p>
             <div class="footer-info">
                 Videos: <span id="totalVideosCount">0</span> • 
                 Auto-Saves: <span id="totalAutoSaves">0</span> •
@@ -1166,6 +1215,28 @@
                 Storage: <span id="footerStorage">0 GB</span>
             </div>
         </footer>
+    </div>
+
+    <!-- Video Player Page (Hidden by default) -->
+    <div class="video-player-page" id="videoPlayerPage" style="display: none;">
+        <a href="#" class="back-btn" id="backToApp">
+            <i class="fas fa-arrow-left"></i> Back to Recorder
+        </a>
+        <div class="video-player-container">
+            <h2 id="playerVideoTitle">Raw Video</h2>
+            <video class="video-player" id="rawVideoPlayer" controls autoplay style="width: 100%;"></video>
+            <div class="video-info-panel" id="playerVideoInfo">
+                <p>Loading video information...</p>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn download" id="downloadRawBtn">
+                    <i class="fas fa-download"></i> Download
+                </button>
+                <button class="btn cloud" id="copyRawLinkBtn">
+                    <i class="fas fa-link"></i> Copy Link
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Video Modal -->
@@ -1182,12 +1253,15 @@
             <div class="raw-link-container" id="rawLinkContainer">
                 <div class="raw-link-header">
                     <h4><i class="fas fa-link"></i> Raw Video Link</h4>
-                    <span class="badge">Direct Access</span>
+                    <span class="badge">Working Link</span>
                 </div>
                 <div class="raw-link-box">
-                    <input type="text" id="rawVideoLink" readonly value="https://app.local/raw/video/...">
+                    <input type="text" id="rawVideoLink" readonly value="#">
                     <button class="copy-btn" id="copyRawLinkBtn">
                         <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <button class="test-link-btn" id="testRawLinkBtn">
+                        <i class="fas fa-play"></i> Test
                     </button>
                 </div>
                 <div class="embed-code" id="embedCode"></div>
@@ -1222,13 +1296,13 @@
         // ==================== CONFIGURATION ====================
         const DB_CONFIG = {
             NAME: 'ScreenRecorderDB',
-            VERSION: 2, // Increased version for new store
+            VERSION: 3,
             STORES: {
                 VIDEOS: 'videos',
                 SETTINGS: 'settings',
                 AUTO_SAVE: 'auto_save',
                 VIDEO_BLOBS: 'video_blobs',
-                VIDEO_LINKS: 'video_links' // New store for links
+                VIDEO_LINKS: 'video_links'
             }
         };
 
@@ -1243,7 +1317,7 @@
             totalRecordedSize: 0,
             
             videos: [],
-            videoLinks: new Map(), // Store generated links
+            videoLinks: new Map(),
             videoCount: 0,
             linkCount: 0,
             storageUsed: 0,
@@ -1258,6 +1332,7 @@
             pendingRecovery: null,
             
             currentVideoId: null,
+            currentRawVideoId: null,
             
             settings: {
                 autoSave: true,
@@ -1336,6 +1411,7 @@
             rawLinkContainer: document.getElementById('rawLinkContainer'),
             rawVideoLink: document.getElementById('rawVideoLink'),
             copyRawLinkBtn: document.getElementById('copyRawLinkBtn'),
+            testRawLinkBtn: document.getElementById('testRawLinkBtn'),
             embedCode: document.getElementById('embedCode'),
             
             backupHistoryModal: document.getElementById('backupHistoryModal'),
@@ -1358,7 +1434,17 @@
             recoverBtn: document.getElementById('recoverBtn'),
             dismissRecoveryBtn: document.getElementById('dismissRecoveryBtn'),
             
-            toastContainer: document.getElementById('toastContainer')
+            toastContainer: document.getElementById('toastContainer'),
+            
+            // Video player page elements
+            mainApp: document.getElementById('mainApp'),
+            videoPlayerPage: document.getElementById('videoPlayerPage'),
+            backToApp: document.getElementById('backToApp'),
+            rawVideoPlayer: document.getElementById('rawVideoPlayer'),
+            playerVideoTitle: document.getElementById('playerVideoTitle'),
+            playerVideoInfo: document.getElementById('playerVideoInfo'),
+            downloadRawBtn: document.getElementById('downloadRawBtn'),
+            copyRawLinkBtn: document.getElementById('copyRawLinkBtn')
         };
 
         // ==================== DATABASE MANAGER ====================
@@ -1402,7 +1488,6 @@
                             blobStore.createIndex('timestamp', 'timestamp', { unique: false });
                         }
                         
-                        // New store for video links
                         if (!db.objectStoreNames.contains(DB_CONFIG.STORES.VIDEO_LINKS)) {
                             const linkStore = db.createObjectStore(DB_CONFIG.STORES.VIDEO_LINKS, { keyPath: 'linkId' });
                             linkStore.createIndex('videoId', 'videoId', { unique: true });
@@ -1434,7 +1519,6 @@
                         if (videoData.blob && state.settings.saveVideoBlob) {
                             await this.saveVideoBlob(video.id, videoData.blob);
                             
-                            // Auto-generate link if enabled
                             if (state.settings.autoGenerateLinks) {
                                 await this.generateVideoLink(video.id);
                             }
@@ -1465,17 +1549,17 @@
             }
 
             async generateVideoLink(videoId) {
-                const linkId = `link_${Date.now()}_${Math.random().toString(36).substr(2, 12)}`;
-                const baseUrl = window.location.origin;
-                const rawUrl = `${baseUrl}/raw/video/${linkId}`;
+                const linkId = `raw_${Date.now()}_${Math.random().toString(36).substr(2, 16)}`;
+                const baseUrl = window.location.origin + window.location.pathname;
+                const rawUrl = `${baseUrl}#raw/${linkId}`;
                 
                 const linkData = {
                     linkId: linkId,
                     videoId: videoId,
                     rawUrl: rawUrl,
-                    embedCode: `<video src="${rawUrl}" controls width="100%"></video>`,
+                    embedCode: `<video src="${rawUrl}" controls width="100%" style="max-width: 100%;"></video>`,
                     created: Date.now(),
-                    expires: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
+                    expires: Date.now() + (30 * 24 * 60 * 60 * 1000),
                     accessCount: 0
                 };
                 
@@ -1486,7 +1570,6 @@
                     const linkRequest = linkStore.put(linkData);
                     
                     linkRequest.onsuccess = () => {
-                        // Update video hasLink flag
                         const videoStore = transaction.objectStore(DB_CONFIG.STORES.VIDEOS);
                         const getRequest = videoStore.get(videoId);
                         
@@ -1517,13 +1600,54 @@
                     request.onsuccess = () => {
                         const link = request.result;
                         if (link) {
-                            // Increment access count
                             this.incrementLinkAccess(link.linkId);
                         }
                         resolve(link);
                     };
                     
                     request.onerror = () => reject(request.error);
+                });
+            }
+
+            async getVideoByLinkId(linkId) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEO_LINKS, DB_CONFIG.STORES.VIDEOS, DB_CONFIG.STORES.VIDEO_BLOBS], 'readonly');
+                    
+                    const linkStore = transaction.objectStore(DB_CONFIG.STORES.VIDEO_LINKS);
+                    const linkRequest = linkStore.get(linkId);
+                    
+                    linkRequest.onsuccess = async () => {
+                        const link = linkRequest.result;
+                        if (!link) {
+                            resolve(null);
+                            return;
+                        }
+                        
+                        const videoStore = transaction.objectStore(DB_CONFIG.STORES.VIDEOS);
+                        const videoRequest = videoStore.get(link.videoId);
+                        
+                        videoRequest.onsuccess = () => {
+                            const video = videoRequest.result;
+                            if (video && video.hasBlob) {
+                                const blobStore = transaction.objectStore(DB_CONFIG.STORES.VIDEO_BLOBS);
+                                const blobRequest = blobStore.get(video.id);
+                                
+                                blobRequest.onsuccess = () => {
+                                    video.blob = blobRequest.result?.blob;
+                                    video.link = link;
+                                    resolve(video);
+                                };
+                                
+                                blobRequest.onerror = () => resolve(video);
+                            } else {
+                                resolve(video);
+                            }
+                        };
+                        
+                        videoRequest.onerror = () => reject(videoRequest.error);
+                    };
+                    
+                    linkRequest.onerror = () => reject(linkRequest.error);
                 });
             }
 
@@ -1558,7 +1682,6 @@
                                 blobRequest.onsuccess = () => {
                                     video.blob = blobRequest.result?.blob;
                                     
-                                    // Get link if exists
                                     if (video.hasLink) {
                                         const linkStore = transaction.objectStore(DB_CONFIG.STORES.VIDEO_LINKS);
                                         const linkIndex = linkStore.index('videoId');
@@ -1637,13 +1760,9 @@
                 const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEOS, DB_CONFIG.STORES.VIDEO_BLOBS, DB_CONFIG.STORES.VIDEO_LINKS], 'readwrite');
                 
                 return new Promise((resolve, reject) => {
-                    // Delete video
                     transaction.objectStore(DB_CONFIG.STORES.VIDEOS).delete(videoId);
-                    
-                    // Delete blob
                     transaction.objectStore(DB_CONFIG.STORES.VIDEO_BLOBS).delete(videoId);
                     
-                    // Delete associated links
                     const linkStore = transaction.objectStore(DB_CONFIG.STORES.VIDEO_LINKS);
                     const linkIndex = linkStore.index('videoId');
                     const linkRequest = linkIndex.get(videoId);
@@ -1746,18 +1865,6 @@
                     const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEOS, DB_CONFIG.STORES.VIDEO_BLOBS], 'readonly');
                     
                     let total = 0;
-                    let completed = 0;
-                    
-                    const videoStore = transaction.objectStore(DB_CONFIG.STORES.VIDEOS);
-                    const videoRequest = videoStore.openCursor();
-                    
-                    videoRequest.onsuccess = (event) => {
-                        const cursor = event.target.result;
-                        if (cursor) {
-                            total += cursor.value.size || 0;
-                            cursor.continue();
-                        }
-                    };
                     
                     const blobStore = transaction.objectStore(DB_CONFIG.STORES.VIDEO_BLOBS);
                     const blobRequest = blobStore.openCursor();
@@ -1778,6 +1885,74 @@
         }
 
         const dbManager = new DatabaseManager();
+
+        // ==================== ROUTING FOR RAW LINKS ====================
+        function checkForRawLink() {
+            const hash = window.location.hash;
+            if (hash && hash.startsWith('#raw/')) {
+                const linkId = hash.replace('#raw/', '');
+                loadRawVideo(linkId);
+                return true;
+            }
+            return false;
+        }
+
+        async function loadRawVideo(linkId) {
+            showProgress('Loading video...');
+            
+            try {
+                const video = await dbManager.getVideoByLinkId(linkId);
+                
+                if (!video || !video.blob) {
+                    hideProgress();
+                    showToast('Video not found or expired', 'error');
+                    return;
+                }
+                
+                // Hide main app, show video player
+                elements.mainApp.style.display = 'none';
+                elements.videoPlayerPage.style.display = 'block';
+                
+                // Create object URL for the video
+                const videoUrl = URL.createObjectURL(video.blob);
+                elements.rawVideoPlayer.src = videoUrl;
+                elements.playerVideoTitle.textContent = video.title || 'Raw Video';
+                
+                // Update video info
+                elements.playerVideoInfo.innerHTML = `
+                    <div style="display: grid; gap: 10px;">
+                        <div><strong>Title:</strong> ${video.title}</div>
+                        <div><strong>Duration:</strong> ${formatTime(video.duration)}</div>
+                        <div><strong>Size:</strong> ${formatFileSize(video.size)}</div>
+                        <div><strong>Quality:</strong> ${getQualityLabel(video.quality)}</div>
+                        <div><strong>Uploaded:</strong> ${formatDate(video.date)}</div>
+                        ${video.link ? `<div><strong>Views:</strong> ${video.link.accessCount || 0}</div>` : ''}
+                    </div>
+                `;
+                
+                state.currentRawVideoId = video.id;
+                
+                // Setup download button
+                elements.downloadRawBtn.onclick = () => {
+                    const a = document.createElement('a');
+                    a.href = videoUrl;
+                    a.download = `${video.title}.webm`;
+                    a.click();
+                };
+                
+                // Setup copy link button
+                elements.copyRawLinkBtn.onclick = () => {
+                    copyToClipboard(window.location.href);
+                    showToast('Link copied to clipboard!', 'success');
+                };
+                
+                hideProgress();
+                
+            } catch (error) {
+                hideProgress();
+                showToast('Error loading video: ' + error.message, 'error');
+            }
+        }
 
         // ==================== AUTO-SAVE FUNCTIONS ====================
         function startAutoSave() {
@@ -1814,19 +1989,14 @@
                 showAutoSavePanel('saving', 'Saving...');
                 updateAutoSaveProgress(30);
                 
-                // Save recording progress if recording
                 if (state.isRecording && state.recordedChunks.length > 0) {
                     await saveRecordingProgress();
                 }
                 
                 updateAutoSaveProgress(60);
-                
-                // Save all videos metadata
                 await saveAllVideosToDB();
-                
                 updateAutoSaveProgress(90);
                 
-                // Update stats
                 state.autoSaveCount++;
                 updateStats();
                 
@@ -2087,7 +2257,6 @@
             state.videos = await dbManager.getAllVideos();
             state.videoCount = state.videos.length;
             
-            // Load links count
             const links = await dbManager.getAllLinks();
             state.linkCount = links.length;
             
@@ -2107,7 +2276,6 @@
             state.videoCount--;
             state.totalRecordingTime -= video?.duration || 0;
             
-            // Update link count
             const links = await dbManager.getAllLinks();
             state.linkCount = links.length;
             
@@ -2219,7 +2387,6 @@
                 ${video.hasLink ? '<div><strong>Link Status:</strong> <span style="color: var(--success);">Active</span></div>' : ''}
             `;
             
-            // Update raw link section
             if (video.link) {
                 elements.rawVideoLink.value = video.link.rawUrl;
                 elements.embedCode.textContent = video.link.embedCode;
@@ -2258,7 +2425,6 @@
             navigator.clipboard.writeText(text).then(() => {
                 showToast('Copied to clipboard!', 'success');
             }).catch(() => {
-                // Fallback
                 const textarea = document.createElement('textarea');
                 textarea.value = text;
                 document.body.appendChild(textarea);
@@ -2593,9 +2759,20 @@
                 }
             });
             
-            elements.copyRawLinkBtn.addEventListener('click', () => {
-                copyToClipboard(elements.rawVideoLink.value);
-            });
+            if (elements.copyRawLinkBtn) {
+                elements.copyRawLinkBtn.addEventListener('click', () => {
+                    copyToClipboard(elements.rawVideoLink.value);
+                });
+            }
+            
+            if (elements.testRawLinkBtn) {
+                elements.testRawLinkBtn.addEventListener('click', () => {
+                    const link = elements.rawVideoLink.value;
+                    if (link && link !== '#') {
+                        window.open(link, '_blank');
+                    }
+                });
+            }
             
             elements.search.addEventListener('input', updateVideoGrid);
             
@@ -2603,6 +2780,14 @@
             elements.dismissRecoveryBtn.addEventListener('click', hideRecoveryBanner);
             
             elements.cancelProgress.addEventListener('click', hideProgress);
+            
+            elements.backToApp.addEventListener('click', (e) => {
+                e.preventDefault();
+                elements.videoPlayerPage.style.display = 'none';
+                elements.mainApp.style.display = 'block';
+                elements.rawVideoPlayer.src = '';
+                window.location.hash = '';
+            });
             
             // Settings changes
             elements.autoSave.addEventListener('change', (e) => {
@@ -2691,6 +2876,12 @@
                 }
                 await saveSettings();
             });
+            
+            window.addEventListener('hashchange', () => {
+                if (checkForRawLink()) {
+                    // Link handled
+                }
+            });
         }
 
         // ==================== INITIALIZATION ====================
@@ -2708,9 +2899,15 @@
                 
                 await checkForRecovery();
                 
+                // Check for raw link in URL
+                if (!checkForRawLink()) {
+                    elements.mainApp.style.display = 'block';
+                    elements.videoPlayerPage.style.display = 'none';
+                }
+                
                 setTimeout(() => {
                     elements.loading.style.display = 'none';
-                    showToast('Screen Recorder ready with Raw Links', 'success');
+                    showToast('Screen Recorder ready with Working Raw Links', 'success');
                 }, 1000);
                 
             } catch (error) {
@@ -2720,7 +2917,6 @@
             }
         });
 
-        // Export for debugging
         window.app = { state, dbManager };
     </script>
 </body>
