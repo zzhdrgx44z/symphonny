@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Screen Recorder PRO - Auto Sync Multi PC</title>
+    <title>Screen Recorder PRO - Auto Save All Data</title>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
@@ -25,6 +25,7 @@
             --accent-primary: #3b82f6;
             --accent-secondary: #1d4ed8;
             --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            --accent-glow: 0 0 40px rgba(59, 130, 246, 0.3);
             --success: #10b981;
             --success-dark: #059669;
             --danger: #ef4444;
@@ -32,6 +33,7 @@
             --warning: #f59e0b;
             --warning-dark: #d97706;
             --info: #06b6d4;
+            --info-dark: #0891b2;
             --text-primary: #ffffff;
             --text-secondary: #d1d5db;
             --text-tertiary: #9ca3af;
@@ -39,8 +41,13 @@
             --border-light: rgba(255, 255, 255, 0.1);
             --border-medium: rgba(255, 255, 255, 0.15);
             --border-heavy: rgba(255, 255, 255, 0.2);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.6);
+            --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.7);
             --glass-bg: rgba(30, 30, 42, 0.85);
             --glass-border: rgba(255, 255, 255, 0.08);
+            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
             --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
             --radius-sm: 6px;
             --radius-md: 12px;
@@ -54,7 +61,7 @@
             background: var(--bg-primary);
             color: var(--text-primary);
             min-height: 100vh;
-            overflow-x: hidden;
+            line-height: 1.6;
         }
 
         .container {
@@ -87,6 +94,7 @@
             align-items: center;
             justify-content: center;
             font-size: 24px;
+            box-shadow: var(--accent-glow);
         }
 
         .logo-text h1 {
@@ -100,103 +108,103 @@
 
         .tagline {
             color: var(--text-secondary);
-            max-width: 600px;
-            margin: 0 auto;
+            max-width: 700px;
+            margin: 0 auto 25px;
         }
 
-        /* Auto Sync Banner */
-        .auto-sync-banner {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15));
-            border-radius: var(--radius-lg);
-            padding: 20px;
-            margin: 20px 0;
-            border: 1px solid var(--success);
+        .badges {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .sync-status {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .sync-pulse {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--success);
-            position: relative;
-        }
-
-        .sync-pulse::after {
-            content: '';
-            position: absolute;
-            top: -4px;
-            left: -4px;
-            right: -4px;
-            bottom: -4px;
-            border-radius: 50%;
-            border: 2px solid var(--success);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(0.8); opacity: 0.5; }
-            100% { transform: scale(1.5); opacity: 0; }
-        }
-
-        .sync-info {
-            flex: 1;
-        }
-
-        .sync-title {
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 5px;
-        }
-
-        .sync-desc {
-            font-size: 0.9rem;
-            color: var(--text-tertiary);
-        }
-
-        .connected-devices {
-            display: flex;
-            gap: 10px;
+            justify-content: center;
+            gap: 12px;
             flex-wrap: wrap;
         }
 
-        .device-chip {
-            background: var(--bg-tertiary);
+        .badge {
+            padding: 10px 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
             border-radius: var(--radius-full);
-            padding: 8px 15px;
+            font-size: 0.9rem;
             display: flex;
             align-items: center;
             gap: 8px;
-            border: 1px solid var(--border-medium);
+            border: 1px solid var(--glass-border);
         }
 
-        .device-chip.online {
-            border-color: var(--success);
+        /* Auto-Save Panel */
+        .auto-save-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-lg);
+            padding: 15px 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-xl);
+            z-index: 10000;
+            min-width: 280px;
+            border-left: 4px solid var(--accent-primary);
         }
 
-        .device-dot {
-            width: 8px;
-            height: 8px;
+        .auto-save-panel.saving { border-left-color: var(--warning); }
+        .auto-save-panel.saved { border-left-color: var(--success); }
+        .auto-save-panel.error { border-left-color: var(--danger); }
+
+        .auto-save-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .auto-save-icon {
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
-            background: var(--success);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .device-name {
-            font-size: 0.9rem;
-            font-weight: 600;
+        .auto-save-icon.saving { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .auto-save-icon.saved { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .auto-save-icon.error { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+
+        .auto-save-title {
+            font-weight: 700;
+            color: var(--text-primary);
+            flex: 1;
         }
 
-        /* Recorder Section */
+        .auto-save-time {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+        }
+
+        .auto-save-progress {
+            height: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .auto-save-progress-bar {
+            height: 100%;
+            background: var(--accent-gradient);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .auto-save-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Main Recorder Section */
         .recorder-section {
             background: var(--bg-card);
             border-radius: var(--radius-xl);
@@ -210,8 +218,9 @@
             border-radius: var(--radius-lg);
             overflow: hidden;
             aspect-ratio: 16/9;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             position: relative;
+            border: 2px solid var(--border-heavy);
         }
 
         .video-preview {
@@ -236,23 +245,20 @@
             background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
         }
 
-        .video-overlay i {
-            font-size: 4rem;
-            color: var(--accent-primary);
-        }
-
         .recording-status {
             position: absolute;
-            top: 20px;
-            left: 20px;
+            top: 15px;
+            left: 15px;
             background: linear-gradient(135deg, var(--danger), var(--danger-dark));
             color: white;
-            padding: 10px 20px;
+            padding: 8px 16px;
             border-radius: var(--radius-full);
             display: none;
             align-items: center;
-            gap: 10px;
-            font-weight: 700;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            z-index: 10;
         }
 
         .recording-dot {
@@ -268,45 +274,35 @@
             50% { opacity: 0.5; }
         }
 
+        /* Controls */
         .controls {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 15px;
             margin-bottom: 25px;
         }
 
         .btn {
-            padding: 18px 25px;
+            padding: 16px 24px;
             border: none;
             border-radius: var(--radius-lg);
-            font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
-            transition: var(--transition-normal);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
+            transition: var(--transition-normal);
         }
 
-        .btn.record {
-            background: linear-gradient(135deg, var(--danger), var(--danger-dark));
-            color: white;
-        }
+        .btn.record { background: linear-gradient(135deg, var(--danger), var(--danger-dark)); color: white; }
+        .btn.stop { background: linear-gradient(135deg, #4b5563, #374151); color: white; }
+        .btn.download { background: linear-gradient(135deg, var(--success), var(--success-dark)); color: white; }
+        .btn.cloud { background: var(--accent-gradient); color: white; }
 
-        .btn.stop {
-            background: linear-gradient(135deg, #4b5563, #374151);
-            color: white;
-        }
-
-        .btn.download {
-            background: linear-gradient(135deg, var(--success), var(--success-dark));
-            color: white;
-        }
-
-        .btn.sync {
-            background: var(--accent-gradient);
-            color: white;
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
         }
 
         .btn:disabled {
@@ -314,6 +310,7 @@
             cursor: not-allowed;
         }
 
+        /* Stats Cards */
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -341,158 +338,61 @@
         .stat-label {
             font-size: 0.85rem;
             color: var(--text-tertiary);
-            text-transform: uppercase;
         }
 
-        /* PC Sync Panel */
-        .pc-sync-panel {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(59, 130, 246, 0.15));
-            border-radius: var(--radius-lg);
-            padding: 25px;
-            margin: 25px 0;
-            border: 1px solid rgba(139, 92, 246, 0.3);
-        }
-
-        .panel-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .panel-title i {
-            color: var(--accent-primary);
-            font-size: 1.5rem;
-        }
-
-        .panel-title h3 {
-            font-size: 1.3rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-
-        .sync-grid {
+        /* Recording Options */
+        .recording-options {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
         }
 
-        .sync-card {
+        .option-group {
             background: var(--bg-tertiary);
-            border-radius: var(--radius-md);
+            border-radius: var(--radius-lg);
             padding: 20px;
-            border: 1px solid var(--border-medium);
         }
 
-        .sync-card h4 {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--text-primary);
+        .option-group h4 {
             margin-bottom: 15px;
-            font-size: 1rem;
-        }
-
-        .code-display {
-            background: var(--bg-primary);
-            border-radius: var(--radius-md);
-            padding: 15px;
-            font-family: monospace;
-            font-size: 1.2rem;
-            text-align: center;
-            border: 2px dashed var(--accent-primary);
-            margin-bottom: 10px;
-            word-break: break-all;
-        }
-
-        .input-group {
             display: flex;
+            align-items: center;
             gap: 10px;
         }
 
-        .input-group input {
-            flex: 1;
-            padding: 12px;
-            background: var(--bg-primary);
-            border: 1px solid var(--border-medium);
-            border-radius: var(--radius-md);
-            color: var(--text-primary);
-            font-family: monospace;
+        .option-item {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .input-group input:focus {
+        .slider {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            background: linear-gradient(to right, var(--bg-secondary), var(--border-medium));
+            border-radius: 3px;
             outline: none;
-            border-color: var(--accent-primary);
         }
 
-        .small-btn {
-            padding: 12px 20px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-medium);
-            border-radius: var(--radius-md);
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: var(--transition-normal);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .small-btn:hover {
-            background: var(--bg-card);
-            border-color: var(--accent-primary);
-        }
-
-        .auto-sync-toggle {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 15px;
-            background: var(--bg-tertiary);
-            border-radius: var(--radius-md);
-            margin-top: 20px;
-        }
-
-        .toggle-switch {
-            position: relative;
-            width: 50px;
-            height: 26px;
-            background: var(--bg-secondary);
-            border-radius: 13px;
-            border: 2px solid var(--border-medium);
-            cursor: pointer;
-            transition: var(--transition-normal);
-        }
-
-        .toggle-switch.active {
-            background: var(--success);
-            border-color: var(--success);
-        }
-
-        .toggle-slider {
-            position: absolute;
-            width: 22px;
-            height: 22px;
-            background: white;
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
-            top: 0;
-            left: 0;
-            transition: var(--transition-normal);
+            background: var(--accent-primary);
+            cursor: pointer;
+            border: 2px solid var(--bg-primary);
         }
 
-        .toggle-switch.active .toggle-slider {
-            left: 24px;
-        }
-
-        /* Settings */
+        /* Settings Section */
         .settings {
             background: var(--bg-card);
             border-radius: var(--radius-xl);
             padding: 30px;
             margin: 30px 0;
+            border: 1px solid var(--border-medium);
         }
 
         .section-title {
@@ -506,7 +406,7 @@
         .quality-options {
             display: grid;
             gap: 10px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .quality-option {
@@ -525,33 +425,34 @@
             background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
         }
 
-        .quality-option input {
-            display: none;
-        }
-
-        .quality-label {
-            flex: 1;
-            font-weight: 600;
-        }
-
+        .quality-option input { display: none; }
+        .quality-label { flex: 1; font-weight: 600; }
         .quality-badge {
             padding: 5px 15px;
-            background: rgba(245, 158, 11, 0.2);
-            color: #fbbf24;
+            background: rgba(245, 158, 11, 0.1);
             border-radius: var(--radius-full);
             font-size: 0.8rem;
+            color: #fbbf24;
         }
 
+        /* Storage Info */
         .storage-info {
             background: var(--bg-tertiary);
             border-radius: var(--radius-lg);
             padding: 20px;
-            margin-bottom: 25px;
+            margin: 20px 0;
+        }
+
+        .storage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
         }
 
         .storage-bar {
             height: 8px;
-            background: var(--bg-secondary);
+            background: linear-gradient(to right, var(--bg-secondary), var(--border-medium));
             border-radius: 4px;
             overflow: hidden;
             margin: 15px 0;
@@ -561,10 +462,52 @@
             height: 100%;
             background: var(--accent-gradient);
             width: 0%;
-            transition: width 0.5s;
+            transition: width 0.3s ease;
         }
 
-        /* Library */
+        .storage-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--text-tertiary);
+        }
+
+        /* Checkbox Container */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+        }
+
+        .checkbox-container input {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid var(--border-medium);
+            background: var(--bg-secondary);
+            cursor: pointer;
+            appearance: none;
+        }
+
+        .checkbox-container input:checked {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .checkbox-container input:checked::after {
+            content: '✓';
+            display: block;
+            text-align: center;
+            color: white;
+            font-size: 14px;
+            line-height: 18px;
+        }
+
+        /* Library Section */
         .library {
             background: var(--bg-card);
             border-radius: var(--radius-xl);
@@ -591,7 +534,7 @@
             width: 100%;
             padding: 12px 20px 12px 45px;
             background: var(--bg-tertiary);
-            border: 1px solid var(--border-medium);
+            border: 2px solid var(--border-medium);
             border-radius: var(--radius-full);
             color: var(--text-primary);
         }
@@ -610,7 +553,7 @@
             gap: 20px;
             max-height: 600px;
             overflow-y: auto;
-            padding: 10px 5px;
+            padding: 10px;
         }
 
         .video-card {
@@ -629,23 +572,18 @@
         .video-thumbnail {
             height: 160px;
             background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        .video-thumbnail i {
-            font-size: 3rem;
-            color: rgba(255, 255, 255, 0.8);
+            position: relative;
         }
 
         .video-info {
-            padding: 20px;
+            padding: 15px;
         }
 
         .video-title {
-            font-weight: 700;
+            font-weight: 600;
             margin-bottom: 10px;
             white-space: nowrap;
             overflow: hidden;
@@ -653,49 +591,49 @@
         }
 
         .video-meta {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85rem;
+            display: grid;
+            gap: 8px;
+            font-size: 0.9rem;
             color: var(--text-tertiary);
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .video-actions {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
 
         .action-btn {
             padding: 8px 12px;
             background: var(--bg-secondary);
             border: 1px solid var(--border-medium);
-            border-radius: var(--radius-sm);
+            border-radius: var(--radius-md);
             color: var(--text-primary);
             cursor: pointer;
-            transition: var(--transition-normal);
-            font-size: 0.85rem;
             display: flex;
             align-items: center;
             gap: 5px;
+            font-size: 0.9rem;
+            transition: var(--transition-normal);
         }
 
         .action-btn:hover {
-            background: var(--bg-card);
             border-color: var(--accent-primary);
+            transform: translateY(-1px);
         }
 
+        /* Empty Library */
         .empty-library {
             text-align: center;
-            padding: 60px;
+            padding: 40px;
             color: var(--text-tertiary);
             display: none;
         }
 
-        .empty-library.active {
-            display: block;
-        }
+        .empty-library.active { display: block; }
+        .empty-library i { font-size: 3rem; margin-bottom: 15px; opacity: 0.5; }
 
-        /* Modal */
+        /* Modals */
         .modal {
             display: none;
             position: fixed;
@@ -708,20 +646,18 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(10px);
         }
 
-        .modal.active {
-            display: flex;
-        }
+        .modal.active { display: flex; }
 
         .modal-content {
             background: var(--bg-card);
             border-radius: var(--radius-xl);
             padding: 30px;
-            max-width: 900px;
+            max-width: 600px;
             width: 100%;
-            max-height: 90vh;
+            max-height: 80vh;
             overflow-y: auto;
         }
 
@@ -738,16 +674,9 @@
             color: var(--text-tertiary);
             font-size: 1.5rem;
             cursor: pointer;
-            padding: 5px 10px;
         }
 
-        .modal-video {
-            width: 100%;
-            border-radius: var(--radius-lg);
-            margin-bottom: 20px;
-        }
-
-        /* Toast */
+        /* Toast Notifications */
         .toast-container {
             position: fixed;
             top: 20px;
@@ -762,13 +691,13 @@
             background: var(--glass-bg);
             backdrop-filter: blur(10px);
             border-radius: var(--radius-lg);
-            padding: 15px 20px;
+            padding: 15px;
             min-width: 300px;
             border-left: 4px solid var(--accent-primary);
             display: flex;
-            align-items: center;
-            gap: 15px;
-            animation: slideIn 0.3s;
+            align-items: flex-start;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
         }
 
         @keyframes slideIn {
@@ -780,8 +709,24 @@
         .toast.error { border-left-color: var(--danger); }
         .toast.warning { border-left-color: var(--warning); }
 
-        /* Loading */
-        .loading {
+        .toast-icon { font-size: 1.2rem; }
+        .toast.success .toast-icon { color: var(--success); }
+        .toast.error .toast-icon { color: var(--danger); }
+        .toast.warning .toast-icon { color: var(--warning); }
+
+        .toast-content { flex: 1; }
+        .toast-title { font-weight: 700; margin-bottom: 3px; }
+        .toast-message { font-size: 0.9rem; color: var(--text-secondary); }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            cursor: pointer;
+        }
+
+        /* Progress Overlay */
+        .progress {
             display: none;
             position: fixed;
             top: 0;
@@ -792,29 +737,88 @@
             z-index: 99998;
             align-items: center;
             justify-content: center;
+        }
+
+        .progress.active { display: flex; }
+
+        .progress-content {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-xl);
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-gradient);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Loading Overlay */
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-modal);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
             flex-direction: column;
             gap: 20px;
-            backdrop-filter: blur(20px);
         }
 
         .loading-spinner {
             width: 50px;
             height: 50px;
-            border: 4px solid rgba(255,255,255,0.1);
+            border: 3px solid rgba(255, 255, 255, 0.1);
             border-top-color: var(--accent-primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* Footer */
         .footer {
             text-align: center;
             padding: 30px 0;
             color: var(--text-tertiary);
             border-top: 1px solid var(--border-light);
+        }
+
+        .footer-info {
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .footer-info span { color: var(--accent-primary); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .logo-text h1 { font-size: 1.8rem; }
+            .stats { grid-template-columns: 1fr 1fr; }
+            .library-header { flex-direction: column; }
+        }
+
+        @media (max-width: 480px) {
+            .stats { grid-template-columns: 1fr; }
+            .controls { grid-template-columns: 1fr; }
+            .recording-options { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -822,25 +826,36 @@
     <!-- Loading -->
     <div class="loading" id="loading">
         <div class="loading-spinner"></div>
-        <div id="loading-text">Loading...</div>
+        <div id="loading-text">Loading Screen Recorder...</div>
     </div>
 
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer"></div>
+    <!-- Progress -->
+    <div class="progress" id="progress">
+        <div class="progress-content">
+            <h3 id="progress-title">Processing...</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <p id="progress-text">0%</p>
+            <button class="btn stop" id="cancel-progress">Cancel</button>
+        </div>
+    </div>
 
-    <!-- Video Modal -->
-    <div class="modal" id="videoModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalVideoTitle">Video Player</h2>
-                <button class="close-modal" id="closeModal">&times;</button>
+    <!-- Auto-Save Panel -->
+    <div class="auto-save-panel saved" id="autoSavePanel" style="display: none;">
+        <div class="auto-save-header">
+            <div class="auto-save-icon saved" id="autoSavePanelIcon">
+                <i class="fas fa-cloud-upload-alt"></i>
             </div>
-            <video class="modal-video" id="modalVideo" controls></video>
-            <div class="modal-info" id="modalInfo"></div>
-            <div style="display: flex; gap: 15px;">
-                <button class="btn download" id="modalDownloadBtn" style="flex: 1;">Download</button>
-                <button class="btn stop" id="modalDeleteBtn" style="flex: 1;">Delete</button>
-            </div>
+            <div class="auto-save-title" id="autoSavePanelTitle">Auto-Save Active</div>
+            <div class="auto-save-time" id="autoSavePanelTime">just now</div>
+        </div>
+        <div class="auto-save-progress">
+            <div class="auto-save-progress-bar" id="autoSaveProgressBar"></div>
+        </div>
+        <div class="auto-save-stats">
+            <span id="autoSaveStats">All data saved</span>
+            <span class="auto-save-badge" id="autoSaveBadge">100%</span>
         </div>
     </div>
 
@@ -853,25 +868,28 @@
                     <i class="fas fa-video"></i>
                 </div>
                 <div class="logo-text">
-                    <h1>AUTO SYNC RECORDER</h1>
+                    <h1>SCREEN RECORDER PRO</h1>
                 </div>
             </div>
             <p class="tagline">
-                Rekam layar dengan auto sync real-time ke semua PC yang terhubung
+                Rekam layar dengan auto-save semua data. Video tersimpan otomatis setiap saat.
             </p>
+            <div class="badges">
+                <div class="badge"><i class="fas fa-cloud"></i> AUTO-SAVE</div>
+                <div class="badge"><i class="fas fa-crown"></i> PRO</div>
+                <div class="badge"><i class="fas fa-shield-alt"></i> AMAN</div>
+            </div>
         </header>
 
-        <!-- Auto Sync Banner -->
-        <div class="auto-sync-banner" id="autoSyncBanner">
-            <div class="sync-status">
-                <div class="sync-pulse"></div>
-                <div class="sync-info">
-                    <div class="sync-title" id="syncStatusTitle">Auto Sync Active</div>
-                    <div class="sync-desc" id="syncStatusDesc">Menyinkronkan ke 0 perangkat</div>
-                </div>
+        <!-- Recovery Banner -->
+        <div class="recovery-banner" id="recoveryBanner" style="display: none; background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(245,158,11,0.1)); border-radius: var(--radius-lg); padding: 15px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <h3 style="color: var(--warning);">Recovery Available</h3>
+                <p id="recoveryMessage">Found unsaved recording from previous session</p>
             </div>
-            <div class="connected-devices" id="connectedDevices">
-                <!-- Connected devices will appear here -->
+            <div>
+                <button class="action-btn" id="recoverBtn" style="background: var(--warning);">Recover</button>
+                <button class="action-btn" id="dismissRecoveryBtn">Dismiss</button>
             </div>
         </div>
 
@@ -880,10 +898,10 @@
             <div class="video-container">
                 <video class="video-preview" id="preview"></video>
                 <div class="video-overlay" id="videoOverlay">
-                    <i class="fas fa-desktop"></i>
+                    <i class="fas fa-desktop" style="font-size: 3rem; color: var(--accent-primary);"></i>
                     <div>
-                        <h3>Screen Preview</h3>
-                        <p>Klik RECORD untuk mulai merekam</p>
+                        <h3>Ready to Record</h3>
+                        <p>Click START RECORDING to begin</p>
                     </div>
                 </div>
                 <div class="recording-status" id="recordingStatus">
@@ -892,9 +910,10 @@
                 </div>
             </div>
 
+            <!-- Main Controls -->
             <div class="controls">
                 <button class="btn record" id="recordBtn">
-                    <i class="fas fa-circle"></i> RECORD
+                    <i class="fas fa-circle"></i> START
                 </button>
                 <button class="btn stop" id="stopBtn" disabled>
                     <i class="fas fa-stop"></i> STOP
@@ -902,11 +921,12 @@
                 <button class="btn download" id="downloadBtn" disabled>
                     <i class="fas fa-download"></i> DOWNLOAD
                 </button>
-                <button class="btn sync" id="manualSyncBtn">
-                    <i class="fas fa-sync-alt"></i> SYNC NOW
+                <button class="btn cloud" id="backupHistoryBtn">
+                    <i class="fas fa-history"></i> AUTO-SAVE
                 </button>
             </div>
 
+            <!-- Stats -->
             <div class="stats">
                 <div class="stat-card">
                     <div class="stat-value" id="timer">00:00</div>
@@ -918,65 +938,55 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-value" id="totalDuration">00:00</div>
-                    <div class="stat-label">TOTAL</div>
+                    <div class="stat-label">TOTAL TIME</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value" id="videoCount">0</div>
                     <div class="stat-label">VIDEOS</div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="autoSaveCount">0</div>
+                    <div class="stat-label">AUTO-SAVES</div>
+                </div>
             </div>
 
-            <!-- PC Sync Panel -->
-            <div class="pc-sync-panel">
-                <div class="panel-title">
-                    <i class="fas fa-network-wired"></i>
-                    <h3>PC-to-PC Auto Sync</h3>
+            <!-- Recording Options -->
+            <div class="recording-options">
+                <div class="option-group">
+                    <h4><i class="fas fa-video"></i> Video</h4>
+                    <div class="option-item">
+                        <label>Frame Rate</label>
+                        <span id="fpsValue">30 FPS</span>
+                    </div>
+                    <input type="range" min="15" max="60" value="30" class="slider" id="fpsSlider">
+                </div>
+                
+                <div class="option-group">
+                    <h4><i class="fas fa-volume-up"></i> Audio</h4>
+                    <div class="option-item">
+                        <label>System</label>
+                        <span id="systemVolumeValue">100%</span>
+                    </div>
+                    <input type="range" min="0" max="100" value="100" class="slider" id="systemVolumeSlider">
+                    <div class="option-item" style="margin-top: 10px;">
+                        <label>Microphone</label>
+                        <span id="micVolumeValue">0%</span>
+                    </div>
+                    <input type="range" min="0" max="100" value="0" class="slider" id="micVolumeSlider">
                 </div>
 
-                <div class="sync-grid">
-                    <div class="sync-card">
-                        <h4><i class="fas fa-key"></i> Your Sync Code</h4>
-                        <div class="code-display" id="syncCodeDisplay">ABCD-1234-EFGH-5678</div>
-                        <div style="display: flex; gap: 10px;">
-                            <button class="small-btn" id="copySyncCodeBtn" style="flex: 1;">
-                                <i class="fas fa-copy"></i> Copy
-                            </button>
-                            <button class="small-btn" id="refreshSyncCodeBtn" style="flex: 1;">
-                                <i class="fas fa-sync-alt"></i> New
-                            </button>
-                        </div>
+                <div class="option-group">
+                    <h4><i class="fas fa-save"></i> Auto-Save</h4>
+                    <div class="option-item">
+                        <label>Interval</label>
+                        <span id="autoSaveIntervalValue">30s</span>
                     </div>
-
-                    <div class="sync-card">
-                        <h4><i class="fas fa-plug"></i> Connect to PC</h4>
-                        <div class="input-group">
-                            <input type="text" id="connectCodeInput" placeholder="Enter PC sync code">
-                            <button class="small-btn" id="connectPcBtn">
-                                <i class="fas fa-link"></i> Connect
-                            </button>
-                        </div>
-                        <div style="margin-top: 15px;">
-                            <div class="small-btn" id="scanNetworkBtn" style="width: 100%;">
-                                <i class="fas fa-search"></i> Scan Local Network
-                            </div>
-                        </div>
+                    <input type="range" min="5" max="120" value="30" class="slider" id="autoSaveIntervalSlider">
+                    <div class="option-item" style="margin-top: 10px;">
+                        <label>Max Saves</label>
+                        <span id="maxAutoSaveValue">50</span>
                     </div>
-                </div>
-
-                <div class="auto-sync-toggle">
-                    <div class="toggle-switch" id="autoSyncToggle">
-                        <div class="toggle-slider"></div>
-                    </div>
-                    <div>
-                        <div style="font-weight: 700;">Auto Sync Real-time</div>
-                        <div style="font-size: 0.9rem; color: var(--text-tertiary);">
-                            Otomatis sync saat ada video baru atau perubahan
-                        </div>
-                    </div>
-                </div>
-
-                <div id="connectedPcList" style="margin-top: 20px;">
-                    <!-- Connected PCs will be listed here -->
+                    <input type="range" min="10" max="200" value="50" class="slider" id="maxAutoSaveSlider">
                 </div>
             </div>
         </section>
@@ -984,15 +994,14 @@
         <!-- Settings -->
         <section class="settings">
             <h2 class="section-title">
-                <i class="fas fa-cog"></i>
-                Settings
+                <i class="fas fa-cog"></i> SETTINGS
             </h2>
 
             <div class="quality-options">
                 <label class="quality-option selected">
                     <input type="radio" name="quality" value="1080p" checked>
                     <span class="quality-label">Full HD (1080p)</span>
-                    <span class="quality-badge">High Quality</span>
+                    <span class="quality-badge">High</span>
                 </label>
                 <label class="quality-option">
                     <input type="radio" name="quality" value="720p">
@@ -1007,84 +1016,120 @@
             </div>
 
             <div class="storage-info">
-                <div style="display: flex; justify-content: space-between;">
+                <div class="storage-header">
                     <div>
-                        <h4>Cloud Storage</h4>
-                        <p style="color: var(--text-tertiary);" id="storageStatus">0% available</p>
+                        <h4>Storage</h4>
+                        <p id="storageStatus">Data tersimpan otomatis</p>
                     </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 1.5rem; font-weight: 900; color: var(--accent-primary);" id="totalSize">0 GB</div>
-                        <div style="font-size: 0.85rem;">Total Used</div>
+                    <div>
+                        <div id="totalSize">0 GB</div>
                     </div>
                 </div>
                 <div class="storage-bar">
                     <div class="storage-fill" id="storageFill"></div>
                 </div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-tertiary);">
+                <div class="storage-details">
                     <span id="usedStorage">0 GB used</span>
                     <span id="maxStorage">500 GB max</span>
                 </div>
             </div>
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                <label style="display: flex; align-items: center; gap: 10px; padding: 10px; background: var(--bg-tertiary); border-radius: var(--radius-md);">
-                    <input type="checkbox" id="encryptSync" checked> Encrypt Sync Data
+                <label class="checkbox-container">
+                    <input type="checkbox" id="autoSave" checked>
+                    <span class="checkbox-label">Auto-Save Protection</span>
                 </label>
-                <label style="display: flex; align-items: center; gap: 10px; padding: 10px; background: var(--bg-tertiary); border-radius: var(--radius-md);">
-                    <input type="checkbox" id="syncOnSave" checked> Auto Sync on Save
+                <label class="checkbox-container">
+                    <input type="checkbox" id="saveVideoBlob" checked>
+                    <span class="checkbox-label">Save Video Files</span>
+                </label>
+                <label class="checkbox-container">
+                    <input type="checkbox" id="compressData">
+                    <span class="checkbox-label">Compress Data</span>
                 </label>
             </div>
         </section>
 
-        <!-- Library -->
+        <!-- Video Library -->
         <section class="library">
             <div class="library-header">
                 <h2 class="section-title">
-                    <i class="fas fa-film"></i>
-                    Video Library
+                    <i class="fas fa-film"></i> VIDEO LIBRARY
                 </h2>
                 <div class="search-box">
                     <i class="fas fa-search"></i>
                     <input type="text" id="search" placeholder="Search videos...">
                 </div>
-                <button class="small-btn" id="refreshLibraryBtn">
-                    <i class="fas fa-sync-alt"></i> Refresh
-                </button>
             </div>
 
             <div class="video-grid" id="videoGrid"></div>
 
             <div class="empty-library" id="emptyLibrary">
-                <i class="fas fa-video-slash" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                <i class="fas fa-video-slash"></i>
                 <h3>No Videos Yet</h3>
                 <p>Start recording to see your videos here</p>
             </div>
         </section>
 
+        <!-- Footer -->
         <footer class="footer">
-            <div>
-                Device ID: <span id="deviceId">...</span> • 
-                Sync Status: <span id="globalSyncStatus">Active</span> •
-                Videos: <span id="totalVideosCount">0</span>
+            <p>© 2024 Screen Recorder Pro • Auto-Save v1.0</p>
+            <div class="footer-info">
+                Videos: <span id="totalVideosCount">0</span> • 
+                Auto-Saves: <span id="totalAutoSaves">0</span> •
+                Storage: <span id="footerStorage">0 GB</span>
             </div>
         </footer>
     </div>
 
+    <!-- Video Modal -->
+    <div class="modal" id="videoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalVideoTitle">Video Player</h2>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            <video class="modal-video" id="modalVideo" controls style="width: 100%; border-radius: var(--radius-md); margin-bottom: 20px;"></video>
+            <div id="modalInfo" style="background: var(--bg-tertiary); padding: 15px; border-radius: var(--radius-md); margin-bottom: 20px;"></div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn download" id="modalDownloadBtn" style="flex: 1;">Download</button>
+                <button class="btn stop" id="modalDeleteBtn" style="flex: 1;">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backup History Modal -->
+    <div class="modal" id="backupHistoryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Auto-Save History</h2>
+                <button class="close-modal" id="closeBackupHistoryModal">&times;</button>
+            </div>
+            <div id="backupHistoryList" style="max-height: 400px; overflow-y: auto;"></div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn cloud" id="restoreAllBackupBtn" style="flex: 1;">Restore All</button>
+                <button class="btn stop" id="clearOldBackupBtn" style="flex: 1;">Clear Old</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
     <script>
-        // =============== CONFIG ===============
+        // ==================== CONFIGURATION ====================
         const DB_CONFIG = {
-            NAME: 'AutoSyncRecorderDB',
-            VERSION: 10,
+            NAME: 'ScreenRecorderDB',
+            VERSION: 1,
             STORES: {
                 VIDEOS: 'videos',
                 SETTINGS: 'settings',
-                METADATA: 'metadata',
-                SYNC_QUEUE: 'sync_queue',
-                CONNECTED_DEVICES: 'connected_devices'
+                AUTO_SAVE: 'auto_save',
+                VIDEO_BLOBS: 'video_blobs'
             }
         };
 
-        // =============== STATE ===============
+        // ==================== STATE ====================
         const state = {
             isRecording: false,
             mediaRecorder: null,
@@ -1093,33 +1138,114 @@
             recordingStartTime: null,
             timerInterval: null,
             totalRecordedSize: 0,
-            currentVideoId: null,
             
             videos: [],
             videoCount: 0,
             storageUsed: 0,
             totalRecordingTime: 0,
             
-            deviceId: null,
-            deviceName: null,
-            syncCode: null,
-            connectedDevices: [],
-            autoSyncEnabled: true,
-            syncInterval: null,
-            
-            pendingSyncs: [],
+            autoSaves: [],
+            autoSaveCount: 0,
+            lastAutoSaveTime: null,
+            autoSaveInProgress: false,
+            autoSaveSessionId: null,
+            autoSaveInterval: null,
+            pendingRecovery: null,
             
             settings: {
+                autoSave: true,
+                saveVideoBlob: true,
+                compressData: false,
                 quality: '1080p',
                 frameRate: 30,
                 systemVolume: 100,
                 micVolume: 0,
-                encryptSync: true,
-                syncOnSave: true
+                autoSaveInterval: 30,
+                maxAutoSaves: 50
             }
         };
 
-        // =============== DATABASE MANAGER ===============
+        // ==================== DOM ELEMENTS ====================
+        const elements = {
+            loading: document.getElementById('loading'),
+            progress: document.getElementById('progress'),
+            progressTitle: document.getElementById('progress-title'),
+            progressFill: document.getElementById('progress-fill'),
+            progressText: document.getElementById('progress-text'),
+            cancelProgress: document.getElementById('cancel-progress'),
+            
+            preview: document.getElementById('preview'),
+            videoOverlay: document.getElementById('videoOverlay'),
+            recordingStatus: document.getElementById('recordingStatus'),
+            recordBtn: document.getElementById('recordBtn'),
+            stopBtn: document.getElementById('stopBtn'),
+            downloadBtn: document.getElementById('downloadBtn'),
+            
+            timer: document.getElementById('timer'),
+            fileSize: document.getElementById('fileSize'),
+            totalDuration: document.getElementById('totalDuration'),
+            videoCount: document.getElementById('videoCount'),
+            totalVideosCount: document.getElementById('totalVideosCount'),
+            autoSaveCount: document.getElementById('autoSaveCount'),
+            totalAutoSaves: document.getElementById('totalAutoSaves'),
+            
+            fpsSlider: document.getElementById('fpsSlider'),
+            fpsValue: document.getElementById('fpsValue'),
+            systemVolumeSlider: document.getElementById('systemVolumeSlider'),
+            systemVolumeValue: document.getElementById('systemVolumeValue'),
+            micVolumeSlider: document.getElementById('micVolumeSlider'),
+            micVolumeValue: document.getElementById('micVolumeValue'),
+            autoSave: document.getElementById('autoSave'),
+            saveVideoBlob: document.getElementById('saveVideoBlob'),
+            compressData: document.getElementById('compressData'),
+            autoSaveIntervalSlider: document.getElementById('autoSaveIntervalSlider'),
+            autoSaveIntervalValue: document.getElementById('autoSaveIntervalValue'),
+            maxAutoSaveSlider: document.getElementById('maxAutoSaveSlider'),
+            maxAutoSaveValue: document.getElementById('maxAutoSaveValue'),
+            
+            storageStatus: document.getElementById('storageStatus'),
+            totalSize: document.getElementById('totalSize'),
+            storageFill: document.getElementById('storageFill'),
+            usedStorage: document.getElementById('usedStorage'),
+            maxStorage: document.getElementById('maxStorage'),
+            footerStorage: document.getElementById('footerStorage'),
+            
+            videoGrid: document.getElementById('videoGrid'),
+            emptyLibrary: document.getElementById('emptyLibrary'),
+            search: document.getElementById('search'),
+            
+            videoModal: document.getElementById('videoModal'),
+            modalVideo: document.getElementById('modalVideo'),
+            modalVideoTitle: document.getElementById('modalVideoTitle'),
+            modalInfo: document.getElementById('modalInfo'),
+            modalDownloadBtn: document.getElementById('modalDownloadBtn'),
+            modalDeleteBtn: document.getElementById('modalDeleteBtn'),
+            closeModal: document.getElementById('closeModal'),
+            
+            backupHistoryModal: document.getElementById('backupHistoryModal'),
+            backupHistoryList: document.getElementById('backupHistoryList'),
+            restoreAllBackupBtn: document.getElementById('restoreAllBackupBtn'),
+            clearOldBackupBtn: document.getElementById('clearOldBackupBtn'),
+            closeBackupHistoryModal: document.getElementById('closeBackupHistoryModal'),
+            backupHistoryBtn: document.getElementById('backupHistoryBtn'),
+            
+            autoSavePanel: document.getElementById('autoSavePanel'),
+            autoSavePanelIcon: document.getElementById('autoSavePanelIcon'),
+            autoSavePanelTitle: document.getElementById('autoSavePanelTitle'),
+            autoSavePanelTime: document.getElementById('autoSavePanelTime'),
+            autoSaveProgressBar: document.getElementById('autoSaveProgressBar'),
+            autoSaveStats: document.getElementById('autoSaveStats'),
+            autoSaveBadge: document.getElementById('autoSaveBadge'),
+            
+            recoveryBanner: document.getElementById('recoveryBanner'),
+            recoveryMessage: document.getElementById('recoveryMessage'),
+            recoverBtn: document.getElementById('recoverBtn'),
+            dismissRecoveryBtn: document.getElementById('dismissRecoveryBtn'),
+            
+            toastContainer: document.getElementById('toastContainer')
+        };
+
+        // ==================== DATABASE MANAGER ====================
         class DatabaseManager {
             constructor() {
                 this.db = null;
@@ -1132,8 +1258,8 @@
                     
                     request.onerror = () => reject(request.error);
                     
-                    request.onsuccess = (event) => {
-                        this.db = event.target.result;
+                    request.onsuccess = () => {
+                        this.db = request.result;
                         this.initialized = true;
                         resolve(this.db);
                     };
@@ -1141,37 +1267,23 @@
                     request.onupgradeneeded = (event) => {
                         const db = event.target.result;
                         
-                        // Videos store
                         if (!db.objectStoreNames.contains(DB_CONFIG.STORES.VIDEOS)) {
                             const videoStore = db.createObjectStore(DB_CONFIG.STORES.VIDEOS, { keyPath: 'id' });
                             videoStore.createIndex('date', 'date', { unique: false });
-                            videoStore.createIndex('deviceId', 'deviceId', { unique: false });
-                            videoStore.createIndex('syncStatus', 'syncStatus', { unique: false });
                         }
                         
-                        // Settings
                         if (!db.objectStoreNames.contains(DB_CONFIG.STORES.SETTINGS)) {
                             db.createObjectStore(DB_CONFIG.STORES.SETTINGS, { keyPath: 'key' });
                         }
                         
-                        // Metadata
-                        if (!db.objectStoreNames.contains(DB_CONFIG.STORES.METADATA)) {
-                            db.createObjectStore(DB_CONFIG.STORES.METADATA, { keyPath: 'key' });
+                        if (!db.objectStoreNames.contains(DB_CONFIG.STORES.AUTO_SAVE)) {
+                            const autoSaveStore = db.createObjectStore(DB_CONFIG.STORES.AUTO_SAVE, { keyPath: 'sessionId' });
+                            autoSaveStore.createIndex('timestamp', 'timestamp', { unique: false });
                         }
                         
-                        // Sync queue
-                        if (!db.objectStoreNames.contains(DB_CONFIG.STORES.SYNC_QUEUE)) {
-                            const syncStore = db.createObjectStore(DB_CONFIG.STORES.SYNC_QUEUE, { keyPath: 'id', autoIncrement: true });
-                            syncStore.createIndex('deviceId', 'deviceId', { unique: false });
-                            syncStore.createIndex('timestamp', 'timestamp', { unique: false });
-                            syncStore.createIndex('synced', 'synced', { unique: false });
-                        }
-                        
-                        // Connected devices
-                        if (!db.objectStoreNames.contains(DB_CONFIG.STORES.CONNECTED_DEVICES)) {
-                            const deviceStore = db.createObjectStore(DB_CONFIG.STORES.CONNECTED_DEVICES, { keyPath: 'deviceId' });
-                            deviceStore.createIndex('lastSeen', 'lastSeen', { unique: false });
-                            deviceStore.createIndex('syncCode', 'syncCode', { unique: false });
+                        if (!db.objectStoreNames.contains(DB_CONFIG.STORES.VIDEO_BLOBS)) {
+                            const blobStore = db.createObjectStore(DB_CONFIG.STORES.VIDEO_BLOBS, { keyPath: 'videoId' });
+                            blobStore.createIndex('timestamp', 'timestamp', { unique: false });
                         }
                     };
                 });
@@ -1183,23 +1295,21 @@
                     const store = transaction.objectStore(DB_CONFIG.STORES.VIDEOS);
                     
                     const video = {
-                        id: videoData.id || `vid_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        id: videoData.id || `video_${Date.now()}`,
                         title: videoData.title || 'Untitled',
-                        quality: videoData.quality,
-                        duration: videoData.duration,
-                        size: videoData.size,
+                        quality: videoData.quality || '1080p',
+                        duration: videoData.duration || 0,
+                        size: videoData.size || 0,
                         date: videoData.date || new Date().toISOString(),
-                        blob: videoData.blob,
-                        deviceId: state.deviceId,
-                        syncStatus: 'pending',
-                        syncedTo: [],
-                        createdAt: new Date().toISOString()
+                        hasBlob: !!videoData.blob
                     };
                     
                     const request = store.put(video);
                     
-                    request.onsuccess = () => {
-                        this.addToSyncQueue(video.id, 'create', video);
+                    request.onsuccess = async () => {
+                        if (videoData.blob && state.settings.saveVideoBlob) {
+                            await this.saveVideoBlob(video.id, videoData.blob);
+                        }
                         resolve(video);
                     };
                     
@@ -1207,13 +1317,49 @@
                 });
             }
 
-            async getVideo(id) {
+            async saveVideoBlob(videoId, blob) {
                 return new Promise((resolve, reject) => {
-                    const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEOS], 'readonly');
-                    const store = transaction.objectStore(DB_CONFIG.STORES.VIDEOS);
-                    const request = store.get(id);
-                    request.onsuccess = () => resolve(request.result);
+                    const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEO_BLOBS], 'readwrite');
+                    const store = transaction.objectStore(DB_CONFIG.STORES.VIDEO_BLOBS);
+                    
+                    const blobData = {
+                        videoId: videoId,
+                        blob: blob,
+                        size: blob.size,
+                        timestamp: Date.now()
+                    };
+                    
+                    const request = store.put(blobData);
+                    request.onsuccess = () => resolve();
                     request.onerror = () => reject(request.error);
+                });
+            }
+
+            async getVideo(videoId) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEOS, DB_CONFIG.STORES.VIDEO_BLOBS], 'readonly');
+                    const videoStore = transaction.objectStore(DB_CONFIG.STORES.VIDEOS);
+                    
+                    const videoRequest = videoStore.get(videoId);
+                    
+                    videoRequest.onsuccess = async () => {
+                        const video = videoRequest.result;
+                        if (video && video.hasBlob) {
+                            const blobStore = transaction.objectStore(DB_CONFIG.STORES.VIDEO_BLOBS);
+                            const blobRequest = blobStore.get(videoId);
+                            
+                            blobRequest.onsuccess = () => {
+                                video.blob = blobRequest.result?.blob;
+                                resolve(video);
+                            };
+                            
+                            blobRequest.onerror = () => reject(blobRequest.error);
+                        } else {
+                            resolve(video);
+                        }
+                    };
+                    
+                    videoRequest.onerror = () => reject(videoRequest.error);
                 });
             }
 
@@ -1221,18 +1367,17 @@
                 return new Promise((resolve, reject) => {
                     const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEOS], 'readonly');
                     const store = transaction.objectStore(DB_CONFIG.STORES.VIDEOS);
-                    const index = store.index('date');
                     
                     const videos = [];
-                    const request = index.openCursor(null, 'prev');
+                    const request = store.openCursor();
                     
                     request.onsuccess = (event) => {
                         const cursor = event.target.result;
                         if (cursor) {
-                            const { blob, ...metadata } = cursor.value;
-                            videos.push({ ...metadata, hasBlob: !!blob });
+                            videos.push(cursor.value);
                             cursor.continue();
                         } else {
+                            videos.sort((a, b) => new Date(b.date) - new Date(a.date));
                             resolve(videos);
                         }
                     };
@@ -1241,146 +1386,29 @@
                 });
             }
 
-            async deleteVideo(id) {
-                return new Promise((resolve, reject) => {
-                    const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEOS], 'readwrite');
-                    const store = transaction.objectStore(DB_CONFIG.STORES.VIDEOS);
-                    const request = store.delete(id);
-                    
-                    request.onsuccess = () => {
-                        this.addToSyncQueue(id, 'delete', { id });
-                        resolve(true);
-                    };
-                    
-                    request.onerror = () => reject(request.error);
-                });
-            }
-
-            async addToSyncQueue(itemId, action, data) {
-                const transaction = this.db.transaction([DB_CONFIG.STORES.SYNC_QUEUE], 'readwrite');
-                const store = transaction.objectStore(DB_CONFIG.STORES.SYNC_QUEUE);
-                
-                const item = {
-                    itemId,
-                    action,
-                    data: { id: itemId, ...data },
-                    deviceId: state.deviceId,
-                    timestamp: Date.now(),
-                    synced: false
-                };
+            async deleteVideo(videoId) {
+                const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEOS, DB_CONFIG.STORES.VIDEO_BLOBS], 'readwrite');
                 
                 return new Promise((resolve, reject) => {
-                    const request = store.add(item);
-                    request.onsuccess = () => resolve();
-                    request.onerror = () => reject(request.error);
-                });
-            }
-
-            async getPendingSyncs() {
-                return new Promise((resolve, reject) => {
-                    const transaction = this.db.transaction([DB_CONFIG.STORES.SYNC_QUEUE], 'readonly');
-                    const store = transaction.objectStore(DB_CONFIG.STORES.SYNC_QUEUE);
-                    const index = store.index('synced');
+                    transaction.objectStore(DB_CONFIG.STORES.VIDEOS).delete(videoId);
+                    transaction.objectStore(DB_CONFIG.STORES.VIDEO_BLOBS).delete(videoId);
                     
-                    const items = [];
-                    const request = index.openCursor(IDBKeyRange.only(false));
-                    
-                    request.onsuccess = (event) => {
-                        const cursor = event.target.result;
-                        if (cursor) {
-                            items.push(cursor.value);
-                            cursor.continue();
-                        } else {
-                            resolve(items);
-                        }
-                    };
-                    
-                    request.onerror = () => reject(request.error);
-                });
-            }
-
-            async markSyncComplete(id) {
-                const transaction = this.db.transaction([DB_CONFIG.STORES.SYNC_QUEUE], 'readwrite');
-                const store = transaction.objectStore(DB_CONFIG.STORES.SYNC_QUEUE);
-                
-                return new Promise((resolve, reject) => {
-                    const request = store.get(id);
-                    request.onsuccess = () => {
-                        const item = request.result;
-                        if (item) {
-                            item.synced = true;
-                            item.syncedAt = Date.now();
-                            store.put(item);
-                        }
-                        resolve();
-                    };
-                    request.onerror = () => reject(request.error);
-                });
-            }
-
-            async saveConnectedDevice(device) {
-                const transaction = this.db.transaction([DB_CONFIG.STORES.CONNECTED_DEVICES], 'readwrite');
-                const store = transaction.objectStore(DB_CONFIG.STORES.CONNECTED_DEVICES);
-                
-                const deviceData = {
-                    deviceId: device.deviceId,
-                    deviceName: device.deviceName || 'Unknown PC',
-                    syncCode: device.syncCode,
-                    lastSeen: Date.now(),
-                    status: 'online',
-                    videos: device.videos || []
-                };
-                
-                return new Promise((resolve, reject) => {
-                    const request = store.put(deviceData);
-                    request.onsuccess = () => resolve(deviceData);
-                    request.onerror = () => reject(request.error);
-                });
-            }
-
-            async getConnectedDevices() {
-                return new Promise((resolve, reject) => {
-                    const transaction = this.db.transaction([DB_CONFIG.STORES.CONNECTED_DEVICES], 'readonly');
-                    const store = transaction.objectStore(DB_CONFIG.STORES.CONNECTED_DEVICES);
-                    const request = store.getAll();
-                    
-                    request.onsuccess = () => {
-                        const devices = request.result.filter(d => Date.now() - d.lastSeen < 30000); // 30 detik
-                        resolve(devices);
-                    };
-                    
-                    request.onerror = () => reject(request.error);
-                });
-            }
-
-            async updateDeviceLastSeen(deviceId) {
-                const transaction = this.db.transaction([DB_CONFIG.STORES.CONNECTED_DEVICES], 'readwrite');
-                const store = transaction.objectStore(DB_CONFIG.STORES.CONNECTED_DEVICES);
-                
-                return new Promise((resolve, reject) => {
-                    const request = store.get(deviceId);
-                    request.onsuccess = () => {
-                        const device = request.result;
-                        if (device) {
-                            device.lastSeen = Date.now();
-                            store.put(device);
-                        }
-                        resolve();
-                    };
-                    request.onerror = () => reject(request.error);
+                    transaction.oncomplete = () => resolve();
+                    transaction.onerror = () => reject(transaction.error);
                 });
             }
 
             async saveSettings(settings) {
-                const transaction = this.db.transaction([DB_CONFIG.STORES.SETTINGS], 'readwrite');
-                const store = transaction.objectStore(DB_CONFIG.STORES.SETTINGS);
-                
                 return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction([DB_CONFIG.STORES.SETTINGS], 'readwrite');
+                    const store = transaction.objectStore(DB_CONFIG.STORES.SETTINGS);
+                    
                     const request = store.put({
-                        key: 'user_settings',
+                        key: 'settings',
                         value: settings,
                         updatedAt: new Date().toISOString()
                     });
+                    
                     request.onsuccess = () => resolve();
                     request.onerror = () => reject(request.error);
                 });
@@ -1390,44 +1418,89 @@
                 return new Promise((resolve, reject) => {
                     const transaction = this.db.transaction([DB_CONFIG.STORES.SETTINGS], 'readonly');
                     const store = transaction.objectStore(DB_CONFIG.STORES.SETTINGS);
-                    const request = store.get('user_settings');
                     
-                    request.onsuccess = () => resolve(request.result?.value || null);
+                    const request = store.get('settings');
+                    
+                    request.onsuccess = () => resolve(request.result?.value);
                     request.onerror = () => reject(request.error);
                 });
             }
 
-            async saveMetadata(key, value) {
-                const transaction = this.db.transaction([DB_CONFIG.STORES.METADATA], 'readwrite');
-                const store = transaction.objectStore(DB_CONFIG.STORES.METADATA);
-                
+            async saveAutoSaveSession(sessionId, data) {
                 return new Promise((resolve, reject) => {
-                    const request = store.put({ key, value, updatedAt: new Date().toISOString() });
+                    const transaction = this.db.transaction([DB_CONFIG.STORES.AUTO_SAVE], 'readwrite');
+                    const store = transaction.objectStore(DB_CONFIG.STORES.AUTO_SAVE);
+                    
+                    const session = {
+                        sessionId: sessionId,
+                        timestamp: Date.now(),
+                        data: data
+                    };
+                    
+                    const request = store.put(session);
+                    
                     request.onsuccess = () => resolve();
                     request.onerror = () => reject(request.error);
                 });
             }
 
-            async getMetadata(key) {
+            async getAllAutoSaveSessions() {
                 return new Promise((resolve, reject) => {
-                    const transaction = this.db.transaction([DB_CONFIG.STORES.METADATA], 'readonly');
-                    const store = transaction.objectStore(DB_CONFIG.STORES.METADATA);
-                    const request = store.get(key);
+                    const transaction = this.db.transaction([DB_CONFIG.STORES.AUTO_SAVE], 'readonly');
+                    const store = transaction.objectStore(DB_CONFIG.STORES.AUTO_SAVE);
                     
-                    request.onsuccess = () => resolve(request.result?.value || null);
+                    const sessions = [];
+                    const request = store.openCursor();
+                    
+                    request.onsuccess = (event) => {
+                        const cursor = event.target.result;
+                        if (cursor) {
+                            sessions.push(cursor.value);
+                            cursor.continue();
+                        } else {
+                            sessions.sort((a, b) => b.timestamp - a.timestamp);
+                            resolve(sessions);
+                        }
+                    };
+                    
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async deleteAutoSaveSession(sessionId) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction([DB_CONFIG.STORES.AUTO_SAVE], 'readwrite');
+                    const store = transaction.objectStore(DB_CONFIG.STORES.AUTO_SAVE);
+                    
+                    const request = store.delete(sessionId);
+                    
+                    request.onsuccess = () => resolve();
                     request.onerror = () => reject(request.error);
                 });
             }
 
             async getStorageUsed() {
                 return new Promise((resolve, reject) => {
-                    const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEOS], 'readonly');
-                    const store = transaction.objectStore(DB_CONFIG.STORES.VIDEOS);
+                    const transaction = this.db.transaction([DB_CONFIG.STORES.VIDEOS, DB_CONFIG.STORES.VIDEO_BLOBS], 'readonly');
                     
                     let total = 0;
-                    const request = store.openCursor();
+                    let completed = 0;
                     
-                    request.onsuccess = (event) => {
+                    const videoStore = transaction.objectStore(DB_CONFIG.STORES.VIDEOS);
+                    const videoRequest = videoStore.openCursor();
+                    
+                    videoRequest.onsuccess = (event) => {
+                        const cursor = event.target.result;
+                        if (cursor) {
+                            total += cursor.value.size || 0;
+                            cursor.continue();
+                        }
+                    };
+                    
+                    const blobStore = transaction.objectStore(DB_CONFIG.STORES.VIDEO_BLOBS);
+                    const blobRequest = blobStore.openCursor();
+                    
+                    blobRequest.onsuccess = (event) => {
                         const cursor = event.target.result;
                         if (cursor) {
                             total += cursor.value.size || 0;
@@ -1437,148 +1510,196 @@
                         }
                     };
                     
-                    request.onerror = () => reject(request.error);
+                    blobRequest.onerror = () => reject(blobRequest.error);
                 });
             }
         }
 
-        // Initialize database
         const dbManager = new DatabaseManager();
 
-        // =============== DOM ELEMENTS ===============
-        const elements = {
-            loading: document.getElementById('loading'),
-            loadingText: document.getElementById('loading-text'),
-            toastContainer: document.getElementById('toastContainer'),
+        // ==================== AUTO-SAVE FUNCTIONS ====================
+        function startAutoSave() {
+            if (!state.settings.autoSave) return;
             
-            preview: document.getElementById('preview'),
-            videoOverlay: document.getElementById('videoOverlay'),
-            recordingStatus: document.getElementById('recordingStatus'),
-            recordBtn: document.getElementById('recordBtn'),
-            stopBtn: document.getElementById('stopBtn'),
-            downloadBtn: document.getElementById('downloadBtn'),
-            manualSyncBtn: document.getElementById('manualSyncBtn'),
-            
-            timer: document.getElementById('timer'),
-            fileSize: document.getElementById('fileSize'),
-            totalDuration: document.getElementById('totalDuration'),
-            videoCount: document.getElementById('videoCount'),
-            
-            autoSyncBanner: document.getElementById('autoSyncBanner'),
-            syncStatusTitle: document.getElementById('syncStatusTitle'),
-            syncStatusDesc: document.getElementById('syncStatusDesc'),
-            connectedDevices: document.getElementById('connectedDevices'),
-            
-            syncCodeDisplay: document.getElementById('syncCodeDisplay'),
-            copySyncCodeBtn: document.getElementById('copySyncCodeBtn'),
-            refreshSyncCodeBtn: document.getElementById('refreshSyncCodeBtn'),
-            connectCodeInput: document.getElementById('connectCodeInput'),
-            connectPcBtn: document.getElementById('connectPcBtn'),
-            scanNetworkBtn: document.getElementById('scanNetworkBtn'),
-            autoSyncToggle: document.getElementById('autoSyncToggle'),
-            connectedPcList: document.getElementById('connectedPcList'),
-            
-            encryptSync: document.getElementById('encryptSync'),
-            syncOnSave: document.getElementById('syncOnSave'),
-            
-            totalSize: document.getElementById('totalSize'),
-            storageFill: document.getElementById('storageFill'),
-            usedStorage: document.getElementById('usedStorage'),
-            maxStorage: document.getElementById('maxStorage'),
-            storageStatus: document.getElementById('storageStatus'),
-            
-            videoGrid: document.getElementById('videoGrid'),
-            emptyLibrary: document.getElementById('emptyLibrary'),
-            search: document.getElementById('search'),
-            refreshLibraryBtn: document.getElementById('refreshLibraryBtn'),
-            
-            videoModal: document.getElementById('videoModal'),
-            modalVideo: document.getElementById('modalVideo'),
-            modalVideoTitle: document.getElementById('modalVideoTitle'),
-            modalInfo: document.getElementById('modalInfo'),
-            modalDownloadBtn: document.getElementById('modalDownloadBtn'),
-            modalDeleteBtn: document.getElementById('modalDeleteBtn'),
-            closeModal: document.getElementById('closeModal'),
-            
-            deviceId: document.getElementById('deviceId'),
-            globalSyncStatus: document.getElementById('globalSyncStatus'),
-            totalVideosCount: document.getElementById('totalVideosCount')
-        };
-
-        // =============== UTILITIES ===============
-        function formatTime(seconds) {
-            if (!seconds) return '00:00';
-            const m = Math.floor(seconds / 60);
-            const s = Math.floor(seconds % 60);
-            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-        }
-
-        function formatFileSize(bytes) {
-            if (!bytes) return '0 MB';
-            const mb = bytes / (1024 * 1024);
-            return mb.toFixed(2) + ' MB';
-        }
-
-        function generateDeviceName() {
-            const names = ['Work PC', 'Laptop', 'Gaming PC', 'Office', 'Home PC', 'Server'];
-            return names[Math.floor(Math.random() * names.length)] + ' ' + Math.floor(Math.random() * 1000);
-        }
-
-        function generateSyncCode() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let code = '';
-            for (let i = 0; i < 16; i++) {
-                code += chars.charAt(Math.floor(Math.random() * chars.length));
-                if (i % 4 === 3 && i < 15) code += '-';
+            if (state.autoSaveInterval) {
+                clearInterval(state.autoSaveInterval);
             }
-            return code;
-        }
-
-        function showLoading(text) {
-            elements.loadingText.textContent = text || 'Loading...';
-            elements.loading.style.display = 'flex';
-        }
-
-        function hideLoading() {
-            elements.loading.style.display = 'none';
-        }
-
-        function showToast(message, type = 'info') {
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
             
-            let icon = 'info-circle';
-            if (type === 'success') icon = 'check-circle';
-            if (type === 'error') icon = 'exclamation-circle';
-            if (type === 'warning') icon = 'exclamation-triangle';
+            state.autoSaveSessionId = `session_${Date.now()}`;
             
-            toast.innerHTML = `
-                <i class="fas fa-${icon}" style="font-size: 1.2rem;"></i>
-                <div style="flex: 1;">${message}</div>
-            `;
+            state.autoSaveInterval = setInterval(() => {
+                performAutoSave();
+            }, state.settings.autoSaveInterval * 1000);
             
-            elements.toastContainer.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
+            showAutoSavePanel('active', 'Auto-Save Active');
         }
 
-        // =============== RECORDING FUNCTIONS ===============
+        function stopAutoSave() {
+            if (state.autoSaveInterval) {
+                clearInterval(state.autoSaveInterval);
+                state.autoSaveInterval = null;
+            }
+            hideAutoSavePanel();
+        }
+
+        async function performAutoSave() {
+            if (state.autoSaveInProgress) return;
+            
+            state.autoSaveInProgress = true;
+            state.lastAutoSaveTime = Date.now();
+            
+            try {
+                showAutoSavePanel('saving', 'Saving...');
+                updateAutoSaveProgress(30);
+                
+                // Save recording progress if recording
+                if (state.isRecording && state.recordedChunks.length > 0) {
+                    await saveRecordingProgress();
+                }
+                
+                updateAutoSaveProgress(60);
+                
+                // Save all videos metadata
+                await saveAllVideosToDB();
+                
+                updateAutoSaveProgress(90);
+                
+                // Update stats
+                state.autoSaveCount++;
+                updateStats();
+                
+                updateAutoSaveProgress(100);
+                showAutoSavePanel('saved', 'Saved', formatTimeAgo(Date.now()));
+                
+                setTimeout(() => {
+                    if (state.isRecording) {
+                        showAutoSavePanel('active', 'Auto-Save Active');
+                    } else {
+                        hideAutoSavePanel();
+                    }
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Auto-save error:', error);
+                showAutoSavePanel('error', 'Save failed');
+                
+                setTimeout(() => {
+                    if (state.isRecording) {
+                        showAutoSavePanel('active', 'Auto-Save Active');
+                    } else {
+                        hideAutoSavePanel();
+                    }
+                }, 2000);
+            } finally {
+                state.autoSaveInProgress = false;
+            }
+        }
+
+        async function saveRecordingProgress() {
+            const chunks = state.recordedChunks.map(chunk => chunk.slice(0));
+            const blob = new Blob(chunks, { type: 'video/webm' });
+            
+            const arrayBuffer = await blob.arrayBuffer();
+            
+            const data = {
+                timestamp: Date.now(),
+                recordingStartTime: state.recordingStartTime,
+                duration: Math.floor((Date.now() - state.recordingStartTime) / 1000),
+                size: state.totalRecordedSize,
+                chunks: Array.from(new Uint8Array(arrayBuffer)),
+                settings: {
+                    quality: state.settings.quality,
+                    frameRate: state.settings.frameRate
+                }
+            };
+            
+            await dbManager.saveAutoSaveSession(state.autoSaveSessionId, data);
+        }
+
+        async function saveAllVideosToDB() {
+            state.storageUsed = await dbManager.getStorageUsed();
+            updateStorageInfo();
+        }
+
+        // ==================== RECOVERY FUNCTIONS ====================
+        async function checkForRecovery() {
+            const sessions = await dbManager.getAllAutoSaveSessions();
+            if (sessions.length === 0) return;
+            
+            const latest = sessions[0];
+            const age = Date.now() - latest.timestamp;
+            
+            if (age < 24 * 60 * 60 * 1000) {
+                state.pendingRecovery = latest;
+                showRecoveryBanner(latest);
+            }
+        }
+
+        function showRecoveryBanner(session) {
+            const duration = formatTime(session.data.duration || 0);
+            const size = formatFileSize(session.data.size || 0);
+            
+            elements.recoveryMessage.innerHTML = 
+                `Found unsaved recording (${duration}, ${size}) from ${new Date(session.timestamp).toLocaleString()}`;
+            
+            elements.recoveryBanner.style.display = 'flex';
+        }
+
+        async function recoverSession() {
+            if (!state.pendingRecovery) return;
+            
+            showProgress('Recovering...');
+            
+            try {
+                const session = state.pendingRecovery;
+                const data = session.data;
+                
+                const uint8Array = new Uint8Array(data.chunks);
+                const blob = new Blob([uint8Array], { type: 'video/webm' });
+                
+                const videoData = {
+                    title: `Recovered_${formatDateForFilename()}`,
+                    quality: data.settings?.quality || '1080p',
+                    duration: data.duration || 0,
+                    size: data.size || 0,
+                    blob: blob,
+                    date: new Date(data.timestamp).toISOString()
+                };
+                
+                await saveVideo(videoData);
+                await dbManager.deleteAutoSaveSession(session.sessionId);
+                await loadVideos();
+                
+                hideProgress();
+                showToast('Recording recovered!', 'success');
+                hideRecoveryBanner();
+                
+            } catch (error) {
+                hideProgress();
+                showToast('Recovery failed', 'error');
+            }
+        }
+
+        function hideRecoveryBanner() {
+            elements.recoveryBanner.style.display = 'none';
+            state.pendingRecovery = null;
+        }
+
+        // ==================== RECORDING FUNCTIONS ====================
         async function startRecording() {
             try {
                 const quality = document.querySelector('input[name="quality"]:checked')?.value || '1080p';
+                const useSystemAudio = parseInt(elements.systemVolumeSlider.value) > 0;
                 
                 const stream = await navigator.mediaDevices.getDisplayMedia({
-                    video: {
-                        cursor: "always",
-                        width: quality === '1080p' ? 1920 : quality === '720p' ? 1280 : 854,
-                        height: quality === '1080p' ? 1080 : quality === '720p' ? 720 : 480,
-                        frameRate: 30
-                    },
-                    audio: true
+                    video: { cursor: "always" },
+                    audio: useSystemAudio
                 });
                 
                 state.currentStream = stream;
                 state.recordedChunks = [];
                 state.recordingStartTime = Date.now();
+                state.totalRecordedSize = 0;
                 
                 elements.preview.srcObject = stream;
                 elements.preview.style.display = 'block';
@@ -1589,37 +1710,24 @@
                 
                 state.mediaRecorder = new MediaRecorder(stream, { mimeType });
                 
-                state.mediaRecorder.ondataavailable = (e) => {
-                    if (e.data.size > 0) {
-                        state.recordedChunks.push(e.data);
-                        state.totalRecordedSize += e.data.size;
-                        elements.fileSize.textContent = formatFileSize(state.totalRecordedSize);
+                state.mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        state.recordedChunks.push(event.data);
+                        state.totalRecordedSize += event.data.size;
+                        updateFileSize();
                     }
                 };
                 
-                state.mediaRecorder.onstop = async () => {
-                    if (state.recordedChunks.length === 0) return;
-                    
-                    const blob = new Blob(state.recordedChunks, { type: 'video/webm' });
-                    const duration = Math.floor((Date.now() - state.recordingStartTime) / 1000);
-                    
-                    const videoData = {
-                        title: `Recording_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}`,
-                        quality,
-                        duration,
-                        size: blob.size,
-                        blob,
-                        date: new Date().toISOString()
-                    };
-                    
-                    await saveVideo(videoData);
-                    cleanupRecording();
-                };
+                state.mediaRecorder.onstop = handleRecordingStop;
                 
                 state.mediaRecorder.start(1000);
                 startTimer();
                 state.isRecording = true;
                 updateUI();
+                
+                if (state.settings.autoSave) {
+                    startAutoSave();
+                }
                 
                 showToast('Recording started', 'success');
                 
@@ -1629,37 +1737,61 @@
                 
             } catch (error) {
                 showToast('Failed to start recording', 'error');
-                console.error(error);
+                cleanupRecording();
             }
         }
 
         function stopRecording() {
-            if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
-                state.mediaRecorder.stop();
-                state.isRecording = false;
-                updateUI();
+            if (state.mediaRecorder?.state !== 'inactive') {
+                state.mediaRecorder?.stop();
+            }
+        }
+
+        async function handleRecordingStop() {
+            try {
+                if (state.recordedChunks.length === 0) return;
                 
-                if (state.currentStream) {
-                    state.currentStream.getTracks().forEach(t => t.stop());
+                const blob = new Blob(state.recordedChunks, { type: state.mediaRecorder.mimeType });
+                const duration = Math.floor((Date.now() - state.recordingStartTime) / 1000);
+                
+                const videoData = {
+                    title: `Recording_${formatDateForFilename()}`,
+                    quality: state.settings.quality,
+                    duration: duration,
+                    size: blob.size,
+                    blob: blob
+                };
+                
+                await saveVideo(videoData);
+                showToast(`Recording saved (${formatTime(duration)})`, 'success');
+                
+                if (state.autoSaveSessionId) {
+                    await dbManager.deleteAutoSaveSession(state.autoSaveSessionId);
                 }
                 
-                stopTimer();
-                showToast('Recording stopped', 'info');
+            } catch (error) {
+                showToast('Error saving recording', 'error');
+            } finally {
+                cleanupRecording();
             }
         }
 
         function cleanupRecording() {
-            state.currentStream = null;
-            state.recordedChunks = [];
-            state.totalRecordedSize = 0;
+            if (state.currentStream) {
+                state.currentStream.getTracks().forEach(t => t.stop());
+                state.currentStream = null;
+            }
             
             elements.preview.srcObject = null;
             elements.preview.style.display = 'none';
             elements.videoOverlay.style.display = 'flex';
             
             state.isRecording = false;
+            state.recordedChunks = [];
+            state.totalRecordedSize = 0;
             stopTimer();
             updateUI();
+            stopAutoSave();
         }
 
         function startTimer() {
@@ -1670,8 +1802,326 @@
         }
 
         function stopTimer() {
-            clearInterval(state.timerInterval);
-            elements.timer.textContent = '00:00';
+            if (state.timerInterval) {
+                clearInterval(state.timerInterval);
+                state.timerInterval = null;
+            }
+        }
+
+        // ==================== VIDEO MANAGEMENT ====================
+        async function loadVideos() {
+            state.videos = await dbManager.getAllVideos();
+            state.videoCount = state.videos.length;
+            state.totalRecordingTime = state.videos.reduce((sum, v) => sum + (v.duration || 0), 0);
+            state.storageUsed = await dbManager.getStorageUsed();
+            
+            updateVideoGrid();
+            updateStats();
+            updateStorageInfo();
+        }
+
+        async function saveVideo(videoData) {
+            const video = await dbManager.saveVideo(videoData);
+            state.videos.unshift(video);
+            state.videoCount++;
+            state.totalRecordingTime += video.duration || 0;
+            
+            updateVideoGrid();
+            updateStats();
+            
+            return video;
+        }
+
+        async function deleteVideo(videoId) {
+            await dbManager.deleteVideo(videoId);
+            
+            const video = state.videos.find(v => v.id === videoId);
+            state.videos = state.videos.filter(v => v.id !== videoId);
+            state.videoCount--;
+            state.totalRecordingTime -= video?.duration || 0;
+            
+            updateVideoGrid();
+            updateStats();
+            showToast('Video deleted', 'success');
+        }
+
+        function updateVideoGrid() {
+            elements.videoGrid.innerHTML = '';
+            
+            const searchTerm = elements.search.value.toLowerCase();
+            let filteredVideos = state.videos;
+            
+            if (searchTerm) {
+                filteredVideos = state.videos.filter(v => 
+                    v.title.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            if (filteredVideos.length === 0) {
+                elements.emptyLibrary.classList.add('active');
+                return;
+            }
+            
+            elements.emptyLibrary.classList.remove('active');
+            
+            filteredVideos.forEach(video => {
+                const card = createVideoCard(video);
+                elements.videoGrid.appendChild(card);
+            });
+        }
+
+        function createVideoCard(video) {
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            
+            card.innerHTML = `
+                <div class="video-thumbnail">
+                    <i class="fas fa-play-circle" style="font-size: 2rem;"></i>
+                    <div style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); padding: 3px 8px; border-radius: var(--radius-sm); font-size: 0.8rem;">
+                        ${formatTime(video.duration)}
+                    </div>
+                </div>
+                <div class="video-info">
+                    <div class="video-title">${video.title}</div>
+                    <div class="video-meta">
+                        <div><i class="fas fa-expand-alt"></i> ${getQualityLabel(video.quality)}</div>
+                        <div><i class="fas fa-file"></i> ${formatFileSize(video.size)}</div>
+                        <div><i class="fas fa-calendar"></i> ${formatDate(video.date)}</div>
+                    </div>
+                    <div class="video-actions">
+                        <button class="action-btn play-btn"><i class="fas fa-play"></i></button>
+                        <button class="action-btn download-btn"><i class="fas fa-download"></i></button>
+                        <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `;
+            
+            card.querySelector('.play-btn').addEventListener('click', () => playVideo(video.id));
+            card.querySelector('.download-btn').addEventListener('click', () => downloadVideo(video.id));
+            card.querySelector('.delete-btn').addEventListener('click', () => deleteVideo(video.id));
+            
+            return card;
+        }
+
+        async function playVideo(videoId) {
+            const video = await dbManager.getVideo(videoId);
+            if (!video || !video.blob) {
+                showToast('Video file not available', 'warning');
+                return;
+            }
+            
+            state.currentVideoId = videoId;
+            
+            const url = URL.createObjectURL(video.blob);
+            elements.modalVideo.src = url;
+            elements.modalVideoTitle.textContent = video.title;
+            
+            elements.modalInfo.innerHTML = `
+                <div><strong>Quality:</strong> ${getQualityLabel(video.quality)}</div>
+                <div><strong>Duration:</strong> ${formatTime(video.duration)}</div>
+                <div><strong>Size:</strong> ${formatFileSize(video.size)}</div>
+                <div><strong>Date:</strong> ${formatDate(video.date)}</div>
+            `;
+            
+            elements.videoModal.classList.add('active');
+        }
+
+        async function downloadVideo(videoId) {
+            const video = await dbManager.getVideo(videoId);
+            if (!video || !video.blob) {
+                showToast('Video not available', 'warning');
+                return;
+            }
+            
+            const url = URL.createObjectURL(video.blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${video.title}.webm`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // ==================== BACKUP HISTORY ====================
+        async function showBackupHistory() {
+            const sessions = await dbManager.getAllAutoSaveSessions();
+            
+            if (sessions.length === 0) {
+                elements.backupHistoryList.innerHTML = '<div style="text-align: center; padding: 40px;">No auto-save history</div>';
+            } else {
+                let html = '';
+                sessions.slice(0, 20).forEach((session, i) => {
+                    const data = session.data;
+                    html += `
+                        <div style="background: var(--bg-tertiary); padding: 15px; border-radius: var(--radius-md); margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <strong>Auto-Save #${sessions.length - i}</strong>
+                                <span style="color: var(--text-tertiary); font-size: 0.9rem;">${new Date(session.timestamp).toLocaleString()}</span>
+                            </div>
+                            <div style="display: flex; gap: 15px; color: var(--text-tertiary); font-size: 0.9rem;">
+                                <span>Duration: ${formatTime(data.duration || 0)}</span>
+                                <span>Size: ${formatFileSize(data.size || 0)}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                elements.backupHistoryList.innerHTML = html;
+            }
+            
+            elements.backupHistoryModal.classList.add('active');
+        }
+
+        async function restoreAllBackups() {
+            if (!confirm('Restore all auto-saves as videos?')) return;
+            
+            showProgress('Restoring backups...');
+            
+            try {
+                const sessions = await dbManager.getAllAutoSaveSessions();
+                let restored = 0;
+                
+                for (let i = 0; i < sessions.length; i++) {
+                    const session = sessions[i];
+                    const data = session.data;
+                    
+                    if (data?.chunks) {
+                        const uint8Array = new Uint8Array(data.chunks);
+                        const blob = new Blob([uint8Array], { type: 'video/webm' });
+                        
+                        await saveVideo({
+                            title: `Restored_${formatDateForFilename()}_${i+1}`,
+                            quality: data.settings?.quality || '1080p',
+                            duration: data.duration || 0,
+                            size: data.size || 0,
+                            blob: blob,
+                            date: new Date(data.timestamp).toISOString()
+                        });
+                        
+                        restored++;
+                    }
+                    
+                    updateProgress((i + 1) / sessions.length * 100, `Restoring ${i+1}/${sessions.length}`);
+                }
+                
+                hideProgress();
+                showToast(`Restored ${restored} videos`, 'success');
+                
+            } catch (error) {
+                hideProgress();
+                showToast('Restore failed', 'error');
+            }
+        }
+
+        async function clearOldBackups() {
+            if (!confirm('Delete auto-saves older than 7 days?')) return;
+            
+            showProgress('Clearing...');
+            
+            try {
+                const sessions = await dbManager.getAllAutoSaveSessions();
+                const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+                
+                let deleted = 0;
+                for (const session of sessions) {
+                    if (session.timestamp < weekAgo) {
+                        await dbManager.deleteAutoSaveSession(session.sessionId);
+                        deleted++;
+                    }
+                }
+                
+                hideProgress();
+                showToast(`Deleted ${deleted} old backups`, 'success');
+                
+            } catch (error) {
+                hideProgress();
+                showToast('Error clearing backups', 'error');
+            }
+        }
+
+        // ==================== SETTINGS ====================
+        async function loadSettings() {
+            const saved = await dbManager.loadSettings();
+            if (saved) {
+                state.settings = { ...state.settings, ...saved };
+            }
+            applySettingsToUI();
+        }
+
+        async function saveSettings() {
+            await dbManager.saveSettings(state.settings);
+        }
+
+        function applySettingsToUI() {
+            elements.autoSave.checked = state.settings.autoSave;
+            elements.saveVideoBlob.checked = state.settings.saveVideoBlob;
+            elements.compressData.checked = state.settings.compressData;
+            
+            elements.fpsSlider.value = state.settings.frameRate;
+            elements.fpsValue.textContent = `${state.settings.frameRate} FPS`;
+            
+            elements.systemVolumeSlider.value = state.settings.systemVolume;
+            elements.systemVolumeValue.textContent = `${state.settings.systemVolume}%`;
+            
+            elements.micVolumeSlider.value = state.settings.micVolume;
+            elements.micVolumeValue.textContent = `${state.settings.micVolume}%`;
+            
+            elements.autoSaveIntervalSlider.value = state.settings.autoSaveInterval;
+            elements.autoSaveIntervalValue.textContent = `${state.settings.autoSaveInterval}s`;
+            
+            elements.maxAutoSaveSlider.value = state.settings.maxAutoSaves;
+            elements.maxAutoSaveValue.textContent = state.settings.maxAutoSaves;
+            
+            const qualityRadio = document.querySelector(`input[name="quality"][value="${state.settings.quality}"]`);
+            if (qualityRadio) {
+                qualityRadio.checked = true;
+                qualityRadio.closest('.quality-option').classList.add('selected');
+            }
+        }
+
+        // ==================== UI HELPERS ====================
+        function showAutoSavePanel(status, title, time) {
+            elements.autoSavePanel.style.display = 'block';
+            elements.autoSavePanel.classList.remove('saving', 'saved', 'error');
+            elements.autoSavePanel.classList.add(status);
+            
+            elements.autoSavePanelTitle.textContent = title;
+            if (time) elements.autoSavePanelTime.textContent = time;
+            
+            const icon = elements.autoSavePanelIcon.querySelector('i');
+            if (icon) {
+                if (status === 'saving') icon.className = 'fas fa-spinner fa-pulse';
+                else if (status === 'saved') icon.className = 'fas fa-check-circle';
+                else if (status === 'error') icon.className = 'fas fa-exclamation-circle';
+                else icon.className = 'fas fa-cloud-upload-alt';
+            }
+        }
+
+        function hideAutoSavePanel() {
+            elements.autoSavePanel.style.display = 'none';
+        }
+
+        function updateAutoSaveProgress(percent) {
+            elements.autoSaveProgressBar.style.width = percent + '%';
+            elements.autoSaveStats.textContent = percent < 100 ? `Saving... ${percent}%` : 'All data saved';
+            elements.autoSaveBadge.textContent = percent + '%';
+        }
+
+        function updateStats() {
+            elements.videoCount.textContent = state.videoCount;
+            elements.totalVideosCount.textContent = state.videoCount;
+            elements.totalDuration.textContent = formatTime(state.totalRecordingTime);
+            elements.autoSaveCount.textContent = state.autoSaveCount;
+            elements.totalAutoSaves.textContent = state.autoSaveCount;
+        }
+
+        function updateStorageInfo() {
+            const usedGB = state.storageUsed / (1024 * 1024 * 1024);
+            const maxGB = 500;
+            const percent = (state.storageUsed / (maxGB * 1024 * 1024 * 1024)) * 100;
+            
+            elements.totalSize.textContent = usedGB.toFixed(2) + ' GB';
+            elements.storageFill.style.width = Math.min(percent, 100) + '%';
+            elements.usedStorage.textContent = usedGB.toFixed(2) + ' GB used';
+            elements.footerStorage.textContent = usedGB.toFixed(2) + ' GB';
         }
 
         function updateUI() {
@@ -1680,422 +2130,102 @@
             elements.recordingStatus.style.display = state.isRecording ? 'flex' : 'none';
             
             if (!state.isRecording) {
+                elements.timer.textContent = '00:00';
                 elements.fileSize.textContent = '0 MB';
             }
         }
 
-        // =============== VIDEO MANAGEMENT ===============
-        async function saveVideo(videoData) {
-            try {
-                const video = await dbManager.saveVideo(videoData);
-                
-                state.videos.unshift({
-                    ...video,
-                    hasBlob: true
-                });
-                
-                state.videoCount++;
-                state.storageUsed += video.size;
-                state.totalRecordingTime += video.duration;
-                
-                elements.downloadBtn.disabled = false;
-                
-                updateVideoGrid();
-                updateStorageInfo();
-                updateStats();
-                
-                showToast('Video saved', 'success');
-                
-                // Auto sync ke PC lain
-                if (state.autoSyncEnabled && state.connectedDevices.length > 0) {
-                    syncToAllDevices(video);
-                }
-                
-                return video;
-                
-            } catch (error) {
-                showToast('Error saving video', 'error');
-                console.error(error);
-            }
+        function updateFileSize() {
+            elements.fileSize.textContent = formatFileSize(state.totalRecordedSize);
         }
 
-        async function loadVideos() {
-            const videos = await dbManager.getAllVideos();
-            state.videos = videos;
-            state.videoCount = videos.length;
-            state.totalRecordingTime = videos.reduce((sum, v) => sum + (v.duration || 0), 0);
-            state.storageUsed = await dbManager.getStorageUsed();
-            
-            updateVideoGrid();
-            updateStorageInfo();
-            updateStats();
+        // ==================== UTILITY FUNCTIONS ====================
+        function formatTime(seconds) {
+            if (!seconds) return '00:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
 
-        async function deleteVideo(id) {
-            if (await dbManager.deleteVideo(id)) {
-                state.videos = state.videos.filter(v => v.id !== id);
-                state.videoCount--;
-                state.storageUsed = await dbManager.getStorageUsed();
-                
-                updateVideoGrid();
-                updateStorageInfo();
-                updateStats();
-                
-                showToast('Video deleted', 'success');
-                
-                if (state.currentVideoId === id) {
-                    closeModal();
-                }
-            }
+        function formatFileSize(bytes) {
+            if (!bytes) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return (bytes / Math.pow(k, i)).toFixed(1) + ' ' + sizes[i];
         }
 
-        function updateVideoGrid() {
-            elements.videoGrid.innerHTML = '';
-            
-            if (state.videos.length === 0) {
-                elements.emptyLibrary.classList.add('active');
-                return;
-            }
-            
-            elements.emptyLibrary.classList.remove('active');
-            
-            const searchTerm = elements.search.value.toLowerCase();
-            const filtered = state.videos.filter(v => 
-                v.title.toLowerCase().includes(searchTerm)
-            );
-            
-            filtered.forEach(video => {
-                const card = document.createElement('div');
-                card.className = 'video-card';
-                card.innerHTML = `
-                    <div class="video-thumbnail">
-                        <i class="fas fa-play-circle"></i>
-                        <div style="position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.7); padding: 3px 8px; border-radius: var(--radius-sm); font-size: 0.8rem;">
-                            ${formatTime(video.duration)}
-                        </div>
-                    </div>
-                    <div class="video-info">
-                        <div class="video-title">${video.title}</div>
-                        <div class="video-meta">
-                            <span><i class="fas fa-file-alt"></i> ${formatFileSize(video.size)}</span>
-                            <span><i class="fas fa-calendar"></i> ${new Date(video.date).toLocaleDateString()}</span>
-                        </div>
-                        <div class="video-actions">
-                            <button class="action-btn play-btn" data-id="${video.id}">
-                                <i class="fas fa-play"></i> Play
-                            </button>
-                            <button class="action-btn download-btn" data-id="${video.id}">
-                                <i class="fas fa-download"></i>
-                            </button>
-                            <button class="action-btn delete-btn" data-id="${video.id}">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-                
-                card.querySelector('.play-btn').addEventListener('click', () => playVideo(video.id));
-                card.querySelector('.download-btn').addEventListener('click', () => downloadVideo(video.id));
-                card.querySelector('.delete-btn').addEventListener('click', () => deleteVideo(video.id));
-                
-                elements.videoGrid.appendChild(card);
-            });
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
-        async function playVideo(id) {
-            const video = await dbManager.getVideo(id);
-            if (!video || !video.blob) {
-                showToast('Video not found', 'error');
-                return;
-            }
+        function formatDateForFilename() {
+            const d = new Date();
+            return d.getFullYear() + 
+                String(d.getMonth() + 1).padStart(2, '0') + 
+                String(d.getDate()).padStart(2, '0') + '_' +
+                String(d.getHours()).padStart(2, '0') +
+                String(d.getMinutes()).padStart(2, '0');
+        }
+
+        function formatTimeAgo(timestamp) {
+            const seconds = Math.floor((Date.now() - timestamp) / 1000);
+            if (seconds < 60) return 'just now';
+            if (seconds < 3600) return Math.floor(seconds / 60) + ' min ago';
+            if (seconds < 86400) return Math.floor(seconds / 3600) + ' hours ago';
+            return Math.floor(seconds / 86400) + ' days ago';
+        }
+
+        function getQualityLabel(quality) {
+            const map = { '1080p': 'Full HD', '720p': 'HD Ready', '480p': 'SD' };
+            return map[quality] || quality;
+        }
+
+        function showProgress(title) {
+            elements.progressTitle.textContent = title;
+            elements.progressFill.style.width = '0%';
+            elements.progressText.textContent = '0%';
+            elements.progress.classList.add('active');
+        }
+
+        function updateProgress(percent, text) {
+            elements.progressFill.style.width = percent + '%';
+            elements.progressText.textContent = Math.round(percent) + '%' + (text ? ' - ' + text : '');
+        }
+
+        function hideProgress() {
+            elements.progress.classList.remove('active');
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
             
-            state.currentVideoId = id;
+            const icon = {
+                success: 'check-circle',
+                error: 'exclamation-circle',
+                warning: 'exclamation-triangle',
+                info: 'info-circle'
+            }[type];
             
-            const url = URL.createObjectURL(video.blob);
-            elements.modalVideo.src = url;
-            elements.modalVideoTitle.textContent = video.title;
-            
-            elements.modalInfo.innerHTML = `
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; background: var(--bg-tertiary); border-radius: var(--radius-md);">
-                    <div><strong>Duration:</strong> ${formatTime(video.duration)}</div>
-                    <div><strong>Size:</strong> ${formatFileSize(video.size)}</div>
-                    <div><strong>Quality:</strong> ${video.quality}</div>
-                    <div><strong>Date:</strong> ${new Date(video.date).toLocaleString()}</div>
+            toast.innerHTML = `
+                <div class="toast-icon"><i class="fas fa-${icon}"></i></div>
+                <div class="toast-content">
+                    <div class="toast-title">${type.toUpperCase()}</div>
+                    <div class="toast-message">${message}</div>
                 </div>
+                <button class="toast-close"><i class="fas fa-times"></i></button>
             `;
             
-            elements.videoModal.classList.add('active');
-            elements.modalVideo.play().catch(() => {});
+            elements.toastContainer.appendChild(toast);
+            
+            toast.querySelector('.toast-close').addEventListener('click', () => toast.remove());
+            
+            setTimeout(() => toast.remove(), 5000);
         }
 
-        async function downloadVideo(id) {
-            const video = await dbManager.getVideo(id);
-            if (!video || !video.blob) return;
-            
-            const url = URL.createObjectURL(video.blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${video.title}.webm`;
-            a.click();
-            
-            setTimeout(() => URL.revokeObjectURL(url), 100);
-            showToast('Download started', 'success');
-        }
-
-        function closeModal() {
-            elements.videoModal.classList.remove('active');
-            elements.modalVideo.pause();
-            if (elements.modalVideo.src) {
-                URL.revokeObjectURL(elements.modalVideo.src);
-            }
-            state.currentVideoId = null;
-        }
-
-        function updateStorageInfo() {
-            const usedGB = (state.storageUsed / (1024 * 1024 * 1024)).toFixed(2);
-            const percent = (state.storageUsed / (500 * 1024 * 1024 * 1024)) * 100;
-            
-            elements.totalSize.textContent = usedGB + ' GB';
-            elements.storageFill.style.width = percent + '%';
-            elements.usedStorage.textContent = usedGB + ' GB used';
-            elements.storageStatus.textContent = (100 - percent).toFixed(1) + '% available';
-        }
-
-        function updateStats() {
-            elements.totalDuration.textContent = formatTime(state.totalRecordingTime);
-            elements.videoCount.textContent = state.videoCount;
-            elements.totalVideosCount.textContent = state.videoCount;
-        }
-
-        // =============== SYNC FUNCTIONS ===============
-        async function initializeDevice() {
-            let deviceId = await dbManager.getMetadata('device_id');
-            let deviceName = await dbManager.getMetadata('device_name');
-            let syncCode = await dbManager.getMetadata('sync_code');
-            
-            if (!deviceId) {
-                deviceId = 'dev_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-                await dbManager.saveMetadata('device_id', deviceId);
-            }
-            
-            if (!deviceName) {
-                deviceName = generateDeviceName();
-                await dbManager.saveMetadata('device_name', deviceName);
-            }
-            
-            if (!syncCode) {
-                syncCode = generateSyncCode();
-                await dbManager.saveMetadata('sync_code', syncCode);
-            }
-            
-            state.deviceId = deviceId;
-            state.deviceName = deviceName;
-            state.syncCode = syncCode;
-            
-            elements.deviceId.textContent = deviceName;
-            elements.syncCodeDisplay.textContent = syncCode;
-        }
-
-        async function startAutoSync() {
-            // Broadcast presence setiap 5 detik
-            state.syncInterval = setInterval(async () => {
-                if (!state.autoSyncEnabled) return;
-                
-                // Broadcast ke semua connected devices
-                const devices = await dbManager.getConnectedDevices();
-                state.connectedDevices = devices;
-                
-                // Update UI
-                updateConnectedDevicesUI();
-                
-                // Kirim heartbeat
-                await dbManager.saveConnectedDevice({
-                    deviceId: state.deviceId,
-                    deviceName: state.deviceName,
-                    syncCode: state.syncCode,
-                    lastSeen: Date.now(),
-                    videos: state.videos.map(v => ({ id: v.id, title: v.title, duration: v.duration }))
-                });
-                
-                // Cek pending syncs
-                const pending = await dbManager.getPendingSyncs();
-                if (pending.length > 0) {
-                    syncPendingItems(pending);
-                }
-                
-            }, 5000);
-        }
-
-        async function syncToAllDevices(data) {
-            const devices = state.connectedDevices;
-            
-            for (const device of devices) {
-                if (device.deviceId !== state.deviceId) {
-                    // Simulate sync to other device
-                    console.log('Syncing to:', device.deviceName, data);
-                    
-                    // In real implementation, you'd use WebRTC or WebSocket here
-                    showToast(`Synced to ${device.deviceName}`, 'success');
-                }
-            }
-        }
-
-        async function syncPendingItems(pending) {
-            for (const item of pending) {
-                await syncToAllDevices(item);
-                await dbManager.markSyncComplete(item.id);
-            }
-        }
-
-        async function connectToPC() {
-            const code = elements.connectCodeInput.value.trim().toUpperCase().replace(/-/g, '');
-            if (!code || code.length !== 16) {
-                showToast('Invalid sync code', 'warning');
-                return;
-            }
-            
-            showLoading('Connecting...');
-            
-            try {
-                // Simulate finding device with this code
-                const deviceName = 'PC ' + code.substring(0, 4);
-                
-                const device = {
-                    deviceId: 'dev_' + code,
-                    deviceName: deviceName,
-                    syncCode: code,
-                    lastSeen: Date.now(),
-                    videos: []
-                };
-                
-                await dbManager.saveConnectedDevice(device);
-                
-                if (!state.connectedDevices.find(d => d.deviceId === device.deviceId)) {
-                    state.connectedDevices.push(device);
-                }
-                
-                updateConnectedDevicesUI();
-                elements.connectCodeInput.value = '';
-                
-                showToast(`Connected to ${deviceName}`, 'success');
-                
-            } catch (error) {
-                showToast('Connection failed', 'error');
-            } finally {
-                hideLoading();
-            }
-        }
-
-        function scanNetwork() {
-            showLoading('Scanning network...');
-            
-            setTimeout(() => {
-                // Simulate finding devices
-                const found = [];
-                for (let i = 0; i < 2; i++) {
-                    found.push({
-                        deviceId: 'scan_' + Date.now() + '_' + i,
-                        deviceName: 'Network PC ' + (i + 1),
-                        syncCode: generateSyncCode(),
-                        lastSeen: Date.now()
-                    });
-                }
-                
-                found.forEach(d => dbManager.saveConnectedDevice(d));
-                state.connectedDevices.push(...found);
-                
-                updateConnectedDevicesUI();
-                hideLoading();
-                showToast(`Found ${found.length} devices`, 'success');
-                
-            }, 2000);
-        }
-
-        function updateConnectedDevicesUI() {
-            // Update banner
-            const count = state.connectedDevices.length;
-            elements.syncStatusDesc.textContent = `Menyinkronkan ke ${count} perangkat`;
-            
-            // Update connected devices chips
-            elements.connectedDevices.innerHTML = '';
-            state.connectedDevices.forEach(device => {
-                if (device.deviceId !== state.deviceId) {
-                    const chip = document.createElement('div');
-                    chip.className = 'device-chip online';
-                    chip.innerHTML = `
-                        <div class="device-dot"></div>
-                        <span class="device-name">${device.deviceName}</span>
-                    `;
-                    elements.connectedDevices.appendChild(chip);
-                }
-            });
-            
-            // Update connected PCs list
-            elements.connectedPcList.innerHTML = '';
-            if (state.connectedDevices.length > 1) {
-                const list = document.createElement('div');
-                list.style.background = 'var(--bg-tertiary)';
-                list.style.borderRadius = 'var(--radius-md)';
-                list.style.padding = '15px';
-                
-                state.connectedDevices.forEach(device => {
-                    if (device.deviceId !== state.deviceId) {
-                        list.innerHTML += `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border-light);">
-                                <div>
-                                    <div style="font-weight: 700;">${device.deviceName}</div>
-                                    <div style="font-size: 0.85rem; color: var(--text-tertiary);">
-                                        Last seen: ${new Date(device.lastSeen).toLocaleTimeString()}
-                                    </div>
-                                </div>
-                                <div class="device-dot"></div>
-                            </div>
-                        `;
-                    }
-                });
-                
-                elements.connectedPcList.appendChild(list);
-            }
-        }
-
-        function toggleAutoSync() {
-            state.autoSyncEnabled = !state.autoSyncEnabled;
-            elements.autoSyncToggle.classList.toggle('active', state.autoSyncEnabled);
-            
-            if (state.autoSyncEnabled) {
-                startAutoSync();
-                showToast('Auto sync enabled', 'success');
-            } else {
-                clearInterval(state.syncInterval);
-                showToast('Auto sync disabled', 'info');
-            }
-            
-            elements.globalSyncStatus.textContent = state.autoSyncEnabled ? 'Active' : 'Disabled';
-        }
-
-        // =============== SETTINGS ===============
-        async function loadSettings() {
-            const saved = await dbManager.loadSettings();
-            if (saved) {
-                state.settings = { ...state.settings, ...saved };
-            }
-            
-            elements.encryptSync.checked = state.settings.encryptSync;
-            elements.syncOnSave.checked = state.settings.syncOnSave;
-            
-            const qualityRadio = document.querySelector(`input[name="quality"][value="${state.settings.quality}"]`);
-            if (qualityRadio) {
-                qualityRadio.checked = true;
-                document.querySelectorAll('.quality-option').forEach(o => o.classList.remove('selected'));
-                qualityRadio.closest('.quality-option').classList.add('selected');
-            }
-        }
-
-        async function saveSettings() {
-            await dbManager.saveSettings(state.settings);
-        }
-
-        // =============== EVENT LISTENERS ===============
+        // ==================== EVENT LISTENERS ====================
         function setupEventListeners() {
             elements.recordBtn.addEventListener('click', startRecording);
             elements.stopBtn.addEventListener('click', stopRecording);
@@ -2104,106 +2234,144 @@
                 if (state.videos[0]) downloadVideo(state.videos[0].id);
             });
             
-            elements.manualSyncBtn.addEventListener('click', async () => {
-                showToast('Manual sync triggered', 'info');
-                const pending = await dbManager.getPendingSyncs();
-                await syncPendingItems(pending);
+            elements.backupHistoryBtn.addEventListener('click', showBackupHistory);
+            elements.restoreAllBackupBtn.addEventListener('click', restoreAllBackups);
+            elements.clearOldBackupBtn.addEventListener('click', clearOldBackups);
+            elements.closeBackupHistoryModal.addEventListener('click', () => {
+                elements.backupHistoryModal.classList.remove('active');
             });
             
-            elements.copySyncCodeBtn.addEventListener('click', () => {
-                navigator.clipboard.writeText(state.syncCode);
-                showToast('Sync code copied', 'success');
+            elements.closeModal.addEventListener('click', () => {
+                elements.videoModal.classList.remove('active');
+                URL.revokeObjectURL(elements.modalVideo.src);
             });
             
-            elements.refreshSyncCodeBtn.addEventListener('click', async () => {
-                const newCode = generateSyncCode();
-                await dbManager.saveMetadata('sync_code', newCode);
-                state.syncCode = newCode;
-                elements.syncCodeDisplay.textContent = newCode;
-                showToast('New sync code generated', 'success');
+            elements.modalDownloadBtn.addEventListener('click', () => {
+                if (state.currentVideoId) downloadVideo(state.currentVideoId);
             });
             
-            elements.connectPcBtn.addEventListener('click', connectToPC);
-            elements.scanNetworkBtn.addEventListener('click', scanNetwork);
+            elements.modalDeleteBtn.addEventListener('click', async () => {
+                if (state.currentVideoId) {
+                    await deleteVideo(state.currentVideoId);
+                    elements.videoModal.classList.remove('active');
+                }
+            });
             
-            elements.autoSyncToggle.addEventListener('click', toggleAutoSync);
-            elements.autoSyncToggle.classList.add('active');
+            elements.search.addEventListener('input', updateVideoGrid);
             
-            elements.encryptSync.addEventListener('change', (e) => {
-                state.settings.encryptSync = e.target.checked;
+            elements.recoverBtn.addEventListener('click', recoverSession);
+            elements.dismissRecoveryBtn.addEventListener('click', hideRecoveryBanner);
+            
+            elements.cancelProgress.addEventListener('click', hideProgress);
+            
+            // Settings changes
+            elements.autoSave.addEventListener('change', (e) => {
+                state.settings.autoSave = e.target.checked;
+                saveSettings();
+                if (state.isRecording) {
+                    if (e.target.checked) startAutoSave();
+                    else stopAutoSave();
+                }
+            });
+            
+            elements.saveVideoBlob.addEventListener('change', (e) => {
+                state.settings.saveVideoBlob = e.target.checked;
                 saveSettings();
             });
             
-            elements.syncOnSave.addEventListener('change', (e) => {
-                state.settings.syncOnSave = e.target.checked;
+            elements.compressData.addEventListener('change', (e) => {
+                state.settings.compressData = e.target.checked;
+                saveSettings();
+            });
+            
+            elements.fpsSlider.addEventListener('input', (e) => {
+                state.settings.frameRate = parseInt(e.target.value);
+                elements.fpsValue.textContent = state.settings.frameRate + ' FPS';
+                saveSettings();
+            });
+            
+            elements.systemVolumeSlider.addEventListener('input', (e) => {
+                state.settings.systemVolume = parseInt(e.target.value);
+                elements.systemVolumeValue.textContent = state.settings.systemVolume + '%';
+                saveSettings();
+            });
+            
+            elements.micVolumeSlider.addEventListener('input', (e) => {
+                state.settings.micVolume = parseInt(e.target.value);
+                elements.micVolumeValue.textContent = state.settings.micVolume + '%';
+                saveSettings();
+            });
+            
+            elements.autoSaveIntervalSlider.addEventListener('input', (e) => {
+                state.settings.autoSaveInterval = parseInt(e.target.value);
+                elements.autoSaveIntervalValue.textContent = state.settings.autoSaveInterval + 's';
+                saveSettings();
+                if (state.settings.autoSave && state.isRecording) {
+                    startAutoSave();
+                }
+            });
+            
+            elements.maxAutoSaveSlider.addEventListener('input', (e) => {
+                state.settings.maxAutoSaves = parseInt(e.target.value);
+                elements.maxAutoSaveValue.textContent = state.settings.maxAutoSaves;
                 saveSettings();
             });
             
             document.querySelectorAll('input[name="quality"]').forEach(radio => {
                 radio.addEventListener('change', function() {
-                    document.querySelectorAll('.quality-option').forEach(o => o.classList.remove('selected'));
+                    document.querySelectorAll('.quality-option').forEach(opt => opt.classList.remove('selected'));
                     this.closest('.quality-option').classList.add('selected');
                     state.settings.quality = this.value;
                     saveSettings();
                 });
             });
             
-            elements.search.addEventListener('input', updateVideoGrid);
-            elements.refreshLibraryBtn.addEventListener('click', loadVideos);
-            
-            elements.closeModal.addEventListener('click', closeModal);
-            
-            elements.modalDownloadBtn.addEventListener('click', () => {
-                if (state.currentVideoId) downloadVideo(state.currentVideoId);
-            });
-            
-            elements.modalDeleteBtn.addEventListener('click', () => {
-                if (state.currentVideoId) deleteVideo(state.currentVideoId);
-            });
-            
             document.addEventListener('keydown', (e) => {
-                if (e.ctrlKey && e.key === 'r' && !state.isRecording) {
-                    e.preventDefault();
-                    startRecording();
-                }
-                if (e.ctrlKey && e.key === 's' && state.isRecording) {
-                    e.preventDefault();
-                    stopRecording();
-                }
-                if (e.key === 'Escape' && elements.videoModal.classList.contains('active')) {
-                    closeModal();
+                if (e.key === 'Escape') {
+                    if (elements.videoModal.classList.contains('active')) {
+                        elements.videoModal.classList.remove('active');
+                    }
+                    if (elements.backupHistoryModal.classList.contains('active')) {
+                        elements.backupHistoryModal.classList.remove('active');
+                    }
                 }
             });
             
-            elements.videoModal.addEventListener('click', (e) => {
-                if (e.target === elements.videoModal) closeModal();
+            window.addEventListener('beforeunload', async (e) => {
+                if (state.isRecording && state.settings.autoSave) {
+                    await performAutoSave();
+                    e.preventDefault();
+                    e.returnValue = 'Recording in progress!';
+                    return e.returnValue;
+                }
+                await saveSettings();
             });
         }
 
-        // =============== INITIALIZATION ===============
+        // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', async () => {
-            showLoading('Initializing...');
+            elements.loading.style.display = 'flex';
             
             try {
                 await dbManager.initialize();
-                await initializeDevice();
                 await loadSettings();
                 await loadVideos();
                 
+                updateUI();
+                updateStorageInfo();
                 setupEventListeners();
                 
-                // Start auto sync
-                toggleAutoSync();
+                await checkForRecovery();
                 
                 setTimeout(() => {
-                    hideLoading();
-                    showToast('Ready to record with auto sync!', 'success');
+                    elements.loading.style.display = 'none';
+                    showToast('Screen Recorder ready', 'success');
                 }, 1000);
                 
             } catch (error) {
                 console.error('Init error:', error);
-                hideLoading();
-                showToast('Initialization error', 'error');
+                elements.loading.style.display = 'none';
+                showToast('Error initializing app', 'error');
             }
         });
 
