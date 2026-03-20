@@ -15,7 +15,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     
     <style>
-        /* [CSS sama seperti sebelumnya, tambahkan style baru di bawah] */
+        /* [CSS sama seperti sebelumnya] */
         :root {
             --bg-primary: #0a0a0f;
             --bg-secondary: #121218;
@@ -59,7 +59,7 @@
             --radius-full: 9999px;
         }
 
-        /* Style baru untuk fitur sync antar PC */
+        /* Style untuk fitur sync antar PC */
         .pc-share-section {
             background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.1));
             border-radius: var(--radius-xl);
@@ -215,7 +215,14 @@
             border: 1px solid rgba(59, 130, 246, 0.3);
         }
 
-        /* [Semua CSS lainnya tetap sama] */
+        /* Style untuk auto-save indicator */
+        .auto-save-timer {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+            margin-left: 10px;
+        }
+
+        /* Semua CSS lainnya tetap sama */
         * {
             margin: 0;
             padding: 0;
@@ -2479,7 +2486,7 @@
                         <input type="checkbox" id="autoSave" checked>
                         <div class="checkbox-label">
                             <div>Auto-Save Protection</div>
-                            <div>Simpan otomatis setiap 30 detik</div>
+                            <div>Simpan otomatis setiap 10 detik</div>
                         </div>
                     </label>
                 </div>
@@ -2545,7 +2552,7 @@
         <!-- Footer -->
         <footer class="footer">
             <p style="font-size: 1rem; font-weight: 600; color: var(--text-secondary);">
-                © 2024 Screen Recorder Dark • v5.0 • PC-to-PC Sync
+                © 2024 Screen Recorder Dark • v5.0 • PC-to-PC Sync • Auto-Save Every 10s
             </p>
             <div class="footer-links">
                 <a href="#" class="footer-link">Privacy Policy</a>
@@ -2558,7 +2565,8 @@
                 Device ID: <span id="deviceId">...</span> • 
                 Cloud Status: <span id="cloudStatus" style="color: var(--success);">Connected</span> •
                 Videos: <span id="totalVideosCount">0</span> •
-                Storage: <span id="footerStorage">0 GB</span>
+                Storage: <span id="footerStorage">0 GB</span> •
+                Auto-Save: <span id="autoSaveStatus" style="color: var(--success);">Active</span>
             </div>
         </footer>
     </div>
@@ -2593,6 +2601,7 @@
     <div class="auto-save-indicator saved" id="autoSaveIndicator" style="display: none;">
         <div class="indicator-dot"></div>
         <div class="indicator-text" id="autoSaveText">Auto-Save Active</div>
+        <span class="auto-save-timer" id="autoSaveTimer"></span>
     </div>
 
     <!-- Toast Container -->
@@ -2656,20 +2665,22 @@
             lastAutoSave: null,
             autoSaveSessionId: null,
             pendingSave: false,
-            pendingRecovery: null
+            pendingRecovery: null,
+            autoSaveCounter: 0,
+            lastChunkCount: 0
         };
 
         // =============== DATABASE CONFIG ===============
         const DB_CONFIG = {
             NAME: 'ScreenRecorderDarkDB',
-            VERSION: 8, // Increment version untuk PC sync
+            VERSION: 8,
             STORES: {
                 VIDEOS: 'videos',
                 SETTINGS: 'settings',
                 METADATA: 'metadata',
                 SYNC_QUEUE: 'sync_queue',
                 AUTO_SAVE: 'auto_save',
-                PC_SYNC: 'pc_sync' // Store baru untuk PC sync
+                PC_SYNC: 'pc_sync'
             }
         };
 
@@ -2762,7 +2773,6 @@
             connectedDevicesList: document.getElementById('connectedDevicesList'),
             closePcSyncModal: document.getElementById('closePcSyncModal'),
             
-            // Elemen baru untuk PC sync di main UI
             pcSyncBtn: document.getElementById('pcSyncBtn'),
             displaySyncCode: document.getElementById('displaySyncCode'),
             copyDisplaySyncCode: document.getElementById('copyDisplaySyncCode'),
@@ -2778,6 +2788,7 @@
             
             deviceId: document.getElementById('deviceId'),
             cloudStatus: document.getElementById('cloudStatus'),
+            autoSaveStatus: document.getElementById('autoSaveStatus'),
             
             toastContainer: document.getElementById('toastContainer'),
 
@@ -2787,7 +2798,8 @@
             dismissRecoveryBtn: document.getElementById('dismissRecoveryBtn'),
 
             autoSaveIndicator: document.getElementById('autoSaveIndicator'),
-            autoSaveText: document.getElementById('autoSaveText')
+            autoSaveText: document.getElementById('autoSaveText'),
+            autoSaveTimer: document.getElementById('autoSaveTimer')
         };
 
         // =============== DATABASE MANAGER ===============
@@ -3136,7 +3148,7 @@
                             deviceId: state.deviceId,
                             timestamp: Date.now(),
                             data: data,
-                            version: '1.0'
+                            version: '2.0'
                         };
                         
                         const request = store.put(session);
@@ -3307,61 +3319,59 @@
         // Initialize database manager
         const dbManager = new DatabaseManager();
 
-        // =============== AUTO-SAVE FUNCTIONS ===============
-        function startAutoSave() {
-            if (!state.settings.autoSave) return;
-            
-            if (state.autoSaveInterval) {
-                clearInterval(state.autoSaveInterval);
-            }
-            
-            if (!state.autoSaveSessionId) {
-                state.autoSaveSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            }
-            
-            state.autoSaveInterval = setInterval(async () => {
-                if (state.isRecording && state.recordedChunks.length > 0) {
-                    await performAutoSave();
-                }
-            }, 30000);
-            
-            showAutoSaveIndicator('active');
-            console.log('Auto-save started with session ID:', state.autoSaveSessionId);
-        }
-
-        function stopAutoSave() {
-            if (state.autoSaveInterval) {
-                clearInterval(state.autoSaveInterval);
-                state.autoSaveInterval = null;
-            }
-            
-            state.autoSaveSessionId = null;
-            hideAutoSaveIndicator();
-        }
-
+        // =============== AUTO-SAVE FUNCTIONS (PERBAIKAN) ===============
         async function performAutoSave() {
             if (!state.isRecording || state.recordedChunks.length === 0 || state.pendingSave) return;
             
+            // Hanya save jika ada chunk baru
+            if (state.recordedChunks.length === state.lastChunkCount) {
+                return;
+            }
+            
             state.pendingSave = true;
             state.lastAutoSave = new Date();
+            state.autoSaveCounter++;
             
             try {
                 showAutoSaveIndicator('saving');
                 
-                const chunksCopy = state.recordedChunks.map(chunk => chunk.slice(0));
+                // Hitung durasi real-time
+                const currentDuration = Math.floor((Date.now() - state.recordingStartTime) / 1000);
+                
+                // Update auto-save timer di UI
+                if (elements.autoSaveTimer) {
+                    elements.autoSaveTimer.textContent = `${formatTime(currentDuration)} | ${formatFileSize(state.totalRecordedSize)}`;
+                }
+                
+                // Ambil semua chunk yang sudah direkam
+                const chunksCopy = state.recordedChunks.map(chunk => {
+                    if (chunk instanceof Blob) {
+                        return chunk.slice(0);
+                    }
+                    return chunk;
+                });
+                
                 const mimeType = state.mediaRecorder ? state.mediaRecorder.mimeType : 'video/webm';
+                
+                // Buat blob dari semua chunk untuk memastikan data lengkap
                 const tempBlob = new Blob(chunksCopy, { type: mimeType });
                 
+                // Konversi ke array buffer untuk penyimpanan
                 const arrayBuffer = await tempBlob.arrayBuffer();
+                const uint8Array = new Uint8Array(arrayBuffer);
                 
+                // Data lengkap untuk disimpan
                 const autoSaveData = {
                     sessionId: state.autoSaveSessionId,
                     timestamp: Date.now(),
                     recordingStartTime: state.recordingStartTime,
-                    duration: Math.floor((Date.now() - state.recordingStartTime) / 1000),
+                    duration: currentDuration,
                     size: state.totalRecordedSize,
-                    chunks: Array.from(new Uint8Array(arrayBuffer)),
+                    chunks: Array.from(uint8Array),
                     mimeType: mimeType,
+                    videoBlobSize: arrayBuffer.byteLength,
+                    chunkCount: state.recordedChunks.length,
+                    autoSaveNumber: state.autoSaveCounter,
                     settings: {
                         quality: state.settings.quality,
                         frameRate: state.settings.frameRate,
@@ -3370,13 +3380,44 @@
                         audioSystem: state.settings.systemVolume > 0,
                         audioMic: state.settings.micVolume > 0
                     },
-                    deviceId: state.deviceId
+                    deviceId: state.deviceId,
+                    metadata: {
+                        lastSavedPosition: currentDuration,
+                        totalChunks: state.recordedChunks.length,
+                        isComplete: false,
+                        videoTitle: `Recording_${formatDateForFilename()}_partial`
+                    }
                 };
                 
+                // Simpan ke database
                 await dbManager.saveAutoSaveSession(state.autoSaveSessionId, autoSaveData);
                 
+                // Update last chunk count
+                state.lastChunkCount = state.recordedChunks.length;
+                
+                console.log(`Auto-save #${state.autoSaveCounter} completed: ${formatFileSize(state.totalRecordedSize)} (${currentDuration}s)`);
+                
+                // Simpan juga sebagai backup berkala di localStorage untuk redundancy
+                try {
+                    const backupMeta = {
+                        sessionId: state.autoSaveSessionId,
+                        lastSave: Date.now(),
+                        duration: currentDuration,
+                        size: state.totalRecordedSize,
+                        chunksCount: state.recordedChunks.length,
+                        autoSaveNumber: state.autoSaveCounter
+                    };
+                    localStorage.setItem(`autosave_meta_${state.autoSaveSessionId}`, JSON.stringify(backupMeta));
+                } catch (e) {
+                    // Abaikan error localStorage
+                }
+                
                 showAutoSaveIndicator('saved');
-                console.log(`Auto-save completed: ${formatFileSize(state.totalRecordedSize)}`);
+                
+                // Update status di UI
+                if (elements.syncLastUpdate) {
+                    elements.syncLastUpdate.textContent = `Auto-save: ${formatTime(currentDuration)} (${formatFileSize(state.totalRecordedSize)})`;
+                }
                 
                 setTimeout(() => {
                     if (state.isRecording) {
@@ -3390,6 +3431,13 @@
                 console.error('Auto-save error:', error);
                 showAutoSaveIndicator('error');
                 
+                // Coba simpan dengan metode alternatif jika gagal
+                try {
+                    await emergencyAutoSave();
+                } catch (e) {
+                    console.error('Emergency auto-save also failed:', e);
+                }
+                
                 setTimeout(() => {
                     if (state.isRecording) {
                         showAutoSaveIndicator('active');
@@ -3399,6 +3447,287 @@
                 }, 3000);
             } finally {
                 state.pendingSave = false;
+            }
+        }
+
+        // Fungsi emergency auto-save jika metode utama gagal
+        async function emergencyAutoSave() {
+            if (!state.isRecording || state.recordedChunks.length === 0) return;
+            
+            const currentDuration = Math.floor((Date.now() - state.recordingStartTime) / 1000);
+            
+            // Simpan metadata saja untuk recovery minimal
+            const emergencyData = {
+                sessionId: state.autoSaveSessionId,
+                timestamp: Date.now(),
+                recordingStartTime: state.recordingStartTime,
+                duration: currentDuration,
+                size: state.totalRecordedSize,
+                emergency: true,
+                chunkCount: state.recordedChunks.length,
+                mimeType: state.mediaRecorder ? state.mediaRecorder.mimeType : 'video/webm',
+                settings: {
+                    quality: state.settings.quality,
+                    frameRate: state.settings.frameRate,
+                    systemVolume: state.settings.systemVolume,
+                    micVolume: state.settings.micVolume
+                },
+                deviceId: state.deviceId
+            };
+            
+            // Coba simpan ke localStorage sebagai fallback
+            localStorage.setItem(`emergency_${state.autoSaveSessionId}`, JSON.stringify(emergencyData));
+            
+            console.log('Emergency auto-save saved metadata only');
+        }
+
+        // Fungsi untuk recover session dengan data lengkap
+        async function recoverSession() {
+            if (!state.pendingRecovery) return;
+            
+            showProgress('Memulihkan rekaman...');
+            
+            try {
+                const session = state.pendingRecovery;
+                const data = session.data;
+                
+                if (!data || !data.chunks) {
+                    // Cek apakah ada emergency data
+                    const emergencyKey = `emergency_${session.sessionId}`;
+                    const emergencyData = localStorage.getItem(emergencyKey);
+                    
+                    if (emergencyData) {
+                        const parsed = JSON.parse(emergencyData);
+                        showToast('Data recovery terbatas. Hanya metadata yang tersedia.', 'warning');
+                        
+                        // Buat video dummy dengan informasi
+                        const videoData = {
+                            title: `Recovery_Failed_${formatDateForFilename()}`,
+                            quality: parsed.settings?.quality || '1080p',
+                            duration: parsed.duration || 0,
+                            size: 0,
+                            blob: new Blob([''], { type: 'video/webm' }),
+                            audioSystem: parsed.settings?.systemVolume > 0 || false,
+                            audioMic: parsed.settings?.micVolume > 0 || false,
+                            mimeType: parsed.mimeType || 'video/webm',
+                            bitrate: 5000000,
+                            date: new Date(parsed.timestamp).toISOString(),
+                            metadata: {
+                                recovered: false,
+                                emergencyOnly: true,
+                                originalSession: session.sessionId,
+                                recoveryDate: new Date().toISOString()
+                            }
+                        };
+                        
+                        await dbManager.saveVideo(videoData);
+                        localStorage.removeItem(emergencyKey);
+                        
+                        hideRecoveryBanner();
+                        hideProgress();
+                        await loadVideos();
+                        showToast('Metadata berhasil dipulihkan, tetapi video tidak dapat direcovery', 'warning');
+                        return;
+                    }
+                    
+                    throw new Error('Data recovery tidak valid');
+                }
+                
+                // Rekonstruksi blob dari chunks
+                const uint8Array = new Uint8Array(data.chunks);
+                const blob = new Blob([uint8Array], { type: data.mimeType || 'video/webm' });
+                
+                // Verifikasi blob valid
+                if (blob.size === 0) {
+                    throw new Error('Blob hasil recovery kosong');
+                }
+                
+                // Buat judul dengan informasi recovery
+                const recoveryTime = new Date(data.timestamp).toLocaleString();
+                const videoData = {
+                    title: `Recovered_${formatDateForFilename()}_${data.duration}s`,
+                    quality: data.settings?.quality || '1080p',
+                    duration: data.duration || 0,
+                    size: blob.size,
+                    blob: blob,
+                    audioSystem: data.settings?.audioSystem || false,
+                    audioMic: data.settings?.audioMic || false,
+                    mimeType: data.mimeType || 'video/webm',
+                    bitrate: 5000000,
+                    date: new Date(data.timestamp).toISOString(),
+                    metadata: {
+                        recovered: true,
+                        originalSession: session.sessionId,
+                        recoveryDate: new Date().toISOString(),
+                        autoSaveNumber: data.autoSaveNumber || 0
+                    }
+                };
+                
+                // Simpan video yang direcovery
+                await dbManager.saveVideo(videoData);
+                
+                // Hapus session auto-save
+                await dbManager.deleteAutoSaveSession(session.sessionId);
+                
+                // Hapus emergency data jika ada
+                localStorage.removeItem(`emergency_${session.sessionId}`);
+                localStorage.removeItem(`autosave_meta_${session.sessionId}`);
+                
+                // Reload video library
+                await loadVideos();
+                
+                hideRecoveryBanner();
+                hideProgress();
+                
+                // Tampilkan notifikasi sukses dengan detail
+                showToast(`Rekaman berhasil dipulihkan! (${formatTime(data.duration)}, ${formatFileSize(blob.size)})`, 'success');
+                
+                // Play video yang baru direcovery
+                setTimeout(() => {
+                    if (state.videos.length > 0) {
+                        playVideo(state.videos[0].id);
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                hideProgress();
+                console.error('Recovery error:', error);
+                showToast('Gagal memulihkan rekaman: ' + error.message, 'error');
+            } finally {
+                state.pendingRecovery = null;
+            }
+        }
+
+        // Fungsi untuk memeriksa session auto-save yang tersedia
+        async function checkForRecovery() {
+            try {
+                const sessions = await dbManager.getAllAutoSaveSessions();
+                
+                if (sessions.length === 0) {
+                    // Cek emergency data di localStorage
+                    const emergencyKeys = Object.keys(localStorage).filter(key => key.startsWith('emergency_'));
+                    if (emergencyKeys.length > 0) {
+                        console.log('Found emergency data:', emergencyKeys);
+                        
+                        // Coba recovery dari emergency data
+                        for (const key of emergencyKeys) {
+                            try {
+                                const emergencyData = localStorage.getItem(key);
+                                if (emergencyData) {
+                                    const parsed = JSON.parse(emergencyData);
+                                    const sessionId = parsed.sessionId;
+                                    
+                                    // Buat session pseudo untuk recovery
+                                    const pseudoSession = {
+                                        sessionId: sessionId,
+                                        timestamp: parsed.timestamp,
+                                        data: parsed
+                                    };
+                                    
+                                    state.pendingRecovery = pseudoSession;
+                                    showRecoveryBanner(pseudoSession);
+                                    break;
+                                }
+                            } catch (e) {
+                                console.error('Error parsing emergency data:', e);
+                            }
+                        }
+                    }
+                    return;
+                }
+                
+                // Urutkan berdasarkan timestamp terbaru
+                sessions.sort((a, b) => b.timestamp - a.timestamp);
+                
+                const latestSession = sessions[0];
+                const age = Date.now() - latestSession.timestamp;
+                const maxAge = 24 * 60 * 60 * 1000; // 24 jam
+                
+                // Hapus session yang terlalu tua
+                if (age > maxAge) {
+                    const deletedCount = await dbManager.cleanupOldAutoSaveSessions();
+                    console.log(`Cleaned up ${deletedCount} old auto-save sessions`);
+                    return;
+                }
+                
+                // Cek apakah session memiliki data chunks
+                if (latestSession.data && latestSession.data.chunks) {
+                    state.pendingRecovery = latestSession;
+                    showRecoveryBanner(latestSession);
+                } else {
+                    // Session tanpa chunks (mungkin emergency), hapus saja
+                    await dbManager.deleteAutoSaveSession(latestSession.sessionId);
+                }
+                
+            } catch (error) {
+                console.error('Error checking for recovery:', error);
+            }
+        }
+
+        // Fungsi untuk menyimpan progress perekaman secara periodik
+        function startAutoSave() {
+            if (!state.settings.autoSave) return;
+            
+            if (state.autoSaveInterval) {
+                clearInterval(state.autoSaveInterval);
+            }
+            
+            if (!state.autoSaveSessionId) {
+                state.autoSaveSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            }
+            
+            // Reset counter
+            state.autoSaveCounter = 0;
+            state.lastChunkCount = 0;
+            
+            // Auto-save setiap 5 detik untuk memastikan data tidak hilang
+            state.autoSaveInterval = setInterval(async () => {
+                if (state.isRecording && state.recordedChunks.length > 0) {
+                    await performAutoSave();
+                }
+            }, 5000); // 5 detik interval untuk penyimpanan lebih sering
+            
+            // Override push method untuk auto-save berdasarkan chunk
+            const originalPush = state.recordedChunks.push;
+            state.recordedChunks.push = function(...items) {
+                const result = originalPush.apply(this, items);
+                // Auto-save setiap 3 chunk baru
+                if (this.length % 3 === 0 && state.isRecording && !state.pendingSave) {
+                    setTimeout(() => performAutoSave(), 100);
+                }
+                return result;
+            };
+            
+            showAutoSaveIndicator('active');
+            console.log('Auto-save started with session ID:', state.autoSaveSessionId, 'interval: 5s');
+            
+            if (elements.autoSaveStatus) {
+                elements.autoSaveStatus.textContent = 'Active (5s)';
+                elements.autoSaveStatus.style.color = 'var(--success)';
+            }
+        }
+
+        // Fungsi untuk menghentikan auto-save
+        function stopAutoSave() {
+            if (state.autoSaveInterval) {
+                clearInterval(state.autoSaveInterval);
+                state.autoSaveInterval = null;
+            }
+            
+            // Lakukan auto-save terakhir sebelum berhenti
+            if (state.isRecording && state.recordedChunks.length > 0 && !state.pendingSave) {
+                performAutoSave().then(() => {
+                    state.autoSaveSessionId = null;
+                    hideAutoSaveIndicator();
+                });
+            } else {
+                state.autoSaveSessionId = null;
+                hideAutoSaveIndicator();
+            }
+            
+            if (elements.autoSaveStatus) {
+                elements.autoSaveStatus.textContent = 'Inactive';
+                elements.autoSaveStatus.style.color = 'var(--text-tertiary)';
             }
         }
 
@@ -3423,7 +3752,7 @@
                     break;
                 default:
                     elements.autoSaveIndicator.classList.add('saved');
-                    elements.autoSaveText.textContent = 'Auto-Save Aktif';
+                    elements.autoSaveText.textContent = 'Auto-Save Aktif (5s)';
             }
         }
 
@@ -3433,108 +3762,7 @@
             }
         }
 
-        // =============== RECOVERY FUNCTIONS ===============
-        async function checkForRecovery() {
-            try {
-                const sessions = await dbManager.getAllAutoSaveSessions();
-                
-                if (sessions.length === 0) return;
-                
-                const latestSession = sessions[0];
-                const age = Date.now() - latestSession.timestamp;
-                const maxAge = 24 * 60 * 60 * 1000;
-                
-                if (age > maxAge) {
-                    await dbManager.cleanupOldAutoSaveSessions();
-                    return;
-                }
-                
-                state.pendingRecovery = latestSession;
-                showRecoveryBanner(latestSession);
-                
-            } catch (error) {
-                console.error('Error checking for recovery:', error);
-            }
-        }
-
-        function showRecoveryBanner(session) {
-            if (!elements.recoveryBanner || !session || !session.data) return;
-            
-            const duration = formatTime(session.data.duration || 0);
-            const size = formatFileSize(session.data.size || 0);
-            const timeAgo = getTimeAgo(session.timestamp);
-            
-            elements.recoveryMessage.innerHTML = `
-                Kami menemukan sesi rekaman yang belum selesai dari ${timeAgo} (${duration}, ${size}).
-                Apakah Anda ingin memulihkannya?
-            `;
-            
-            elements.recoveryBanner.style.display = 'flex';
-        }
-
-        async function recoverSession() {
-            if (!state.pendingRecovery) return;
-            
-            showProgress('Memulihkan rekaman...');
-            
-            try {
-                const session = state.pendingRecovery;
-                const data = session.data;
-                
-                if (!data || !data.chunks) {
-                    throw new Error('Data recovery tidak valid');
-                }
-                
-                const uint8Array = new Uint8Array(data.chunks);
-                const blob = new Blob([uint8Array], { type: data.mimeType || 'video/webm' });
-                
-                const videoData = {
-                    title: `Recovered_${formatDateForFilename()}`,
-                    quality: data.settings?.quality || '1080p',
-                    duration: data.duration || 0,
-                    size: data.size || 0,
-                    blob: blob,
-                    audioSystem: data.settings?.audioSystem || false,
-                    audioMic: data.settings?.audioMic || false,
-                    mimeType: data.mimeType || 'video/webm',
-                    bitrate: 5000000,
-                    date: new Date(data.timestamp).toISOString()
-                };
-                
-                await dbManager.saveVideo(videoData);
-                await dbManager.deleteAutoSaveSession(session.sessionId);
-                
-                await loadVideos();
-                
-                hideRecoveryBanner();
-                hideProgress();
-                showToast('Rekaman berhasil dipulihkan!', 'success');
-                
-            } catch (error) {
-                hideProgress();
-                console.error('Recovery error:', error);
-                showToast('Gagal memulihkan rekaman: ' + error.message, 'error');
-            } finally {
-                state.pendingRecovery = null;
-            }
-        }
-
-        function hideRecoveryBanner() {
-            if (elements.recoveryBanner) {
-                elements.recoveryBanner.style.display = 'none';
-            }
-        }
-
-        function getTimeAgo(timestamp) {
-            const seconds = Math.floor((Date.now() - timestamp) / 1000);
-            
-            if (seconds < 60) return `${seconds} detik yang lalu`;
-            if (seconds < 3600) return `${Math.floor(seconds / 60)} menit yang lalu`;
-            if (seconds < 86400) return `${Math.floor(seconds / 3600)} jam yang lalu`;
-            return `${Math.floor(seconds / 86400)} hari yang lalu`;
-        }
-
-        // =============== RECORDING FUNCTIONS ===============
+        // Modifikasi fungsi startRecording untuk mengintegrasikan auto-save
         async function startRecording() {
             try {
                 if (state.storageUsed > 450 * 1024 * 1024 * 1024) {
@@ -3598,6 +3826,8 @@
                 state.recordingStartTime = Date.now();
                 state.isPaused = false;
                 state.totalRecordedSize = 0;
+                state.autoSaveCounter = 0;
+                state.lastChunkCount = 0;
                 state.autoSaveSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
                 
                 if (elements.preview) {
@@ -3638,7 +3868,8 @@
                         state.totalRecordedSize += event.data.size;
                         updateFileSize();
                         
-                        if (state.settings.autoSave && state.recordedChunks.length % 10 === 0) {
+                        // Auto-save setiap ada data baru
+                        if (state.settings.autoSave && state.recordedChunks.length % 3 === 0) {
                             setTimeout(() => performAutoSave(), 100);
                         }
                     }
@@ -3646,6 +3877,11 @@
                 
                 state.mediaRecorder.onstop = async () => {
                     try {
+                        // Auto-save terakhir sebelum stop
+                        if (state.settings.autoSave && state.recordedChunks.length > 0) {
+                            await performAutoSave();
+                        }
+                        
                         stopAutoSave();
                         
                         if (state.recordedChunks.length === 0) {
@@ -3653,6 +3889,7 @@
                             return;
                         }
                         
+                        // Buat blob final dari semua chunks
                         const blob = new Blob(state.recordedChunks, { 
                             type: state.mediaRecorder.mimeType 
                         });
@@ -3676,10 +3913,13 @@
                         
                         if (elements.downloadBtn) elements.downloadBtn.disabled = false;
                         
-                        showToast(`Recording saved (${formatTime(duration)})`, 'success');
+                        showToast(`Recording saved (${formatTime(duration)}, ${formatFileSize(size)})`, 'success');
                         
+                        // Hapus session auto-save setelah sukses menyimpan
                         if (state.autoSaveSessionId) {
                             await dbManager.deleteAutoSaveSession(state.autoSaveSessionId);
+                            localStorage.removeItem(`autosave_meta_${state.autoSaveSessionId}`);
+                            localStorage.removeItem(`emergency_${state.autoSaveSessionId}`);
                         }
                         
                     } catch (error) {
@@ -3930,6 +4170,7 @@
                         <div><i class="fas fa-expand-alt"></i> ${getQualityLabel(video.quality || '1080p')}</div>
                         <div><i class="fas fa-file-alt"></i> ${size}</div>
                         <div><i class="fas fa-calendar"></i> ${date}</div>
+                        ${video.metadata?.recovered ? '<div><i class="fas fa-undo-alt" style="color: var(--warning);"></i> Recovered</div>' : ''}
                     </div>
                     <div class="video-actions">
                         <button class="action-btn play-btn" title="Play">
@@ -3987,6 +4228,7 @@
                             <div><i class="fas fa-microphone" style="color: var(--accent-primary);"></i> <strong>Microphone:</strong> ${video.audioMic ? 'Yes' : 'No'}</div>
                             <div><i class="fas fa-bolt" style="color: var(--accent-primary);"></i> <strong>Bitrate:</strong> ${bitrate}</div>
                             <div><i class="fas fa-laptop" style="color:var(--accent-primary);"></i> <strong>Device:</strong> ${video.deviceId || state.deviceId}</div>
+                            ${video.metadata?.recovered ? '<div><i class="fas fa-undo-alt" style="color: var(--warning);"></i> <strong>Recovered:</strong> Yes</div>' : ''}
                         </div>
                     `;
                 }
@@ -4219,14 +4461,12 @@
         // =============== PC SYNC FUNCTIONS ===============
         async function initializePcSync() {
             try {
-                // Generate atau load existing sync code
                 let syncCode = await dbManager.getMetadata('pc_sync_code');
                 
                 if (!syncCode) {
                     syncCode = generateSyncCode();
                     await dbManager.saveMetadata('pc_sync_code', syncCode);
                     
-                    // Simpan ke database sync
                     await dbManager.savePcSyncCode(syncCode, {
                         deviceId: state.deviceId,
                         videos: state.videos.map(v => ({
@@ -4272,7 +4512,6 @@
         function formatSyncCode(code) {
             if (!code) return 'XXXX-XXXX-XXXX-XXXX';
             
-            // Remove existing dashes and format
             const clean = code.replace(/-/g, '');
             return clean.replace(/(.{4})(?=.)/g, '$1-').toUpperCase();
         }
@@ -4283,12 +4522,10 @@
             try {
                 const newCode = generateSyncCode();
                 
-                // Hapus code lama
                 if (state.pcSyncCode) {
                     await dbManager.deletePcSyncCode(state.pcSyncCode);
                 }
                 
-                // Simpan code baru
                 await dbManager.saveMetadata('pc_sync_code', newCode);
                 await dbManager.savePcSyncCode(newCode, {
                     deviceId: state.deviceId,
@@ -4333,7 +4570,6 @@
                 return;
             }
             
-            // Format code dengan benar
             const formattedCode = code.replace(/-/g, '');
             if (formattedCode.length !== 16) {
                 showToast('Invalid sync code format', 'error');
@@ -4343,7 +4579,6 @@
             showProgress('Connecting to other PC...');
             
             try {
-                // Cari data di database
                 const syncData = await dbManager.getPcSyncCode(formattedCode);
                 
                 if (!syncData) {
@@ -4358,7 +4593,6 @@
                     return;
                 }
                 
-                // Tambahkan ke connected PCs
                 const existingIndex = state.connectedPCs.findIndex(pc => pc.deviceId === syncData.deviceId);
                 if (existingIndex >= 0) {
                     state.connectedPCs[existingIndex] = {
@@ -4374,7 +4608,6 @@
                 
                 updateConnectedPCsList();
                 
-                // Tampilkan info di main UI
                 if (elements.connectedPcInfo) {
                     const deviceName = syncData.data?.deviceId || syncData.deviceId;
                     const videoCount = syncData.data?.videos?.length || 0;
@@ -4385,7 +4618,7 @@
                             <div style="display: flex; align-items: center; gap: 15px;">
                                 <div class="device-status online"></div>
                                 <div style="flex: 1;">
-                                    <div style="font-weight: 700; color: var(--text-primary);">Connected to: ${deviceName}</div>
+                                    <div style="font-weight: 700; color: var(--text-primary);">Connected to: ${deviceName.substring(0, 16)}...</div>
                                     <div style="font-size: 0.9rem; color: var(--text-tertiary);">
                                         Videos: ${videoCount} • ${formatTimeAgo(syncData.timestamp)}
                                     </div>
@@ -4405,13 +4638,7 @@
                 hideProgress();
                 showToast('Connected to PC!', 'success');
                 
-                // Tutup modal jika terbuka
-                if (elements.pcSyncModal?.classList.contains('active')) {
-                    // Tetap buka untuk show connected devices
-                } else {
-                    // Update modal list
-                    updateConnectedPCsList();
-                }
+                updateConnectedPCsList();
                 
             } catch (error) {
                 hideProgress();
@@ -4436,24 +4663,25 @@
                 let imported = 0;
                 
                 for (const videoMeta of syncData.data.videos) {
-                    // Cek apakah video sudah ada
                     const exists = state.videos.some(v => v.id === videoMeta.id);
                     if (!exists) {
-                        // Buat video dummy dengan metadata saja (karena blob tidak bisa di-sync)
-                        // Dalam implementasi real, Anda perlu sync via Firebase Storage
                         const videoData = {
                             id: videoMeta.id,
-                            title: `${videoMeta.title} (from ${syncData.deviceId})`,
+                            title: `${videoMeta.title} (from ${syncData.deviceId.substring(0, 8)}...)`,
                             quality: videoMeta.quality,
                             duration: videoMeta.duration,
                             size: videoMeta.size,
                             date: videoMeta.date,
-                            // Blob tidak bisa di-copy, jadi perlu download ulang
-                            blob: new Blob([''], { type: 'video/webm' }), // Dummy blob
+                            blob: new Blob([''], { type: 'video/webm' }),
                             audioSystem: false,
                             audioMic: false,
                             mimeType: 'video/webm',
-                            bitrate: 5000000
+                            bitrate: 5000000,
+                            metadata: {
+                                imported: true,
+                                sourceDevice: syncData.deviceId,
+                                importDate: new Date().toISOString()
+                            }
                         };
                         
                         await dbManager.saveVideo(videoData);
@@ -4523,15 +4751,6 @@
                 
                 listElement.appendChild(item);
             });
-        }
-
-        function formatTimeAgo(timestamp) {
-            const seconds = Math.floor((Date.now() - timestamp) / 1000);
-            
-            if (seconds < 60) return 'just now';
-            if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
-            if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
-            return `${Math.floor(seconds / 86400)} days ago`;
         }
 
         // =============== BACKUP & RESTORE ===============
@@ -4605,9 +4824,6 @@
                 
                 const backup = JSON.parse(data);
                 
-                // Clear existing data
-                // In production, you'd want to selectively merge
-                
                 if (backup.data?.settings) {
                     state.settings = { ...state.settings, ...backup.data.settings };
                     await dbManager.saveSettings(state.settings);
@@ -4637,6 +4853,36 @@
                 console.error('Error restoring backup:', error);
                 showToast('Error restoring backup: Invalid format', 'error');
             }
+        }
+
+        function showRecoveryBanner(session) {
+            if (!elements.recoveryBanner || !session || !session.data) return;
+            
+            const duration = formatTime(session.data.duration || 0);
+            const size = formatFileSize(session.data.size || 0);
+            const timeAgo = getTimeAgo(session.timestamp);
+            
+            elements.recoveryMessage.innerHTML = `
+                Kami menemukan sesi rekaman yang belum selesai dari ${timeAgo} (${duration}, ${size}).
+                Apakah Anda ingin memulihkannya?
+            `;
+            
+            elements.recoveryBanner.style.display = 'flex';
+        }
+
+        function hideRecoveryBanner() {
+            if (elements.recoveryBanner) {
+                elements.recoveryBanner.style.display = 'none';
+            }
+        }
+
+        function getTimeAgo(timestamp) {
+            const seconds = Math.floor((Date.now() - timestamp) / 1000);
+            
+            if (seconds < 60) return `${seconds} detik yang lalu`;
+            if (seconds < 3600) return `${Math.floor(seconds / 60)} menit yang lalu`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)} jam yang lalu`;
+            return `${Math.floor(seconds / 86400)} hari yang lalu`;
         }
 
         // =============== UTILITY FUNCTIONS ===============
@@ -4874,6 +5120,15 @@
             state.currentVideoId = null;
         }
 
+        function formatTimeAgo(timestamp) {
+            const seconds = Math.floor((Date.now() - timestamp) / 1000);
+            
+            if (seconds < 60) return 'just now';
+            if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+            return `${Math.floor(seconds / 86400)} days ago`;
+        }
+
         // =============== EVENT LISTENERS ===============
         function setupEventListeners() {
             if (elements.recordBtn) elements.recordBtn.addEventListener('click', startRecording);
@@ -4958,7 +5213,6 @@
                 });
             }
             
-            // PC Sync button
             if (elements.pcSyncBtn) {
                 elements.pcSyncBtn.addEventListener('click', () => {
                     if (elements.pcSyncModal) {
@@ -5130,6 +5384,8 @@
                 elements.dismissRecoveryBtn.addEventListener('click', async () => {
                     if (state.pendingRecovery) {
                         await dbManager.deleteAutoSaveSession(state.pendingRecovery.sessionId);
+                        localStorage.removeItem(`emergency_${state.pendingRecovery.sessionId}`);
+                        localStorage.removeItem(`autosave_meta_${state.pendingRecovery.sessionId}`);
                         state.pendingRecovery = null;
                     }
                     hideRecoveryBanner();
@@ -5248,7 +5504,7 @@
                 
                 setTimeout(() => {
                     hideLoading();
-                    showToast('Screen Recorder Dark ready!', 'success');
+                    showToast('Screen Recorder Dark ready! Auto-save every 5 seconds', 'success');
                 }, 1000);
                 
             } catch (error) {
@@ -5281,6 +5537,7 @@
         console.log('Total videos:', state.videoCount);
         console.log('Storage used:', formatFileSize(state.storageUsed));
         console.log('PC Sync Code:', state.pcSyncCode);
+        console.log('Auto-Save: Active (5s interval)');
 
     </script>
     <!-- JSZip for export functionality -->
