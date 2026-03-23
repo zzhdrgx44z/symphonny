@@ -636,7 +636,7 @@ const bankData = [
     icon: "https://i.postimg.cc/5NTq97vS/20250620-promo-mybca-logo.png",
     image: "https://i.postimg.cc/90nChp5k/RDv-Ld-WWe-Qfu-I5-Fua-4f-BA.png",
     steps: [
-      "Pertama buka aplikasi My-bca dan login dengan akun Bank anda.",
+      "Pertama buka aplikasi My-bca và login với akun Bank anda.",
       "Kemudian di halaman utama klik pada menu aktivitas.",
       "Selanjutnya pilih dan klik pada mutasi perihal untuk bukti transfer.",
       "Kemudian anda dapat menampilkan perihal bukti transfer."
@@ -664,7 +664,7 @@ const bankData = [
     image: "https://i.postimg.cc/3R520S0D/Ni3-CBf-Xb-QN2-RO-AWp-Uy-Vo-Q.png",
     steps: [
       "Buka aplikasi BNI Mobile Banking di smartphone Anda.",
-      "Login menggunakan User ID dan m-PIN BNI Anda.",
+      "Login menggunakan User ID và m-PIN BNI Anda.",
       "Silahkan klik pada menu riwayat.",
       "Jika sudah masuk menu riwayat silahkan klik jenis transaksinya dan pilih periode pencarian kemudian klik selanjutnya.",
       "Pilih periode mutasi yang ingin Anda lihat serta klik periode tersebut.",
@@ -779,7 +779,7 @@ function renderCards(data, container) {
             <div class="img-hint">Klik untuk memperbesar</div>
           </div>
           <div class="btn-group">
-            <button class="btn btn-primary" onclick="copySteps('${item.title}', ${JSON.stringify(item.steps)})">
+            <button class="btn btn-primary" onclick="copySteps('${item.name}')">
               <i class="fas fa-copy"></i> Salin Teks
             </button>
             <button class="btn btn-secondary" onclick="copyImage('${item.image}')">
@@ -832,10 +832,28 @@ function searchCards() {
   });
 }
 
-// Copy steps
-function copySteps(title, steps) {
-  const text = `Panduan QRIS ${title}\n\n${steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
-  navigator.clipboard.writeText(text).then(() => showToast('Teks berhasil disalin'));
+// Perbaikan Fungsi Copy Steps - Sekarang menerima 'appName' dan mencari datanya sendiri
+function copySteps(appName) {
+  // Gabungkan semua data untuk pencarian
+  const allData = [...eWalletData, ...bankData];
+  
+  // Cari aplikasi berdasarkan nama
+  const app = allData.find(item => item.name === appName);
+  
+  if (app) {
+    // Format teks langkah-langkah
+    const stepsText = app.steps.map((s, i) => `${i + 1}. ${s}`).join('\n');
+    const text = `Panduan QRIS ${app.title}\n\n${stepsText}`;
+    
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('Teks berhasil disalin!');
+    }).catch(err => {
+      console.error('Gagal menyalin:', err);
+      showToast('Gagal menyalin teks');
+    });
+  } else {
+    showToast('Data tidak ditemukan');
+  }
 }
 
 // Copy image
@@ -845,7 +863,8 @@ async function copyImage(url) {
     const blob = await res.blob();
     await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
     showToast('Gambar berhasil disalin');
-  } catch {
+  } catch (err) {
+    console.error('Error copy image:', err);
     showToast('Browser tidak mendukung, buka gambar manual');
     window.open(url, '_blank');
   }
