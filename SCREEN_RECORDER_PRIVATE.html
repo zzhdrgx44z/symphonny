@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Screen Recorder PRO - Cloud Sync & Shareable Links</title>
+    <title>Screen Recorder PRO - Full HD 1080p | Full Database Storage</title>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- JSZip for export -->
+    <!-- JSZip untuk export/import -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- FileSaver.js untuk menyimpan file besar -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -20,7 +22,6 @@
             --gradient-dark: linear-gradient(135deg, #1e1b4b 0%, var(--dark) 100%);
             --radius-lg: 20px; --radius-md: 12px; --radius-sm: 8px;
             --shadow-lg: 0 20px 40px rgba(0,0,0,0.3); --shadow-md: 0 10px 20px rgba(0,0,0,0.2);
-            --transition: all 0.3s ease;
         }
         body { font-family: 'Inter', sans-serif; background: var(--gradient-dark); color: var(--light); min-height: 100vh; line-height: 1.5; }
         .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
@@ -33,21 +34,22 @@
         .video-container { background: #000; border-radius: var(--radius-md); aspect-ratio: 16/9; position: relative; overflow: hidden; margin-bottom: 25px; }
         .video-preview { width: 100%; height: 100%; object-fit: contain; display: none; }
         .video-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.6); gap: 15px; }
-        .recording-status { position: absolute; top: 15px; left: 15px; background: var(--danger); padding: 8px 16px; border-radius: 50px; display: none; align-items: center; gap: 8px; font-weight: bold; }
+        .recording-status { position: absolute; top: 15px; left: 15px; background: var(--danger); padding: 8px 16px; border-radius: 50px; display: none; align-items: center; gap: 8px; font-weight: bold; z-index: 10; }
+        .auto-save-badge { position: absolute; top: 15px; right: 15px; background: var(--primary); padding: 8px 16px; border-radius: 50px; display: none; align-items: center; gap: 8px; font-weight: bold; z-index: 10; font-size: 0.8rem; }
         .controls { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; }
-        .btn { padding: 14px 25px; border: none; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: var(--transition); display: inline-flex; align-items: center; gap: 10px; justify-content: center; flex: 1; }
+        .btn { padding: 14px 25px; border: none; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 10px; justify-content: center; flex: 1; }
         .btn.record { background: var(--danger); color: white; box-shadow: 0 5px 15px rgba(239,68,68,0.4); }
         .btn.stop { background: #475569; color: white; }
         .btn.download { background: var(--success); color: white; }
-        .btn.cloud { background: var(--primary); color: white; }
-        .btn.link { background: var(--warning); color: #1e293b; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn.export-full { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+        .btn.import-full { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 15px; margin-bottom: 25px; }
         .stat-card { background: rgba(255,255,255,0.05); border-radius: var(--radius-md); padding: 18px; text-align: center; }
         .stat-value { font-size: 1.8rem; font-weight: 700; background: var(--gradient-primary); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .section-title { font-size: 1.4rem; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; border-left: 4px solid var(--primary); padding-left: 15px; }
         .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; max-height: 600px; overflow-y: auto; padding: 5px; }
-        .video-card { background: rgba(0,0,0,0.4); border-radius: var(--radius-md); overflow: hidden; transition: var(--transition); border: 1px solid rgba(255,255,255,0.1); }
+        .video-card { background: rgba(0,0,0,0.4); border-radius: var(--radius-md); overflow: hidden; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; }
         .video-card:hover { transform: translateY(-4px); border-color: var(--primary); }
         .video-thumbnail { height: 170px; background: linear-gradient(135deg, #2d2b55, #1e1a3a); display: flex; align-items: center; justify-content: center; position: relative; }
         .video-thumbnail i { font-size: 3rem; color: rgba(255,255,255,0.7); }
@@ -63,215 +65,267 @@
         .share-link-box { background: rgba(0,0,0,0.5); border-radius: var(--radius-sm); padding: 12px; display: flex; gap: 10px; align-items: center; margin-top: 15px; flex-wrap: wrap; }
         .share-link-box input { flex: 1; background: #1e1b3b; border: 1px solid var(--primary); padding: 10px; border-radius: 30px; color: white; font-size: 0.85rem; }
         .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { background: rgba(0,0,0,0.9); backdrop-filter: blur(12px); border-radius: var(--radius-md); padding: 12px 18px; min-width: 260px; border-left: 4px solid var(--primary); display: flex; gap: 12px; align-items: center; box-shadow: var(--shadow-lg); }
+        .toast { background: rgba(0,0,0,0.9); backdrop-filter: blur(12px); border-radius: var(--radius-md); padding: 12px 18px; min-width: 280px; border-left: 4px solid var(--primary); display: flex; gap: 12px; align-items: center; box-shadow: var(--shadow-lg); animation: slideIn 0.3s ease; }
         .loading { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; flex-direction: column; z-index: 1100; gap: 20px; }
-        .progress { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 1100; }
-        .progress-content { background: #1e1b3b; padding: 30px; border-radius: var(--radius-lg); width: 90%; max-width: 400px; text-align: center; }
-        .progress-bar { height: 8px; background: #333; border-radius: 10px; overflow: hidden; margin: 15px 0; }
-        .progress-fill { height: 100%; width: 0%; background: var(--gradient-primary); transition: width 0.2s; }
+        .progress-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 1200; flex-direction: column; gap: 20px; }
+        .progress-card { background: #1e1b3b; padding: 30px; border-radius: var(--radius-lg); width: 90%; max-width: 500px; text-align: center; border: 1px solid var(--primary); }
+        .progress-bar-container { width: 100%; height: 30px; background: #333; border-radius: 15px; overflow: hidden; margin: 20px 0; }
+        .progress-bar-fill { height: 100%; width: 0%; background: var(--gradient-primary); transition: width 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold; }
+        .db-status { position: fixed; bottom: 10px; left: 10px; font-size: 10px; background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 10px; }
+        .recovered-badge { background: var(--warning); color: #1e293b; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; margin-left: 8px; display: inline-block; }
+        .quality-badge { background: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-left: 8px; }
+        .storage-info { background: rgba(16,185,129,0.2); border-radius: var(--radius-md); padding: 12px; margin-top: 10px; font-size: 0.85rem; }
         @media (max-width: 700px) { .controls { flex-direction: column; } .stats { grid-template-columns: 1fr 1fr; } .btn { width: 100%; } }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     </style>
 </head>
 <body>
-<div class="loading" id="loading"><div class="loading-spinner" style="width:50px;height:50px;border:4px solid rgba(255,255,255,0.2);border-top:4px solid var(--primary);border-radius:50%;animation:spin 1s linear infinite;"></div><div>Loading Screen Recorder PRO...</div></div>
-<div class="progress" id="progress"><div class="progress-content"><h3 id="progressTitle">Processing...</h3><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><p id="progressText">0%</p><button class="btn stop" id="cancelProgressBtn" style="margin-top:15px;">Cancel</button></div></div>
+<div class="loading" id="loading"><div style="width:50px;height:50px;border:4px solid rgba(255,255,255,0.2);border-top:4px solid var(--primary);border-radius:50%;animation:spin 1s linear infinite;"></div><div>Memuat Database Full HD 1080p...</div></div>
+
+<div class="progress-modal" id="progressModal">
+    <div class="progress-card">
+        <i class="fas fa-spinner fa-pulse fa-2x"></i>
+        <h3 id="progressTitle" style="margin: 15px 0;">Memproses...</h3>
+        <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="progressFill">0%</div>
+        </div>
+        <p id="progressDetail" style="font-size: 0.9rem; color: #a5b4fc;">Mempersiapkan...</p>
+        <button id="cancelProgressBtn" class="action-btn" style="margin-top: 15px; background: var(--danger);"><i class="fas fa-times"></i> Batal</button>
+    </div>
+</div>
 
 <div class="container">
     <div class="header">
-        <div class="logo-icon"><i class="fas fa-video"></i></div>
-        <div class="logo-text"><h1>SCREEN RECORDER CLOUD</h1></div>
-        <p class="tagline" style="color:#ccc;">Rekam layar + cloud storage + tautan shareable (seperti Dropbox)</p>
-        <div class="badges"><div class="badge"><i class="fas fa-cloud-upload-alt"></i> Cloud Links</div><div class="badge"><i class="fas fa-link"></i> Shareable URLs</div><div class="badge"><i class="fas fa-laptop-house"></i> Multi-Device</div></div>
+        <div class="logo-icon"><i class="fas fa-database"></i></div>
+        <div class="logo-text"><h1>SCREEN RECORDER PRO</h1></div>
+        <p class="tagline" style="color:#ccc;">Full HD 1080p | Semua Data Tersimpan di Database Internal | Auto-Save 10 Detik</p>
+        <div class="badges">
+            <div class="badge"><i class="fas fa-database"></i> Database Internal</div>
+            <div class="badge"><i class="fas fa-save"></i> Auto-Save 10s</div>
+            <div class="badge"><i class="fas fa-file-export"></i> Export/Import Full</div>
+            <div class="badge"><i class="fas fa-hd"></i> Full HD 1080p</div>
+            <div class="badge"><i class="fas fa-archive"></i> Backup ZIP</div>
+        </div>
     </div>
 
     <div class="recorder-section">
         <div class="video-container">
             <video class="video-preview" id="preview" autoplay muted></video>
             <div class="video-overlay" id="videoOverlay"><i class="fas fa-desktop fa-3x"></i><h3>Screen Preview</h3><p>Klik Start Recording & pilih layar/jendela</p></div>
-            <div class="recording-status" id="recordingStatus"><div style="width:10px;height:10px;background:white;border-radius:50%;"></div> RECORDING</div>
+            <div class="recording-status" id="recordingStatus"><div style="width:10px;height:10px;background:white;border-radius:50%;animation:pulse 1s infinite;"></div> RECORDING (1080p)</div>
+            <div class="auto-save-badge" id="autoSaveBadge"><i class="fas fa-save"></i> Auto-Save Active</div>
         </div>
         <div class="controls">
-            <button class="btn record" id="recordBtn"><i class="fas fa-circle"></i> START RECORD</button>
+            <button class="btn record" id="recordBtn"><i class="fas fa-circle"></i> START RECORD (1080p)</button>
             <button class="btn stop" id="stopBtn" disabled><i class="fas fa-stop"></i> STOP</button>
             <button class="btn download" id="downloadBtn" disabled><i class="fas fa-download"></i> DOWNLOAD LATEST</button>
-            <button class="btn cloud" id="cloudSyncBtn"><i class="fas fa-cloud-upload-alt"></i> SYNC CLOUD</button>
+            <button class="btn export-full" id="exportFullBtn"><i class="fas fa-file-export"></i> EXPORT FULL DB (ZIP)</button>
+            <button class="btn import-full" id="importFullBtn"><i class="fas fa-file-import"></i> IMPORT FULL DB</button>
         </div>
         <div class="stats">
             <div class="stat-card"><div class="stat-value" id="timer">00:00:00</div><div>Duration</div></div>
-            <div class="stat-card"><div class="stat-value" id="fileSize">0 MB</div><div>File Size</div></div>
-            <div class="stat-card"><div class="stat-value" id="videoCount">0</div><div>Videos</div></div>
-            <div class="stat-card"><div class="stat-value" id="totalSizeCloud">0 GB</div><div>Cloud Usage</div></div>
+            <div class="stat-card"><div class="stat-value" id="fileSize">0 MB</div><div>Current Size</div></div>
+            <div class="stat-card"><div class="stat-value" id="videoCount">0</div><div>Total Videos</div></div>
+            <div class="stat-card"><div class="stat-value" id="totalSizeCloud">0 GB</div><div>Total Storage</div></div>
         </div>
     </div>
 
     <div class="settings">
-        <h2 class="section-title"><i class="fas fa-cog"></i> Cloud Link Settings</h2>
-        <div class="quality-options" style="display:flex;gap:15px;margin-bottom:20px;flex-wrap:wrap;">
-            <label class="quality-option selected" style="background:rgba(255,255,255,0.05);padding:12px 20px;border-radius:30px;cursor:pointer;"><input type="radio" name="quality" value="720p" checked> HD 720p</label>
-            <label class="quality-option" style="background:rgba(255,255,255,0.05);padding:12px 20px;border-radius:30px;cursor:pointer;"><input type="radio" name="quality" value="1080p"> Full HD 1080p</label>
-            <label class="quality-option" style="background:rgba(255,255,255,0.05);padding:12px 20px;border-radius:30px;cursor:pointer;"><input type="radio" name="quality" value="480p"> SD 480p</label>
-        </div>
+        <h2 class="section-title"><i class="fas fa-database"></i> Database Internal Storage</h2>
         <div style="background:rgba(0,0,0,0.3);border-radius:var(--radius-md);padding:15px;margin-bottom:15px;">
-            <div><i class="fas fa-link"></i> <strong>Cloud Share Links:</strong> Setiap video yang direkam atau diupload akan mendapatkan tautan unik seperti Dropbox. Simpan tautan dan bagikan ke perangkat lain.</div>
-            <div style="margin-top:10px;font-size:0.9rem;">📌 Tautan tersimpan di localStorage + cloud sync. Bisa diakses dari perangkat manapun dengan kode backup.</div>
+            <div><i class="fas fa-check-circle" style="color: var(--success);"></i> <strong>Semua Data Tersimpan di Database Internal (IndexedDB)</strong></div>
+            <div style="margin-top:10px;font-size:0.9rem;">
+                📀 <strong>Data yang disimpan:</strong><br>
+                • Video rekaman Full HD (1920x1080) dalam format WebM<br>
+                • Metadata lengkap (judul, durasi, ukuran, tanggal)<br>
+                • Shareable links untuk setiap video<br>
+                • Status partial/auto-save untuk recovery
+            </div>
+            <div class="storage-info">
+                <i class="fas fa-info-circle"></i> Database menyimpan SEMUA video secara permanen di perangkat Anda. Data tidak akan hilang meskipun browser ditutup atau komputer di-restart. Gunakan fitur Export untuk backup ke file ZIP.
+            </div>
         </div>
         <div class="sync-controls" style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="action-btn" id="backupBtn"><i class="fas fa-database"></i> Backup Data</button>
-            <button class="action-btn" id="restoreBtn"><i class="fas fa-upload"></i> Restore Backup</button>
-            <button class="action-btn" id="exportLinksBtn"><i class="fas fa-file-export"></i> Export All Links</button>
-            <button class="action-btn" id="multiDeviceBtn"><i class="fas fa-laptop-code"></i> Multi-Device</button>
+            <button class="action-btn" id="backupMetaBtn"><i class="fas fa-database"></i> Backup Metadata</button>
+            <button class="action-btn" id="dbInfoBtn"><i class="fas fa-info-circle"></i> Info Database</button>
+            <button class="action-btn" id="clearAllBtn"><i class="fas fa-trash-alt"></i> Hapus Semua Video</button>
+            <button class="action-btn" id="optimizeDbBtn"><i class="fas fa-compress-alt"></i> Optimasi Database</button>
         </div>
     </div>
 
     <div class="library">
         <div class="library-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:20px;">
-            <h2 class="section-title" style="margin-bottom:0;"><i class="fas fa-film"></i> Cloud Video Library + Shareable Links</h2>
+            <h2 class="section-title" style="margin-bottom:0;"><i class="fas fa-film"></i> Video Library (Full HD 1080p)</h2>
             <input type="text" id="searchInput" placeholder="Cari video..." style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:50px;padding:8px 16px;color:white;width:200px;">
         </div>
         <div class="video-grid" id="videoGrid"></div>
-        <div id="emptyLibrary" style="text-align:center;padding:40px;display:none;"><i class="fas fa-video-slash fa-3x"></i><p>Belum ada rekaman</p></div>
+        <div id="emptyLibrary" style="text-align:center;padding:40px;display:none;"><i class="fas fa-video-slash fa-3x"></i><p>Belum ada rekaman Full HD di database</p></div>
     </div>
-    <footer class="footer" style="text-align:center;padding:20px;opacity:0.7;">Device ID: <span id="deviceIdSpan"></span> | Cloud Links aktif</footer>
+    <div class="db-status" id="dbStatus">Database: Memuat...</div>
 </div>
 
-<!-- Modal Video + Link -->
+<!-- Modal Video -->
 <div class="modal" id="videoModal">
     <div class="modal-content">
         <div style="display:flex;justify-content:space-between;"><h3 id="modalTitle">Video Player</h3><button class="close-modal" id="closeModalBtn" style="background:none;border:none;color:white;font-size:24px;">&times;</button></div>
         <video class="modal-video" id="modalVideoPlayer" controls></video>
         <div id="modalMeta" style="margin:15px 0;"></div>
-        <div class="share-link-box"><i class="fas fa-link"></i><input type="text" id="shareLinkInput" readonly><button id="copyLinkBtn" class="action-btn"><i class="fas fa-copy"></i> Salin Link</button><button id="openLinkBtn" class="action-btn"><i class="fas fa-external-link-alt"></i> Buka</button></div>
+        <div class="share-link-box"><i class="fas fa-link"></i><input type="text" id="shareLinkInput" readonly><button id="copyLinkBtn" class="action-btn"><i class="fas fa-copy"></i> Salin Link</button></div>
         <div style="display:flex;gap:10px;margin-top:15px;"><button id="modalDownload" class="btn download" style="flex:1;"><i class="fas fa-download"></i> Download</button><button id="modalDelete" class="btn stop" style="flex:1;"><i class="fas fa-trash"></i> Hapus</button></div>
     </div>
 </div>
 
-<!-- Backup Modal -->
-<div class="modal" id="backupModalWrap">
-    <div class="modal-content" style="max-width:500px;"><h3>Backup / Restore Data (termasuk tautan cloud)</h3>
-        <textarea id="backupTextArea" rows="5" style="width:100%;margin:15px 0;background:#1e1b3b;color:white;border-radius:8px;padding:10px;"></textarea>
-        <button id="copyBackupBtn" class="action-btn">Salin Backup</button>
-        <hr style="margin:15px 0;">
-        <h4>Restore</h4>
-        <textarea id="restoreTextArea" rows="3" placeholder="Tempel kode backup..." style="width:100%;background:#1e1b3b;color:white;border-radius:8px;padding:10px;"></textarea>
-        <button id="doRestoreBtn" class="btn cloud" style="margin-top:10px;">Restore Data</button>
-        <button id="closeBackupModalBtn" class="btn stop" style="margin-top:10px;">Tutup</button>
-    </div>
-</div>
-<!-- Multi-device modal sederhana -->
-<div class="modal" id="multiDeviceModal">
-    <div class="modal-content"><h3>Perangkat Terhubung</h3><div id="deviceListContainer">Memuat...</div><button id="closeMultiModal" class="btn stop" style="margin-top:15px;">Tutup</button></div>
-</div>
-
 <script>
-    // ======================== CORE STATE ========================
-    let state = {
-        isRecording: false, mediaRecorder: null, recordedChunks: [], currentStream: null,
-        recordingStartTime: null, timerInterval: null, videos: [], storageUsed: 0,
-        deviceId: null, autoSync: true,
-        quality: '720p'
+    // ======================== DATABASE INTERNAL (IndexedDB) ========================
+    const DB_NAME = 'ScreenRecorderDB_FHD_V2';
+    const DB_VERSION = 6;
+    const STORE_VIDEOS = 'videos';
+
+    let db = null;
+    let currentRecording = {
+        active: false, mediaRecorder: null, stream: null, chunks: [],
+        startTime: null, timerInterval: null, autoSaveInterval: null,
+        sessionId: null, lastSavedCount: 0, quality: '1080p'
     };
-    const STORAGE_KEY = 'screen_recorder_pro_v4';
-    const DEVICE_KEY = 'recorder_device_id';
-    
-    // Helper: generate link unik seperti dropbox share
-    function generateShareLink(videoId) {
-        // base URL current origin + hash fragment agar persist
-        const origin = window.location.origin + window.location.pathname;
-        return `${origin}#share=${videoId}`;
-    }
-    
-    // Simpan video + metadata + shareLink
-    async function saveVideoToCloud(videoBlob, title, duration, quality) {
-        const videoId = 'vid_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
-        const shareUrl = generateShareLink(videoId);
-        const videoData = {
-            id: videoId, title: title || `Recording_${new Date().toISOString().slice(0,19)}`,
-            duration: duration, size: videoBlob.size, date: new Date().toISOString(),
-            quality: quality, shareLink: shareUrl, blobData: null, // blob disimpan terpisah di IndexedDB
-            fromCloud: false
-        };
-        // simpan blob ke IndexedDB
-        await saveBlobToIDB(videoId, videoBlob);
-        state.videos.unshift(videoData);
-        state.storageUsed += videoBlob.size;
-        await persistMetadata();
-        updateUIAfterChange();
-        showToast(`Video tersimpan! Link share: ${shareUrl}`, 'success');
-        return videoData;
-    }
-    
-    // IndexedDB untuk blob besar
-    function saveBlobToIDB(id, blob) {
+    let isProcessing = false;
+
+    // Inisialisasi Database
+    function initDatabase() {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open('ScreenRecorderBlobs', 2);
-            request.onupgradeneeded = (e) => { if (!e.target.result.objectStoreNames.contains('blobs')) e.target.result.createObjectStore('blobs'); };
-            request.onsuccess = () => {
-                const db = request.result;
-                const tx = db.transaction('blobs', 'readwrite');
-                const store = tx.objectStore('blobs');
-                store.put(blob, id).onsuccess = () => resolve();
-                tx.onerror = reject;
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => { 
+                db = request.result; 
+                updateDbStatus(); 
+                resolve(db);
+                // Hitung total storage setelah load
+                setTimeout(updateStats, 500);
             };
-            request.onerror = reject;
+            request.onupgradeneeded = (event) => {
+                const database = event.target.result;
+                if (!database.objectStoreNames.contains(STORE_VIDEOS)) {
+                    const videoStore = database.createObjectStore(STORE_VIDEOS, { keyPath: 'id' });
+                    videoStore.createIndex('date', 'date', { unique: false });
+                    videoStore.createIndex('isPartial', 'isPartial', { unique: false });
+                    videoStore.createIndex('title', 'title', { unique: false });
+                }
+            };
         });
     }
-    function getBlobFromIDB(id) {
-        return new Promise((resolve) => {
-            const request = indexedDB.open('ScreenRecorderBlobs', 2);
-            request.onsuccess = () => {
-                const db = request.result;
-                if (!db.objectStoreNames.contains('blobs')) return resolve(null);
-                const tx = db.transaction('blobs', 'readonly');
-                const store = tx.objectStore('blobs');
-                const getReq = store.get(id);
-                getReq.onsuccess = () => resolve(getReq.result);
-                getReq.onerror = () => resolve(null);
+
+    function updateDbStatus() {
+        document.getElementById('dbStatus').innerHTML = `📀 Database: ${DB_NAME} | Full HD 1080p | Auto-Save: 10s | Storage: Internal IndexedDB`;
+    }
+
+    // Simpan video ke database
+    async function saveVideoToDatabase(videoData, blob) {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([STORE_VIDEOS], 'readwrite');
+            const store = transaction.objectStore(STORE_VIDEOS);
+            const record = {
+                id: videoData.id,
+                title: videoData.title,
+                duration: videoData.duration,
+                size: blob.size,
+                date: videoData.date,
+                quality: '1080p',
+                resolution: '1920x1080',
+                framerate: 30,
+                bitrate: '5 Mbps',
+                shareLink: videoData.shareLink,
+                isPartial: videoData.isPartial || false,
+                sessionId: videoData.sessionId || null,
+                blob: blob
             };
-            request.onerror = () => resolve(null);
+            const request = store.put(record);
+            request.onsuccess = () => { updateStats(); resolve(record); };
+            request.onerror = () => reject(request.error);
         });
     }
-    
-    async function persistMetadata() {
-        const toStore = state.videos.map(v => ({ ...v, blobData: undefined }));
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ videos: toStore, storageUsed: state.storageUsed, deviceId: state.deviceId }));
+
+    // Ambil semua video dari database
+    async function getAllVideos() {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([STORE_VIDEOS], 'readonly');
+            const store = transaction.objectStore(STORE_VIDEOS);
+            const index = store.index('date');
+            const request = index.openCursor(null, 'prev');
+            const videos = [];
+            request.onsuccess = (event) => {
+                const cursor = event.target.result;
+                if (cursor) { videos.push(cursor.value); cursor.continue(); }
+                else resolve(videos);
+            };
+            request.onerror = () => reject(request.error);
+        });
     }
-    async function loadMetadata() {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-            try {
-                const data = JSON.parse(raw);
-                state.videos = data.videos || [];
-                state.storageUsed = data.storageUsed || 0;
-                state.deviceId = data.deviceId || state.deviceId;
-            } catch(e) {}
-        }
-        // untuk setiap video pastikan shareLink ada (migrasi)
-        for (let v of state.videos) {
-            if (!v.shareLink) v.shareLink = generateShareLink(v.id);
-        }
-        await persistMetadata();
+
+    async function getVideoById(id) {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([STORE_VIDEOS], 'readonly');
+            const store = transaction.objectStore(STORE_VIDEOS);
+            const request = store.get(id);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
     }
-    
-    function updateUIAfterChange() {
+
+    async function deleteVideoFromDatabase(id) {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([STORE_VIDEOS], 'readwrite');
+            const store = transaction.objectStore(STORE_VIDEOS);
+            const request = store.delete(id);
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    async function clearAllVideos() {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([STORE_VIDEOS], 'readwrite');
+            const store = transaction.objectStore(STORE_VIDEOS);
+            const request = store.clear();
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    async function updateStats() {
+        const videos = await getAllVideos();
+        const totalVideos = videos.length;
+        const totalSize = videos.reduce((sum, v) => sum + (v.size || 0), 0);
+        document.getElementById('videoCount').innerText = totalVideos;
+        document.getElementById('totalSizeCloud').innerText = formatFileSize(totalSize);
         renderVideoGrid();
-        document.getElementById('videoCount').innerText = state.videos.length;
-        const totalGB = (state.storageUsed / (1024**3)).toFixed(2);
-        document.getElementById('totalSizeCloud').innerText = totalGB + ' GB';
+        updateDbStatus();
     }
-    
-    function renderVideoGrid() {
-        const grid = document.getElementById('videoGrid');
+
+    function generateShareLink(videoId) {
+        return `${window.location.origin}${window.location.pathname}#share=${videoId}`;
+    }
+
+    async function renderVideoGrid() {
+        const videos = await getAllVideos();
         const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
-        let filtered = state.videos.filter(v => v.title.toLowerCase().includes(searchTerm));
-        if (filtered.length === 0) { document.getElementById('emptyLibrary').style.display = 'block'; grid.innerHTML = ''; return; }
-        document.getElementById('emptyLibrary').style.display = 'none';
+        const filtered = videos.filter(v => v.title.toLowerCase().includes(searchTerm));
+        const grid = document.getElementById('videoGrid');
+        const emptyLib = document.getElementById('emptyLibrary');
+        if (filtered.length === 0) { emptyLib.style.display = 'block'; grid.innerHTML = ''; return; }
+        emptyLib.style.display = 'none';
         grid.innerHTML = filtered.map(v => `
-            <div class="video-card" data-id="${v.id}">
-                <div class="video-thumbnail"><i class="fas fa-video"></i><span style="position:absolute;bottom:8px;right:12px;background:black;padding:2px 8px;border-radius:20px;font-size:11px;">${formatDuration(v.duration)}</span></div>
+            <div class="video-card" onclick="openVideoModal('${v.id}')">
+                <div class="video-thumbnail">
+                    <i class="fas fa-video"></i>
+                    <span style="position:absolute;bottom:8px;right:12px;background:black;padding:2px 8px;border-radius:20px;font-size:11px;">${formatDuration(v.duration)}</span>
+                    <span style="position:absolute;top:8px;right:12px;background:rgba(79,70,229,0.9);padding:2px 8px;border-radius:20px;font-size:10px;">1080p</span>
+                    ${v.isPartial ? '<span class="recovered-badge"><i class="fas fa-undo-alt"></i> Recovered</span>' : ''}
+                </div>
                 <div class="video-info">
                     <div class="video-title">${escapeHtml(v.title)}</div>
                     <div class="video-meta"><span>${formatFileSize(v.size)}</span> • ${new Date(v.date).toLocaleDateString()}</div>
-                    <div class="video-actions">
+                    <div class="video-actions" onclick="event.stopPropagation()">
                         <button class="action-btn play-vid" data-id="${v.id}"><i class="fas fa-play"></i> Play</button>
                         <button class="action-btn share-vid" data-id="${v.id}"><i class="fas fa-link"></i> Link</button>
                         <button class="action-btn del-vid" data-id="${v.id}"><i class="fas fa-trash"></i></button>
@@ -279,161 +333,403 @@
                 </div>
             </div>
         `).join('');
-        // attach events
-        document.querySelectorAll('.play-vid').forEach(btn => btn.addEventListener('click', () => openVideoModal(btn.dataset.id)));
-        document.querySelectorAll('.share-vid').forEach(btn => btn.addEventListener('click', () => shareVideoLink(btn.dataset.id)));
-        document.querySelectorAll('.del-vid').forEach(btn => btn.addEventListener('click', () => deleteVideoById(btn.dataset.id)));
+        document.querySelectorAll('.play-vid').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); openVideoModal(btn.dataset.id); }));
+        document.querySelectorAll('.share-vid').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); shareVideoLink(btn.dataset.id); }));
+        document.querySelectorAll('.del-vid').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); deleteVideo(btn.dataset.id); }));
     }
-    
+
     async function openVideoModal(videoId) {
-        const video = state.videos.find(v => v.id === videoId);
+        const video = await getVideoById(videoId);
         if (!video) return;
-        const blob = await getBlobFromIDB(video.id);
-        if (!blob) { showToast('Data video tidak tersedia', 'error'); return; }
-        const url = URL.createObjectURL(blob);
+        const url = URL.createObjectURL(video.blob);
         const modal = document.getElementById('videoModal');
         const player = document.getElementById('modalVideoPlayer');
         player.src = url;
         document.getElementById('modalTitle').innerText = video.title;
-        document.getElementById('modalMeta').innerHTML = `<div>Durasi: ${formatDuration(video.duration)} | Ukuran: ${formatFileSize(video.size)} | Tanggal: ${new Date(video.date).toLocaleString()}</div>`;
-        document.getElementById('shareLinkInput').value = video.shareLink || generateShareLink(video.id);
+        document.getElementById('modalMeta').innerHTML = `<div><i class="fas fa-clock"></i> Durasi: ${formatDuration(video.duration)} | <i class="fas fa-database"></i> Ukuran: ${formatFileSize(video.size)} | <i class="fas fa-tv"></i> Resolusi: 1920x1080 | 30 fps</div>`;
+        document.getElementById('shareLinkInput').value = video.shareLink;
         modal.style.display = 'flex';
         player.onended = () => URL.revokeObjectURL(url);
-        // set actions
-        document.getElementById('modalDownload').onclick = () => downloadBlob(blob, `${video.title}.webm`);
-        document.getElementById('modalDelete').onclick = async () => { await deleteVideoById(video.id); modal.style.display = 'none'; };
+        document.getElementById('modalDownload').onclick = () => downloadBlob(video.blob, `${video.title}_1080p.webm`);
+        document.getElementById('modalDelete').onclick = async () => { await deleteVideo(video.id); modal.style.display = 'none'; };
         document.getElementById('copyLinkBtn').onclick = () => { navigator.clipboard.writeText(video.shareLink); showToast('Link disalin', 'success'); };
-        document.getElementById('openLinkBtn').onclick = () => { window.open(video.shareLink, '_blank'); };
     }
-    
-    function shareVideoLink(videoId) {
-        const video = state.videos.find(v => v.id === videoId);
-        if (video && video.shareLink) {
-            navigator.clipboard.writeText(video.shareLink);
-            showToast(`Link share disalin: ${video.shareLink}`, 'success');
-        } else showToast('Link tidak tersedia', 'error');
+
+    async function shareVideoLink(videoId) {
+        const video = await getVideoById(videoId);
+        if (video) { navigator.clipboard.writeText(video.shareLink); showToast(`Link share disalin`, 'success'); }
     }
-    
-    async function deleteVideoById(id) {
-        if (!confirm('Hapus video permanen?')) return;
-        const idx = state.videos.findIndex(v => v.id === id);
-        if (idx !== -1) {
-            state.storageUsed -= state.videos[idx].size;
-            state.videos.splice(idx, 1);
-            await persistMetadata();
-            // hapus dari IndexedDB
-            const req = indexedDB.open('ScreenRecorderBlobs', 2);
-            req.onsuccess = () => { const db = req.result; if (db.objectStoreNames.contains('blobs')) { const tx = db.transaction('blobs', 'readwrite'); tx.objectStore('blobs').delete(id); } };
-            updateUIAfterChange();
-            showToast('Video dihapus', 'info');
+
+    async function deleteVideo(id) {
+        if (!confirm('Hapus video Full HD permanen dari database?')) return;
+        await deleteVideoFromDatabase(id);
+        await updateStats();
+        showToast('Video dihapus dari database', 'info');
+    }
+
+    // ======================== FULL DATABASE EXPORT (SEMUA DATA) ========================
+    async function exportFullDatabase() {
+        if (isProcessing) { showToast('Sedang memproses, tunggu sebentar...', 'warning'); return; }
+        const videos = await getAllVideos();
+        if (videos.length === 0) { showToast('Tidak ada video untuk diekspor', 'warning'); return; }
+        
+        isProcessing = true;
+        const modal = document.getElementById('progressModal');
+        const progressFill = document.getElementById('progressFill');
+        const progressDetail = document.getElementById('progressDetail');
+        const progressTitle = document.getElementById('progressTitle');
+        modal.style.display = 'flex';
+        progressTitle.innerHTML = '<i class="fas fa-file-archive"></i> Mengekspor SEMUA Data...';
+        
+        try {
+            const zip = new JSZip();
+            const videosFolder = zip.folder("videos");
+            const metadata = [];
+            let completed = 0;
+            const total = videos.length;
+            let totalSize = 0;
+            
+            for (const video of videos) {
+                progressDetail.innerText = `📹 Memproses video ${completed + 1} dari ${total}: ${video.title.substring(0, 40)}`;
+                progressFill.style.width = `${(completed / total) * 100}%`;
+                progressFill.innerText = `${Math.round((completed / total) * 100)}%`;
+                
+                const blob = video.blob;
+                const filename = `${video.id}.webm`;
+                videosFolder.file(filename, blob);
+                metadata.push({
+                    id: video.id,
+                    title: video.title,
+                    duration: video.duration,
+                    size: video.size,
+                    date: video.date,
+                    quality: video.quality,
+                    resolution: video.resolution,
+                    framerate: video.framerate,
+                    shareLink: video.shareLink,
+                    filename: filename
+                });
+                totalSize += video.size;
+                completed++;
+                await new Promise(r => setTimeout(r, 5));
+            }
+            
+            progressDetail.innerText = `📄 Membuat file metadata...`;
+            progressFill.style.width = `90%`;
+            progressFill.innerText = `90%`;
+            
+            const metadataJson = JSON.stringify({ 
+                version: DB_VERSION,
+                exportDate: new Date().toISOString(),
+                totalVideos: total,
+                totalSize: totalSize,
+                quality: 'Full HD 1080p',
+                resolution: '1920x1080',
+                videos: metadata 
+            }, null, 2);
+            zip.file("metadata.json", metadataJson);
+            
+            progressDetail.innerText = `🗜️ Mengompres file ZIP (${formatFileSize(totalSize)})...`;
+            progressFill.style.width = `95%`;
+            progressFill.innerText = `95%`;
+            
+            const zipBlob = await zip.generateAsync({ type: "blob", compression: "DEFLATE", compressionOptions: { level: 6 } });
+            
+            progressDetail.innerText = `💾 Menyimpan file...`;
+            progressFill.style.width = `100%`;
+            progressFill.innerText = `100%`;
+            
+            saveAs(zipBlob, `screen_recorder_full_backup_${Date.now()}.zip`);
+            showToast(`✅ Export berhasil! ${total} video diekspor (${formatFileSize(zipBlob.size)})`, 'success');
+        } catch (error) {
+            console.error(error);
+            showToast('❌ Gagal mengekspor: ' + error.message, 'error');
+        } finally {
+            isProcessing = false;
+            modal.style.display = 'none';
+            progressFill.style.width = '0%';
+            progressFill.innerText = '0%';
         }
     }
     
-    // Recording Logic
+    // ======================== FULL DATABASE IMPORT (SEMUA DATA) ========================
+    async function importFullDatabase() {
+        if (isProcessing) { showToast('Sedang memproses, tunggu sebentar...', 'warning'); return; }
+        
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.zip';
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            isProcessing = true;
+            const modal = document.getElementById('progressModal');
+            const progressFill = document.getElementById('progressFill');
+            const progressDetail = document.getElementById('progressDetail');
+            const progressTitle = document.getElementById('progressTitle');
+            modal.style.display = 'flex';
+            progressTitle.innerHTML = '<i class="fas fa-upload"></i> Mengimpor SEMUA Data...';
+            
+            try {
+                progressDetail.innerText = `📂 Membaca file ZIP...`;
+                progressFill.style.width = `10%`;
+                progressFill.innerText = `10%`;
+                
+                const zip = await JSZip.loadAsync(file);
+                const metadataFile = zip.file("metadata.json");
+                if (!metadataFile) throw new Error("File metadata.json tidak ditemukan dalam ZIP");
+                
+                progressDetail.innerText = `📄 Membaca metadata...`;
+                progressFill.style.width = `20%`;
+                progressFill.innerText = `20%`;
+                
+                const metadataText = await metadataFile.async("string");
+                const metadata = JSON.parse(metadataText);
+                const videosFolder = zip.folder("videos");
+                
+                let imported = 0;
+                let skipped = 0;
+                const total = metadata.videos.length;
+                
+                for (const meta of metadata.videos) {
+                    progressDetail.innerText = `📹 Mengimpor ${imported + 1} dari ${total}: ${meta.title.substring(0, 40)}`;
+                    progressFill.style.width = `${20 + (imported / total) * 70}%`;
+                    progressFill.innerText = `${Math.round(20 + (imported / total) * 70)}%`;
+                    
+                    const videoFile = videosFolder.file(meta.filename);
+                    if (videoFile) {
+                        const blob = await videoFile.async("blob");
+                        const existing = await getVideoById(meta.id);
+                        if (!existing) {
+                            await saveVideoToDatabase({
+                                id: meta.id,
+                                title: meta.title,
+                                duration: meta.duration,
+                                date: meta.date || new Date().toISOString(),
+                                shareLink: meta.shareLink || generateShareLink(meta.id),
+                                isPartial: false
+                            }, blob);
+                            imported++;
+                        } else {
+                            skipped++;
+                        }
+                    }
+                    await new Promise(r => setTimeout(r, 5));
+                }
+                
+                progressFill.style.width = `100%`;
+                progressFill.innerText = `100%`;
+                progressDetail.innerText = `✅ Selesai!`;
+                
+                await updateStats();
+                showToast(`✅ Import berhasil! ${imported} video diimpor, ${skipped} video dilewati (sudah ada)`, 'success');
+            } catch (error) {
+                console.error(error);
+                showToast('❌ Gagal mengimpor: ' + error.message, 'error');
+            } finally {
+                isProcessing = false;
+                modal.style.display = 'none';
+                progressFill.style.width = '0%';
+                progressFill.innerText = '0%';
+            }
+        };
+        input.click();
+    }
+    
+    // Backup Metadata saja (ringan)
+    async function backupMetadata() {
+        const videos = await getAllVideos();
+        const backup = {
+            version: DB_VERSION,
+            date: new Date().toISOString(),
+            totalVideos: videos.length,
+            totalSize: videos.reduce((s, v) => s + v.size, 0),
+            videos: videos.map(v => ({
+                id: v.id, title: v.title, duration: v.duration, size: v.size,
+                date: v.date, quality: v.quality, resolution: v.resolution,
+                shareLink: v.shareLink
+            }))
+        };
+        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+        downloadBlob(blob, `metadata_backup_${Date.now()}.json`);
+        showToast('Backup metadata berhasil', 'success');
+    }
+    
+    // ======================== RECORDING FUNCTIONS ========================
     async function startRecording() {
-        const quality = document.querySelector('input[name="quality"]:checked')?.value || '720p';
-        state.quality = quality;
-        let width = quality === '1080p' ? 1920 : (quality === '720p' ? 1280 : 854);
-        let height = quality === '1080p' ? 1080 : (quality === '720p' ? 720 : 480);
         try {
-            const stream = await navigator.mediaDevices.getDisplayMedia({ video: { width, height, frameRate: 30 }, audio: true });
+            const screenStream = await navigator.mediaDevices.getDisplayMedia({ 
+                video: { width: { ideal: 1920, max: 1920 }, height: { ideal: 1080, max: 1080 }, frameRate: { ideal: 30 } }, 
+                audio: true 
+            });
             const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null);
-            let finalStream = stream;
+            let finalStream = screenStream;
             if (audioStream) {
-                const tracks = [...stream.getTracks(), ...audioStream.getAudioTracks()];
+                const tracks = [...screenStream.getTracks(), ...audioStream.getAudioTracks()];
                 finalStream = new MediaStream(tracks);
             }
-            state.currentStream = finalStream;
-            state.recordedChunks = [];
-            state.recordingStartTime = Date.now();
+            currentRecording.stream = finalStream;
+            currentRecording.chunks = [];
+            currentRecording.lastSavedCount = 0;
+            currentRecording.sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+            currentRecording.startTime = Date.now();
             document.getElementById('preview').srcObject = finalStream;
             document.getElementById('preview').style.display = 'block';
             document.getElementById('videoOverlay').style.display = 'none';
             const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
-            state.mediaRecorder = new MediaRecorder(finalStream, { mimeType: mime, videoBitsPerSecond: quality === '1080p' ? 5000000 : 2500000 });
-            state.mediaRecorder.ondataavailable = e => { if (e.data.size > 0) state.recordedChunks.push(e.data); updateFileSizeUI(); };
-            state.mediaRecorder.onstop = async () => {
-                const blob = new Blob(state.recordedChunks, { type: mime });
-                const durationSec = Math.floor((Date.now() - state.recordingStartTime) / 1000);
-                await saveVideoToCloud(blob, `Recording_${new Date().toISOString().slice(0,19)}`, durationSec, state.quality);
-                state.isRecording = false;
+            currentRecording.mediaRecorder = new MediaRecorder(finalStream, { mimeType: mime, videoBitsPerSecond: 5000000 });
+            currentRecording.mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) { currentRecording.chunks.push(e.data); updateFileSizeUI(); } };
+            currentRecording.mediaRecorder.onstop = async () => {
+                if (currentRecording.chunks.length > 0) {
+                    const finalBlob = new Blob(currentRecording.chunks, { type: 'video/webm' });
+                    const finalId = 'final_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+                    await saveVideoToDatabase({
+                        id: finalId, title: `Full HD Recording ${new Date().toLocaleString()}`,
+                        duration: Math.floor((Date.now() - currentRecording.startTime) / 1000),
+                        date: new Date().toISOString(), shareLink: generateShareLink(finalId), isPartial: false
+                    }, finalBlob);
+                    showToast(`✅ Rekaman Full HD tersimpan di database!`, 'success');
+                }
+                currentRecording.active = false;
+                if (currentRecording.autoSaveInterval) clearInterval(currentRecording.autoSaveInterval);
+                if (currentRecording.timerInterval) clearInterval(currentRecording.timerInterval);
                 document.getElementById('stopBtn').disabled = true;
                 document.getElementById('recordBtn').disabled = false;
                 document.getElementById('downloadBtn').disabled = false;
                 document.getElementById('recordingStatus').style.display = 'none';
-                if (state.currentStream) state.currentStream.getTracks().forEach(t => t.stop());
+                document.getElementById('autoSaveBadge').style.display = 'none';
+                document.getElementById('timer').innerText = '00:00:00';
+                document.getElementById('fileSize').innerText = '0 MB';
+                if (currentRecording.stream) currentRecording.stream.getTracks().forEach(t => t.stop());
                 document.getElementById('preview').srcObject = null;
                 document.getElementById('preview').style.display = 'none';
                 document.getElementById('videoOverlay').style.display = 'flex';
-                stopTimer();
+                await updateStats();
             };
-            state.mediaRecorder.start(1000);
-            state.isRecording = true;
+            currentRecording.mediaRecorder.start(1000);
+            currentRecording.active = true;
+            currentRecording.timerInterval = setInterval(() => {
+                if (currentRecording.startTime) {
+                    const sec = Math.floor((Date.now() - currentRecording.startTime) / 1000);
+                    document.getElementById('timer').innerText = formatDuration(sec);
+                }
+            }, 1000);
+            currentRecording.autoSaveInterval = setInterval(async () => {
+                if (!currentRecording.active || currentRecording.chunks.length === currentRecording.lastSavedCount) return;
+                const newChunks = currentRecording.chunks.slice(currentRecording.lastSavedCount);
+                if (newChunks.length === 0) return;
+                const partialBlob = new Blob(newChunks, { type: 'video/webm' });
+                if (partialBlob.size > 0) {
+                    const videoId = `${currentRecording.sessionId}_seg_${Date.now()}`;
+                    await saveVideoToDatabase({
+                        id: videoId, title: `Auto-Save ${new Date().toLocaleTimeString()} (1080p)`,
+                        duration: Math.floor((Date.now() - currentRecording.startTime) / 1000),
+                        date: new Date().toISOString(), shareLink: generateShareLink(videoId), isPartial: true,
+                        sessionId: currentRecording.sessionId
+                    }, partialBlob);
+                    currentRecording.lastSavedCount = currentRecording.chunks.length;
+                    showToast(`💾 Auto-save: ${formatFileSize(partialBlob.size)} tersimpan`, 'info');
+                }
+            }, 10000);
             document.getElementById('recordBtn').disabled = true;
             document.getElementById('stopBtn').disabled = false;
             document.getElementById('recordingStatus').style.display = 'flex';
-            startTimer();
-            showToast('Merekam layar...', 'info');
-        } catch(e) { showToast('Gagal akses layar: '+e.message, 'error'); }
+            document.getElementById('autoSaveBadge').style.display = 'flex';
+            showToast('🎬 Merekam Full HD 1080p dengan Auto-Save ke database!', 'success');
+        } catch(e) { showToast('❌ Gagal: ' + e.message, 'error'); }
     }
-    function stopRecording() { if (state.mediaRecorder && state.isRecording) state.mediaRecorder.stop(); }
-    function startTimer() { if (state.timerInterval) clearInterval(state.timerInterval); state.timerInterval = setInterval(() => { if (state.recordingStartTime) { const sec = Math.floor((Date.now() - state.recordingStartTime)/1000); document.getElementById('timer').innerText = formatDuration(sec); } }, 1000); }
-    function stopTimer() { if (state.timerInterval) clearInterval(state.timerInterval); state.timerInterval = null; document.getElementById('timer').innerText = '00:00:00'; }
-    function updateFileSizeUI() { let total = state.recordedChunks.reduce((s,chunk)=>s+chunk.size,0); document.getElementById('fileSize').innerText = formatFileSize(total); }
-    function formatDuration(sec) { let h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=sec%60; return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`; }
-    function formatFileSize(bytes) { if(bytes<1024) return bytes+' B'; if(bytes<1048576) return (bytes/1024).toFixed(1)+' KB'; if(bytes<1073741824) return (bytes/1048576).toFixed(1)+' MB'; return (bytes/1073741824).toFixed(2)+' GB'; }
-    function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
-    function showToast(msg, type='info') { const container = document.getElementById('toastContainer') || (()=>{let d=document.createElement('div');d.id='toastContainer';d.className='toast-container';document.body.appendChild(d);return d;})(); const toast=document.createElement('div');toast.className=`toast`;toast.innerHTML=`<i class="fas ${type==='success'?'fa-check-circle':type==='error'?'fa-exclamation-circle':'fa-info-circle'}"></i><span>${msg}</span><button style="background:none;border:none;color:white;margin-left:10px;" onclick="this.parentElement.remove()">✖</button>`;container.appendChild(toast);setTimeout(()=>toast.remove(),4000);}
     
-    // Backup include semua video metadata + shareLinks, tanpa blob
-    async function generateBackupString() {
-        const backupObj = { version: 'v4', deviceId: state.deviceId, videos: state.videos.map(v => ({ id:v.id, title:v.title, duration:v.duration, size:v.size, date:v.date, quality:v.quality, shareLink:v.shareLink })), timestamp: Date.now() };
-        return JSON.stringify(backupObj);
-    }
-    async function restoreFromBackup(jsonStr) {
-        try { const data = JSON.parse(jsonStr); if (data.videos && Array.isArray(data.videos)) { state.videos = data.videos.map(v => ({ ...v, blobData: null, fromCloud: false })); await persistMetadata(); updateUIAfterChange(); showToast(`Restore ${state.videos.length} video metadata sukses`, 'success'); } else throw new Error(); } catch(e) { showToast('Backup tidak valid', 'error'); }
-    }
-    // multi device sederhana (simulasi device lain dengan localStorage lain)
-    function showMultiDevice() { const modal = document.getElementById('multiDeviceModal'); const container = document.getElementById('deviceListContainer'); container.innerHTML = `<div>Device ID: ${state.deviceId}</div><div>Video tersimpan: ${state.videos.length}</div><div>🔗 Share link dapat dikirim ke perangkat lain dan dibuka dengan hash #share=videoId</div>`; modal.style.display='flex'; }
+    function stopRecording() { if (currentRecording.mediaRecorder && currentRecording.active) currentRecording.mediaRecorder.stop(); }
+    function updateFileSizeUI() { const total = currentRecording.chunks.reduce((s, chunk) => s + chunk.size, 0); document.getElementById('fileSize').innerText = formatFileSize(total); }
     
-    // handle hash link sharing: jika buka halaman dengan #share=videoId
-    function handleShareHash() {
-        const hash = window.location.hash.substring(1);
-        if (hash.startsWith('share=')) {
-            const videoId = hash.split('=')[1];
-            const video = state.videos.find(v => v.id === videoId);
-            if (video) { openVideoModal(video.id); } else { showToast('Video tidak ditemukan di perangkat ini, sync dulu dengan backup', 'warning'); }
-            window.location.hash = '';
+    async function recoverPartialVideos() { 
+        const videos = await getAllVideos(); 
+        const partials = videos.filter(v => v.isPartial === true); 
+        if (partials.length > 0) { 
+            for (let p of partials) { 
+                p.isPartial = false; 
+                p.title = p.title + ' [Recovered]'; 
+                await saveVideoToDatabase(p, p.blob); 
+                await deleteVideoFromDatabase(p.id); 
+            } 
+            await updateStats(); 
+            showToast(`🔄 ${partials.length} video berhasil dipulihkan dari auto-save`, 'success'); 
+        } 
+    }
+    
+    async function optimizeDatabase() {
+        if (isProcessing) { showToast('Sedang memproses...', 'warning'); return; }
+        isProcessing = true;
+        const modal = document.getElementById('progressModal');
+        const progressFill = document.getElementById('progressFill');
+        const progressDetail = document.getElementById('progressDetail');
+        const progressTitle = document.getElementById('progressTitle');
+        modal.style.display = 'flex';
+        progressTitle.innerHTML = '<i class="fas fa-compress-alt"></i> Mengoptimasi Database...';
+        
+        try {
+            const videos = await getAllVideos();
+            progressDetail.innerText = `Menganalisa ${videos.length} video...`;
+            progressFill.style.width = `30%`;
+            progressFill.innerText = `30%`;
+            await new Promise(r => setTimeout(r, 500));
+            
+            progressDetail.innerText = `Menghapus data tidak valid...`;
+            progressFill.style.width = `60%`;
+            progressFill.innerText = `60%`;
+            
+            // Hapus video yang blobnya corrupt atau size 0
+            let removed = 0;
+            for (const video of videos) {
+                if (!video.blob || video.size === 0) {
+                    await deleteVideoFromDatabase(video.id);
+                    removed++;
+                }
+            }
+            
+            progressFill.style.width = `100%`;
+            progressFill.innerText = `100%`;
+            progressDetail.innerText = `✅ Optimasi selesai!`;
+            
+            await updateStats();
+            showToast(`✅ Optimasi database selesai! ${removed} video tidak valid dihapus.`, 'success');
+        } catch (error) {
+            showToast('❌ Gagal optimasi: ' + error.message, 'error');
+        } finally {
+            isProcessing = false;
+            modal.style.display = 'none';
+            progressFill.style.width = '0%';
+            progressFill.innerText = '0%';
         }
     }
     
-    async function downloadBlob(blob, filename) { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url),100); }
+    function formatDuration(sec) { if (!sec) return '00:00:00'; let h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60; return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`; }
+    function formatFileSize(bytes) { if (bytes < 1024) return bytes + ' B'; if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB'; if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB'; return (bytes / 1073741824).toFixed(2) + ' GB'; }
+    function escapeHtml(str) { return str.replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
+    function downloadBlob(blob, filename) { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(() => URL.revokeObjectURL(url), 100); }
+    function showToast(msg, type = 'info') { const container = document.getElementById('toastContainer') || (() => { let d = document.createElement('div'); d.id = 'toastContainer'; d.className = 'toast-container'; document.body.appendChild(d); return d; })(); const toast = document.createElement('div'); toast.className = 'toast'; toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i><span>${msg}</span><button style="background:none;border:none;color:white;margin-left:10px;cursor:pointer;" onclick="this.parentElement.remove()">✖</button>`; container.appendChild(toast); setTimeout(() => toast.remove(), 5000); }
+    function handleShareHash() { const hash = window.location.hash.substring(1); if (hash.startsWith('share=')) { const videoId = hash.split('=')[1]; openVideoModal(videoId); window.location.hash = ''; } }
+    async function clearAll() { if (confirm('⚠️ HAPUS SEMUA VIDEO dari database? Tindakan ini TIDAK DAPAT DIBATALKAN!')) { await clearAllVideos(); await updateStats(); showToast('Semua video dihapus dari database', 'warning'); } }
+    async function showDbInfo() { const videos = await getAllVideos(); const totalSize = videos.reduce((sum, v) => sum + (v.size || 0), 0); alert(`📊 INFO DATABASE FULL HD\n\n📁 Database: ${DB_NAME}\n🔢 Versi: ${DB_VERSION}\n🎬 Total Video: ${videos.length}\n💾 Total Storage: ${formatFileSize(totalSize)}\n🎥 Kualitas: Full HD 1080p\n📐 Resolusi: 1920x1080\n⚡ Frame Rate: 30 fps\n🎚️ Bitrate: 5 Mbps\n💿 Auto-Save: 10 detik\n🔄 Format: WebM (VP9/VP8)\n📀 Semua data tersimpan di IndexedDB internal`); }
     
-    // INIT
     (async () => {
-        let device = localStorage.getItem(DEVICE_KEY);
-        if (!device) { device = 'dev_' + Math.random().toString(36).substr(2, 8) + '_' + Date.now(); localStorage.setItem(DEVICE_KEY, device); }
-        state.deviceId = device;
-        document.getElementById('deviceIdSpan').innerText = device.slice(0,10)+'...';
-        await loadMetadata();
-        updateUIAfterChange();
+        await initDatabase();
+        await updateStats();
+        await recoverPartialVideos();
         document.getElementById('loading').style.display = 'none';
-        // event listeners
         document.getElementById('recordBtn').onclick = startRecording;
         document.getElementById('stopBtn').onclick = stopRecording;
-        document.getElementById('downloadBtn').onclick = async () => { if(state.videos[0]) { const blob = await getBlobFromIDB(state.videos[0].id); if(blob) downloadBlob(blob, state.videos[0].title+'.webm'); else showToast('File tidak ada','error'); } else showToast('Tidak ada rekaman','info'); };
-        document.getElementById('cloudSyncBtn').onclick = () => { persistMetadata(); showToast('Metadata tersimpan di lokal + backup siap', 'success'); };
-        document.getElementById('backupBtn').onclick = async () => { const backup = await generateBackupString(); document.getElementById('backupTextArea').value = backup; document.getElementById('backupModalWrap').style.display='flex'; };
-        document.getElementById('restoreBtn').onclick = () => { document.getElementById('backupModalWrap').style.display='flex'; };
-        document.getElementById('exportLinksBtn').onclick = () => { const links = state.videos.map(v=>`${v.title}: ${v.shareLink}`).join('\n'); const blob = new Blob([links],{type:'text/plain'}); downloadBlob(blob,'share_links.txt'); };
-        document.getElementById('multiDeviceBtn').onclick = showMultiDevice;
-        document.getElementById('closeBackupModalBtn').onclick = () => document.getElementById('backupModalWrap').style.display='none';
-        document.getElementById('copyBackupBtn').onclick = () => { const txt = document.getElementById('backupTextArea'); txt.select(); document.execCommand('copy'); showToast('Backup disalin','success'); };
-        document.getElementById('doRestoreBtn').onclick = async () => { const restoreTxt = document.getElementById('restoreTextArea').value; if(restoreTxt) await restoreFromBackup(restoreTxt); document.getElementById('backupModalWrap').style.display='none'; };
-        document.getElementById('closeModalBtn').onclick = () => document.getElementById('videoModal').style.display='none';
-        document.getElementById('closeMultiModal').onclick = () => document.getElementById('multiDeviceModal').style.display='none';
+        document.getElementById('downloadBtn').onclick = async () => { const videos = await getAllVideos(); if (videos[0]) downloadBlob(videos[0].blob, `${videos[0].title}_1080p.webm`); else showToast('Tidak ada rekaman', 'info'); };
+        document.getElementById('exportFullBtn').onclick = exportFullDatabase;
+        document.getElementById('importFullBtn').onclick = importFullDatabase;
+        document.getElementById('backupMetaBtn').onclick = backupMetadata;
+        document.getElementById('clearAllBtn').onclick = clearAll;
+        document.getElementById('dbInfoBtn').onclick = showDbInfo;
+        document.getElementById('optimizeDbBtn').onclick = optimizeDatabase;
+        document.getElementById('closeModalBtn').onclick = () => document.getElementById('videoModal').style.display = 'none';
         document.getElementById('searchInput').addEventListener('input', renderVideoGrid);
-        document.getElementById('cancelProgressBtn').onclick = () => document.getElementById('progress').style.display='none';
+        document.getElementById('cancelProgressBtn').onclick = () => { if (isProcessing) { isProcessing = false; document.getElementById('progressModal').style.display = 'none'; showToast('Proses dibatalkan', 'warning'); } };
         handleShareHash();
         window.addEventListener('hashchange', handleShareHash);
     })();
