@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>沈 · LINE TOGEL HUB</title>
+  <title>沈 · LINE TOGEL HUB | SEPUTAR GANTIREK & PK</title>
   
   <!-- Font: Rajdhani + IBM Plex Mono -->
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -101,7 +101,7 @@
     .brand-text h1 { font-size: 1.8rem; text-transform: uppercase; letter-spacing: 1px; color: #fff; font-weight: 700; }
     .brand-text span { font-size: 0.7rem; color: var(--accent-warning); letter-spacing: 2px; display: block; margin-top: -5px; }
 
-    .nav-menu { display: flex; height: 100%; align-items: center; gap: 5px; }
+    .nav-menu { display: flex; height: 100%; align-items: center; gap: 5px; flex-wrap: wrap; }
     .nav-item { height: 100%; padding: 0 25px; color: #777; font-size: 1rem; text-transform: uppercase; font-weight: 600; cursor: pointer; transition: all 0.2s; position: relative; display: flex; align-items: center; gap: 8px; border-left: 1px solid #222; }
     .nav-item i { font-size: 0.9rem; color: #555; transition: color 0.2s; }
     .nav-item:hover { color: #fff; background: #111; }
@@ -211,6 +211,9 @@
       .top-nav { height: auto; flex-direction: column; padding: 15px; gap: 15px; }
       .brand { border-right: none; border-bottom: 2px solid #333; width: 100%; justify-content: center; }
       .nav-menu { width: 100%; justify-content: center; flex-wrap: wrap; }
+      .nav-item { height: auto; padding: 10px 15px; border-left: none; border-bottom: 2px solid transparent; }
+      .nav-item.active { border-bottom: 2px solid var(--accent-warning); background: transparent; color: var(--accent-warning); }
+      .nav-item.active i { color: var(--accent-warning); }
       .status-box { display: none; }
       .header-row { flex-direction: column; align-items: flex-start; }
       .search-box { width: 100%; }
@@ -250,8 +253,11 @@
   <nav class="top-nav">
     <div class="brand"><div class="logo-box"><i class="fas fa-hard-hat"></i></div><div><h1>TOMMY沈</h1><span>LINE TOGEL HUB</span></div></div>
     <div class="nav-menu">
-      <!-- MENU "Access" dan "ALL REPORT KENDALA" TELAH DIHAPUS TOTAL -->
+      <!-- MENU "Access" dan "ALL REPORT KENDALA" TELAH DIHAPUS -->
+      <!-- MENU BARU: seputar_gantirek dan seputar_pk -->
       <div class="nav-item active" data-sheet="bonus"><i class="fas fa-cube"></i><span>BONUS</span></div>
+      <div class="nav-item" data-sheet="seputar_gantirek"><i class="fas fa-exchange-alt"></i><span>SEPUTAR GANTIREK</span></div>
+      <div class="nav-item" data-sheet="seputar_pk"><i class="fas fa-shield-alt"></i><span>SEPUTAR PK</span></div>
       <div class="nav-item" data-sheet="PK_anti_audit"><i class="fas fa-toolbox"></i><span>PK TANPA KENA AUDIT NEW</span></div>
       <div class="nav-item" data-sheet="PK_LULUS_SENSOR_AUDIT"><i class="fas fa-book"></i><span>PK TERBARU LULUS SENSOR AUDIT</span></div>
     </div>
@@ -270,8 +276,9 @@
   </main>
 
   <script>
+    // DAFTAR SHEET: bonus, seputar_gantirek, seputar_pk, PK_anti_audit, PK_LULUS_SENSOR_AUDIT
     const SPREADSHEET_ID = '19AodSFSw4shpSZVZ4I-_sD91eU1HPITMeg4cwLiEV1c';
-    const SHEET_NAMES = ['bonus', 'PK_anti_audit', 'PK_LULUS_SENSOR_AUDIT'];
+    const SHEET_NAMES = ['bonus', 'seputar_gantirek', 'seputar_pk', 'PK_anti_audit', 'PK_LULUS_SENSOR_AUDIT'];
     let allData = {};
     let currentSheet = 'bonus';
     let activeSidebarIndex = 0;
@@ -335,13 +342,17 @@
       const data = allData[sheetName] || [];
       if (!data.length) { tableContainer.innerHTML = '<div style="padding:50px; text-align:center; color:#666;">NO_DATA_FOUND</div>'; return; }
 
+      // Layout khusus untuk PK_anti_audit (sidebar)
       if (sheetName === 'PK_anti_audit') {
         activeSidebarIndex = 0;
         tableContainer.innerHTML = renderSidebarLayout(data);
         initSidebarInteraction(data);
-      } else if (sheetName === 'bonus') {
+      } 
+      // Untuk bonus, seputar_gantirek, seputar_pk, PK_LULUS_SENSOR_AUDIT menggunakan tampilan grid (asset card)
+      else if (sheetName === 'bonus' || sheetName === 'seputar_gantirek' || sheetName === 'seputar_pk' || sheetName === 'PK_LULUS_SENSOR_AUDIT') {
         tableContainer.innerHTML = renderAssetsGrid(data);
-      } else {
+      } 
+      else {
         tableContainer.innerHTML = renderQna(data);
       }
     }
@@ -353,7 +364,7 @@
         const keys = Object.keys(row);
         const id = row[keys[0]] || '-';
         const val = row[keys[1]] || '-';
-        const desc = row[keys[2]] || '-';
+        const desc = row[keys[2]] || (keys[2] ? row[keys[2]] : '-');
         const valEsc = String(val).replace(/"/g, '&quot;');
         html += `<div class="asset-card" style="animation-delay:${idx*0.05}s">
           <div class="asset-header"><span class="asset-id-badge">${escapeHTML(id)}</span><div class="asset-status"></div></div>
@@ -368,7 +379,7 @@
 
     function renderQna(data) {
       if (!data.length) return '';
-      let html = '<table><thead><tr><th>QUERY</th><th>COPY</th><th>RESPONSE</th><th>COPY</th></tr></thead><tbody>';
+      let html = '<tr><thead><tr><th>QUERY</th><th>COPY</th><th>RESPONSE</th><th>COPY</th></tr></thead><tbody>';
       data.forEach((row, idx) => {
         const keys = Object.keys(row);
         const q = row[keys[1]] || row[keys[0]] || '-';
@@ -376,9 +387,11 @@
         const qSafe = escapeHTML(q).replace(/"/g, '&quot;');
         const aSafe = escapeHTML(a).replace(/"/g, '&quot;');
         html += `<tr style="animation-delay:${idx*0.03}s">
-          <td>${escapeHTML(q)}</td><td><button class="btn-industrial" data-text="${qSafe}" style="padding:5px 10px;"><i class="fas fa-copy"></i></button></td>
-          <td>${escapeHTML(a)}</td><td><button class="btn-industrial" data-text="${aSafe}">Copy</button></td>
-        </tr>`;
+           <td>${escapeHTML(q)}</td>
+           <td><button class="btn-industrial" data-text="${qSafe}" style="padding:5px 10px;"><i class="fas fa-copy"></i></button></td>
+           <td>${escapeHTML(a)}</td>
+           <td><button class="btn-industrial" data-text="${aSafe}">Copy</button></td>
+         </tr>`;
       });
       html += '</tbody></table>';
       return html;
@@ -427,8 +440,15 @@
         if ((!active || active.style.display === 'none') && firstVisible !== -1) document.querySelector(`.sidebar-item[data-index="${firstVisible}"]`)?.click();
       } else {
         let filtered = data.filter(r => Object.values(r).some(v => v && String(v).toLowerCase().includes(query)));
-        if (filtered.length) tableContainer.innerHTML = currentSheet === 'bonus' ? renderAssetsGrid(filtered) : renderQna(filtered);
-        else tableContainer.innerHTML = '<div style="padding:20px; text-align:center; color:#666;">NO_MATCHES</div>';
+        if (filtered.length) {
+          if (currentSheet === 'bonus' || currentSheet === 'seputar_gantirek' || currentSheet === 'seputar_pk' || currentSheet === 'PK_LULUS_SENSOR_AUDIT') {
+            tableContainer.innerHTML = renderAssetsGrid(filtered);
+          } else {
+            tableContainer.innerHTML = renderQna(filtered);
+          }
+        } else {
+          tableContainer.innerHTML = '<div style="padding:20px; text-align:center; color:#666;">NO_MATCHES</div>';
+        }
       }
     }
 
