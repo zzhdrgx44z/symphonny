@@ -299,6 +299,10 @@
         const totalSize = videos.reduce((sum, v) => sum + (v.size || 0), 0);
         document.getElementById('videoCount').innerText = totalVideos;
         document.getElementById('totalSizeCloud').innerText = formatFileSize(totalSize);
+        // Enable/disable download button based on availability
+        const downloadBtn = document.getElementById('downloadBtn');
+        if(totalVideos > 0) downloadBtn.disabled = false;
+        else downloadBtn.disabled = true;
         await renderVideoGrid();
     }
 
@@ -352,6 +356,7 @@
         document.getElementById('shareLinkInput').value = video.shareLink;
         modal.style.display = 'flex';
         player.onended = () => URL.revokeObjectURL(url);
+        // Update modal download button to use current video
         document.getElementById('modalDownload').onclick = () => downloadBlob(video.blob, `${video.title}_1080p.webm`);
         document.getElementById('modalDelete').onclick = async () => { await deleteVideo(video.id); modal.style.display = 'none'; };
         document.getElementById('copyLinkBtn').onclick = () => { navigator.clipboard.writeText(video.shareLink); showToast('Link disalin', 'success'); };
@@ -382,23 +387,28 @@
         
         const currentDuration = Math.floor((Date.now() - currentRecording.startTime) / 1000);
         
-        // SIMPAN KE DATABASE (overwrite video yang sama)
-        await saveVideoToDatabase({
-            id: currentRecording.videoId,
-            title: currentRecording.videoTitle,
-            duration: currentDuration,
-            date: new Date().toISOString(),
-            shareLink: generateShareLink(currentRecording.videoId),
-            isFinal: false
-        }, currentBlob);
-        
-        currentRecording.lastSavedBlobSize = currentBlob.size;
-        
-        // Tampilkan notifikasi setiap 5 detik (agar tidak terlalu spam)
-        const now = Date.now();
-        if (now - lastSaveNotification > 5000) {
-            showToast(`💾 Auto-Save: ${formatFileSize(currentBlob.size)} tersimpan otomatis`, 'info');
-            lastSaveNotification = now;
+        try {
+            // SIMPAN KE DATABASE (overwrite video yang sama)
+            await saveVideoToDatabase({
+                id: currentRecording.videoId,
+                title: currentRecording.videoTitle,
+                duration: currentDuration,
+                date: new Date().toISOString(),
+                shareLink: generateShareLink(currentRecording.videoId),
+                isFinal: false
+            }, currentBlob);
+            
+            currentRecording.lastSavedBlobSize = currentBlob.size;
+            
+            // Tampilkan notifikasi setiap 5 detik (agar tidak terlalu spam)
+            const now = Date.now();
+            if (now - lastSaveNotification > 5000) {
+                showToast(`💾 Auto-Save: ${formatFileSize(currentBlob.size)} tersimpan otomatis`, 'info');
+                lastSaveNotification = now;
+            }
+        } catch(e) {
+            console.error("Auto-save error:", e);
+            // Do not show toast to avoid spam, but log error
         }
     }
 
@@ -482,7 +492,7 @@
                 if (currentRecording.timerInterval) clearInterval(currentRecording.timerInterval);
                 document.getElementById('stopBtn').disabled = true;
                 document.getElementById('recordBtn').disabled = false;
-                document.getElementById('downloadBtn').disabled = false;
+                // Download button will be enabled by updateStats if there are videos
                 document.getElementById('recordingStatus').style.display = 'none';
                 document.getElementById('autoSaveBadge').style.display = 'none';
                 document.getElementById('timer').innerText = '00:00:00';
@@ -585,11 +595,31 @@
             saveAs(zipBlob, `screen_recorder_autosave_backup_${Date.now()}.zip`);
             showToast(`✅ Backup selesai! ${total} video dibackup`, 'success');
         } catch (error) {
+            console.error(error);
             showToast('❌ Gagal: ' + error.message, 'error');
         } finally {
             isProcessing = false;
             modal.style.display = 'none';
             progressFill.style.width = '0%';
+        }
+    }
+
+    // ======================== DOWNLOAD LATEST VIDEO ========================
+    async function downloadLatestVideo() {
+        const videos = await getAllVideos();
+        if (videos.length === 0) {
+            showToast('Tidak ada video untuk diunduh', 'warning');
+            return;
+        }
+        // videos already sorted by date descending (newest first)
+        const latestVideo = videos[0];
+        if (latestVideo && latestVideo.blob) {
+            // Generate a nice filename
+            const filename = `${latestVideo.title.replace(/[^a-z0-9]/gi, '_')}_1080p.webm`;
+            downloadBlob(latestVideo.blob, filename);
+            showToast(`Mengunduh: ${latestVideo.title}`, 'success');
+        } else {
+            showToast('Gagal mengunduh video terbaru', 'error');
         }
     }
     
@@ -617,7 +647,8 @@
         document.getElementById('loading').style.display = 'none';
         document.getElementById('recordBtn').onclick = startRecording;
         document.getElementById('stopBtn').onclick = stopRecording;
-        document.getElementById('downloadBtn').onclick = async () => { const videos = await getAllVideos(); if (videos[0] && videos[0].blob) downloadBlob(videos[0].blob, `${videos[0].title}_1080p.webm`); else showToast('Tidak ada rekaman', 'info'); };
+        // Fix download button: use dedicated function to get latest video
+        document.getElementById('downloadBtn').onclick = downloadLatestVideo;
         document.getElementById('exportFullBtn').onclick = exportFullDatabase;
         document.getElementById('refreshBtn').onclick = refreshLibrary;
         document.getElementById('dbInfoBtn').onclick = showDbInfo;
