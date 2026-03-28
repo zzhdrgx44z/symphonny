@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>沈 · LINE TOGEL HUB // HD TERMINAL v2.0</title>
+  <title>沈 · LINE TOGEL HUB // HD TERMINAL v2.1</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=IBM+Plex+Mono:wght@400;600&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
@@ -252,12 +252,41 @@
     .asset-display { margin: 16px 18px; background: rgba(0,0,0,0.5); padding: 18px; border-radius: 4px; text-align: center; }
     .asset-value { font-family: monospace; font-size: 1rem; color: #fff; word-break: break-all; }
     .asset-actions { padding: 0 18px 18px; }
-    .btn-copy-action {
+    
+    /* COPY BUTTON EFFECT */
+    .btn-copy-action, .btn-copy-desc {
       width: 100%; background: transparent; border: 1px solid var(--accent-primary);
       color: var(--accent-primary); padding: 12px; text-transform: uppercase;
       font-weight: 700; cursor: pointer; border-radius: 4px;
+      transition: all 0.2s;
+      position: relative; overflow: hidden;
     }
-    .btn-copy-action:hover { background: var(--accent-primary); color: #000; box-shadow: 0 0 20px var(--glow-primary); }
+    .btn-copy-action:hover, .btn-copy-desc:hover { background: rgba(255, 214, 0, 0.1); box-shadow: 0 0 15px rgba(255, 214, 0, 0.2); }
+    
+    /* Class for the flash effect */
+    .copy-flash-active {
+      background: var(--accent-primary) !important;
+      color: #000 !important;
+      box-shadow: 0 0 30px var(--accent-primary), 0 0 60px var(--accent-secondary) !important;
+      border-color: #fff !important;
+      transform: scale(1.05);
+    }
+
+    /* LIGHT BURST VISUAL EFFECT (Appended to body) */
+    .light-burst-ring {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      border: 2px solid var(--accent-primary);
+      box-shadow: 0 0 20px var(--accent-primary), inset 0 0 20px var(--accent-primary);
+      animation: burstExpand 0.6s ease-out forwards;
+      transform: translate(-50%, -50%);
+    }
+    @keyframes burstExpand {
+      0% { width: 0; height: 0; opacity: 1; }
+      100% { width: 200px; height: 200px; opacity: 0; }
+    }
 
     /* SIDEBAR LAYOUT */
     .layout-split { display: flex; height: 100%; gap: 1px; background: rgba(255,255,255,0.05); }
@@ -309,7 +338,7 @@
 
     /* NOTIFICATION */
     #notif-container { position: fixed; bottom: 150px; right: 30px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; }
-    .toast-notification { background: #0a0f1a; border: 1px solid var(--accent-primary); padding: 14px 22px; color: #fff; backdrop-filter: blur(12px); animation: slideIn 0.3s ease; }
+    .toast-notification { background: #0a0f1a; border: 1px solid var(--accent-primary); padding: 14px 22px; color: #fff; backdrop-filter: blur(12px); animation: slideIn 0.3s ease; box-shadow: 0 0 20px rgba(255, 214, 0, 0.4); }
     @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
     /* LOADER */
@@ -341,7 +370,6 @@
     <div class="nav-item active" data-sheet="bonus"><i class="fas fa-cube"></i><span>BONUS</span></div>
     <div class="nav-item" data-sheet="PK_anti_audit"><i class="fas fa-toolbox"></i><span>PK ANTI AUDIT</span></div>
     <div class="nav-item" data-sheet="PK_LULUS_SENSOR_AUDIT"><i class="fas fa-shield-alt"></i><span>PK LULUS AUDIT</span></div>
-    <!-- NEW MENUS : SEPUTAR_GANTIREK & SEPUTAR_PK -->
     <div class="nav-item" data-sheet="seputar_gantirek"><i class="fas fa-exchange-alt"></i><span>SEPUTAR GANTI REK</span></div>
     <div class="nav-item" data-sheet="seputar_pk"><i class="fas fa-file-alt"></i><span>SEPUTAR PK</span></div>
   </div>
@@ -368,7 +396,6 @@
 <script>
   // ========== CONFIGURATION ==========
   const SPREADSHEET_ID = '19AodSFSw4shpSZVZ4I-_sD91eU1HPITMeg4cwLiEV1c';
-  // Menambahkan dua sheet baru: seputar_gantirek dan seputar_pk
   const SHEET_NAMES = ['bonus', 'PK_anti_audit', 'PK_LULUS_SENSOR_AUDIT', 'seputar_gantirek', 'seputar_pk'];
   
   let allData = {};
@@ -436,7 +463,7 @@
   function getLayoutType(sheetName) {
     if (sheetName === 'bonus' || sheetName === 'seputar_gantirek') return 'grid';
     if (sheetName === 'PK_anti_audit') return 'sidebar';
-    return 'qna'; // default for PK_LULUS_SENSOR_AUDIT and seputar_pk
+    return 'qna';
   }
 
   // RENDER GRID (Asset Cards)
@@ -537,7 +564,7 @@
     if (getLayoutType(sheetName) === 'sidebar') initSidebarIfNeeded(sheetName, data);
   }
 
-  // SEARCH LOGIC (handles all layouts)
+  // SEARCH LOGIC
   function handleSearch() {
     const query = searchInput.value.toLowerCase().trim();
     const data = allData[currentSheet] || [];
@@ -563,7 +590,7 @@
     }
   }
 
-  // Clipboard global handler
+  // Clipboard global handler WITH LIGHT EFFECT
   async function handleCopy(e) {
     const btn = e.target.closest('.btn-copy-action, .btn-industrial, .btn-copy-desc');
     if(!btn) return;
@@ -577,8 +604,31 @@
     } else if(btn.classList.contains('btn-copy-desc') && btn.dataset.desc) {
       text = btn.dataset.desc;
     }
+
     if(text) {
-      try { await navigator.clipboard.writeText(text); btn.classList.add('success'); showNotification('Data copied to clipboard'); setTimeout(() => btn.classList.remove('success'), 1000); } catch(e) {}
+      try {
+        await navigator.clipboard.writeText(text);
+        
+        // 1. Button Visual Flash
+        btn.classList.add('copy-flash-active');
+        setTimeout(() => btn.classList.remove('copy-flash-active'), 400);
+
+        // 2. Create Light Burst Ring
+        const rect = btn.getBoundingClientRect();
+        const ring = document.createElement('div');
+        ring.className = 'light-burst-ring';
+        // Position center of button
+        ring.style.left = (rect.left + rect.width / 2) + 'px';
+        ring.style.top = (rect.top + rect.height / 2) + 'px';
+        document.body.appendChild(ring);
+        
+        // Remove after animation
+        setTimeout(() => ring.remove(), 600);
+
+        showNotification('Data copied to clipboard'); 
+      } catch(err) {
+        console.error('Copy failed', err);
+      }
     }
   }
 
@@ -586,7 +636,7 @@
   function startClock() { setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-GB'); }, 1000); }
   setInterval(() => { if(document.getElementById('hud-temp')) document.getElementById('hud-temp').innerText = (Math.floor(Math.random() * 5) + 30) + 'C'; }, 3000);
 
-  // TextScramble Class (for HD titles)
+  // TextScramble Class
   class TextScramble {
     constructor(el) { this.el = el; this.chars = '!<>-_\\/[]{}—=+*^?#_'; this.update = this.update.bind(this); }
     setText(newText) {
