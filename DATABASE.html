@@ -720,79 +720,52 @@
       margin-bottom: 6px;
     }
 
-    .detail-value {
+    .detail-key-title {
       font-size: 1.1rem;
-      color: var(--text-main);
+      color: #fff;
       font-weight: 600;
       margin-bottom: 20px;
-      padding-bottom: 20px;
-      border-bottom: 1px dashed var(--border-glass);
-      word-break: break-all;
-      line-height: 1.5;
+    }
+
+    .detail-desc-box {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border-glass);
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 16px;
     }
 
     .detail-desc-text {
-      font-size: 0.9rem;
-      color: #bbb;
-      line-height: 1.7;
+      font-size: 1rem;
+      color: #ccc;
+      line-height: 1.8;
       white-space: pre-wrap;
-      margin-bottom: 20px;
-      flex: 1;
     }
 
-    .detail-actions {
-      margin-top: auto;
-      padding-top: 20px;
-      border-top: 1px solid var(--border-glass);
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
-    }
-
-    .btn-action-primary {
+    .btn-copy-desc {
       background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
       border: none;
       color: #000;
-      padding: 10px 20px;
+      padding: 14px 24px;
       font-family: 'Rajdhani', sans-serif;
       font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
       cursor: pointer;
       transition: all 0.3s;
-      display: inline-flex; align-items: center; gap: 8px;
-      font-size: 0.8rem;
-      border-radius: 8px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      font-size: 0.9rem;
+      border-radius: 10px;
       box-shadow: 0 0 20px var(--glow-primary);
+      width: 100%;
+      margin-top: auto;
     }
 
-    .btn-action-primary:hover {
+    .btn-copy-desc:hover {
       transform: translateY(-2px);
-      box-shadow: 0 0 30px var(--glow-primary);
+      box-shadow: 0 0 35px var(--glow-primary);
     }
 
-    .btn-action-secondary {
-      background: transparent;
-      border: 1px solid var(--border-glass);
-      color: var(--text-muted);
-      padding: 10px 20px;
-      font-family: 'Rajdhani', sans-serif;
-      font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
-      cursor: pointer;
-      transition: all 0.3s;
-      display: inline-flex; align-items: center; gap: 8px;
-      font-size: 0.8rem;
-      border-radius: 8px;
-    }
-
-    .btn-action-secondary:hover {
-      border-color: var(--accent-gold);
-      color: var(--accent-gold);
-      box-shadow: 0 0 20px rgba(255, 170, 0, 0.25);
-    }
-
-    .btn-action-secondary.success {
+    .btn-copy-desc.success {
       background: var(--accent-gold);
-      color: #000;
-      border-color: var(--accent-gold);
     }
 
     .empty-state {
@@ -1036,7 +1009,6 @@
       .assets-grid { grid-template-columns: 1fr; }
       .car-interceptor { display: none; }
       .gradient-orb { display: none; }
-      .detail-actions { flex-direction: column; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1382,29 +1354,23 @@
         
         const keys = Object.keys(row);
         const key = row[keys[0]] || '-';
-        const val = row[keys[1]] || '-';
         const desc = row[keys[2]] || '-';
-        const valEsc = escapeHTML(String(val)).replace(/"/g, '&quot;');
         const descEsc = escapeHTML(String(desc)).replace(/"/g, '&quot;');
-        const keyEsc = escapeHTML(String(key)).replace(/"/g, '&quot;');
         
         detailPanel.innerHTML = `
           <div class="detail-content">
             <div class="detail-label">ID / Key</div>
-            <div style="font-size:1rem;color:#fff;margin-bottom:16px;font-weight:600;">${escapeHTML(key)}</div>
-            <div class="detail-label">Detail Value</div>
-            <div class="detail-value">${escapeHTML(val)}</div>
-            <div class="detail-desc-text">${escapeHTML(desc)}</div>
-            <div class="detail-actions">
-              <button class="btn-action-secondary" data-desc="${descEsc}" id="btnCopyDesc">
-                <i class="fas fa-file-alt"></i>
-                <span>Copy Description</span>
-              </button>
-              <button class="btn-action-primary" data-key="${keyEsc}" data-val="${valEsc}" data-desc="${descEsc}" id="btnCopyAll">
-                <i class="fas fa-copy"></i>
-                <span>Copy All Data</span>
-              </button>
+            <div class="detail-key-title">${escapeHTML(key)}</div>
+            
+            <div class="detail-label">Keterangan</div>
+            <div class="detail-desc-box">
+              <div class="detail-desc-text">${escapeHTML(desc)}</div>
             </div>
+            
+            <button class="btn-copy-desc" data-desc="${descEsc}" id="btnCopyDesc">
+              <i class="fas fa-copy"></i>
+              <span>Copy Description</span>
+            </button>
           </div>
         `;
       }
@@ -1482,27 +1448,20 @@
       
       // Copy buttons - delegated
       document.addEventListener('click', async (e) => {
-        const btn = e.target.closest('.btn-industrial, .btn-copy-action, .btn-action-primary, .btn-action-secondary');
+        const btn = e.target.closest('.btn-industrial, .btn-copy-action, .btn-copy-desc');
         if (!btn) return;
         
         let text = '';
         
-        // For sidebar detail buttons
+        // For sidebar detail button
         if (btn.id === 'btnCopyDesc') {
           text = btn.dataset.desc || '';
-        } else if (btn.id === 'btnCopyAll') {
-          const key = btn.dataset.key || '';
-          const val = btn.dataset.val || '';
-          const desc = btn.dataset.desc || '';
-          text = `${key}\n${val}\n${desc}`;
         } else if (btn.dataset.val && btn.dataset.desc) {
           const val = btn.dataset.val;
           const desc = btn.dataset.desc;
           text = desc && desc !== '-' ? `${val} - ${desc}` : val;
         } else if (btn.dataset.text) {
           text = btn.dataset.text;
-        } else if (btn.dataset.descOnly) {
-          text = btn.dataset.descOnly;
         }
         
         if (text) {
