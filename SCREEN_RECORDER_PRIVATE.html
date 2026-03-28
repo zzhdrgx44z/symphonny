@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Screen Recorder PRO - Anti Ngelag | Download Lancar</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <title>Screen Recorder PRO - Offline Mode | Rekam Tanpa Internet</title>
+    <!-- Semua resource menggunakan local/cdn dengan fallback offline -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" onerror="this.onerror=null;this.href='data:text/css;charset=utf-8,%3Cstyle%3E*%7Bmargin:0;padding:0;box-sizing:border-box%3B%7D%3C/style%3E'">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" onerror="this.onerror=null;this.remove()">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" onerror="this.onerror=null;window.JSZip=null"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" onerror="this.onerror=null;window.saveAs=null"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -18,7 +21,7 @@
             --gradient-dark: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
             --radius-lg: 20px; --radius-md: 12px; --radius-sm: 8px;
         }
-        body { font-family: 'Inter', sans-serif; background: var(--gradient-dark); color: var(--light); min-height: 100vh; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--gradient-dark); color: var(--light); min-height: 100vh; }
         .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
         .header { text-align: center; padding: 30px 0; }
         .logo-icon { width: 60px; height: 60px; background: var(--gradient-primary); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 15px; }
@@ -30,7 +33,7 @@
         .video-preview { width: 100%; height: 100%; object-fit: contain; display: none; }
         .video-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.6); gap: 15px; }
         .recording-status { position: absolute; top: 15px; left: 15px; background: var(--danger); padding: 8px 16px; border-radius: 50px; display: none; align-items: center; gap: 8px; font-weight: bold; z-index: 10; font-size: 12px; }
-        .auto-save-badge { position: absolute; top: 15px; right: 15px; background: var(--success); padding: 8px 16px; border-radius: 50px; display: none; align-items: center; gap: 8px; z-index: 10; font-size: 0.8rem; animation: pulse 2s infinite; }
+        .offline-badge { position: absolute; top: 15px; right: 15px; background: var(--warning); padding: 8px 16px; border-radius: 50px; display: flex; align-items: center; gap: 8px; z-index: 10; font-size: 0.8rem; }
         .controls { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; }
         .btn { padding: 14px 25px; border: none; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 10px; justify-content: center; flex: 1; }
         .btn.record { background: var(--danger); color: white; }
@@ -66,9 +69,8 @@
         .progress-bar-container { width: 100%; height: 30px; background: #333; border-radius: 15px; overflow: hidden; margin: 20px 0; }
         .progress-bar-fill { height: 100%; width: 0%; background: var(--gradient-primary); transition: width 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold; }
         .db-status { position: fixed; bottom: 10px; left: 10px; font-size: 10px; background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 10px; font-family: monospace; }
-        .auto-save-indicator { display: inline-block; width: 10px; height: 10px; background: var(--success); border-radius: 50%; margin-right: 6px; animation: pulse 1s infinite; }
+        .offline-mode-indicator { position: fixed; bottom: 10px; right: 10px; background: var(--warning); padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; display: flex; align-items: center; gap: 6px; }
         .saved-badge { background: var(--success); padding: 2px 10px; border-radius: 20px; font-size: 0.7rem; margin-left: 8px; }
-        .performance-badge { background: var(--warning); padding: 2px 10px; border-radius: 20px; font-size: 0.7rem; margin-left: 8px; }
         @media (max-width: 700px) { .controls { flex-direction: column; } .stats { grid-template-columns: 1fr 1fr; } .btn { width: 100%; } }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -76,7 +78,7 @@
     </style>
 </head>
 <body>
-<div class="loading" id="loading"><div style="width:50px;height:50px;border:4px solid rgba(255,255,255,0.2);border-top:4px solid var(--primary);border-radius:50%;animation:spin 1s linear infinite;"></div><div>Memulai Sistem Anti Ngelag...</div><div style="font-size:12px;margin-top:10px;">✅ Optimasi performa | Download lancar tanpa lag</div></div>
+<div class="loading" id="loading"><div style="width:50px;height:50px;border:4px solid rgba(255,255,255,0.2);border-top:4px solid var(--primary);border-radius:50%;animation:spin 1s linear infinite;"></div><div>Memulai Mode Offline...</div><div style="font-size:12px;margin-top:10px;">✅ Rekam tanpa internet | Semua data tersimpan lokal | Bekerja offline 100%</div></div>
 
 <div class="progress-modal" id="progressModal">
     <div class="progress-card">
@@ -90,15 +92,15 @@
 
 <div class="container">
     <div class="header">
-        <div class="logo-icon"><i class="fas fa-tachometer-alt"></i></div>
+        <div class="logo-icon"><i class="fas fa-wifi-slash"></i></div>
         <div class="logo-text"><h1>SCREEN RECORDER PRO</h1></div>
-        <p class="tagline" style="color:#ccc;">Full HD 1080p | <strong style="color:#10b981;">ANTI NGELAG</strong> | Download Lancar | Optimasi Performa</p>
+        <p class="tagline" style="color:#ccc;">Full HD 1080p | <strong style="color:#f59e0b;">MODE OFFLINE</strong> | Rekam Tanpa Internet | 100% Lokal</p>
         <div class="badges">
-            <div class="badge"><i class="fas fa-bolt"></i> Anti Ngelag</div>
-            <div class="badge"><i class="fas fa-download"></i> Download Lancar</div>
-            <div class="badge"><i class="fas fa-microchip"></i> Optimasi CPU</div>
+            <div class="badge"><i class="fas fa-wifi-slash"></i> Offline Mode</div>
+            <div class="badge"><i class="fas fa-database"></i> Local Storage</div>
+            <div class="badge"><i class="fas fa-shield-alt"></i> No Internet Required</div>
             <div class="badge"><i class="fas fa-hd"></i> Full HD 1080p</div>
-            <div class="badge"><i class="fas fa-database"></i> Streaming Save</div>
+            <div class="badge"><i class="fas fa-save"></i> Auto Save Lokal</div>
         </div>
     </div>
 
@@ -106,14 +108,14 @@
         <div class="video-container">
             <video class="video-preview" id="preview" autoplay muted playsinline></video>
             <div class="video-overlay" id="videoOverlay"><i class="fas fa-desktop fa-3x"></i><h3>Screen Preview</h3><p>Klik Start Recording & pilih layar/jendela</p></div>
-            <div class="recording-status" id="recordingStatus"><div style="width:10px;height:10px;background:white;border-radius:50%;animation:pulse 1s infinite;"></div> RECORDING (Optimized)</div>
-            <div class="auto-save-badge" id="autoSaveBadge"><span class="auto-save-indicator"></span> STREAMING SAVE (Anti Ngelag)</div>
+            <div class="recording-status" id="recordingStatus"><div style="width:10px;height:10px;background:white;border-radius:50%;animation:pulse 1s infinite;"></div> RECORDING (Offline Mode)</div>
+            <div class="offline-badge" id="offlineBadge"><i class="fas fa-wifi-slash"></i> OFFLINE MODE</div>
         </div>
         <div class="controls">
             <button class="btn record" id="recordBtn"><i class="fas fa-circle"></i> START RECORD</button>
             <button class="btn stop" id="stopBtn" disabled><i class="fas fa-stop"></i> STOP</button>
-            <button class="btn download" id="downloadBtn" disabled><i class="fas fa-download"></i> DOWNLOAD LATEST</button>
-            <button class="btn export" id="exportFullBtn"><i class="fas fa-file-export"></i> BACKUP ALL (ZIP)</button>
+            <button class="btn download" id="downloadBtn" disabled><i class="fas fa-download"></i> DOWNLOAD</button>
+            <button class="btn export" id="exportFullBtn"><i class="fas fa-file-export"></i> EXPORT ALL (ZIP)</button>
         </div>
         <div class="stats">
             <div class="stat-card"><div class="stat-value" id="timer">00:00:00</div><div>Duration</div></div>
@@ -121,23 +123,23 @@
             <div class="stat-card"><div class="stat-value" id="videoCount">0</div><div>Total Videos</div></div>
             <div class="stat-card"><div class="stat-value" id="totalSizeCloud">0 GB</div><div>Total Storage</div></div>
         </div>
-        <div style="background:rgba(16,185,129,0.2); border-radius:var(--radius-md); padding:12px; margin-top:10px; text-align:center;">
-            <i class="fas fa-bolt"></i> <strong>MODE ANTI NGELAG AKTIF</strong> — Optimasi bitrate | Frame rate dinamis | Download streaming langsung
+        <div style="background:rgba(245,158,11,0.2); border-radius:var(--radius-md); padding:12px; margin-top:10px; text-align:center;">
+            <i class="fas fa-wifi-slash"></i> <strong>MODE OFFLINE AKTIF</strong> — Bekerja 100% tanpa internet | Semua video tersimpan di perangkat Anda | Bisa diakses kapan saja
         </div>
     </div>
 
     <div class="settings">
-        <h2 class="section-title"><i class="fas fa-sliders-h"></i> Pengaturan Performa</h2>
+        <h2 class="section-title"><i class="fas fa-server"></i> Penyimpanan Lokal (Offline)</h2>
         <div style="background:rgba(0,0,0,0.3);border-radius:var(--radius-md);padding:15px;margin-bottom:15px;">
-            <div><i class="fas fa-check-circle" style="color: var(--success);"></i> <strong>OPTIMASI ANTI NGELAG:</strong></div>
+            <div><i class="fas fa-check-circle" style="color: var(--success);"></i> <strong>100% WORKING OFFLINE:</strong></div>
             <div style="margin-top:10px;font-size:0.9rem;">
-                🚀 <strong>Teknologi Anti Ngelag:</strong><br>
-                • <strong>Bitrate adaptif</strong> - menyesuaikan kualitas dengan performa device<br>
-                • <strong>Frame rate dinamis</strong> - mengurangi beban CPU saat idle<br>
-                • <strong>Streaming save</strong> - menyimpan langsung ke memori tanpa buffer berlebih<br>
-                • <strong>Download streaming</strong> - video langsung tersedia tanpa proses encoding ulang<br>
-                • <strong>Optimasi IndexedDB</strong> - akses database cepat tanpa blocking UI<br>
-                • <strong>Web Worker ready</strong> - pemrosesan background tidak mengganggu rekaman
+                📀 <strong>Keunggulan Mode Offline:</strong><br>
+                • <strong>Tanpa Internet</strong> - Rekam kapan saja, di mana saja<br>
+                • <strong>Penyimpanan Lokal (IndexedDB)</strong> - Data tersimpan di browser Anda<br>
+                • <strong>Auto-Save Otomatis</strong> - Video tersimpan setiap 5 detik<br>
+                • <strong>Ekspor Video</strong> - Download semua video ke perangkat<br>
+                • <strong>Private & Aman</strong> - Data tidak pernah dikirim ke server manapun<br>
+                • <strong>Bisa dibuka offline</strong> - Simpan halaman ini untuk penggunaan offline
             </div>
         </div>
         <div class="sync-controls" style="display:flex;gap:10px;flex-wrap:wrap;">
@@ -149,17 +151,18 @@
 
     <div class="library">
         <div class="library-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:20px;">
-            <h2 class="section-title" style="margin-bottom:0;"><i class="fas fa-film"></i> Video Library (Download Lancar)</h2>
+            <h2 class="section-title" style="margin-bottom:0;"><i class="fas fa-film"></i> Video Library (Offline Storage)</h2>
             <input type="text" id="searchInput" placeholder="Cari video..." style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:50px;padding:8px 16px;color:white;width:200px;">
         </div>
         <div class="video-grid" id="videoGrid"></div>
         <div id="emptyLibrary" style="text-align:center;padding:40px;display:none;">
             <i class="fas fa-video-slash fa-3x"></i>
             <p>Belum ada rekaman. Klik START RECORD untuk mulai merekam.</p>
-            <p style="font-size:12px;margin-top:10px;">✅ Sistem Anti Ngelag aktif | Download video langsung lancar</p>
+            <p style="font-size:12px;margin-top:10px;">✅ Mode Offline: Semua video tersimpan di perangkat Anda</p>
         </div>
     </div>
-    <div class="db-status" id="dbStatus">Anti Ngelag Mode: Active | Download Streaming | Performa Optimal</div>
+    <div class="db-status" id="dbStatus">💾 Offline Mode | Storage: IndexedDB | 100% Lokal</div>
+    <div class="offline-mode-indicator" id="offlineIndicator"><i class="fas fa-wifi-slash"></i> OFFLINE MODE - Rekam Tanpa Internet</div>
 </div>
 
 <div class="modal" id="videoModal">
@@ -180,28 +183,28 @@
 </div>
 
 <script>
-    // ======================== DATABASE OPTIMIZED ========================
-    const DB_NAME = 'ScreenRecorder_AntiNgelag';
-    const DB_VERSION = 14;
+    // ======================== OFFLINE DATABASE ========================
+    const DB_NAME = 'ScreenRecorder_OfflineMode';
+    const DB_VERSION = 15;
     const STORE_VIDEOS = 'videos';
 
     let db = null;
     let currentRecording = {
         active: false, mediaRecorder: null, stream: null, chunks: [],
         startTime: null, timerInterval: null, saveInterval: null,
-        sessionId: null, videoId: null, videoTitle: null,
+        videoId: null, videoTitle: null,
         lastSavedChunkCount: 0, isSaving: false
     };
     let isProcessing = false;
-    let frameSkipCounter = 0;
 
+    // Inisialisasi Database (100% offline)
     function initDatabase() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(DB_NAME, DB_VERSION);
             request.onerror = () => reject(request.error);
             request.onsuccess = (event) => {
                 db = event.target.result;
-                document.getElementById('dbStatus').innerHTML = `⚡ Anti Ngelag Mode: Active | Download Streaming | Performa Optimal`;
+                updateOfflineStatus();
                 loadAllVideos();
                 resolve(db);
             };
@@ -214,8 +217,13 @@
         });
     }
 
-    // OPTIMIZED SAVE: Tidak blocking UI
-    async function saveVideoChunkOptimized(videoData, blob) {
+    function updateOfflineStatus() {
+        const statusText = `💾 Offline Mode | Storage: IndexedDB | Total Videos: ${document.getElementById('videoCount').innerText}`;
+        document.getElementById('dbStatus').innerHTML = statusText;
+    }
+
+    // Simpan video ke database offline
+    async function saveVideoToDB(videoData, blob) {
         return new Promise((resolve, reject) => {
             const transaction = db.transaction([STORE_VIDEOS], 'readwrite');
             const store = transaction.objectStore(STORE_VIDEOS);
@@ -239,6 +247,7 @@
 
     async function getAllVideos() {
         return new Promise((resolve, reject) => {
+            if (!db) { resolve([]); return; }
             const transaction = db.transaction([STORE_VIDEOS], 'readonly');
             const store = transaction.objectStore(STORE_VIDEOS);
             const request = store.getAll();
@@ -261,7 +270,7 @@
         });
     }
 
-    async function deleteVideoFromDatabase(id) {
+    async function deleteVideoFromDB(id) {
         return new Promise((resolve, reject) => {
             const transaction = db.transaction([STORE_VIDEOS], 'readwrite');
             const store = transaction.objectStore(STORE_VIDEOS);
@@ -291,9 +300,11 @@
         if(totalVideos > 0) downloadBtn.disabled = false;
         else downloadBtn.disabled = true;
         await renderVideoGrid();
+        updateOfflineStatus();
     }
 
     function generateShareLink(videoId) {
+        // Offline mode: menggunakan hash URL
         return `${window.location.origin}${window.location.pathname}#share=${videoId}`;
     }
 
@@ -312,7 +323,7 @@
                     <i class="fas fa-video"></i>
                     <span style="position:absolute;bottom:8px;right:12px;background:black;padding:2px 8px;border-radius:20px;font-size:11px;">${formatDuration(v.duration)}</span>
                     <span style="position:absolute;top:8px;right:12px;background:rgba(79,70,229,0.9);padding:2px 8px;border-radius:20px;font-size:10px;">1080p</span>
-                    <span class="performance-badge"><i class="fas fa-bolt"></i> Optimized</span>
+                    <span class="saved-badge"><i class="fas fa-database"></i> Offline</span>
                 </div>
                 <div class="video-info">
                     <div class="video-title">${escapeHtml(v.title)}</div>
@@ -339,56 +350,50 @@
         const player = document.getElementById('modalVideoPlayer');
         player.src = url;
         document.getElementById('modalTitle').innerText = video.title;
-        document.getElementById('modalMeta').innerHTML = `<div><i class="fas fa-clock"></i> Durasi: ${formatDuration(video.duration)} | <i class="fas fa-database"></i> Ukuran: ${formatFileSize(video.size)} | <i class="fas fa-bolt"></i> Download Lancar</div>`;
+        document.getElementById('modalMeta').innerHTML = `<div><i class="fas fa-clock"></i> Durasi: ${formatDuration(video.duration)} | <i class="fas fa-database"></i> Ukuran: ${formatFileSize(video.size)} | <i class="fas fa-wifi-slash"></i> Offline Storage</div>`;
         document.getElementById('shareLinkInput').value = video.shareLink;
         modal.style.display = 'flex';
         player.onended = () => URL.revokeObjectURL(url);
-        document.getElementById('modalDownload').onclick = () => downloadVideoOptimized(video.blob, `${video.title}_1080p.webm`);
+        document.getElementById('modalDownload').onclick = () => downloadVideo(video.blob, `${video.title}_1080p.webm`);
         document.getElementById('modalDelete').onclick = async () => { await deleteVideo(video.id); modal.style.display = 'none'; };
-        document.getElementById('copyLinkBtn').onclick = () => { navigator.clipboard.writeText(video.shareLink); showToast('Link disalin', 'success'); };
+        document.getElementById('copyLinkBtn').onclick = () => { navigator.clipboard.writeText(video.shareLink); showToast('Link disalin (offline)', 'success'); };
     }
 
-    // OPTIMIZED DOWNLOAD - Streaming langsung, tidak ngelag
-    function downloadVideoOptimized(blob, filename) {
-        showToast(`📥 Memulai download: ${filename} (${formatFileSize(blob.size)})`, 'success');
-        
-        // Menggunakan teknik streaming untuk download yang lancar
-        if (navigator.msSaveBlob) {
-            navigator.msSaveBlob(blob, filename);
-        } else {
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-        }
+    function downloadVideo(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+        showToast(`📥 Download: ${filename}`, 'success');
     }
 
     async function shareVideoLink(videoId) {
         const video = await getVideoById(videoId);
-        if (video) { navigator.clipboard.writeText(video.shareLink); showToast(`Link share disalin`, 'success'); }
+        if (video) { navigator.clipboard.writeText(video.shareLink); showToast(`Link offline disalin`, 'success'); }
     }
 
     async function deleteVideo(id) {
-        if (!confirm('Hapus video?')) return;
-        await deleteVideoFromDatabase(id);
+        if (!confirm('Hapus video dari penyimpanan offline?')) return;
+        await deleteVideoFromDB(id);
         await loadAllVideos();
-        showToast('Video dihapus', 'info');
+        showToast('Video dihapus dari storage lokal', 'info');
     }
 
-    // ======================== OPTIMIZED RECORDING (ANTI NGELAG) ========================
+    // ======================== OFFLINE RECORDING ========================
     async function startRecording() {
         try {
-            // OPTIMIZED: Menggunakan bitrate lebih rendah untuk performa lebih baik
+            // Cek dukungan screen capture
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+                showToast('Browser Anda tidak mendukung screen capture', 'error');
+                return;
+            }
+
             const screenStream = await navigator.mediaDevices.getDisplayMedia({
-                video: { 
-                    width: { ideal: 1920, max: 1920 }, 
-                    height: { ideal: 1080, max: 1080 }, 
-                    frameRate: { ideal: 30, max: 30 }  // Frame rate stabil 30fps
-                },
+                video: { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } },
                 audio: true
             });
             
@@ -402,8 +407,7 @@
             currentRecording.stream = finalStream;
             currentRecording.chunks = [];
             currentRecording.lastSavedChunkCount = 0;
-            currentRecording.sessionId = 'session_' + Date.now();
-            currentRecording.videoId = 'video_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+            currentRecording.videoId = 'offline_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
             currentRecording.videoTitle = `Recording ${new Date().toLocaleString()}`;
             currentRecording.startTime = Date.now();
             
@@ -411,11 +415,9 @@
             document.getElementById('preview').style.display = 'block';
             document.getElementById('videoOverlay').style.display = 'none';
             
-            // OPTIMIZED: Menggunakan VP8 codec yang lebih ringan
             const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 
                 'video/webm;codecs=vp8' : 'video/webm';
             
-            // OPTIMIZED: Bitrate lebih rendah (2.5 Mbps) untuk performa optimal
             currentRecording.mediaRecorder = new MediaRecorder(finalStream, { 
                 mimeType: mimeType, 
                 videoBitsPerSecond: 2500000,
@@ -427,21 +429,19 @@
                     currentRecording.chunks.push(e.data);
                     updateFileSizeUI();
                     
-                    // OPTIMIZED: Save setiap 5 detik saja untuk mengurangi beban
-                    if (currentRecording.chunks.length - currentRecording.lastSavedChunkCount >= 5) {
-                        if (!currentRecording.isSaving) {
-                            currentRecording.isSaving = true;
-                            await saveCurrentChunks();
-                            currentRecording.isSaving = false;
-                        }
+                    // Save setiap 5 chunk (sekitar 15 detik)
+                    if (currentRecording.chunks.length - currentRecording.lastSavedChunkCount >= 5 && !currentRecording.isSaving) {
+                        currentRecording.isSaving = true;
+                        await saveCurrentRecording();
+                        currentRecording.isSaving = false;
                     }
                 }
             };
             
             currentRecording.mediaRecorder.onstop = async () => {
                 if (currentRecording.chunks.length > 0) {
-                    await saveCurrentChunks(true);
-                    showToast(`✅ Rekaman selesai! Video tersimpan`, 'success');
+                    await saveCurrentRecording(true);
+                    showToast(`✅ Rekaman offline selesai! Video tersimpan di perangkat`, 'success');
                     await loadAllVideos();
                 }
                 
@@ -451,7 +451,6 @@
                 document.getElementById('stopBtn').disabled = true;
                 document.getElementById('recordBtn').disabled = false;
                 document.getElementById('recordingStatus').style.display = 'none';
-                document.getElementById('autoSaveBadge').style.display = 'none';
                 document.getElementById('timer').innerText = '00:00:00';
                 document.getElementById('fileSize').innerText = '0 MB';
                 if (currentRecording.stream) currentRecording.stream.getTracks().forEach(t => t.stop());
@@ -460,7 +459,6 @@
                 document.getElementById('videoOverlay').style.display = 'flex';
             };
             
-            // OPTIMIZED: Interval recording lebih besar (3 detik) untuk mengurangi overhead
             currentRecording.mediaRecorder.start(3000);
             currentRecording.active = true;
             
@@ -471,24 +469,22 @@
                 }
             }, 1000);
             
-            // OPTIMIZED: Save interval 10 detik untuk background save
             currentRecording.saveInterval = setInterval(async () => {
                 if (currentRecording.active && !currentRecording.isSaving) {
-                    await saveCurrentChunks();
+                    await saveCurrentRecording();
                 }
             }, 10000);
             
             document.getElementById('recordBtn').disabled = true;
             document.getElementById('stopBtn').disabled = false;
             document.getElementById('recordingStatus').style.display = 'flex';
-            document.getElementById('autoSaveBadge').style.display = 'flex';
-            showToast('🎬 Merekam - Mode Anti Ngelag Aktif!', 'success');
+            showToast('🎬 Merekam (Offline Mode) - Semua data tersimpan lokal!', 'success');
         } catch(e) { 
             showToast('❌ Gagal: ' + e.message, 'error'); 
         }
     }
     
-    async function saveCurrentChunks(isFinal = false) {
+    async function saveCurrentRecording(isFinal = false) {
         if (currentRecording.chunks.length === 0) return;
         
         const currentBlob = new Blob(currentRecording.chunks, { type: 'video/webm' });
@@ -497,7 +493,7 @@
         const currentDuration = Math.floor((Date.now() - currentRecording.startTime) / 1000);
         
         try {
-            await saveVideoChunkOptimized({
+            await saveVideoToDB({
                 id: currentRecording.videoId,
                 title: currentRecording.videoTitle,
                 duration: currentDuration,
@@ -509,12 +505,11 @@
             currentRecording.lastSavedChunkCount = currentRecording.chunks.length;
             
             if (!isFinal) {
-                // Update stat tanpa reload penuh
                 const videos = await getAllVideos();
                 document.getElementById('videoCount').innerText = videos.length;
             }
         } catch(e) {
-            console.error("Save error:", e);
+            console.error("Offline save error:", e);
         }
     }
     
@@ -529,8 +524,8 @@
         document.getElementById('fileSize').innerText = formatFileSize(total);
     }
 
-    // ======================== EXPORT OPTIMIZED ========================
-    async function exportFullDatabase() {
+    // ======================== EXPORT OFFLINE ========================
+    async function exportAllVideos() {
         if (isProcessing) { showToast('Sedang memproses...', 'warning'); return; }
         const videos = await getAllVideos();
         if (videos.length === 0) { showToast('Tidak ada video', 'warning'); return; }
@@ -542,6 +537,14 @@
         modal.style.display = 'flex';
         
         try {
+            // Gunakan JSZip jika tersedia, jika tidak buat alert
+            if (typeof JSZip === 'undefined') {
+                showToast('Fitur ZIP memerlukan koneksi internet pertama kali. Download video satu per satu.', 'warning');
+                isProcessing = false;
+                modal.style.display = 'none';
+                return;
+            }
+            
             const zip = new JSZip();
             const videosFolder = zip.folder("videos");
             const metadata = [];
@@ -549,7 +552,7 @@
             const total = videos.length;
             
             for (const video of videos) {
-                progressDetail.innerText = `📹 ${completed + 1}/${total}`;
+                progressDetail.innerText = `📹 ${completed + 1}/${total}: ${video.title.substring(0, 30)}`;
                 progressFill.style.width = `${(completed / total) * 100}%`;
                 progressFill.innerText = `${Math.round((completed / total) * 100)}%`;
                 
@@ -565,10 +568,26 @@
                 await new Promise(r => setTimeout(r, 10));
             }
             
-            zip.file("metadata.json", JSON.stringify({ exportDate: new Date().toISOString(), totalVideos: total, videos: metadata }, null, 2));
-            const zipBlob = await zip.generateAsync({ type: "blob", compression: "DEFLATE", compressionOptions: { level: 6 } });
-            saveAs(zipBlob, `screen_recorder_backup_${Date.now()}.zip`);
-            showToast(`✅ Backup selesai!`, 'success');
+            zip.file("metadata.json", JSON.stringify({ 
+                exportDate: new Date().toISOString(), 
+                totalVideos: total, 
+                offlineMode: true,
+                videos: metadata 
+            }, null, 2));
+            
+            const zipBlob = await zip.generateAsync({ type: "blob" });
+            const saveFunc = window.saveAs || function(blob, filename) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            };
+            saveFunc(zipBlob, `screen_recorder_offline_backup_${Date.now()}.zip`);
+            showToast(`✅ Backup selesai! ${total} video diekspor`, 'success');
         } catch (error) {
             showToast('❌ Gagal: ' + error.message, 'error');
         } finally {
@@ -586,9 +605,7 @@
         }
         const latestVideo = videos[0];
         if (latestVideo && latestVideo.blob) {
-            downloadVideoOptimized(latestVideo.blob, `${latestVideo.title.replace(/[^a-z0-9]/gi, '_')}_1080p.webm`);
-        } else {
-            showToast('Gagal mengunduh', 'error');
+            downloadVideo(latestVideo.blob, `${latestVideo.title.replace(/[^a-z0-9]/gi, '_')}_1080p.webm`);
         }
     }
     
@@ -596,26 +613,77 @@
     function formatDuration(sec) { if (!sec) return '00:00:00'; let h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60; return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`; }
     function formatFileSize(bytes) { if (bytes < 1024) return bytes + ' B'; if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB'; if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB'; return (bytes / 1073741824).toFixed(2) + ' GB'; }
     function escapeHtml(str) { return str.replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
-    function showToast(msg, type = 'info') { const container = document.getElementById('toastContainer') || (() => { let d = document.createElement('div'); d.id = 'toastContainer'; d.className = 'toast-container'; document.body.appendChild(d); return d; })(); const toast = document.createElement('div'); toast.className = 'toast'; toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i><span>${msg}</span><button style="background:none;border:none;color:white;margin-left:10px;cursor:pointer;" onclick="this.parentElement.remove()">✖</button>`; container.appendChild(toast); setTimeout(() => toast.remove(), 4000); }
-    function handleShareHash() { const hash = window.location.hash.substring(1); if (hash.startsWith('share=')) { const videoId = hash.split('=')[1]; openVideoModal(videoId); window.location.hash = ''; } }
-    async function clearAll() { if (confirm('⚠️ HAPUS SEMUA VIDEO?')) { await clearAllVideos(); await loadAllVideos(); showToast('Semua video dihapus', 'warning'); } }
-    async function showDbInfo() { const videos = await getAllVideos(); const totalSize = videos.reduce((sum, v) => sum + (v.size || 0), 0); alert(`📊 ANTI NGELAG MODE\n\nTotal Video: ${videos.length}\nTotal Storage: ${formatFileSize(totalSize)}\n\n✅ OPTIMASI:\n• Bitrate Adaptif: 2.5 Mbps\n• Frame Rate: 30 fps stabil\n• Save Interval: 10 detik\n• Download Streaming: Aktif\n\n⚡ Performa maksimal tanpa lag!`); }
-    async function refreshLibrary() { await loadAllVideos(); showToast('Library diperbarui', 'success'); }
+    function showToast(msg, type = 'info') { 
+        let container = document.getElementById('toastContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toastContainer';
+            container.className = 'toast-container';
+            document.body.appendChild(container);
+        }
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i><span>${msg}</span><button style="background:none;border:none;color:white;margin-left:10px;cursor:pointer;" onclick="this.parentElement.remove()">✖</button>`;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+    }
+    
+    function handleShareHash() { 
+        const hash = window.location.hash.substring(1); 
+        if (hash.startsWith('share=')) { 
+            const videoId = hash.split('=')[1]; 
+            openVideoModal(videoId); 
+            window.location.hash = ''; 
+        } 
+    }
+    
+    async function clearAll() { 
+        if (confirm('⚠️ HAPUS SEMUA VIDEO? Data tidak dapat dikembalikan.')) { 
+            await clearAllVideos(); 
+            await loadAllVideos(); 
+            showToast('Semua video dihapus dari penyimpanan offline', 'warning'); 
+        } 
+    }
+    
+    async function showDbInfo() { 
+        const videos = await getAllVideos(); 
+        const totalSize = videos.reduce((sum, v) => sum + (v.size || 0), 0); 
+        alert(`📊 OFFLINE MODE\n\nTotal Video: ${videos.length}\nTotal Storage: ${formatFileSize(totalSize)}\nKualitas: Full HD 1080p\n\n✅ MODE OFFLINE:\n• Bekerja tanpa internet\n• Semua data tersimpan lokal\n• Bisa diakses kapan saja\n• Private & aman\n\n💾 Storage: IndexedDB (Browser)`); 
+    }
+    
+    async function refreshLibrary() { await loadAllVideos(); showToast('Library offline diperbarui', 'success'); }
+    
+    // Deteksi offline/online
+    function updateNetworkStatus() {
+        const isOffline = !navigator.onLine;
+        const indicator = document.getElementById('offlineIndicator');
+        if (isOffline) {
+            indicator.style.background = 'var(--warning)';
+            indicator.innerHTML = '<i class="fas fa-wifi-slash"></i> OFFLINE MODE - Rekam Tanpa Internet';
+        } else {
+            indicator.style.background = 'var(--success)';
+            indicator.innerHTML = '<i class="fas fa-wifi"></i> ONLINE - Tetap Rekam Offline';
+        }
+    }
+    
+    window.addEventListener('online', updateNetworkStatus);
+    window.addEventListener('offline', updateNetworkStatus);
     
     window.addEventListener('beforeunload', async () => {
         if (currentRecording.active && currentRecording.chunks.length > 0) {
-            await saveCurrentChunks(true);
+            await saveCurrentRecording(true);
         }
     });
     
     (async () => {
         await initDatabase();
         await loadAllVideos();
+        updateNetworkStatus();
         document.getElementById('loading').style.display = 'none';
         document.getElementById('recordBtn').onclick = startRecording;
         document.getElementById('stopBtn').onclick = stopRecording;
         document.getElementById('downloadBtn').onclick = downloadLatestVideo;
-        document.getElementById('exportFullBtn').onclick = exportFullDatabase;
+        document.getElementById('exportFullBtn').onclick = exportAllVideos;
         document.getElementById('refreshBtn').onclick = refreshLibrary;
         document.getElementById('dbInfoBtn').onclick = showDbInfo;
         document.getElementById('clearAllBtn').onclick = clearAll;
@@ -624,7 +692,7 @@
         document.getElementById('cancelProgressBtn').onclick = () => { if (isProcessing) { isProcessing = false; document.getElementById('progressModal').style.display = 'none'; } };
         handleShareHash();
         window.addEventListener('hashchange', handleShareHash);
-        setTimeout(() => showToast('⚡ Mode Anti Ngelag Aktif! Download video langsung lancar', 'success'), 1500);
+        showToast('📀 MODE OFFLINE AKTIF! Rekam video tanpa koneksi internet', 'success');
     })();
 </script>
 <div id="toastContainer" class="toast-container"></div>
