@@ -9,11 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
       --bg-core: #010101;
@@ -24,10 +20,8 @@
       --accent-hot: #FF0066;
       --text-main: #ffffff;
       --text-muted: #8a9bb0;
-      --border-glass: rgba(255, 51, 102, 0.4);
       --glow-primary: rgba(255, 51, 102, 0.7);
       --glow-cyan: rgba(0, 242, 255, 0.6);
-      --glass-blur: 20px;
     }
 
     body {
@@ -41,641 +35,344 @@
     }
 
     #particle-canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.5;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 0; opacity: 0.5;
     }
 
     body::before {
-      content: "";
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
-      opacity: 0.05;
-      pointer-events: none;
-      z-index: 9999;
+      opacity: 0.05; pointer-events: none; z-index: 9999;
     }
 
     .scanlines {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 9998;
-      background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.2) 0px, rgba(0, 0, 0, 0.2) 2px, transparent 2px, transparent 6px);
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 9998;
+      background: repeating-linear-gradient(0deg, rgba(0,0,0,0.2) 0px, rgba(0,0,0,0.2) 2px, transparent 2px, transparent 6px);
       opacity: 0.25;
     }
 
     .scan-sweep {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 8px;
+      position: fixed; top: 0; left: 0; width: 100%; height: 8px;
       background: linear-gradient(90deg, transparent, var(--accent-primary), var(--accent-tertiary), transparent);
-      filter: blur(3px);
-      animation: sweep 8s ease-in-out infinite;
-      z-index: 9997;
-      pointer-events: none;
+      filter: blur(3px); animation: sweep 8s ease-in-out infinite; z-index: 9997; pointer-events: none;
     }
 
     @keyframes sweep {
-      0% { top: -10%; opacity: 0; }
-      10% { opacity: 0.8; }
-      90% { opacity: 0.8; }
-      100% { top: 110%; opacity: 0; }
+      0% { top: -10%; opacity: 0; } 10% { opacity: 0.8; } 90% { opacity: 0.8; } 100% { top: 110%; opacity: 0; }
     }
 
     .vignette {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: radial-gradient(circle at center, transparent 30%, rgba(0, 0, 0, 0.85) 100%);
-      pointer-events: none;
-      z-index: 1;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.85) 100%);
+      pointer-events: none; z-index: 1;
     }
 
     #mouse-glow {
-      position: fixed;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 2;
-      background: radial-gradient(circle 500px at var(--x, 50%) var(--y, 50%), rgba(255, 51, 102, 0.08), transparent 70%);
+      position: fixed; width: 100%; height: 100%; pointer-events: none; z-index: 2;
+      background: radial-gradient(circle 500px at var(--x, 50%) var(--y, 50%), rgba(255,51,102,0.08), transparent 70%);
       transition: 0.05s linear;
     }
 
     .perspective-grid {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 200%;
-      height: 60vh;
-      background-image: 
-        linear-gradient(transparent 97%, rgba(255, 51, 102, 0.2) 97%),
-        linear-gradient(90deg, transparent 97%, rgba(0, 242, 255, 0.2) 97%);
+      position: fixed; bottom: 0; left: 0; width: 200%; height: 60vh;
+      background-image: linear-gradient(transparent 97%, rgba(255,51,102,0.2) 97%), linear-gradient(90deg, transparent 97%, rgba(0,242,255,0.2) 97%);
       background-size: 80px 80px;
       transform: perspective(600px) rotateX(70deg) translateZ(-150px) translateY(80px) translateX(-20%);
       animation: gridMove 25s linear infinite;
-      mask-image: linear-gradient(to top, black 0%, transparent 80%);
-      z-index: 0;
+      mask-image: linear-gradient(to top, black 0%, transparent 80%); z-index: 0;
     }
 
-    @keyframes gridMove {
-      0% { background-position: 0 0; }
-      100% { background-position: 0 80px; }
-    }
+    @keyframes gridMove { 0% { background-position: 0 0; } 100% { background-position: 0 80px; } }
 
     .hazard-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 4px;
+      position: fixed; top: 0; left: 0; width: 100%; height: 4px;
       background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary), var(--accent-tertiary), var(--accent-primary));
-      background-size: 300% 100%;
-      animation: gradientMove 3s linear infinite;
-      z-index: 100;
+      background-size: 300% 100%; animation: gradientMove 3s linear infinite; z-index: 100;
       box-shadow: 0 0 15px var(--glow-primary);
     }
 
-    @keyframes gradientMove {
-      0% { background-position: 0% 50%; }
-      100% { background-position: 100% 50%; }
-    }
+    @keyframes gradientMove { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
 
     .top-nav {
-      height: 80px;
-      background: rgba(8, 12, 22, 0.85);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(255, 51, 102, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 35px;
-      position: relative;
-      z-index: 20;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+      height: 80px; background: rgba(8,12,22,0.85); backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,51,102,0.3);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 35px; position: relative; z-index: 20;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.5);
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
+    .brand { display: flex; align-items: center; gap: 20px; }
 
     .logo-box {
-      width: 52px;
-      height: 52px;
-      background: linear-gradient(135deg, rgba(255, 51, 102, 0.2), rgba(0, 242, 255, 0.1));
-      border: 1px solid var(--accent-primary);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-      color: var(--accent-primary);
-      box-shadow: 0 0 15px var(--glow-primary);
-      transition: all 0.3s;
+      width: 52px; height: 52px;
+      background: linear-gradient(135deg, rgba(255,51,102,0.2), rgba(0,242,255,0.1));
+      border: 1px solid var(--accent-primary); border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; color: var(--accent-primary);
+      box-shadow: 0 0 15px var(--glow-primary); transition: all 0.3s;
     }
 
     .brand:hover .logo-box {
-      transform: scale(1.05);
-      box-shadow: 0 0 30px var(--glow-primary);
-      background: var(--accent-primary);
-      color: black;
+      transform: scale(1.05); box-shadow: 0 0 30px var(--glow-primary);
+      background: var(--accent-primary); color: black;
     }
 
     .brand-text h1 {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 1.6rem;
-      letter-spacing: 5px;
+      font-family: 'Orbitron', sans-serif; font-size: 1.6rem; letter-spacing: 5px;
       background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      text-shadow: 0 0 20px rgba(255, 51, 102, 0.3);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
     }
 
-    .brand-text span {
-      font-family: monospace;
-      font-size: 0.65rem;
-      color: var(--accent-tertiary);
-      letter-spacing: 2px;
-    }
+    .brand-text span { font-family: monospace; font-size: 0.65rem; color: var(--accent-tertiary); letter-spacing: 2px; }
 
-    .nav-menu {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
+    .nav-menu { display: flex; gap: 12px; flex-wrap: wrap; }
 
     .nav-item {
-      padding: 10px 20px;
-      font-weight: 600;
-      text-transform: uppercase;
-      font-size: 0.75rem;
-      letter-spacing: 1px;
-      color: var(--text-muted);
-      cursor: pointer;
-      border-radius: 6px;
-      transition: 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border: 1px solid transparent;
+      padding: 10px 20px; font-weight: 600; text-transform: uppercase;
+      font-size: 0.75rem; letter-spacing: 1px; color: var(--text-muted);
+      cursor: pointer; border-radius: 6px; transition: 0.2s;
+      display: flex; align-items: center; gap: 8px; border: 1px solid transparent;
     }
 
     .nav-item i { font-size: 0.9rem; }
 
     .nav-item:hover {
-      color: var(--accent-secondary);
-      border-color: rgba(255, 214, 0, 0.4);
-      background: rgba(255, 214, 0, 0.05);
-      transform: translateY(-2px);
+      color: var(--accent-secondary); border-color: rgba(255,214,0,0.4);
+      background: rgba(255,214,0,0.05); transform: translateY(-2px);
     }
 
     .nav-item.active {
       background: linear-gradient(135deg, var(--accent-primary), var(--accent-hot));
-      color: white;
-      border: none;
-      box-shadow: 0 0 20px var(--glow-primary);
+      color: white; border: none; box-shadow: 0 0 20px var(--glow-primary);
     }
 
     .status-box {
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(8px);
-      padding: 8px 20px;
-      border-radius: 30px;
-      font-family: monospace;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      border: 1px solid rgba(255, 51, 102, 0.4);
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); padding: 8px 20px;
+      border-radius: 30px; font-family: monospace; display: flex; align-items: center; gap: 12px;
+      border: 1px solid rgba(255,51,102,0.4);
     }
 
     .status-indicator {
-      width: 10px;
-      height: 10px;
-      background: #0f0;
-      border-radius: 50%;
-      box-shadow: 0 0 12px #0f0;
-      animation: pulse 1.2s infinite;
+      width: 10px; height: 10px; background: #0f0; border-radius: 50%;
+      box-shadow: 0 0 12px #0f0; animation: pulse 1.2s infinite;
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(1.2); }
-    }
+    @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.4; transform:scale(1.2); } }
 
     .main {
-      flex: 1;
-      padding: 30px;
-      padding-bottom: 150px;
-      position: relative;
-      z-index: 10;
+      flex: 1; padding: 30px; padding-bottom: 150px; position: relative; z-index: 10;
     }
 
     .content-wrapper {
-      background: var(--bg-panel);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 51, 102, 0.3);
-      border-radius: 20px;
-      overflow: hidden;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+      background: var(--bg-panel); backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,51,102,0.3); border-radius: 20px; overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05) inset;
       transition: box-shadow 0.3s;
     }
 
     .content-wrapper:hover {
-      box-shadow: 0 20px 50px rgba(255, 51, 102, 0.15), 0 0 0 1px rgba(255, 51, 102, 0.5) inset;
+      box-shadow: 0 20px 50px rgba(255,51,102,0.15), 0 0 0 1px rgba(255,51,102,0.5) inset;
     }
 
-    .tech-corner {
-      position: absolute;
-      width: 25px;
-      height: 25px;
-      z-index: 15;
-    }
-
-    .tc-tl { top: 0; left: 0; border-top: 3px solid var(--accent-primary); border-left: 3px solid var(--accent-primary); box-shadow: -2px -2px 8px var(--glow-primary); }
-    .tc-tr { top: 0; right: 0; border-top: 3px solid var(--accent-primary); border-right: 3px solid var(--accent-primary); box-shadow: 2px -2px 8px var(--glow-primary); }
-    .tc-bl { bottom: 0; left: 0; border-bottom: 3px solid var(--accent-primary); border-left: 3px solid var(--accent-primary); box-shadow: -2px 2px 8px var(--glow-primary); }
-    .tc-br { bottom: 0; right: 0; border-bottom: 3px solid var(--accent-primary); border-right: 3px solid var(--accent-primary); box-shadow: 2px 2px 8px var(--glow-primary); }
+    .tech-corner { position: absolute; width: 25px; height: 25px; z-index: 15; }
+    .tc-tl { top:0; left:0; border-top:3px solid var(--accent-primary); border-left:3px solid var(--accent-primary); box-shadow:-2px -2px 8px var(--glow-primary); }
+    .tc-tr { top:0; right:0; border-top:3px solid var(--accent-primary); border-right:3px solid var(--accent-primary); box-shadow:2px -2px 8px var(--glow-primary); }
+    .tc-bl { bottom:0; left:0; border-bottom:3px solid var(--accent-primary); border-left:3px solid var(--accent-primary); box-shadow:-2px 2px 8px var(--glow-primary); }
+    .tc-br { bottom:0; right:0; border-bottom:3px solid var(--accent-primary); border-right:3px solid var(--accent-primary); box-shadow:2px 2px 8px var(--glow-primary); }
 
     .corner-deco {
-      position: absolute;
-      top: 0;
-      right: 0;
+      position: absolute; top: 0; right: 0;
       background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
-      color: black;
-      font-weight: 800;
-      padding: 6px 24px;
-      font-size: 0.7rem;
-      letter-spacing: 2px;
-      clip-path: polygon(20px 0%, 100% 0%, 100% 100%, 0% 100%);
-      z-index: 12;
+      color: black; font-weight: 800; padding: 6px 24px; font-size: 0.7rem; letter-spacing: 2px;
+      clip-path: polygon(20px 0%, 100% 0%, 100% 100%, 0% 100%); z-index: 12;
       box-shadow: -5px 5px 15px rgba(0,0,0,0.3);
     }
 
     .header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px 28px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      background: linear-gradient(180deg, rgba(0, 0, 0, 0.4), transparent);
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 28px; border-bottom: 1px solid rgba(255,255,255,0.05);
+      background: linear-gradient(180deg, rgba(0,0,0,0.4), transparent);
     }
 
     .title-badge {
-      border: 1px solid var(--accent-primary);
-      padding: 5px 15px;
-      font-size: 0.7rem;
-      font-family: monospace;
-      color: var(--accent-primary);
-      border-radius: 30px;
-      backdrop-filter: blur(4px);
+      border: 1px solid var(--accent-primary); padding: 5px 15px;
+      font-size: 0.7rem; font-family: monospace; color: var(--accent-primary);
+      border-radius: 30px; backdrop-filter: blur(4px);
     }
 
     .title-main h1 {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 1.8rem;
-      letter-spacing: 3px;
+      font-family: 'Orbitron', sans-serif; font-size: 1.8rem; letter-spacing: 3px;
       background: linear-gradient(135deg, #fff, var(--accent-secondary));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+      -webkit-background-clip: text; background-clip: text; color: transparent;
     }
 
     .search-box input {
-      background: rgba(0, 0, 0, 0.6);
-      border: 1px solid rgba(255, 51, 102, 0.4);
-      padding: 12px 18px;
-      width: 280px;
-      border-radius: 40px;
-      color: white;
-      font-family: monospace;
-      transition: 0.2s;
+      background: rgba(0,0,0,0.6); border: 1px solid rgba(255,51,102,0.4);
+      padding: 12px 18px; width: 280px; border-radius: 40px;
+      color: white; font-family: monospace; transition: 0.2s;
     }
 
-    .search-box input:focus {
-      outline: none;
-      border-color: var(--accent-primary);
-      box-shadow: 0 0 20px var(--glow-primary);
-    }
+    .search-box input:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 20px var(--glow-primary); }
 
     .btn-industrial {
-      background: rgba(20, 20, 40, 0.7);
-      border: 1px solid rgba(255, 51, 102, 0.5);
-      padding: 12px 22px;
-      border-radius: 40px;
-      color: #ddd;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.2s;
-      display: inline-flex;
-      gap: 10px;
-      backdrop-filter: blur(5px);
+      background: rgba(20,20,40,0.7); border: 1px solid rgba(255,51,102,0.5);
+      padding: 12px 22px; border-radius: 40px; color: #ddd; font-weight: bold;
+      cursor: pointer; transition: 0.2s; display: inline-flex; gap: 10px; backdrop-filter: blur(5px);
     }
 
     .btn-industrial:hover {
-      border-color: var(--accent-primary);
-      color: var(--accent-primary);
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(255, 51, 102, 0.2);
+      border-color: var(--accent-primary); color: var(--accent-primary);
+      transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255,51,102,0.2);
     }
 
-    /* ========== ASSET CARDS (untuk BONUS) ========== */
-    .assets-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 25px;
-      padding: 20px;
-    }
+    /* Asset Cards */
+    .assets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; padding: 20px; }
 
     .asset-card {
-      background: linear-gradient(145deg, rgba(15, 20, 35, 0.8), rgba(5, 8, 18, 0.9));
-      border: none;
-      border-radius: 20px;
-      backdrop-filter: blur(4px);
-      transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-      overflow: hidden;
-      animation: fadeInUp 0.5s ease forwards;
-      opacity: 0;
-      transform: translateY(20px);
+      background: linear-gradient(145deg, rgba(15,20,35,0.8), rgba(5,8,18,0.9));
+      border: none; border-radius: 20px; backdrop-filter: blur(4px);
+      transition: all 0.4s cubic-bezier(0.2,0.9,0.4,1.1); overflow: hidden;
+      animation: fadeInUp 0.5s ease forwards; opacity: 0; transform: translateY(20px);
     }
 
-    @keyframes fadeInUp {
-      to { opacity: 1; transform: translateY(0); }
-    }
+    @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
-    .asset-card:hover {
-      transform: translateY(-10px) scale(1.02);
-      box-shadow: 0 20px 35px rgba(255, 51, 102, 0.25);
-    }
+    .asset-card:hover { transform: translateY(-10px) scale(1.02); box-shadow: 0 20px 35px rgba(255,51,102,0.25); }
 
     .asset-header {
-      position: relative;
-      padding: 18px 20px;
-      background: rgba(0, 0, 0, 0.5);
-      border-bottom: none;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      position: relative; padding: 18px 20px; background: rgba(0,0,0,0.5);
+      border-bottom: none; display: flex; justify-content: space-between; align-items: center;
     }
 
     .asset-header::after { display: none; }
 
-    .asset-id-badge {
-      font-family: monospace;
-      color: var(--accent-secondary);
-      border-left: none;
-      padding-left: 0;
-    }
+    .asset-id-badge { font-family: monospace; color: var(--accent-secondary); border-left: none; padding-left: 0; }
 
     .asset-status {
-      width: 8px;
-      height: 8px;
-      background: var(--accent-primary);
-      border-radius: 50%;
-      box-shadow: 0 0 12px var(--glow-primary);
-      animation: pulse 1s infinite;
+      width: 8px; height: 8px; background: var(--accent-primary); border-radius: 50%;
+      box-shadow: 0 0 12px var(--glow-primary); animation: pulse 1s infinite;
     }
 
     .asset-display {
-      margin: 20px;
-      background: rgba(0, 0, 0, 0.4);
-      border-radius: 16px;
-      padding: 20px;
-      text-align: center;
-      border: none;
+      margin: 20px; background: rgba(0,0,0,0.4); border-radius: 16px;
+      padding: 20px; text-align: center; border: none;
     }
 
-    .asset-value {
-      font-family: monospace;
-      font-size: 1rem;
-      color: #fff;
-      word-break: break-word;
-    }
+    .asset-value { font-family: monospace; font-size: 1rem; color: #fff; word-break: break-word; }
 
     .btn-copy-action {
-      width: 100%;
-      background: transparent;
-      border: none;
-      outline: none;
-      border-radius: 40px;
-      padding: 12px;
-      color: var(--accent-primary);
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.2s;
-      margin-top: 10px;
-      box-shadow: none;
+      width: 100%; background: transparent; border: none; outline: none;
+      border-radius: 40px; padding: 12px; color: var(--accent-primary);
+      font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; box-shadow: none;
     }
 
-    .btn-copy-action:hover {
-      background: var(--accent-primary);
-      color: black;
-      box-shadow: 0 0 20px var(--glow-primary);
-    }
+    .btn-copy-action:hover { background: var(--accent-primary); color: black; box-shadow: 0 0 20px var(--glow-primary); }
 
-    /* ========== SIDEBAR LAYOUT (untuk PK ANTI AUDIT) ========== */
-    .layout-split {
-      display: flex;
-      gap: 2px;
-      background: transparent;
-    }
+    /* Sidebar Layout */
+    .layout-split { display: flex; gap: 2px; background: transparent; }
 
     .sidebar-col {
-      width: 280px;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(10px);
-      border-right: 1px solid rgba(255, 51, 102, 0.2);
+      width: 280px; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+      border-right: 1px solid rgba(255,51,102,0.2);
     }
 
     .sidebar-header {
-      padding: 18px;
-      background: rgba(0, 0, 0, 0.6);
-      color: var(--accent-primary);
-      font-weight: bold;
-      border-bottom: 1px solid rgba(255, 51, 102, 0.3);
+      padding: 18px; background: rgba(0,0,0,0.6); color: var(--accent-primary);
+      font-weight: bold; border-bottom: 1px solid rgba(255,51,102,0.3);
     }
 
     .sidebar-item {
-      padding: 14px 20px;
-      cursor: pointer;
-      color: #aaa;
-      border-left: 3px solid transparent;
-      transition: 0.2s;
-      display: flex;
-      gap: 12px;
-      align-items: center;
+      padding: 14px 20px; cursor: pointer; color: #aaa;
+      border-left: 3px solid transparent; transition: 0.2s;
+      display: flex; gap: 12px; align-items: center;
     }
 
-    .sidebar-item:hover {
-      background: rgba(255, 51, 102, 0.1);
-      color: white;
-    }
+    .sidebar-item:hover { background: rgba(255,51,102,0.1); color: white; }
 
     .sidebar-item.active {
-      background: rgba(255, 51, 102, 0.2);
-      border-left-color: var(--accent-primary);
-      color: var(--accent-secondary);
+      background: rgba(255,51,102,0.2); border-left-color: var(--accent-primary); color: var(--accent-secondary);
     }
 
-    .detail-col {
-      flex: 1;
-      padding: 25px;
-    }
+    .detail-col { flex: 1; padding: 25px; }
 
     .detail-content {
-      background: rgba(0, 0, 0, 0.5);
-      border-radius: 20px;
-      padding: 25px;
-      border: 1px solid rgba(255, 51, 102, 0.3);
+      background: rgba(0,0,0,0.5); border-radius: 20px; padding: 25px;
+      border: 1px solid rgba(255,51,102,0.3);
     }
 
     .btn-copy-desc {
-      width: 100%;
-      background: transparent;
-      border: none;
-      outline: none;
-      border-radius: 40px;
-      padding: 12px;
-      color: var(--accent-primary);
-      margin-top: 20px;
-      cursor: pointer;
-      box-shadow: none;
+      width: 100%; background: transparent; border: none; outline: none;
+      border-radius: 40px; padding: 12px; color: var(--accent-primary);
+      margin-top: 20px; cursor: pointer; box-shadow: none;
     }
 
-    .btn-copy-desc:hover {
-      background: var(--accent-primary);
-      color: black;
-      box-shadow: 0 0 20px var(--glow-primary);
-    }
+    .btn-copy-desc:hover { background: var(--accent-primary); color: black; box-shadow: 0 0 20px var(--glow-primary); }
 
-    /* ========== QNA TABLE (untuk PK LULUS AUDIT + SEPUTAR GANTI REK) ========== */
-    .qna-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
+    /* QNA Table */
+    .qna-table { width: 100%; border-collapse: collapse; }
 
-    .qna-table thead {
-      position: sticky;
-      top: 0;
-      z-index: 5;
-    }
+    .qna-table thead { position: sticky; top: 0; z-index: 5; }
 
     .qna-table th {
-      text-align: left;
-      padding: 16px 20px;
-      color: var(--accent-tertiary);
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.75rem;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      background: rgba(0, 10, 20, 0.95);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid rgba(0, 242, 255, 0.25);
+      text-align: left; padding: 16px 20px; color: var(--accent-tertiary);
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      background: rgba(0,10,20,0.95); backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(0,242,255,0.25);
     }
 
     .qna-table td {
-      padding: 16px 20px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-      color: #ccc;
-      font-size: 0.92rem;
-      line-height: 1.6;
-      vertical-align: top;
+      padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: #ccc; font-size: 0.92rem; line-height: 1.6; vertical-align: top;
     }
 
-    .qna-table tbody tr {
-      transition: background 0.2s;
-    }
+    .qna-table tbody tr { transition: background 0.2s; }
+    .qna-table tbody tr:hover { background: rgba(255,51,102,0.06); }
+    .qna-table tbody tr:hover td { color: #fff; }
 
-    .qna-table tbody tr:hover {
-      background: rgba(255, 51, 102, 0.06);
-    }
-
-    .qna-table tbody tr:hover td {
-      color: #fff;
-    }
-
-    /* Kolom nomor urut */
     .qna-table .col-no {
-      width: 50px;
-      text-align: center;
-      color: rgba(255, 51, 102, 0.5);
-      font-family: monospace;
-      font-size: 0.8rem;
+      width: 50px; text-align: center; color: rgba(255,51,102,0.5);
+      font-family: monospace; font-size: 0.8rem;
     }
 
-    .qna-table .col-action {
-      width: 60px;
-      text-align: center;
-    }
+    .qna-table .col-action { width: 60px; text-align: center; }
 
     .qna-table .col-action button {
-      background: rgba(255, 51, 102, 0.1);
-      border: none;
-      color: var(--accent-primary);
-      width: 34px;
-      height: 34px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.2s;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      background: rgba(255,51,102,0.1); border: none; color: var(--accent-primary);
+      width: 34px; height: 34px; border-radius: 8px; cursor: pointer; transition: 0.2s;
+      display: inline-flex; align-items: center; justify-content: center;
     }
 
     .qna-table .col-action button:hover {
-      background: var(--accent-primary);
-      color: black;
-      box-shadow: 0 0 12px var(--glow-primary);
+      background: var(--accent-primary); color: black; box-shadow: 0 0 12px var(--glow-primary);
     }
 
-    /* ========== EMPTY STATE ========== */
-    .empty-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 80px 20px;
+    /* Copy flash animation */
+    .copy-flash {
+      animation: copyFlash 0.4s ease;
     }
 
-    .holo-cube-wrapper {
-      width: 140px;
-      height: 140px;
-      perspective: 800px;
-      margin-bottom: 30px;
+    @keyframes copyFlash {
+      0% { box-shadow: 0 0 0 0 rgba(255,51,102,0.6); }
+      50% { box-shadow: 0 0 20px 4px rgba(255,51,102,0.4); }
+      100% { box-shadow: 0 0 0 0 rgba(255,51,102,0); }
     }
+
+    /* Empty State */
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 20px; }
+
+    .holo-cube-wrapper { width: 140px; height: 140px; perspective: 800px; margin-bottom: 30px; }
 
     .holo-cube {
-      width: 100%;
-      height: 100%;
-      position: relative;
-      transform-style: preserve-3d;
-      animation: rotateCube 12s infinite linear;
+      width: 100%; height: 100%; position: relative;
+      transform-style: preserve-3d; animation: rotateCube 12s infinite linear;
     }
 
     .holo-face {
-      position: absolute;
-      width: 140px;
-      height: 140px;
-      border: 1px solid var(--accent-primary);
-      background: rgba(255, 51, 102, 0.05);
-      box-shadow: 0 0 15px rgba(255, 51, 102, 0.2);
+      position: absolute; width: 140px; height: 140px;
+      border: 1px solid var(--accent-primary); background: rgba(255,51,102,0.05);
+      box-shadow: 0 0 15px rgba(255,51,102,0.2);
     }
 
     .face-front { transform: translateZ(70px); }
@@ -685,38 +382,24 @@
     .face-top { transform: rotateX(90deg) translateZ(70px); }
     .face-bottom { transform: rotateX(-90deg) translateZ(70px); }
 
-    @keyframes rotateCube {
-      0% { transform: rotateX(-20deg) rotateY(0deg); }
-      100% { transform: rotateX(-20deg) rotateY(360deg); }
-    }
+    @keyframes rotateCube { 0% { transform: rotateX(-20deg) rotateY(0deg); } 100% { transform: rotateX(-20deg) rotateY(360deg); } }
 
-    /* ========== ROAD ANIMATION ========== */
+    /* Road */
     .animation-layer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 140px;
-      pointer-events: none;
-      z-index: 50;
+      position: fixed; bottom: 0; left: 0; width: 100%; height: 140px;
+      pointer-events: none; z-index: 50;
       background: linear-gradient(to top, #010101 0%, #010101 60%, transparent 100%);
     }
 
     .road-container {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      height: 70px;
+      position: absolute; bottom: 0; width: 100%; height: 70px;
       background: linear-gradient(180deg, #0a0a0a 0%, #050505 100%);
-      border-top: 2px solid rgba(255, 51, 102, 0.6);
-      box-shadow: 0 -5px 30px rgba(255, 51, 102, 0.3);
+      border-top: 2px solid rgba(255,51,102,0.6);
+      box-shadow: 0 -5px 30px rgba(255,51,102,0.3);
     }
 
     .road-edge-left, .road-edge-right {
-      position: absolute;
-      top: 0;
-      width: 4px;
-      height: 100%;
+      position: absolute; top: 0; width: 4px; height: 100%;
       background: linear-gradient(180deg, var(--accent-primary), var(--accent-tertiary));
       box-shadow: 0 0 20px var(--glow-primary);
     }
@@ -724,240 +407,87 @@
     .road-edge-right { right: 5%; }
 
     .road-lines {
-      position: absolute;
-      top: 34px;
-      width: 200%;
-      height: 3px;
+      position: absolute; top: 34px; width: 200%; height: 3px;
       background: repeating-linear-gradient(90deg, transparent 0px, transparent 50px, var(--accent-primary) 50px, var(--accent-primary) 100px);
-      animation: slideRoad 0.8s linear infinite;
-      filter: drop-shadow(0 0 8px var(--accent-primary));
+      animation: slideRoad 0.8s linear infinite; filter: drop-shadow(0 0 8px var(--accent-primary));
     }
 
-    @keyframes slideRoad {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-100px); }
-    }
+    @keyframes slideRoad { 0% { transform: translateX(0); } 100% { transform: translateX(-100px); } }
 
     .road-reflection {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      height: 30px;
-      background: linear-gradient(180deg, transparent, rgba(255, 51, 102, 0.1));
-      opacity: 0.5;
+      position: absolute; bottom: 0; width: 100%; height: 30px;
+      background: linear-gradient(180deg, transparent, rgba(255,51,102,0.1)); opacity: 0.5;
     }
 
-    .cyber-car {
-      position: absolute;
-      bottom: 20px;
-      width: 180px;
-      height: 70px;
-    }
+    .cyber-car { position: absolute; bottom: 20px; width: 180px; height: 70px; }
+    .car-cruiser { right: -200px; animation: driveLeft 18s linear infinite; }
+    .car-interceptor { left: -200px; animation: driveRight 15s linear infinite; transform: scaleX(-1); }
 
-    .car-cruiser {
-      right: -200px;
-      animation: driveLeft 18s linear infinite;
-    }
-
-    .car-interceptor {
-      left: -200px;
-      animation: driveRight 15s linear infinite;
-      transform: scaleX(-1);
-    }
-
-    @keyframes driveLeft {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(calc(-100vw - 250px)); }
-    }
-
-    @keyframes driveRight {
-      0% { transform: translateX(0) scaleX(-1); }
-      100% { transform: translateX(calc(100vw + 250px)) scaleX(-1); }
-    }
+    @keyframes driveLeft { 0% { transform: translateX(0); } 100% { transform: translateX(calc(-100vw - 250px)); } }
+    @keyframes driveRight { 0% { transform: translateX(0) scaleX(-1); } 100% { transform: translateX(calc(100vw + 250px)) scaleX(-1); } }
 
     .car-underglow {
-      position: absolute;
-      bottom: -8px;
-      left: 10%;
-      width: 80%;
-      height: 15px;
-      border-radius: 50%;
-      animation: underglowPulse 0.5s ease-in-out infinite alternate;
+      position: absolute; bottom: -8px; left: 10%; width: 80%; height: 15px;
+      border-radius: 50%; animation: underglowPulse 0.5s ease-in-out infinite alternate;
     }
 
-    .underglow-pink {
-      background: radial-gradient(ellipse, rgba(255, 51, 102, 0.8) 0%, transparent 70%);
-      box-shadow: 0 0 30px 10px rgba(255, 51, 102, 0.6);
-    }
+    .underglow-pink { background: radial-gradient(ellipse, rgba(255,51,102,0.8) 0%, transparent 70%); box-shadow: 0 0 30px 10px rgba(255,51,102,0.6); }
+    .underglow-cyan { background: radial-gradient(ellipse, rgba(0,242,255,0.8) 0%, transparent 70%); box-shadow: 0 0 30px 10px rgba(0,242,255,0.6); }
 
-    .underglow-cyan {
-      background: radial-gradient(ellipse, rgba(0, 242, 255, 0.8) 0%, transparent 70%);
-      box-shadow: 0 0 30px 10px rgba(0, 242, 255, 0.6);
-    }
+    @keyframes underglowPulse { 0% { opacity: 0.7; transform: scaleX(0.95); } 100% { opacity: 1; transform: scaleX(1.05); } }
 
-    @keyframes underglowPulse {
-      0% { opacity: 0.7; transform: scaleX(0.95); }
-      100% { opacity: 1; transform: scaleX(1.05); }
-    }
-
-    .headlight-beam {
-      position: absolute;
-      top: 50%;
-      width: 200px;
-      height: 20px;
-      transform: translateY(-50%);
-      opacity: 0.6;
-      filter: blur(8px);
-    }
-
-    .beam-left {
-      left: -180px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4));
-      clip-path: polygon(100% 30%, 0% 0%, 0% 100%, 100% 70%);
-    }
-
-    .beam-right {
-      right: -180px;
-      left: auto;
-      background: linear-gradient(270deg, transparent, rgba(255, 255, 255, 0.4));
-      clip-path: polygon(0% 30%, 100% 0%, 100% 100%, 0% 70%);
-      transform: translateY(-50%) scaleX(-1);
-    }
+    .headlight-beam { position: absolute; top: 50%; width: 200px; height: 20px; transform: translateY(-50%); opacity: 0.6; filter: blur(8px); }
+    .beam-left { left: -180px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4)); clip-path: polygon(100% 30%, 0% 0%, 0% 100%, 100% 70%); }
+    .beam-right { right: -180px; left: auto; background: linear-gradient(270deg, transparent, rgba(255,255,255,0.4)); clip-path: polygon(0% 30%, 100% 0%, 100% 100%, 0% 70%); transform: translateY(-50%) scaleX(-1); }
 
     .exhaust-flame {
-      position: absolute;
-      bottom: 25px;
-      width: 25px;
-      height: 8px;
+      position: absolute; bottom: 25px; width: 25px; height: 8px;
       background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary), transparent);
-      filter: blur(2px);
-      animation: flameFlicker 0.1s infinite alternate;
-      border-radius: 0 50% 50% 0;
+      filter: blur(2px); animation: flameFlicker 0.1s infinite alternate; border-radius: 0 50% 50% 0;
     }
 
     .flame-rear-left { left: -20px; }
     .flame-rear-right { left: -20px; bottom: 20px; }
 
-    @keyframes flameFlicker {
-      0% { transform: scaleX(0.8); opacity: 0.7; }
-      100% { transform: scaleX(1.2); opacity: 1; }
-    }
+    @keyframes flameFlicker { 0% { transform: scaleX(0.8); opacity: 0.7; } 100% { transform: scaleX(1.2); opacity: 1; } }
 
-    .speed-lines {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 60px;
-      height: 30px;
-    }
-
+    .speed-lines { position: absolute; top: 50%; transform: translateY(-50%); width: 60px; height: 30px; }
     .speed-lines-left { left: -70px; }
 
     .speed-line {
-      position: absolute;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      position: absolute; height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
       animation: speedLineMove 0.3s linear infinite;
     }
 
-    @keyframes speedLineMove {
-      0% { transform: translateX(-20px); opacity: 0; }
-      50% { opacity: 1; }
-      100% { transform: translateX(-60px); opacity: 0; }
-    }
+    @keyframes speedLineMove { 0% { transform: translateX(-20px); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateX(-60px); opacity: 0; } }
 
-    .wheel {
-      position: absolute;
-      bottom: -4px;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      animation: wheelSpin 0.15s linear infinite;
-    }
-
-    .wheel-hd {
-      background: radial-gradient(circle at 30% 30%, #333 0%, #111 50%, #000 100%);
-      border: 3px solid #222;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.8), inset 0 0 8px rgba(255, 255, 255, 0.1);
-    }
-
-    .wheel-rim {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #444, #111);
-      border: 1px solid #333;
-    }
-
+    .wheel { position: absolute; bottom: -4px; width: 18px; height: 18px; border-radius: 50%; animation: wheelSpin 0.15s linear infinite; }
+    .wheel-hd { background: radial-gradient(circle at 30% 30%, #333 0%, #111 50%, #000 100%); border: 3px solid #222; box-shadow: 0 0 10px rgba(0,0,0,0.8), inset 0 0 8px rgba(255,255,255,0.1); }
+    .wheel-rim { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, #444, #111); border: 1px solid #333; }
     @keyframes wheelSpin { to { transform: rotate(360deg); } }
 
-    /* ========== TOAST ========== */
-    #notif-container {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      z-index: 10000;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
+    /* Toast */
+    #notif-container { position: fixed; bottom: 30px; right: 30px; z-index: 10000; display: flex; flex-direction: column; gap: 12px; }
 
     .toast-notification {
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(15px);
-      border-left: 4px solid var(--accent-primary);
-      padding: 14px 22px;
-      color: white;
-      border-radius: 12px;
-      font-family: monospace;
-      animation: slideInRight 0.3s ease;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(15px);
+      border-left: 4px solid var(--accent-primary); padding: 14px 22px;
+      color: white; border-radius: 12px; font-family: monospace; animation: slideInRight 0.3s ease;
     }
 
-    @keyframes slideInRight {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
+    @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-    /* ========== LOADER ========== */
+    /* Loader */
     #loader {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: black;
-      z-index: 99999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 20px;
-      transition: 0.6s;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: black; z-index: 99999; display: flex; align-items: center;
+      justify-content: center; flex-direction: column; gap: 20px; transition: 0.6s;
     }
 
-    .loader-title {
-      font-family: 'Orbitron', monospace;
-      font-size: 2rem;
-      color: var(--accent-primary);
-      text-shadow: 0 0 20px var(--glow-primary);
-    }
-
-    .loader-bar-container {
-      width: 300px;
-      height: 3px;
-      background: #222;
-    }
-
-    .loader-bar {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--accent-primary), var(--accent-tertiary));
-      box-shadow: 0 0 10px var(--accent-primary);
-    }
+    .loader-title { font-family: 'Orbitron', monospace; font-size: 2rem; color: var(--accent-primary); text-shadow: 0 0 20px var(--glow-primary); }
+    .loader-bar-container { width: 300px; height: 3px; background: #222; }
+    .loader-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent-primary), var(--accent-tertiary)); box-shadow: 0 0 10px var(--accent-primary); }
 
     @media (max-width: 1024px) {
       .top-nav { flex-direction: column; height: auto; gap: 15px; padding: 15px; }
@@ -985,7 +515,7 @@
   <div class="scan-sweep"></div>
   <div class="hazard-bar"></div>
 
-  <div class="hud-stats" style="position:fixed; bottom:20px; left:20px; background:rgba(0,0,0,0.5); backdrop-filter:blur(10px); padding:8px 15px; border-radius:20px; font-family:monospace; z-index:100; border-left:3px solid #FF3366;">
+  <div class="hud-stats" style="position:fixed;bottom:20px;left:20px;background:rgba(0,0,0,0.5);backdrop-filter:blur(10px);padding:8px 15px;border-radius:20px;font-family:monospace;z-index:100;border-left:3px solid #FF3366;">
     <div>SYS: ONLINE | PING: <span id="hud-ping">21ms</span></div>
   </div>
 
@@ -1013,24 +543,25 @@
 
   <main class="main">
     <div class="content-wrapper" style="position:relative;">
-      <div class="tech-corner tc-tl"></div><div class="tech-corner tc-tr"></div><div class="tech-corner tc-bl"></div><div class="tech-corner tc-br"></div>
+      <div class="tech-corner tc-tl"></div><div class="tech-corner tc-tr"></div>
+      <div class="tech-corner tc-bl"></div><div class="tech-corner tc-br"></div>
       <div class="corner-deco">SECURE ENCRYPTED</div>
       <div class="header-row">
         <div class="title-main"><div class="title-badge">ACTIVE MODULE</div><h1 id="pageTitle">BONUS</h1></div>
-        <div class="header-actions"><div class="search-box"><input type="text" id="searchInput" placeholder="Search database..."></div><button class="btn-industrial" id="refreshBtn"><i class="fas fa-sync-alt"></i> Refresh</button></div>
+        <div class="header-actions">
+          <div class="search-box"><input type="text" id="searchInput" placeholder="Search database..."></div>
+          <button class="btn-industrial" id="refreshBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
+        </div>
       </div>
-      <div class="data-card"><div class="table-scroll" id="tableContainer" style="max-height:65vh; overflow-y:auto;"></div></div>
+      <div class="data-card"><div class="table-scroll" id="tableContainer" style="max-height:65vh;overflow-y:auto;"></div></div>
     </div>
   </main>
 
   <div class="animation-layer">
     <div class="road-container">
-      <div class="road-edge-left"></div>
-      <div class="road-edge-right"></div>
-      <div class="road-lines"></div>
-      <div class="road-reflection"></div>
+      <div class="road-edge-left"></div><div class="road-edge-right"></div>
+      <div class="road-lines"></div><div class="road-reflection"></div>
     </div>
-    
     <div class="cyber-car car-cruiser">
       <svg width="180" height="70" viewBox="0 0 200 75" fill="none" xmlns="http://www.w3.org/2000/svg">
         <ellipse cx="100" cy="70" rx="80" ry="5" fill="rgba(255,51,102,0.3)" filter="blur(8px)"/>
@@ -1043,39 +574,21 @@
         <rect x="30" y="48" width="15" height="3" rx="1" fill="#111" stroke="#FF3366" stroke-width="0.5"/>
         <path d="M25 55 L180 55 L180 58 Q175 62 100 62 Q25 62 25 58 Z" fill="#0a0a0a" stroke="#FF3366" stroke-width="0.5"/>
         <path d="M85 38 L85 55" stroke="#FF3366" stroke-width="0.5" opacity="0.5"/>
-        <ellipse cx="22" cy="46" rx="4" ry="6" fill="url(#headlightGrad)">
-          <animate attributeName="opacity" values="0.8;1;0.8" dur="0.5s" repeatCount="indefinite"/>
-        </ellipse>
+        <ellipse cx="22" cy="46" rx="4" ry="6" fill="url(#headlightGrad)"><animate attributeName="opacity" values="0.8;1;0.8" dur="0.5s" repeatCount="indefinite"/></ellipse>
         <ellipse cx="22" cy="46" rx="2" ry="3" fill="#fff"/>
-        <rect x="182" y="42" width="5" height="8" rx="1" fill="#FF0044">
-          <animate attributeName="opacity" values="0.6;1;0.6" dur="0.3s" repeatCount="indefinite"/>
-        </rect>
+        <rect x="182" y="42" width="5" height="8" rx="1" fill="#FF0044"><animate attributeName="opacity" values="0.6;1;0.6" dur="0.3s" repeatCount="indefinite"/></rect>
         <rect x="182" y="51" width="5" height="4" rx="1" fill="#FF0044" opacity="0.8"/>
         <ellipse cx="58" cy="38" rx="4" ry="3" fill="#111" stroke="#FF3366" stroke-width="0.5"/>
         <path d="M20 48 L190 48" stroke="url(#stripeGrad1)" stroke-width="2" opacity="0.6"/>
         <path d="M25 52 L180 52" stroke="#FF3366" stroke-width="1" filter="url(#neonGlow)"/>
         <defs>
-          <linearGradient id="bodyGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#1a1a1a"/><stop offset="50%" stop-color="#0d0d0d"/><stop offset="100%" stop-color="#1a1a1a"/>
-          </linearGradient>
-          <linearGradient id="hoodGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#222"/><stop offset="100%" stop-color="#111"/>
-          </linearGradient>
-          <linearGradient id="cabinGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#1a1a1a"/><stop offset="100%" stop-color="#0a0a0a"/>
-          </linearGradient>
-          <linearGradient id="glassGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="rgba(0,242,255,0.3)"/><stop offset="50%" stop-color="rgba(0,0,0,0.6)"/><stop offset="100%" stop-color="rgba(0,0,0,0.8)"/>
-          </linearGradient>
-          <radialGradient id="headlightGrad">
-            <stop offset="0%" stop-color="#ffffff"/><stop offset="50%" stop-color="#FFD600"/><stop offset="100%" stop-color="#FF6600"/>
-          </radialGradient>
-          <linearGradient id="stripeGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="transparent"/><stop offset="20%" stop-color="#FF3366"/><stop offset="80%" stop-color="#FF3366"/><stop offset="100%" stop-color="transparent"/>
-          </linearGradient>
-          <filter id="neonGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
+          <linearGradient id="bodyGrad1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1a1a1a"/><stop offset="50%" stop-color="#0d0d0d"/><stop offset="100%" stop-color="#1a1a1a"/></linearGradient>
+          <linearGradient id="hoodGrad1" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#222"/><stop offset="100%" stop-color="#111"/></linearGradient>
+          <linearGradient id="cabinGrad1" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#1a1a1a"/><stop offset="100%" stop-color="#0a0a0a"/></linearGradient>
+          <linearGradient id="glassGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="rgba(0,242,255,0.3)"/><stop offset="50%" stop-color="rgba(0,0,0,0.6)"/><stop offset="100%" stop-color="rgba(0,0,0,0.8)"/></linearGradient>
+          <radialGradient id="headlightGrad"><stop offset="0%" stop-color="#ffffff"/><stop offset="50%" stop-color="#FFD600"/><stop offset="100%" stop-color="#FF6600"/></radialGradient>
+          <linearGradient id="stripeGrad1" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="transparent"/><stop offset="20%" stop-color="#FF3366"/><stop offset="80%" stop-color="#FF3366"/><stop offset="100%" stop-color="transparent"/></linearGradient>
+          <filter id="neonGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
         </defs>
       </svg>
       <div class="car-underglow underglow-pink"></div>
@@ -1089,7 +602,6 @@
       <div class="wheel wheel-hd" style="left:25px;"><div class="wheel-rim"></div></div>
       <div class="wheel wheel-hd" style="right:20px;"><div class="wheel-rim"></div></div>
     </div>
-    
     <div class="cyber-car car-interceptor">
       <svg width="180" height="70" viewBox="0 0 200 75" fill="none" xmlns="http://www.w3.org/2000/svg">
         <ellipse cx="100" cy="70" rx="80" ry="5" fill="rgba(0,242,255,0.3)" filter="blur(8px)"/>
@@ -1103,13 +615,9 @@
         <path d="M28 38 L35 38 L35 40 L28 40 Z" fill="#00F2FF" opacity="0.3"/>
         <path d="M15 55 L185 55 L185 60 Q180 65 100 65 Q20 65 15 60 Z" fill="#050505" stroke="#00F2FF" stroke-width="0.5"/>
         <path d="M80 35 L80 55" stroke="#00F2FF" stroke-width="0.5" opacity="0.5"/>
-        <path d="M12 40 L20 38 L20 48 L12 46 Z" fill="url(#headlightGrad2)">
-          <animate attributeName="opacity" values="0.7;1;0.7" dur="0.4s" repeatCount="indefinite"/>
-        </path>
+        <path d="M12 40 L20 38 L20 48 L12 46 Z" fill="url(#headlightGrad2)"><animate attributeName="opacity" values="0.7;1;0.7" dur="0.4s" repeatCount="indefinite"/></path>
         <path d="M14 42 L18 41 L18 45 L14 44 Z" fill="#fff"/>
-        <rect x="185" y="40" width="8" height="3" rx="1" fill="#FF0066">
-          <animate attributeName="opacity" values="0.5;1;0.5" dur="0.2s" repeatCount="indefinite"/>
-        </rect>
+        <rect x="185" y="40" width="8" height="3" rx="1" fill="#FF0066"><animate attributeName="opacity" values="0.5;1;0.5" dur="0.2s" repeatCount="indefinite"/></rect>
         <rect x="185" y="45" width="8" height="3" rx="1" fill="#FF0066" opacity="0.8"/>
         <rect x="185" y="50" width="8" height="3" rx="1" fill="#FF0066" opacity="0.6"/>
         <ellipse cx="53" cy="35" rx="4" ry="3" fill="#0a0a0a" stroke="#00F2FF" stroke-width="0.5"/>
@@ -1118,24 +626,12 @@
         <path d="M15 52 L185 52" stroke="#00F2FF" stroke-width="1.5" filter="url(#neonGlow2)"/>
         <path d="M175 20 Q180 15 190 18 L192 20 L180 22 Z" fill="#0a0a0a" stroke="#00F2FF" stroke-width="0.5"/>
         <defs>
-          <linearGradient id="bodyGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#0a1520"/><stop offset="50%" stop-color="#050a10"/><stop offset="100%" stop-color="#0a1520"/>
-          </linearGradient>
-          <linearGradient id="hoodGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#152030"/><stop offset="100%" stop-color="#0a1015"/>
-          </linearGradient>
-          <linearGradient id="cabinGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#101820"/><stop offset="100%" stop-color="#050a0f"/>
-          </linearGradient>
-          <linearGradient id="glassGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="rgba(255,51,102,0.2)"/><stop offset="50%" stop-color="rgba(0,0,0,0.7)"/><stop offset="100%" stop-color="rgba(0,0,0,0.9)"/>
-          </linearGradient>
-          <linearGradient id="headlightGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#00F2FF"/><stop offset="50%" stop-color="#ffffff"/><stop offset="100%" stop-color="#00F2FF"/>
-          </linearGradient>
-          <filter id="neonGlow2" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
+          <linearGradient id="bodyGrad2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0a1520"/><stop offset="50%" stop-color="#050a10"/><stop offset="100%" stop-color="#0a1520"/></linearGradient>
+          <linearGradient id="hoodGrad2" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#152030"/><stop offset="100%" stop-color="#0a1015"/></linearGradient>
+          <linearGradient id="cabinGrad2" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#101820"/><stop offset="100%" stop-color="#050a0f"/></linearGradient>
+          <linearGradient id="glassGrad2" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="rgba(255,51,102,0.2)"/><stop offset="50%" stop-color="rgba(0,0,0,0.7)"/><stop offset="100%" stop-color="rgba(0,0,0,0.9)"/></linearGradient>
+          <linearGradient id="headlightGrad2" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#00F2FF"/><stop offset="50%" stop-color="#ffffff"/><stop offset="100%" stop-color="#00F2FF"/></linearGradient>
+          <filter id="neonGlow2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
         </defs>
       </svg>
       <div class="car-underglow underglow-cyan"></div>
@@ -1151,26 +647,21 @@
   </div>
 
   <script>
+    /* ========== PARTICLES ========== */
     const canvas = document.getElementById('particle-canvas');
     const ctx = canvas.getContext('2d');
     let particles = [];
-    let particleCount = 120;
+    const particleCount = 120;
 
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 
     function createParticles() {
       particles = [];
       for (let i = 0; i < particleCount; i++) {
         particles.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          radius: Math.random() * 2 + 1,
-          alpha: Math.random() * 0.4 + 0.1,
-          speedX: (Math.random() - 0.5) * 0.2,
-          speedY: (Math.random() - 0.5) * 0.2,
+          x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+          radius: Math.random() * 2 + 1, alpha: Math.random() * 0.4 + 0.1,
+          speedX: (Math.random() - 0.5) * 0.2, speedY: (Math.random() - 0.5) * 0.2,
           color: `hsl(${Math.random() * 60 + 330}, 80%, 60%)`
         });
       }
@@ -1180,44 +671,35 @@
       if (!ctx) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       for (let p of particles) {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = p.alpha;
-        ctx.fill();
-        p.x += p.speedX;
-        p.y += p.speedY;
-        if (p.x < 0) p.x = canvas.width;
-        if (p.x > canvas.width) p.x = 0;
-        if (p.y < 0) p.y = canvas.height;
-        if (p.y > canvas.height) p.y = 0;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color; ctx.globalAlpha = p.alpha; ctx.fill();
+        p.x += p.speedX; p.y += p.speedY;
+        if (p.x < 0) p.x = canvas.width; if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height; if (p.y > canvas.height) p.y = 0;
       }
       requestAnimationFrame(drawParticles);
     }
 
     window.addEventListener('resize', () => { resizeCanvas(); createParticles(); });
-    resizeCanvas();
-    createParticles();
-    drawParticles();
+    resizeCanvas(); createParticles(); drawParticles();
 
+    /* ========== MOUSE GLOW ========== */
     const mouseGlow = document.getElementById('mouse-glow');
     document.addEventListener('mousemove', (e) => {
       mouseGlow.style.setProperty('--x', e.clientX + 'px');
       mouseGlow.style.setProperty('--y', e.clientY + 'px');
     });
 
-    function updateClock() {
-      document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-GB');
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
+    /* ========== CLOCK & PING ========== */
+    function updateClock() { document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-GB'); }
+    setInterval(updateClock, 1000); updateClock();
+    setInterval(() => { document.getElementById('hud-ping').innerText = Math.floor(Math.random() * 20 + 15) + 'ms'; }, 3000);
 
-    setInterval(() => {
-      document.getElementById('hud-ping').innerText = Math.floor(Math.random() * 20 + 15) + 'ms';
-    }, 3000);
-
+    /* ========== SHEETS CONFIG ========== */
     const SPREADSHEET_ID = '19AodSFSw4shpSZVZ4I-_sD91eU1HPITMeg4cwLiEV1c';
     const SHEET_NAMES = ['bonus', 'PK_anti_audit', 'PK_LULUS_SENSOR_AUDIT', 'seputar_gantirek', 'seputar_pk'];
+    // Sheet yang tombol copy-nya hanya ambil kolom C (index ke-2)
+    const COPY_COL_C_SHEETS = ['PK_LULUS_SENSOR_AUDIT', 'seputar_gantirek', 'seputar_pk'];
     let allData = {};
     let currentSheet = 'bonus';
 
@@ -1264,20 +746,13 @@
 
     function escapeHTML(str) {
       if (!str) return '';
-      return String(str).replace(/[&<>"']/g, function (m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        if (m === '"') return '&quot;';
-        if (m === "'") return '&#39;';
-        return m;
-      });
+      return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m] || m);
     }
 
     function showNotification(msg) {
       const notif = document.createElement('div');
       notif.className = 'toast-notification';
-      notif.innerHTML = `<i class="fas fa-bolt" style="color:#FF3366; margin-right:10px;"></i>${msg}`;
+      notif.innerHTML = `<i class="fas fa-bolt" style="color:#FF3366;margin-right:10px;"></i>${msg}`;
       document.getElementById('notif-container').appendChild(notif);
       setTimeout(() => notif.remove(), 2500);
     }
@@ -1285,7 +760,7 @@
     /* ========== RENDER: Asset Cards (BONUS) ========== */
     function renderAssetsGrid(data) {
       if (!data.length) return renderEmptyState();
-      let html = `<div class="assets-grid">`;
+      let html = '<div class="assets-grid">';
       data.forEach((row, idx) => {
         const keys = Object.keys(row);
         const id = row[keys[0]] || '-';
@@ -1294,25 +769,27 @@
         html += `<div class="asset-card" style="animation-delay:${idx * 0.05}s">
           <div class="asset-header"><span class="asset-id-badge">${escapeHTML(id)}</span><div class="asset-status"></div></div>
           <div class="asset-display"><div class="asset-value">${escapeHTML(val)}</div></div>
-          <div class="asset-info" style="padding:0 20px 20px;"><div style="color:#aaa;">${escapeHTML(desc)}</div></div>
+          <div style="padding:0 20px 20px;"><div style="color:#aaa;">${escapeHTML(desc)}</div></div>
           <div style="padding:0 20px 20px;"><button class="btn-copy-action" data-val="${escapeHTML(val)}" data-desc="${escapeHTML(desc)}"><i class="fas fa-copy"></i> Copy Data</button></div>
         </div>`;
       });
-      html += `</div>`;
+      html += '</div>';
       return html;
     }
 
-    /* ========== RENDER: Tabel Kolom (PK LULUS AUDIT + SEPUTAR GANTI REK + SEPUTAR PK) ========== */
+    /* ========== RENDER: Tabel Kolom ========== */
     function renderQna(data) {
       if (!data.length) return renderEmptyState();
       const keys = Object.keys(data[0]);
-      // Ambil header dari kolom data
       const col1 = keys[0] || 'Key';
       const col2 = keys[1] || 'Value';
       const col3 = keys.length > 2 ? keys[2] : null;
 
-      let html = `<table class="qna-table"><thead><tr>`;
-      html += `<th class="col-no">#</th>`;
+      // Cek apakah sheet ini hanya copy kolom C
+      const onlyColC = COPY_COL_C_SHEETS.includes(currentSheet);
+
+      let html = '<table class="qna-table"><thead><tr>';
+      html += '<th class="col-no">#</th>';
       html += `<th>${escapeHTML(col1)}</th>`;
       if (col3) {
         html += `<th>${escapeHTML(col2)}</th>`;
@@ -1320,18 +797,23 @@
       } else {
         html += `<th>${escapeHTML(col2)}</th>`;
       }
-      html += `<th class="col-action"></th>`;
-      html += `</tr></thead><tbody>`;
+      html += '<th class="col-action"></th>';
+      html += '</tr></thead><tbody>';
 
       data.forEach((row, idx) => {
         const v1 = row[keys[0]] || '';
         const v2 = row[keys[1]] || '';
         const v3 = col3 ? (row[keys[2]] || '') : '';
 
-        // Gabungkan semua value untuk copy
-        const allText = [v1, v2, v3].filter(Boolean).join(' — ');
+        // Jika onlyColC: copy hanya kolom terakhir (C), fallback ke kolom sebelumnya jika C kosong
+        let copyText;
+        if (onlyColC) {
+          copyText = v3 || v2 || v1;
+        } else {
+          copyText = [v1, v2, v3].filter(Boolean).join(' — ');
+        }
 
-        html += `<tr>`;
+        html += '<tr>';
         html += `<td class="col-no">${String(idx + 1).padStart(2, '0')}</td>`;
         html += `<td>${escapeHTML(v1)}</td>`;
         if (col3) {
@@ -1340,11 +822,11 @@
         } else {
           html += `<td>${escapeHTML(v2)}</td>`;
         }
-        html += `<td class="col-action"><button class="copy-trigger" data-text="${escapeHTML(allText)}" title="Copy"><i class="fas fa-copy"></i></button></td>`;
-        html += `</tr>`;
+        html += `<td class="col-action"><button class="copy-trigger" data-text="${escapeHTML(copyText)}" title="Copy Col C"><i class="fas fa-copy"></i></button></td>`;
+        html += '</tr>';
       });
 
-      html += `</tbody></table>`;
+      html += '</tbody></table>';
       return html;
     }
 
@@ -1352,24 +834,23 @@
     function renderSidebarLayout(data) {
       if (!data.length) return renderEmptyState();
       const keys = Object.keys(data[0]);
-      let html = `<div class="layout-split"><div class="sidebar-col"><div class="sidebar-header"><i class="fas fa-database"></i> Data Index</div><div class="sidebar-list">`;
+      let html = '<div class="layout-split"><div class="sidebar-col"><div class="sidebar-header"><i class="fas fa-database"></i> Data Index</div><div class="sidebar-list">';
       data.forEach((row, idx) => {
         const label = row[keys[0]] || `Item ${idx + 1}`;
         html += `<div class="sidebar-item" data-index="${idx}"><i class="fas fa-caret-right"></i> ${escapeHTML(label)}</div>`;
       });
-      html += `</div></div><div class="detail-col" id="detailPanel"><div class="detail-content"><i class="fas fa-info-circle"></i> Select an item</div></div></div>`;
+      html += '</div></div><div class="detail-col" id="detailPanel"><div class="detail-content"><i class="fas fa-info-circle"></i> Select an item</div></div></div>';
       return html;
     }
 
     function renderEmptyState() {
-      return `<div class="empty-state"><div class="holo-cube-wrapper"><div class="holo-cube"><div class="holo-face face-front"></div><div class="holo-face face-back"></div><div class="holo-face face-right"></div><div class="holo-face face-left"></div><div class="holo-face face-top"></div><div class="holo-face face-bottom"></div></div></div><div style="color:#FF3366; margin-top:20px;">NO DATA FOUND</div></div>`;
+      return '<div class="empty-state"><div class="holo-cube-wrapper"><div class="holo-cube"><div class="holo-face face-front"></div><div class="holo-face face-back"></div><div class="holo-face face-right"></div><div class="holo-face face-left"></div><div class="holo-face face-top"></div><div class="holo-face face-bottom"></div></div></div><div style="color:#FF3366;margin-top:20px;">NO DATA FOUND</div></div>';
     }
 
-    /* ========== ROUTING: Tentukan render berdasarkan sheet ========== */
+    /* ========== ROUTING ========== */
     function renderSheet(sheetName) {
       currentSheet = sheetName;
-      const displayName = sheetName.toUpperCase().replace(/_/g, ' ');
-      document.getElementById('pageTitle').innerText = displayName;
+      document.getElementById('pageTitle').innerText = sheetName.toUpperCase().replace(/_/g, ' ');
       document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.sheet === sheetName));
       document.getElementById('searchInput').value = '';
       const data = allData[sheetName] || [];
@@ -1380,11 +861,11 @@
       } else if (sheetName === 'PK_anti_audit') {
         container.innerHTML = renderSidebarLayout(data);
       } else {
-        // PK_LULUS_SENSOR_AUDIT, seputar_gantirek, seputar_pk → semua pakai tabel kolom
+        // PK_LULUS_SENSOR_AUDIT, seputar_gantirek, seputar_pk → tabel kolom
         container.innerHTML = renderQna(data);
       }
 
-      // Sidebar interaktif khusus PK_anti_audit
+      // Sidebar interaktif
       if (sheetName === 'PK_anti_audit' && data.length) {
         setTimeout(() => {
           const items = document.querySelectorAll('.sidebar-item');
@@ -1395,9 +876,9 @@
             const keys = Object.keys(row);
             const title = row[keys[0]] || '-';
             const desc = row[keys[2]] || row[keys[1]] || '-';
-            detailPanel.innerHTML = `<div class="detail-content"><div class="detail-label" style="color:#FF3366;">IDENTIFIER</div><div class="detail-key-title">${escapeHTML(title)}</div><div class="detail-label">DESCRIPTION</div><div class="detail-desc-box" style="background:#00000040; padding:15px; border-radius:12px;">${escapeHTML(desc)}</div><button class="btn-copy-desc copy-full-desc" data-desc="${escapeHTML(desc)}"><i class="fas fa-copy"></i> Copy Description</button></div>`;
+            detailPanel.innerHTML = `<div class="detail-content"><div style="color:#FF3366;">IDENTIFIER</div><div>${escapeHTML(title)}</div><div style="margin-top:12px;color:#FF3366;">DESCRIPTION</div><div style="background:#00000040;padding:15px;border-radius:12px;">${escapeHTML(desc)}</div><button class="btn-copy-desc copy-full-desc" data-desc="${escapeHTML(desc)}"><i class="fas fa-copy"></i> Copy Description</button></div>`;
           };
-          items.forEach((item) => {
+          items.forEach(item => {
             item.addEventListener('click', () => {
               items.forEach(i => i.classList.remove('active'));
               item.classList.add('active');
@@ -1418,8 +899,7 @@
         const items = document.querySelectorAll('.sidebar-item');
         let firstVisible = -1;
         items.forEach((item, idx) => {
-          const row = data[idx];
-          const match = Object.values(row).some(v => v && String(v).toLowerCase().includes(query));
+          const match = Object.values(data[idx]).some(v => v && String(v).toLowerCase().includes(query));
           item.style.display = match ? 'flex' : 'none';
           if (match && firstVisible === -1) firstVisible = idx;
         });
@@ -1431,7 +911,6 @@
         const filtered = data.filter(r => Object.values(r).some(v => v && String(v).toLowerCase().includes(query)));
         document.getElementById('tableContainer').innerHTML = renderAssetsGrid(filtered);
       } else {
-        // Tabel kolom: filter rows
         const filtered = data.filter(r => Object.values(r).some(v => v && String(v).toLowerCase().includes(query)));
         document.getElementById('tableContainer').innerHTML = renderQna(filtered);
       }
@@ -1442,15 +921,25 @@
       const btn = e.target.closest('.btn-copy-action, .copy-trigger, .btn-copy-desc');
       if (!btn) return;
       let text = '';
-      if (btn.dataset.val && btn.dataset.desc) text = `${btn.dataset.val} - ${btn.dataset.desc}`;
-      else if (btn.dataset.text) text = btn.dataset.text;
-      else if (btn.dataset.desc) text = btn.dataset.desc;
+      if (btn.dataset.val && btn.dataset.desc) {
+        text = `${btn.dataset.val} - ${btn.dataset.desc}`;
+      } else if (btn.dataset.text) {
+        text = btn.dataset.text;
+      } else if (btn.dataset.desc) {
+        text = btn.dataset.desc;
+      }
       if (text) {
         await navigator.clipboard.writeText(text);
         showNotification('Copied to clipboard');
+        // Flash effect pada tombol
+        btn.classList.add('copy-flash');
         btn.style.background = '#FF3366';
         btn.style.color = 'black';
-        setTimeout(() => { btn.style.background = ''; btn.style.color = ''; }, 500);
+        setTimeout(() => {
+          btn.style.background = '';
+          btn.style.color = '';
+          btn.classList.remove('copy-flash');
+        }, 500);
       }
     });
 
