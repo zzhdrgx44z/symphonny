@@ -1,559 +1,505 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXUS // LOTTERY INTELLIGENCE</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;500;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg:#030305;
-            --surface:rgba(12,12,18,0.8);
-            --surface-h:rgba(18,18,28,0.9);
-            --border:rgba(255,255,255,0.06);
-            --border-h:rgba(255,255,255,0.15);
-            --accent:#00e8c6;
-            --accent-rgb:0,232,198;
-            --accent-dim:rgba(0,232,198,0.15);
-            --accent-glow:rgba(0,232,198,0.4);
-            --danger:#ff2d55;
-            --danger-dim:rgba(255,45,85,0.15);
-            --danger-glow:rgba(255,45,85,0.4);
-            --gold:#f5c542;
-            --gold-dim:rgba(245,197,66,0.15);
-            --text:#f0f0f5;
-            --text2:#8b8ba7;
-            --text3:#55556a;
-            --r-sm:8px;--r:14px;--r-lg:20px;--r-xl:28px;
-            --fd:'Space Grotesk',sans-serif;
-            --fb:'Outfit',sans-serif;
-            --fm:'JetBrains Mono',monospace;
-            --cols:repeat(auto-fill,minmax(340px,1fr));
-        }
-        *{margin:0;padding:0;box-sizing:border-box}
-        html{scroll-behavior:smooth}
-        body{background:var(--bg);color:var(--text);font-family:var(--fb);min-height:100vh;overflow-x:hidden}
-        body.is-compact{--cols:repeat(auto-fill,minmax(260px,1fr))}
-        body.is-compact .nc{padding:1.1rem;gap:.7rem}
-        body.is-compact .nc-name{font-size:1rem}
-        body.is-list .ng{display:flex;flex-direction:column;gap:6px}
-        body.is-list .nc{flex-direction:row;align-items:center;padding:.8rem 1.2rem;height:auto;gap:1.2rem}
-        body.is-list .nc-l{flex:0 0 200px;margin-bottom:0}
-        body.is-list .nc-m{flex:1;margin-bottom:0;border:none;padding:0;flex-direction:row;gap:1.5rem}
-        body.is-list .nc-m .ns{border:none;padding:0;margin:0}
-        body.is-list .nc-r{flex:0 0 auto;margin-top:0;padding-top:0;border:none;flex-direction:row}
-        body.is-list .nc-cat{display:none}
-        body.is-list .nc-deco{display:none}
-        ::-webkit-scrollbar{width:5px}
-        ::-webkit-scrollbar-track{background:transparent}
-        ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:3px}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OBSIDIAN // Intelligence Grid</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+@property --ba{syntax:'<angle>';initial-value:0deg;inherits:false}
+:root{
+--bg:#050507;--sf:#0a0a0e;--sfh:#101018;--bd:#16161e;--bdh:#25252f;
+--ac:#d4943a;--ac-rgb:212,148,58;--ac-d:rgba(212,148,58,.1);--ac-g:rgba(212,148,58,.35);
+--dg:#e04040;--dg-d:rgba(224,64,64,.1);--dg-g:rgba(224,64,64,.35);
+--ok:#3ad47a;--tx:#eaeaef;--t2:#6e6e80;--t3:#3e3e4a;
+--r:3px;--cols:repeat(auto-fill,minmax(330px,1fr))
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:'Manrope',sans-serif;min-height:100vh;overflow-x:hidden}
+body.cp{--cols:repeat(auto-fill,minmax(250px,1fr))}
+body.cp .cd{padding:1rem;gap:.6rem}
+body.cp .cn{font-size:.95rem}
+body.ls .cg{display:flex;flex-direction:column;gap:6px}
+body.ls .cd{flex-direction:row;align-items:center;padding:.8rem 1rem;height:auto;gap:1rem}
+body.ls .cd-t{flex:0 0 180px;margin-bottom:0}
+body.ls .cd-m{flex:1;border:none;padding:0;margin:0;flex-direction:row;gap:1.5rem}
+body.ls .cd-m .sr{border:none;padding:0;margin:0}
+body.ls .cd-b{margin-top:0;padding-top:0;border:none;flex-direction:row}
+body.ls .ccat{display:none}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#222;border-radius:2px}
 
-        #bgc{position:fixed;inset:0;z-index:0;pointer-events:none}
-        .orbs{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;transition:opacity .6s}
-        .orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:.2;animation:of 30s ease-in-out infinite alternate}
-        .orb:nth-child(1){width:500px;height:500px;background:var(--accent);top:-15%;left:-10%;animation-duration:25s}
-        .orb:nth-child(2){width:400px;height:400px;background:var(--danger);bottom:-10%;right:-5%;animation-duration:30s;animation-delay:-8s}
-        .orb:nth-child(3){width:300px;height:300px;background:#6366f1;top:50%;left:50%;animation-duration:35s;animation-delay:-15s;opacity:.08}
-        @keyframes of{0%{transform:translate(0,0) scale(1)}33%{transform:translate(50px,-80px) scale(1.1)}66%{transform:translate(-30px,40px) scale(.95)}100%{transform:translate(80px,-20px) scale(1.05)}}
+#bgc{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.6}
+.dotgrid{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,.02) 1px,transparent 1px);background-size:32px 32px;transition:opacity .5s}
+.orbs{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;transition:opacity .5s}
+.orb{position:absolute;border-radius:50%;filter:blur(120px);opacity:.12;animation:of 40s ease-in-out infinite alternate}
+.orb:nth-child(1){width:500px;height:500px;background:var(--ac);top:-20%;left:-15%;animation-duration:30s}
+.orb:nth-child(2){width:400px;height:400px;background:#e04040;bottom:-15%;right:-10%;animation-duration:35s;animation-delay:-12s}
+@keyframes of{0%{transform:translate(0,0)}50%{transform:translate(80px,-60px) scale(1.1)}100%{transform:translate(-40px,40px) scale(.95)}}
 
-        #mspot{position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(var(--accent-rgb),.04) 0%,transparent 70%);pointer-events:none;z-index:0;transform:translate(-50%,-50%);transition:left .3s,top .3s}
+.ticker{position:relative;z-index:1;background:rgba(10,10,14,.9);border-bottom:1px solid var(--bd);overflow:hidden;height:32px;display:flex;align-items:center;margin-bottom:1rem}
+.ticker-label{padding:0 .8rem;font-family:'JetBrains Mono',monospace;font-size:.55rem;color:var(--ac);letter-spacing:2px;text-transform:uppercase;background:var(--ac-d);height:100%;display:flex;align-items:center;flex-shrink:0;font-weight:700}
+.ticker-track{display:flex;animation:tick 120s linear infinite;white-space:nowrap}
+.ticker-track:hover{animation-play-state:paused}
+.ti{padding:0 1.8rem;font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--t2);display:flex;align-items:center;gap:.5rem;height:32px}
+.ti span{color:var(--tx);font-weight:500}
+.ti i{color:var(--ac);font-size:.4rem}
+@keyframes tick{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 
-        .geos{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;transition:opacity .6s}
-        .geo{position:absolute;border:1px solid rgba(255,255,255,.04);animation:gs linear infinite}
-        .geo.c{border-radius:50%}
-        .geo.d{transform:rotate(45deg);border-radius:2px}
-        .geo.t{border:none;width:0!important;height:0!important;border-left:15px solid transparent;border-right:15px solid transparent;border-bottom:26px solid rgba(255,255,255,.03)}
-        @keyframes gs{from{transform:rotate(0) translateY(0)}to{transform:rotate(360deg) translateY(-30px)}}
+.app{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:0 1.5rem 2rem}
 
-        .shell{position:relative;z-index:1;max-width:1440px;margin:0 auto;padding:1.5rem}
+.hdr{display:flex;justify-content:space-between;align-items:center;padding:.8rem 0;margin-bottom:.8rem}
+.brand{display:flex;align-items:center;gap:.7rem}
+.logo{width:32px;height:32px;background:linear-gradient(135deg,var(--ac),#f0c870);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:.85rem;color:#000;position:relative;overflow:hidden;flex-shrink:0}
+.logo::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 30%,rgba(255,255,255,.4) 50%,transparent 70%);animation:lsh 4s ease-in-out infinite}
+@keyframes lsh{0%,100%{transform:translateX(-150%)}50%{transform:translateX(150%)}}
+.btxt h1{font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;letter-spacing:-.5px;line-height:1;background:linear-gradient(90deg,var(--ac),#f0d090,var(--ac));background-size:200% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shm 4s ease-in-out infinite}
+@keyframes shm{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.hud{display:flex;gap:.4rem;align-items:center}
+.hi{display:flex;align-items:center;gap:.4rem;padding:.35rem .7rem;background:var(--sf);border:1px solid var(--bd);font-family:'JetBrains Mono',monospace;font-size:.68rem;transition:all .3s}
+.hi:hover{border-color:var(--bdh)}
+.hclk{color:var(--ac);font-weight:700;font-size:.85rem;text-shadow:0 0 12px var(--ac-g)}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--t3);transition:all .3s;flex-shrink:0}
+.sdot.l{background:var(--dg);box-shadow:0 0 8px var(--dg-g);animation:sdp 1.5s infinite}
+.sdot.n{background:var(--ac);box-shadow:0 0 6px var(--ac-g)}
+@keyframes sdp{0%,100%{transform:scale(1)}50%{transform:scale(1.5);opacity:.5}}
+.stxt{color:var(--t2);font-size:.6rem;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stxt.a{color:var(--dg);animation:sblk 1s steps(2) infinite}
+@keyframes sblk{0%{opacity:1}50%{opacity:.3}}
 
-        /* HEADER */
-        .hdr{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.8rem;background:var(--surface);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid var(--border);border-radius:var(--r-xl);margin-bottom:1.2rem;flex-wrap:wrap;gap:1rem}
-        .brand{display:flex;align-items:center;gap:.9rem}
-        .logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--accent),#6366f1);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-weight:900;font-size:1.1rem;color:#000;position:relative;overflow:hidden}
-        .logo::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,.3) 50%,transparent 60%);animation:ls 3s ease-in-out infinite}
-        @keyframes ls{0%,100%{transform:translateX(-100%)}50%{transform:translateX(100%)}}
-        .brand-t h1{font-family:var(--fd);font-weight:800;font-size:1.3rem;letter-spacing:-.5px;line-height:1}
-        .brand-t h1 span{color:var(--accent)}
-        .brand-s{font-family:var(--fm);font-size:.55rem;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
-        .hud{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
-        .hud-i{display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:var(--r);font-family:var(--fm);font-size:.75rem;transition:all .3s}
-        .hud-i:hover{border-color:var(--border-h)}
-        .clk{color:var(--accent);font-weight:700;font-size:.95rem;text-shadow:0 0 20px var(--accent-glow)}
-        .sdot{width:7px;height:7px;border-radius:50%;background:var(--text3);transition:all .3s;flex-shrink:0}
-        .sdot.live{background:var(--danger);box-shadow:0 0 8px var(--danger-glow);animation:dp 1.5s infinite}
-        .sdot.next{background:var(--gold);box-shadow:0 0 8px rgba(245,197,66,.4)}
-        @keyframes dp{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:.6}}
-        .stxt{color:var(--text2);font-size:.7rem;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .stxt.act{color:var(--danger);animation:tb 1s steps(2) infinite}
-        @keyframes tb{0%{opacity:1}50%{opacity:.4}}
+.nav{display:flex;gap:2px;margin-bottom:1rem;border-bottom:1px solid var(--bd)}
+.nb{padding:.6rem 1.2rem;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--t2);font-family:'Manrope',sans-serif;font-weight:600;font-size:.78rem;cursor:pointer;transition:all .3s;display:flex;align-items:center;gap:.4rem}
+.nb:hover{color:var(--tx)}
+.nb.on{color:var(--ac);border-bottom-color:var(--ac)}
+.nc2{background:var(--dg-d);color:var(--dg);font-size:.5rem;padding:1px 5px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-weight:700}
+.nb.on .nc2{background:var(--dg);color:#fff}
 
-        /* NAV */
-        .nav{display:flex;gap:3px;padding:3px;background:var(--surface);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:1.2rem;width:fit-content}
-        .nb{padding:.6rem 1.6rem;background:transparent;border:none;color:var(--text2);font-family:var(--fd);font-weight:500;font-size:.82rem;border-radius:var(--r);cursor:pointer;transition:all .3s;display:flex;align-items:center;gap:.5rem;position:relative}
-        .nb:hover{color:var(--text);background:rgba(255,255,255,.04)}
-        .nb.on{background:var(--accent-dim);color:var(--accent);box-shadow:0 0 20px rgba(var(--accent-rgb),.08)}
-        .nc2{background:rgba(255,255,255,.08);color:var(--text2);font-size:.6rem;padding:1px 6px;border-radius:20px;font-family:var(--fm)}
-        .nb.on .nc2{background:var(--accent-glow);color:#000}
+.tb{margin-bottom:1rem}
+.sr2{display:flex;gap:.5rem;margin-bottom:.6rem}
+.iw{position:relative;flex:1}
+.iw i{position:absolute;left:.7rem;top:50%;transform:translateY(-50%);color:var(--t3);font-size:.7rem;pointer-events:none}
+.inp{width:100%;padding:.5rem .7rem .5rem 2.2rem;background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);color:var(--tx);font-family:'Manrope',sans-serif;font-size:.8rem;outline:none;transition:all .3s}
+.inp:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--ac-d)}
+.sel{padding:.5rem .7rem;background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);color:var(--tx);font-family:'Manrope',sans-serif;font-size:.8rem;outline:none;cursor:pointer;min-width:160px;transition:all .3s}
+.sel:focus{border-color:var(--ac)}
+.sel option{background:#0a0a0e}
+.chips{display:flex;gap:.35rem;flex-wrap:wrap;align-items:center}
+.chip{padding:.3rem .7rem;background:transparent;border:1px solid var(--bd);border-radius:var(--r);color:var(--t2);font-size:.7rem;font-family:'Manrope',sans-serif;font-weight:600;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:.25rem}
+.chip:hover{border-color:var(--bdh);color:var(--tx)}
+.chip.on{background:var(--ac-d);border-color:rgba(var(--ac-rgb),.3);color:var(--ac)}
+.cc{font-size:.5rem;font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,.06);padding:0 4px;border-radius:8px}
+.chip.on .cc{background:rgba(var(--ac-rgb),.2)}
+.sep{width:1px;height:18px;background:var(--bd);margin:0 .2rem}
+.ab{padding:.3rem .6rem;background:transparent;border:1px solid var(--bd);border-radius:var(--r);color:var(--t2);font-family:'Manrope',sans-serif;font-size:.68rem;font-weight:600;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:.25rem}
+.ab:hover{border-color:var(--bdh);color:var(--tx)}
+.ab.on{color:var(--ac);border-color:rgba(var(--ac-rgb),.3)}
 
-        /* TOOLBAR */
-        .tb{display:grid;grid-template-columns:1fr auto;gap:1.2rem;padding:1.2rem;background:var(--surface);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:1.2rem;align-items:start}
-        .sr{display:flex;gap:.6rem;flex-wrap:wrap}
-        .iw{position:relative;flex:1;min-width:180px}
-        .iw i{position:absolute;left:.9rem;top:50%;transform:translateY(-50%);color:var(--text3);font-size:.8rem;pointer-events:none}
-        .inp{width:100%;padding:.65rem .9rem .65rem 2.5rem;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--fb);font-size:.85rem;outline:none;transition:all .3s}
-        .inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
-        .sel{padding:.65rem .9rem;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--fb);font-size:.85rem;outline:none;cursor:pointer;transition:all .3s;min-width:180px}
-        .sel:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
-        .sel option{background:#111}
-        .chips{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem}
-        .chip{padding:.4rem .9rem;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:50px;color:var(--text2);font-size:.75rem;font-family:var(--fd);cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:.35rem}
-        .chip:hover{background:rgba(255,255,255,.06);color:var(--text);transform:translateY(-1px)}
-        .chip.on{background:var(--danger);color:#fff;border-color:var(--danger);box-shadow:0 4px 15px rgba(255,45,85,.3)}
-        .cc{background:rgba(255,255,255,.15);font-size:.6rem;padding:1px 5px;border-radius:20px;font-family:var(--fm)}
-        .chip.on .cc{background:rgba(255,255,255,.3)}
-        .qa{display:flex;flex-direction:column;gap:.4rem;border-left:1px solid var(--border);padding-left:1.2rem}
-        .ab{padding:.5rem .8rem;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text2);font-family:var(--fd);font-size:.75rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:.4rem;white-space:nowrap}
-        .ab:hover{background:rgba(255,255,255,.05);color:var(--text);border-color:var(--border-h)}
-        .ab.on{color:var(--accent)}
-        .ab.on i{color:var(--accent)}
+.lvsec{margin-bottom:1rem;display:none}
+.lvsec.vis{display:block}
+.lvlab{display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem}
+.lvbadge{display:flex;align-items:center;gap:.3rem;padding:.2rem .6rem;background:var(--dg-d);border:1px solid rgba(224,64,64,.25);border-radius:var(--r);color:var(--dg);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.55rem;text-transform:uppercase;letter-spacing:1px}
+.lvdot{width:5px;height:5px;border-radius:50%;background:var(--dg);animation:sdp 1s infinite}
+.lvsub{color:var(--t3);font-size:.65rem}
 
-        /* LIVE */
-        .ls{margin-bottom:1.2rem;display:none}
-        .ls.vis{display:block}
-        .ll{display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem}
-        .lb{display:flex;align-items:center;gap:.4rem;padding:.3rem .9rem;background:var(--danger-dim);border:1px solid rgba(255,45,85,.3);border-radius:50px;color:var(--danger);font-family:var(--fd);font-weight:700;font-size:.65rem;text-transform:uppercase;letter-spacing:1px}
-        .ld{width:6px;height:6px;border-radius:50%;background:var(--danger);animation:dp 1s infinite}
-        .lsub{color:var(--text3);font-size:.75rem}
+.cg{display:grid;grid-template-columns:var(--cols);gap:.7rem}
+.cd{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:1.2rem;display:flex;flex-direction:column;gap:.7rem;transition:all .3s cubic-bezier(.25,.46,.45,.94);position:relative;overflow:hidden}
+.cd::after{content:'';position:absolute;inset:0;background:radial-gradient(300px circle at var(--mx,50%) var(--my,50%),rgba(var(--ac-rgb),.03),transparent 60%);pointer-events:none;opacity:0;transition:opacity .4s;z-index:0}
+.cd:hover::after{opacity:1}
+.cd:hover{border-color:var(--bdh);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.cd>*{position:relative;z-index:1}
+.cd.live{--ba:0deg;border:2px solid transparent;background:linear-gradient(var(--sf),var(--sf)) padding-box,conic-gradient(from var(--ba),transparent 50%,var(--dg) 100%) border-box;animation:rotBd 3s linear infinite}
+@keyframes rotBd{to{--ba:360deg}}
+.cd.live:hover{box-shadow:0 8px 24px rgba(0,0,0,.25),0 0 25px rgba(224,64,64,.06)}
 
-        /* GRID */
-        .ng{display:grid;grid-template-columns:var(--cols);gap:1rem}
-        .nc{background:var(--surface);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.4rem;display:flex;flex-direction:column;gap:.9rem;transition:all .35s cubic-bezier(.25,.46,.45,.94);position:relative;overflow:hidden}
-        .nc::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);opacity:0;transition:opacity .3s}
-        .nc:hover{transform:translateY(-4px);border-color:var(--border-h);background:var(--surface-h);box-shadow:0 20px 40px rgba(0,0,0,.3)}
-        .nc:hover::before{opacity:1}
-        .nc.il{border-color:rgba(255,45,85,.3);background:linear-gradient(160deg,rgba(255,45,85,.04),var(--surface))}
-        .nc.il::after{content:'';position:absolute;top:0;left:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,var(--danger),transparent);animation:st 2.5s linear infinite}
-        @keyframes st{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
-        .nc-l{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.15rem}
-        .nc-name{font-family:var(--fd);font-weight:700;font-size:1.1rem;color:var(--text);line-height:1.2}
-        .nc.il .nc-name{color:var(--danger)}
-        .nc-cat{font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px;font-family:var(--fm)}
-        .badge{padding:2px 8px;border-radius:5px;font-size:.6rem;font-weight:700;font-family:var(--fm);letter-spacing:.5px;text-transform:uppercase;background:rgba(255,255,255,.05);color:var(--text3);border:1px solid rgba(255,255,255,.05);flex-shrink:0}
-        .badge.lv{background:var(--danger-dim);color:var(--danger);border-color:rgba(255,45,85,.25);animation:bp 2s infinite}
-        @keyframes bp{0%,100%{box-shadow:0 0 0 0 rgba(255,45,85,.3)}50%{box-shadow:0 0 0 5px rgba(255,45,85,0)}}
-        .nc-m{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:.4rem 0}
-        .ns{display:flex;justify-content:space-between;align-items:center;padding:.35rem 0}
-        .ns-l{font-size:.78rem;color:var(--text3);display:flex;align-items:center;gap:.35rem}
-        .ns-l i{font-size:.65rem}
-        .ns-v{font-family:var(--fm);font-weight:700;font-size:.85rem;color:var(--text)}
-        .nc.il .ns-v{color:var(--danger);text-shadow:0 0 12px rgba(255,45,85,.3)}
-        .nc-deco{display:flex;gap:.5rem;font-family:var(--fm);font-size:.6rem;color:rgba(255,255,255,.04);letter-spacing:3px;user-select:none}
-        .nc-r{display:flex;gap:.4rem;margin-top:auto;padding-top:.6rem}
-        .btn{flex:1;padding:.55rem .4rem;border-radius:var(--r-sm);border:1px solid var(--border);background:transparent;color:var(--text2);font-family:var(--fd);font-weight:500;font-size:.78rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:.35rem;text-decoration:none;white-space:nowrap}
-        .btn:hover{background:rgba(255,255,255,.05);color:var(--text);border-color:var(--border-h)}
-        .btn.pr{background:var(--accent);color:#000;border-color:var(--accent);font-weight:700}
-        .btn.pr:hover{filter:brightness(1.15);box-shadow:0 4px 20px var(--accent-glow)}
-        .btn.ok{border-color:var(--gold)!important;color:var(--gold)!important}
-        .empty{grid-column:1/-1;text-align:center;padding:3rem 2rem;color:var(--text3)}
-        .empty i{font-size:2rem;margin-bottom:.8rem;display:block}
+.cd-t{display:flex;justify-content:space-between;align-items:flex-start}
+.cn{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--tx);line-height:1.2}
+.cd.live .cn{color:var(--dg)}
+.ccat{font-size:.55rem;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px;font-family:'JetBrains Mono',monospace}
+.bdg{padding:2px 6px;border-radius:2px;font-size:.5rem;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:.5px;text-transform:uppercase;background:rgba(255,255,255,.04);color:var(--t3);flex-shrink:0}
+.bdg.lv{background:var(--dg-d);color:var(--dg);animation:bdp 2s infinite}
+@keyframes bdp{0%,100%{box-shadow:0 0 0 0 rgba(224,64,64,.2)}50%{box-shadow:0 0 0 3px rgba(224,64,64,0)}}
+.cd-m{display:flex;flex-direction:column;border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);padding:.25rem 0}
+.sr{display:flex;justify-content:space-between;align-items:center;padding:.25rem 0}
+.srl{font-size:.72rem;color:var(--t3);display:flex;align-items:center;gap:.25rem}
+.srl i{font-size:.55rem}
+.srv{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.78rem;color:var(--tx)}
+.cd.live .srv{color:var(--dg);text-shadow:0 0 8px rgba(224,64,64,.2)}
+.cd-b{display:flex;gap:.35rem;margin-top:auto;padding-top:.5rem}
+.bt{flex:1;padding:.45rem .3rem;border-radius:var(--r);border:1px solid var(--bd);background:transparent;color:var(--t2);font-family:'Manrope',sans-serif;font-weight:600;font-size:.68rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:.25rem;text-decoration:none;white-space:nowrap}
+.bt:hover{background:rgba(255,255,255,.03);color:var(--tx);border-color:var(--bdh)}
+.bt.pr{background:var(--ac);color:#000;border-color:var(--ac);font-weight:700}
+.bt.pr:hover{filter:brightness(1.15);box-shadow:0 3px 12px var(--ac-g)}
+.bt.ok{border-color:var(--ac)!important;color:var(--ac)!important}
+.empty{grid-column:1/-1;text-align:center;padding:3rem;color:var(--t3)}
+.empty i{font-size:1.5rem;margin-bottom:.5rem;display:block}
 
-        /* STATS */
-        .sg{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1rem}
-        .sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.8rem;text-align:center;transition:all .3s;position:relative;overflow:hidden}
-        .sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
-        .sc:nth-child(1)::before{background:var(--accent)}.sc:nth-child(2)::before{background:var(--danger)}.sc:nth-child(3)::before{background:var(--gold)}
-        .sc:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.2)}
-        .sci{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto .8rem;font-size:1.2rem}
-        .sc:nth-child(1) .sci{background:var(--accent-dim);color:var(--accent)}
-        .sc:nth-child(2) .sci{background:var(--danger-dim);color:var(--danger)}
-        .sc:nth-child(3) .sci{background:var(--gold-dim);color:var(--gold)}
-        .scl{font-size:.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.4rem}
-        .scv{font-family:var(--fd);font-size:2.8rem;font-weight:800;line-height:1}
-        .dc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.8rem}
-        .dct{font-family:var(--fd);font-weight:700;font-size:1rem;margin-bottom:1.2rem;display:flex;align-items:center;gap:.6rem}
-        .dct i{color:var(--accent)}
-        .br{display:flex;align-items:center;gap:.8rem;margin-bottom:.6rem}
-        .brl{width:100px;font-size:.75rem;color:var(--text2);text-align:right;flex-shrink:0}
-        .brt{flex:1;height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden}
-        .brf{height:100%;background:linear-gradient(90deg,var(--accent),#6366f1);border-radius:3px;transition:width .8s cubic-bezier(.25,.46,.45,.94)}
-        .brc{width:30px;font-family:var(--fm);font-size:.75rem;color:var(--text)}
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;margin-bottom:.7rem}
+.sc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:1.3rem;text-align:center;position:relative;overflow:hidden;transition:all .3s}
+.sc:hover{border-color:var(--bdh);transform:translateY(-2px)}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.sc:nth-child(1)::before{background:var(--ac)}.sc:nth-child(2)::before{background:var(--dg)}.sc:nth-child(3)::before{background:var(--ok)}
+.sci{width:36px;height:36px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;margin:0 auto .6rem;font-size:.9rem}
+.sc:nth-child(1) .sci{background:var(--ac-d);color:var(--ac)}
+.sc:nth-child(2) .sci{background:var(--dg-d);color:var(--dg)}
+.sc:nth-child(3) .sci{background:rgba(58,212,122,.1);color:var(--ok)}
+.scl{font-size:.6rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.2rem}
+.scv{font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;line-height:1}
+.dc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:1.3rem}
+.dct{font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;margin-bottom:.8rem;display:flex;align-items:center;gap:.4rem}
+.dct i{color:var(--ac)}
+.br{display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem}
+.brl{width:85px;font-size:.65rem;color:var(--t2);text-align:right;flex-shrink:0}
+.brt{flex:1;height:3px;background:rgba(255,255,255,.04);border-radius:2px;overflow:hidden}
+.brf{height:100%;background:linear-gradient(90deg,var(--ac),#f0c870);border-radius:2px;transition:width .8s ease}
+.brc{width:22px;font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--tx)}
 
-        /* SETTINGS */
-        .nst{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:1rem}
-        .nsc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden}
-        .nsch{padding:1rem 1.3rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem;font-family:var(--fd);font-weight:700;font-size:.9rem}
-        .nsch i{color:var(--accent);font-size:.85rem}
-        .nsb{padding:1.3rem}
-        .bg{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:1rem}
-        .bg:last-child{margin-bottom:0}
-        .opt{flex:1;min-width:85px;padding:.55rem .7rem;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text2);font-family:var(--fd);font-size:.75rem;font-weight:500;cursor:pointer;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:.35rem}
-        .opt:hover{background:rgba(255,255,255,.04);color:var(--text)}
-        .opt.sel{background:var(--accent-dim);color:var(--accent);border-color:rgba(var(--accent-rgb),.3);box-shadow:0 0 15px rgba(var(--accent-rgb),.08)}
-        .cdot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-        .opt.dng{border-color:rgba(255,45,85,.2);color:rgba(255,45,85,.7)}
-        .opt.dng:hover{background:rgba(255,45,85,.08);color:var(--danger)}
-        .tr{display:flex;justify-content:space-between;align-items:center;padding:.7rem .9rem;background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:.4rem;transition:all .25s}
-        .tr:hover{border-color:var(--border-h)}
-        .trl{display:flex;align-items:center;gap:.6rem;font-size:.82rem;color:var(--text)}
-        .trl i{color:var(--accent);width:16px;text-align:center;font-size:.8rem}
-        .tg{width:42px;height:22px;background:rgba(255,255,255,.1);border-radius:11px;cursor:pointer;position:relative;transition:background .3s;flex-shrink:0}
-        .tg.on{background:var(--accent)}
-        .tg::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .3s;box-shadow:0 1px 4px rgba(0,0,0,.3)}
-        .tg.on::after{transform:translateX(20px)}
-        .ul{display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.55rem;border:1px dashed var(--border);border-radius:var(--r-sm);color:var(--text3);font-size:.75rem;cursor:pointer;transition:all .25s;width:100%}
-        .ul:hover{border-color:var(--accent);color:var(--accent)}
-        .nsc.fw{grid-column:1/-1}
+.nst{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:.7rem}
+.nsc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.nsch{padding:.8rem 1rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:.4rem;font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem}
+.nsch i{color:var(--ac);font-size:.75rem}
+.nsb{padding:1rem}
+.bg{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:.8rem}
+.bg:last-child{margin-bottom:0}
+.opt{flex:1;min-width:75px;padding:.45rem .5rem;background:rgba(0,0,0,.3);border:1px solid var(--bd);border-radius:var(--r);color:var(--t2);font-family:'Manrope',sans-serif;font-size:.68rem;font-weight:600;cursor:pointer;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:.25rem}
+.opt:hover{background:rgba(255,255,255,.03);color:var(--tx)}
+.opt.sel{background:var(--ac-d);color:var(--ac);border-color:rgba(var(--ac-rgb),.3)}
+.cdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.opt.dng{border-color:rgba(224,64,64,.15);color:rgba(224,64,64,.6)}
+.opt.dng:hover{background:rgba(224,64,64,.06);color:var(--dg)}
+.tr{display:flex;justify-content:space-between;align-items:center;padding:.5rem .7rem;background:rgba(0,0,0,.2);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:.35rem;transition:all .25s}
+.tr:hover{border-color:var(--bdh)}
+.trl{display:flex;align-items:center;gap:.4rem;font-size:.72rem;color:var(--tx)}
+.trl i{color:var(--ac);width:12px;text-align:center;font-size:.7rem}
+.tg{width:36px;height:18px;background:rgba(255,255,255,.08);border-radius:9px;cursor:pointer;position:relative;transition:background .3s;flex-shrink:0}
+.tg.on{background:var(--ac)}
+.tg::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .3s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.tg.on::after{transform:translateX(18px)}
+.ul{display:flex;align-items:center;justify-content:center;gap:.25rem;padding:.45rem;border:1px dashed var(--bd);border-radius:var(--r);color:var(--t3);font-size:.65rem;cursor:pointer;transition:all .25s;width:100%}
+.ul:hover{border-color:var(--ac);color:var(--ac)}
+.nsc.fw{grid-column:1/-1}
 
-        /* RESULT OVERLAY */
-        .rov{position:fixed;inset:0;background:rgba(3,3,5,.97);backdrop-filter:blur(20px);z-index:5000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .4s}
-        .rov.open{opacity:1;pointer-events:auto}
-        .rcard{width:90%;max-width:540px;background:rgba(8,8,12,.95);border:1px solid rgba(245,197,66,.3);border-radius:var(--r-xl);padding:2.8rem 2.2rem;text-align:center;position:relative;overflow:hidden;box-shadow:0 0 80px rgba(245,197,66,.1)}
-        .rcard::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(245,197,66,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(245,197,66,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}
-        .rcn{position:absolute;width:28px;height:28px;border:2px solid rgba(245,197,66,.4);pointer-events:none}
-        .rcn.tl{top:10px;left:10px;border-right:none;border-bottom:none}
-        .rcn.tr{top:10px;right:10px;border-left:none;border-bottom:none}
-        .rcn.bl{bottom:10px;left:10px;border-right:none;border-top:none}
-        .rcn.br{bottom:10px;right:10px;border-left:none;border-top:none}
-        .rg{font-size:.8rem;color:var(--danger);letter-spacing:4px;text-transform:uppercase;margin-bottom:1.2rem;position:relative;z-index:1}
-        .rs{font-family:var(--fm);font-size:.75rem;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:.4rem;min-height:1.1rem;position:relative;z-index:1;transition:color .3s}
-        .rs.ok{color:#00e8c6;text-shadow:0 0 10px rgba(0,232,198,.5)}
-        .rml{font-size:.65rem;color:var(--text3);letter-spacing:3px;text-transform:uppercase;margin-bottom:.2rem;position:relative;z-index:1}
-        .rmk{font-family:var(--fd);font-size:1.8rem;font-weight:800;color:#fff;text-transform:uppercase;margin-bottom:1.2rem;position:relative;z-index:1}
-        .rlw{width:100%;height:3px;background:rgba(255,255,255,.05);border-radius:2px;margin-bottom:1.5rem;overflow:hidden;position:relative;z-index:1;border:1px solid rgba(245,197,66,.1);transition:opacity .3s}
-        .rlb{height:100%;background:var(--gold);box-shadow:0 0 15px var(--gold);width:0%;transition:width .15s linear}
-        .rn{font-family:var(--fm);font-size:4.5rem;font-weight:700;color:var(--danger);text-shadow:0 0 40px rgba(255,45,85,.6),0 0 80px rgba(245,197,66,.2);letter-spacing:.15em;line-height:1;margin-bottom:1.2rem;position:relative;z-index:1}
-        .rn.ld{color:#222;text-shadow:none;animation:np .8s infinite alternate}
-        @keyframes np{from{opacity:.2}to{opacity:.6}}
-        .rtm{font-size:.8rem;color:var(--text3);margin-bottom:1.5rem;position:relative;z-index:1}
-        .rtm span{color:var(--text);font-family:var(--fm)}
-        .rtt{width:100%;height:2px;background:rgba(255,255,255,.05);border-radius:1px;margin-bottom:1.5rem;overflow:hidden;position:relative;z-index:1}
-        .rtb{height:100%;background:var(--gold);box-shadow:0 0 8px var(--gold);width:100%;transition:width 1s linear}
-        .rcl{padding:.6rem 2.2rem;background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--text2);font-family:var(--fd);font-size:.78rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;border-radius:var(--r-sm);cursor:pointer;transition:all .3s;position:relative;z-index:10}
-        .rcl:hover{border-color:var(--gold);color:var(--gold);box-shadow:0 0 15px rgba(245,197,66,.15)}
-        #fwbox{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden}
-        .fwp{position:absolute;border-radius:50%;pointer-events:none;mix-blend-mode:screen;animation:fb 1.2s ease-out forwards}
-        @keyframes fb{0%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0}}
+.rov{position:fixed;inset:0;background:rgba(5,5,7,.98);z-index:5000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .4s}
+.rov.open{opacity:1;pointer-events:auto}
+.rc{width:90%;max-width:500px;background:var(--sf);border:1px solid rgba(212,148,58,.25);border-radius:var(--r);padding:2.2rem 1.8rem;text-align:center;position:relative;overflow:hidden;box-shadow:0 0 50px rgba(212,148,58,.06)}
+.rc::before{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(212,148,58,.015) 1px,transparent 1px);background-size:20px 20px;pointer-events:none}
+.rco{position:absolute;width:20px;height:20px;border:1px solid rgba(212,148,58,.25);pointer-events:none}
+.rco.tl{top:6px;left:6px;border-right:none;border-bottom:none}
+.rco.tr{top:6px;right:6px;border-left:none;border-bottom:none}
+.rco.bl{bottom:6px;left:6px;border-right:none;border-top:none}
+.rco.br{bottom:6px;right:6px;border-left:none;border-top:none}
+.rg{font-size:.65rem;color:var(--dg);letter-spacing:3px;text-transform:uppercase;margin-bottom:.8rem;position:relative;z-index:1}
+.rs{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--ac);letter-spacing:2px;text-transform:uppercase;margin-bottom:.2rem;min-height:.9rem;position:relative;z-index:1;transition:color .3s}
+.rs.ok{color:var(--ok);text-shadow:0 0 8px rgba(58,212,122,.4)}
+.rml{font-size:.55rem;color:var(--t3);letter-spacing:3px;text-transform:uppercase;margin-bottom:.15rem;position:relative;z-index:1}
+.rmk{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:#fff;text-transform:uppercase;margin-bottom:.8rem;position:relative;z-index:1}
+.rlw{width:100%;height:2px;background:rgba(255,255,255,.04);border-radius:1px;margin-bottom:1rem;overflow:hidden;position:relative;z-index:1;transition:opacity .3s}
+.rlb{height:100%;background:var(--ac);box-shadow:0 0 8px var(--ac);width:0%;transition:width .15s linear}
+.rn{font-family:'JetBrains Mono',monospace;font-size:3.5rem;font-weight:700;color:var(--dg);text-shadow:0 0 25px rgba(224,64,64,.5),0 0 50px rgba(212,148,58,.1);letter-spacing:.15em;line-height:1;margin-bottom:.8rem;position:relative;z-index:1}
+.rn.ld{color:#1a1a1a;text-shadow:none;animation:np .8s infinite alternate}
+@keyframes np{from{opacity:.15}to{opacity:.5}}
+.rtm{font-size:.7rem;color:var(--t3);margin-bottom:1rem;position:relative;z-index:1}
+.rtm span{color:var(--tx);font-family:'JetBrains Mono',monospace}
+.rtt{width:100%;height:2px;background:rgba(255,255,255,.04);border-radius:1px;margin-bottom:1rem;overflow:hidden;position:relative;z-index:1}
+.rtb{height:100%;background:var(--ac);box-shadow:0 0 5px var(--ac);width:100%;transition:width 1s linear}
+.rcl{padding:.45rem 1.8rem;background:transparent;border:1px solid var(--bd);color:var(--t2);font-family:'Manrope',sans-serif;font-size:.68rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;border-radius:var(--r);cursor:pointer;transition:all .3s;position:relative;z-index:10}
+.rcl:hover{border-color:var(--ac);color:var(--ac)}
+#fwbox{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.fwp{position:absolute;border-radius:50%;pointer-events:none;mix-blend-mode:screen;animation:fb 1.2s ease-out forwards}
+@keyframes fb{0%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0}}
 
-        /* TOAST */
-        .tst{position:fixed;top:1.2rem;right:1.2rem;background:rgba(8,8,12,.95);backdrop-filter:blur(20px);border:1px solid var(--border);border-left:3px solid var(--accent);padding:.8rem 1.2rem;border-radius:var(--r);z-index:9999;display:flex;align-items:center;gap:.8rem;transform:translateX(calc(100% + 2rem));transition:transform .4s cubic-bezier(.25,.46,.45,.94);box-shadow:0 10px 40px rgba(0,0,0,.4);max-width:320px}
-        .tst.show{transform:translateX(0)}
-        .tsti{width:32px;height:32px;border-radius:8px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0;font-size:.85rem}
-        .tstt{font-family:var(--fd);font-weight:700;font-size:.8rem;margin-bottom:1px}
-        .tstm{font-size:.7rem;color:var(--text2)}
+.tst{position:fixed;top:46px;right:1rem;background:var(--sf);border:1px solid var(--bd);border-left:3px solid var(--ac);padding:.6rem .8rem;border-radius:var(--r);z-index:9999;display:flex;align-items:center;gap:.6rem;transform:translateX(calc(100% + 2rem));transition:transform .4s cubic-bezier(.25,.46,.45,.94);box-shadow:0 6px 24px rgba(0,0,0,.4);max-width:260px}
+.tst.show{transform:translateX(0)}
+.tsti{color:var(--ac);font-size:.8rem;flex-shrink:0}
+.tstt{font-family:'Syne',sans-serif;font-weight:700;font-size:.7rem}
+.tstm{font-size:.6rem;color:var(--t2)}
 
-        /* VOL */
-        .vp{position:fixed;bottom:1.2rem;right:1.2rem;background:rgba(8,8,12,.95);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.2rem;width:240px;z-index:100;transform:translateY(calc(100% + 3rem));transition:transform .35s;box-shadow:0 10px 40px rgba(0,0,0,.4)}
-        .vp.open{transform:translateY(0)}
-        .vph{display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem;font-size:.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--text3)}
-        .vph i{cursor:pointer;transition:color .2s}
-        .vph i:hover{color:var(--text)}
-        .vps{width:100%;accent-color:var(--accent);cursor:pointer}
-        .vpv{text-align:right;font-family:var(--fm);font-size:.8rem;color:var(--accent);margin-top:.4rem}
+.vp{position:fixed;bottom:1rem;right:1rem;background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:.8rem;width:200px;z-index:100;transform:translateY(calc(100% + 2rem));transition:transform .35s;box-shadow:0 6px 24px rgba(0,0,0,.4)}
+.vp.open{transform:translateY(0)}
+.vph{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;font-size:.6rem;text-transform:uppercase;letter-spacing:1px;color:var(--t3)}
+.vph i{cursor:pointer}
+.vps{width:100%;accent-color:var(--ac);cursor:pointer}
+.vpv{text-align:right;font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--ac);margin-top:.2rem}
 
-        /* MODAL */
-        .mbg{position:fixed;inset:0;background:rgba(3,3,5,.85);backdrop-filter:blur(8px);z-index:4000;display:none;align-items:center;justify-content:center}
-        .mbg.open{display:flex}
-        .mdl{background:rgba(8,8,12,.98);border:1px solid rgba(255,45,85,.3);border-radius:var(--r-xl);width:90%;max-width:380px;overflow:hidden;animation:mi .35s cubic-bezier(.25,.46,.45,.94)}
-        @keyframes mi{0%{transform:scale(.9) translateY(20px);opacity:0}100%{transform:scale(1) translateY(0);opacity:1}}
-        .mt{padding:1rem 1.3rem;background:rgba(255,45,85,.05);border-bottom:1px solid rgba(255,45,85,.15);display:flex;justify-content:space-between;align-items:center}
-        .mt span{font-family:var(--fd);font-weight:700;font-size:.8rem;color:var(--danger);text-transform:uppercase;letter-spacing:1px}
-        .mt i{cursor:pointer;color:var(--text2);transition:color .2s}
-        .mt i:hover{color:var(--text)}
-        .mb2{padding:2rem 1.5rem;text-align:center}
-        .mi{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--danger),#ff6b35);display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem;font-size:1.3rem;color:#fff;box-shadow:0 0 30px rgba(255,45,85,.3)}
-        .mb2 h3{font-family:var(--fd);font-weight:700;margin-bottom:.4rem;font-size:1rem}
-        .mb2 p{color:var(--text2);font-size:.8rem;margin-bottom:1.2rem}
-        .mbtn{padding:.65rem 2.2rem;background:linear-gradient(135deg,var(--danger),#ff6b35);border:none;color:#fff;font-family:var(--fd);font-weight:700;font-size:.8rem;border-radius:50px;cursor:pointer;transition:all .3s;text-transform:uppercase;letter-spacing:.5px}
-        .mbtn:hover{filter:brightness(1.15);box-shadow:0 4px 20px rgba(255,45,85,.4)}
+.mbg{position:fixed;inset:0;background:rgba(5,5,7,.9);z-index:4000;display:none;align-items:center;justify-content:center}
+.mbg.open{display:flex}
+.mdl{background:var(--sf);border:1px solid rgba(224,64,64,.25);border-radius:var(--r);width:90%;max-width:340px;overflow:hidden;animation:mi .3s ease}
+@keyframes mi{from{transform:scale(.95) translateY(10px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.mt{padding:.7rem 1rem;background:rgba(224,64,64,.04);border-bottom:1px solid rgba(224,64,64,.15);display:flex;justify-content:space-between;align-items:center}
+.mt span{font-family:'Syne',sans-serif;font-weight:700;font-size:.7rem;color:var(--dg);text-transform:uppercase;letter-spacing:1px}
+.mt i{cursor:pointer;color:var(--t2)}
+.mb2{padding:1.5rem 1.2rem;text-align:center}
+.mi2{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--dg),#ff6b35);display:flex;align-items:center;justify-content:center;margin:0 auto .8rem;font-size:1rem;color:#fff;box-shadow:0 0 20px rgba(224,64,64,.2)}
+.mb2 h3{font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;margin-bottom:.2rem}
+.mb2 p{color:var(--t2);font-size:.72rem;margin-bottom:.8rem}
+.mbtn{padding:.5rem 1.8rem;background:linear-gradient(135deg,var(--dg),#ff6b35);border:none;color:#fff;font-family:'Manrope',sans-serif;font-weight:700;font-size:.7rem;border-radius:var(--r);cursor:pointer;transition:all .3s;text-transform:uppercase;letter-spacing:.5px}
+.mbtn:hover{filter:brightness(1.15);box-shadow:0 3px 12px rgba(224,64,64,.3)}
 
-        @media(max-width:900px){
-            .tb{grid-template-columns:1fr}
-            .qa{border-left:none;border-top:1px solid var(--border);padding-left:0;padding-top:.8rem;flex-direction:row;flex-wrap:wrap}
-            .hdr{flex-direction:column;text-align:center;padding:1rem}
-            .hud{width:100%;justify-content:center}
-            .sg{grid-template-columns:1fr}
-            .nst{grid-template-columns:1fr}
-        }
-        @media(max-width:600px){
-            .shell{padding:.6rem}
-            .nav{width:100%;overflow-x:auto}
-            .nb{flex:1;justify-content:center;padding:.5rem .6rem;font-size:.7rem}
-            .nc-r{flex-direction:column}
-            .rmk{font-size:1.4rem}
-            .rn{font-size:3.2rem}
-            .opt{min-width:70px;font-size:.68rem}
-            .sr{flex-direction:column}
-            .sel{min-width:100%}
-        }
-    </style>
+@media(max-width:900px){
+.tb .sr2{flex-direction:column}.sel{min-width:100%}
+.hdr{flex-direction:column;text-align:center;gap:.6rem}.hud{justify-content:center}
+.sg{grid-template-columns:1fr}.nst{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+.app{padding:0 .6rem 1.5rem}
+.nav{overflow-x:auto}.nb{flex:1;justify-content:center;padding:.5rem .4rem;font-size:.68rem}
+.cd-b{flex-direction:column}.rmk{font-size:1.2rem}.rn{font-size:2.8rem}
+.opt{min-width:60px;font-size:.6rem}
+}
+</style>
 </head>
 <body>
-    <canvas id="bgc"></canvas>
-    <div class="orbs"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
-    <div id="mspot"></div>
-    <div class="geos" id="geos"></div>
+<canvas id="bgc"></canvas>
+<div class="dotgrid" id="dotgrid"></div>
+<div class="orbs"><div class="orb"></div><div class="orb"></div></div>
 
-    <div class="tst" id="toast">
-        <div class="tsti"><i class="fas fa-bolt"></i></div>
-        <div><div class="tstt">System</div><div class="tstm" id="tmsg">OK</div></div>
-    </div>
+<div class="ticker"><div class="ticker-label"><i class="fas fa-satellite"></i> NEXT</div><div class="ticker-track" id="ticker-track"></div></div>
 
-    <div class="vp" id="vp">
-        <div class="vph"><span>Volume</span><i class="fas fa-times" onclick="tgVol()"></i></div>
-        <input type="range" class="vps" id="vslider" min="0" max="100" value="30" oninput="uVol()">
-        <div class="vpv" id="vval">30%</div>
-    </div>
+<div class="tst" id="toast"><i class="fas fa-bolt tsti"></i><div><div class="tstt">System</div><div class="tstm" id="tmsg">OK</div></div></div>
 
-    <div class="rov" id="rov">
-        <div id="fwbox"></div>
-        <div class="rcard">
-            <div class="rcn tl"></div><div class="rcn tr"></div><div class="rcn bl"></div><div class="rcn br"></div>
-            <div class="rg">Gong Xi Fa Cai</div>
-            <div class="rs" id="rstat">Waiting...</div>
-            <div class="rml">Data Packet</div>
-            <div class="rmk" id="rmkt">MARKET</div>
-            <div class="rlw" id="rlw"><div class="rlb" id="rlb"></div></div>
-            <div class="rn ld" id="rnum">0000</div>
-            <div class="rtm">Result: <span id="rtm">00:00</span> WIB</div>
-            <div class="rtt"><div class="rtb" id="rtb"></div></div>
-            <button class="rcl" onclick="clR()">Close Transmission</button>
-        </div>
-    </div>
+<div class="vp" id="vp">
+<div class="vph"><span>Volume</span><i class="fas fa-times" onclick="tgVol()"></i></div>
+<input type="range" class="vps" id="vsl" min="0" max="100" value="30" oninput="uVol()">
+<div class="vpv" id="vvl">30%</div>
+</div>
 
-    <div class="mbg" id="mdl">
-        <div class="mdl">
-            <div class="mt"><span>Alert</span><i class="fas fa-times" onclick="clM()"></i></div>
-            <div class="mb2">
-                <div class="mi"><i class="fas fa-satellite-dish"></i></div>
-                <h3>Signal Detected</h3>
-                <p id="mmsg">Test alarm.</p>
-                <button class="mbtn" onclick="clM()">Acknowledge</button>
-            </div>
-        </div>
-    </div>
+<div class="rov" id="rov">
+<div id="fwbox"></div>
+<div class="rc">
+<div class="rco tl"></div><div class="rco tr"></div><div class="rco bl"></div><div class="rco br"></div>
+<div class="rg">Gong Xi Fa Cai</div>
+<div class="rs" id="rstat">Waiting...</div>
+<div class="rml">Data Packet</div>
+<div class="rmk" id="rmkt">MARKET</div>
+<div class="rlw" id="rlw"><div class="rlb" id="rlb"></div></div>
+<div class="rn ld" id="rnum">0000</div>
+<div class="rtm">Result: <span id="rtm">00:00</span> WIB</div>
+<div class="rtt"><div class="rtb" id="rtb"></div></div>
+<button class="rcl" onclick="clR()">Close</button>
+</div>
+</div>
 
-    <div class="shell">
-        <header class="hdr">
-            <div class="brand">
-                <div class="logo">N</div>
-                <div class="brand-t">
-                    <h1>NEXUS <span>GRID</span></h1>
-                    <div class="brand-s">Lottery Intelligence System</div>
-                </div>
-            </div>
-            <div class="hud">
-                <div class="hud-i"><i class="far fa-clock" style="color:var(--text3)"></i><span class="clk" id="clk">00:00:00</span></div>
-                <div class="hud-i" style="min-width:190px"><div class="sdot" id="sdot"></div><div class="stxt" id="stxt">System Standby</div></div>
-            </div>
-        </header>
+<div class="mbg" id="mdl">
+<div class="mdl">
+<div class="mt"><span>Alert</span><i class="fas fa-times" onclick="clM()"></i></div>
+<div class="mb2">
+<div class="mi2"><i class="fas fa-satellite-dish"></i></div>
+<h3>Signal</h3>
+<p id="mmsg">Test alarm.</p>
+<button class="mbtn" onclick="clM()">OK</button>
+</div>
+</div>
+</div>
 
-        <nav class="nav">
-            <button class="nb on" onclick="swTab('sched',this)"><i class="fas fa-th-large"></i> Data Grid <span class="nc2" id="nca">0</span></button>
-            <button class="nb" onclick="swTab('stats',this)"><i class="fas fa-chart-pie"></i> Analytics</button>
-            <button class="nb" onclick="swTab('sets',this)"><i class="fas fa-sliders-h"></i> Settings</button>
-        </nav>
+<div class="app">
+<header class="hdr">
+<div class="brand">
+<div class="logo">O</div>
+<div class="btxt"><h1>OBSIDIAN</h1></div>
+</div>
+<div class="hud">
+<div class="hi"><i class="far fa-clock" style="color:var(--t3)"></i><span class="hclk" id="clk">00:00:00</span></div>
+<div class="hi" style="min-width:170px"><div class="sdot" id="sdot"></div><div class="stxt" id="stxt">Standby</div></div>
+</div>
+</header>
 
-        <div id="sched-tab">
-            <div class="ls" id="lsec">
-                <div class="ll"><div class="lb"><div class="ld"></div>Live</div><span class="lsub" id="lcnt">0 active</span></div>
-                <div class="ng" id="lgrid"></div>
-            </div>
-            <div class="tb">
-                <div>
-                    <div class="sr">
-                        <div class="iw"><i class="fas fa-search"></i><input type="text" class="inp" id="sinp" placeholder="Search markets..."></div>
-                        <select class="sel" id="msel" onchange="apMF()"><option value="all">All Markets</option></select>
-                    </div>
-                    <div class="chips">
-                        <div class="chip on" onclick="sF('all',this)"><i class="fas fa-layer-group"></i>All<span class="cc" id="fa">0</span></div>
-                        <div class="chip" onclick="sF('active',this)"><i class="fas fa-bolt"></i>Live<span class="cc" id="fl">0</span></div>
-                        <div class="chip" onclick="sF('upcoming',this)"><i class="far fa-clock"></i>Pending<span class="cc" id="fp">0</span></div>
-                        <div class="chip" onclick="sF('passed',this)"><i class="fas fa-check"></i>Archive<span class="cc" id="fr">0</span></div>
-                    </div>
-                </div>
-                <div class="qa">
-                    <button class="ab on" id="bsnd" onclick="tgSnd()"><i class="fas fa-volume-up"></i>Audio</button>
-                    <button class="ab on" id="balr" onclick="tgAlr()"><i class="fas fa-bell"></i>Alerts</button>
-                    <button class="ab" onclick="tgVol()"><i class="fas fa-sliders-h"></i>Vol</button>
-                    <button class="ab" onclick="tstA()"><i class="fas fa-play"></i>Test</button>
-                </div>
-            </div>
-            <div class="ng" id="mgr"></div>
-        </div>
+<nav class="nav">
+<button class="nb on" onclick="swT('sched',this)"><i class="fas fa-th-large"></i> Grid <span class="nc2" id="nca">0</span></button>
+<button class="nb" onclick="swT('stats',this)"><i class="fas fa-chart-pie"></i> Analytics</button>
+<button class="nb" onclick="swT('sets',this)"><i class="fas fa-sliders-h"></i> Settings</button>
+</nav>
 
-        <div id="stats-tab" style="display:none">
-            <div class="sg">
-                <div class="sc"><div class="sci"><i class="fas fa-database"></i></div><div class="scl">Total Nodes</div><div class="scv" id="xt">0</div></div>
-                <div class="sc"><div class="sci"><i class="fas fa-broadcast-tower"></i></div><div class="scl">Live Streams</div><div class="scv" id="xl">0</div></div>
-                <div class="sc"><div class="sci"><i class="fas fa-hourglass-half"></i></div><div class="scl">Pending</div><div class="scv" id="xp">0</div></div>
-            </div>
-            <div class="dc"><div class="dct"><i class="fas fa-chart-bar"></i>Regional Distribution</div><div id="dbars"></div></div>
-        </div>
+<div id="sched-tab">
+<div class="lvsec" id="lvsec">
+<div class="lvlab"><div class="lvbadge"><div class="lvdot"></div>Live</div><span class="lvsub" id="lcnt">0 active</span></div>
+<div class="cg" id="lvgrid"></div>
+</div>
+<div class="tb">
+<div class="sr2">
+<div class="iw"><i class="fas fa-search"></i><input type="text" class="inp" id="sinp" placeholder="Search..."></div>
+<select class="sel" id="msel" onchange="apMF()"><option value="all">All Markets</option></select>
+</div>
+<div class="chips">
+<div class="chip on" onclick="sF('all',this)">All<span class="cc" id="fa">0</span></div>
+<div class="chip" onclick="sF('active',this)">Live<span class="cc" id="fl">0</span></div>
+<div class="chip" onclick="sF('upcoming',this)">Pending<span class="cc" id="fp">0</span></div>
+<div class="chip" onclick="sF('passed',this)">Archive<span class="cc" id="fr">0</span></div>
+<div class="sep"></div>
+<button class="ab on" id="bsnd" onclick="tgSn()"><i class="fas fa-volume-up"></i>Audio</button>
+<button class="ab on" id="balr" onclick="tgAl()"><i class="fas fa-bell"></i>Alerts</button>
+<button class="ab" onclick="tgVol()"><i class="fas fa-sliders-h"></i>Vol</button>
+<button class="ab" onclick="tstA()"><i class="fas fa-play"></i>Test</button>
+</div>
+</div>
+<div class="cg" id="mgr"></div>
+</div>
 
-        <div id="sets-tab" style="display:none">
-            <div class="nst">
-                <div class="nsc"><div class="nsch"><i class="fas fa-palette"></i>Warna Sistem</div><div class="nsb"><div class="bg">
-                    <button class="opt sel" onclick="sTh('#00e8c6',this)"><span class="cdot" style="background:#00e8c6"></span>Teal</button>
-                    <button class="opt" onclick="sTh('#ff2d55',this)"><span class="cdot" style="background:#ff2d55"></span>Rose</button>
-                    <button class="opt" onclick="sTh('#f5c542',this)"><span class="cdot" style="background:#f5c542"></span>Gold</button>
-                    <button class="opt" onclick="sTh('#a78bfa',this)"><span class="cdot" style="background:#a78bfa"></span>Violet</button>
-                    <button class="opt" onclick="sTh('#ffffff',this)"><span class="cdot" style="background:#fff"></span>White</button>
-                </div></div></div>
-                <div class="nsc"><div class="nsch"><i class="fas fa-image"></i>Latar Belakang</div><div class="nsb"><div class="bg">
-                    <button class="opt sel" onclick="sWp('default',this)"><i class="fas fa-atom"></i>Nexus</button>
-                    <button class="opt" onclick="sWp('void',this)"><i class="fas fa-moon"></i>Void</button>
-                    <button class="opt" onclick="sWp('ember',this)"><i class="fas fa-fire"></i>Ember</button>
-                    <button class="opt" onclick="sWp('royal',this)"><i class="fas fa-crown"></i>Royal</button>
-                </div><label class="ul" for="cwp"><i class="fas fa-cloud-upload-alt"></i>Upload Gambar</label><input type="file" id="cwp" accept="image/*" style="display:none" onchange="hUp(this)"></div></div>
-                <div class="nsc"><div class="nsch"><i class="fas fa-th-list"></i>Tata Letak</div><div class="nsb"><div class="bg">
-                    <button class="opt sel" onclick="sLy('grid',this)"><i class="fas fa-th-large"></i>Grid</button>
-                    <button class="opt" onclick="sLy('list',this)"><i class="fas fa-list"></i>List</button>
-                    <button class="opt" onclick="tgCmp(this)"><i class="fas fa-compress-alt"></i>Compact</button>
-                </div></div></div>
-                <div class="nsc"><div class="nsch"><i class="fas fa-magic"></i>Efek Visual</div><div class="nsb">
-                    <div class="tr"><div class="trl"><i class="fas fa-atom"></i>Particle Network</div><div class="tg on" id="tp" onclick="tEf('p',this)"></div></div>
-                    <div class="tr"><div class="trl"><i class="fas fa-shapes"></i>Floating Geometry</div><div class="tg on" id="tg2" onclick="tEf('g',this)"></div></div>
-                    <div class="tr"><div class="trl"><i class="fas fa-sun"></i>Ambient Orbs</div><div class="tg on" id="to" onclick="tEf('o',this)"></div></div>
-                    <div class="tr"><div class="trl"><i class="fas fa-mouse-pointer"></i>Mouse Spotlight</div><div class="tg on" id="ts" onclick="tEf('s',this)"></div></div>
-                    <button class="opt dng" onclick="rVis()" style="width:100%;margin-top:.5rem"><i class="fas fa-undo"></i>Reset Semua</button>
-                </div></div>
-                <div class="nsc fw"><div class="nsch"><i class="fas fa-terminal"></i>Sistem</div><div class="nsb"><div class="bg">
-                    <button class="opt dng" onclick="rData()"><i class="fas fa-sync"></i>Refresh</button>
-                    <button class="opt dng" onclick="clCch()"><i class="fas fa-trash-alt"></i>Cache</button>
-                    <button class="opt dng" onclick="window.print()"><i class="fas fa-print"></i>Print</button>
-                </div></div></div>
-            </div>
-        </div>
-    </div>
+<div id="stats-tab" style="display:none">
+<div class="sg">
+<div class="sc"><div class="sci"><i class="fas fa-database"></i></div><div class="scl">Total Nodes</div><div class="scv" id="xt">0</div></div>
+<div class="sc"><div class="sci"><i class="fas fa-broadcast-tower"></i></div><div class="scl">Live</div><div class="scv" id="xl">0</div></div>
+<div class="sc"><div class="sci"><i class="fas fa-hourglass-half"></i></div><div class="scl">Pending</div><div class="scv" id="xp">0</div></div>
+</div>
+<div class="dc"><div class="dct"><i class="fas fa-chart-bar"></i>Distribution</div><div id="dbars"></div></div>
+</div>
 
-    <script>
-    const D=[
-        {pasaran:"TOTO MACAU PAGI",jamBetclosed:"00:00",jamResult:"00:15",linkSitus:"http://totomacau-pools.us/",linkStreaming:"https://kick.com/live-ttm4d",category:"International"},
-        {pasaran:"KENTUCKY MIDDAY",jamBetclosed:"00:05",jamResult:"00:20",linkSitus:"https://www.kylottery.com/apps/draw_games/pick4/",linkStreaming:"https://www.youtube.com/@NewYorkLottery",category:"USA"},
-        {pasaran:"FLORIDA MIDDAY",jamBetclosed:"00:20",jamResult:"00:30",linkSitus:"https://floridalottery.com/games/draw-games/pick-4",linkStreaming:"https://www.youtube.com/user/floridalottery",category:"USA"},
-        {pasaran:"HUAHIN 01",jamBetclosed:"00:45",jamResult:"01:00",linkSitus:"https://huahinlottery.com/",linkStreaming:"https://www.youtube.com/@huahinlottery5727",category:"Thailand"},
-        {pasaran:"BANGKOK 0130",jamBetclosed:"01:15",jamResult:"01:30",linkSitus:"https://bangkokpoolstoday.com/",linkStreaming:"",category:"Thailand"},
-        {pasaran:"NEW YORK MIDDAY",jamBetclosed:"01:15",jamResult:"01:25",linkSitus:"https://nylottery.ny.gov/draw-game?game=win4",linkStreaming:"https://www.youtube.com/user/NewYorkLottery",category:"USA"},
-        {pasaran:"CAROLINA DAY",jamBetclosed:"01:45",jamResult:"02:00",linkSitus:"https://www.wral.com/entertainment/lottery/",linkStreaming:"",category:"USA"},
-        {pasaran:"BRUNEI 02",jamBetclosed:"02:30",jamResult:"02:45",linkSitus:"https://bruneipools.com/live-draw.html",linkStreaming:"",category:"Brunei"},
-        {pasaran:"OREGON 03",jamBetclosed:"02:50",jamResult:"03:00",linkSitus:"https://www.oregonlottery.org/pick-4/winning-numbers/",linkStreaming:"",category:"USA"},
-        {pasaran:"OREGON 06",jamBetclosed:"05:50",jamResult:"06:00",linkSitus:"https://www.oregonlottery.org/pick-4/winning-numbers/",linkStreaming:"",category:"USA"},
-        {pasaran:"CALIFORNIA",jamBetclosed:"08:25",jamResult:"08:30",linkSitus:"http://www.calottery.com/play/draw-games/daily-4",linkStreaming:"",category:"USA"},
-        {pasaran:"FLORIDA EVENING",jamBetclosed:"08:35",jamResult:"08:45",linkSitus:"https://floridalottery.com/games/draw-games/pick-4",linkStreaming:"https://www.youtube.com/user/floridalottery",category:"USA"},
-        {pasaran:"OREGON 09",jamBetclosed:"08:50",jamResult:"09:00",linkSitus:"https://www.oregonlottery.org/pick-4/winning-numbers/",linkStreaming:"",category:"USA"},
-        {pasaran:"BANGKOK 0930",jamBetclosed:"09:15",jamResult:"09:30",linkSitus:"https://bangkokpoolstoday.com/",linkStreaming:"",category:"Thailand"},
-        {pasaran:"NEW YORK EVENING",jamBetclosed:"09:25",jamResult:"09:35",linkSitus:"https://nylottery.ny.gov/draw-game?game=win4",linkStreaming:"https://www.youtube.com/user/NewYorkLottery",category:"USA"},
-        {pasaran:"KENTUCKY EVENING",jamBetclosed:"09:45",jamResult:"10:00",linkSitus:"https://www.kylottery.com/apps/draw_games/pick4/",linkStreaming:"",category:"USA"},
-        {pasaran:"CAROLINA EVENING",jamBetclosed:"10:17",jamResult:"10:22",linkSitus:"http://www.wral.com/news/video/1075494/",linkStreaming:"",category:"USA"},
-        {pasaran:"TOTO CAMBODIA",jamBetclosed:"10:45",jamResult:"11:00",linkSitus:"https://totocambodialive.com/",linkStreaming:"https://kick.com/totocambodia",category:"Cambodia"},
-        {pasaran:"CHELSEA 11",jamBetclosed:"11:00",jamResult:"11:15",linkSitus:"https://chelseapools.co.uk/",linkStreaming:"",category:"UK"},
-        {pasaran:"OREGON 12",jamBetclosed:"11:50",jamResult:"12:00",linkSitus:"https://www.oregonlottery.org/pick-4/winning-numbers/",linkStreaming:"",category:"USA"},
-        {pasaran:"POIPET 12",jamBetclosed:"12:15",jamResult:"12:30",linkSitus:"https://poipetlottery.com/result",linkStreaming:"https://dlive.com/PoipetPools",category:"Cambodia"},
-        {pasaran:"BULLSEYE",jamBetclosed:"12:00",jamResult:"12:15",linkSitus:"https://mylotto.co.nz/results/bullseye",linkStreaming:"",category:"New Zealand"},
-        {pasaran:"TOTO MACAU SIANG",jamBetclosed:"13:00",jamResult:"13:15",linkSitus:"http://totomacau-pools.us/",linkStreaming:"https://kick.com/live-ttm4d",category:"International"},
-        {pasaran:"SYDNEY",jamBetclosed:"13:49",jamResult:"14:05",linkSitus:"https://sydneylottobaru.site/",linkStreaming:"https://kick.com/sydney-lotto-official",category:"Australia"},
-        {pasaran:"JAKARTA 1400",jamBetclosed:"13:55",jamResult:"14:10",linkSitus:"https://jakartapool.com/",linkStreaming:"https://kick.com/studio-live-game",category:"Indonesia"},
-        {pasaran:"BRUNEI 14",jamBetclosed:"14:30",jamResult:"14:45",linkSitus:"https://bruneipools.com/",linkStreaming:"",category:"Brunei"},
-        {pasaran:"CHELSEA 15",jamBetclosed:"15:00",jamResult:"15:15",linkSitus:"https://chelseapools.co.uk/",linkStreaming:"",category:"UK"},
-        {pasaran:"TOTOMACAU 5D SORE",jamBetclosed:"15:15",jamResult:"15:30",linkSitus:"http://totomacau-pools.us/",linkStreaming:"https://kick.com/studio-live-game",category:"International"},
-        {pasaran:"POIPET 15",jamBetclosed:"15:15",jamResult:"15:30",linkSitus:"https://poipetlottery.com/",linkStreaming:"https://dlive.com/PoipetPools",category:"Cambodia"},
-        {pasaran:"TOTOMALI 1530",jamBetclosed:"15:15",jamResult:"15:30",linkSitus:"https://totomali.com/",linkStreaming:"https://www.youtube.com/@TotoMaliLive",category:"International"},
-        {pasaran:"TOTO MACAU SORE",jamBetclosed:"16:00",jamResult:"16:15",linkSitus:"http://totomacau-pools.us/",linkStreaming:"https://kick.com/live-ttm4d",category:"International"},
-        {pasaran:"HUAHIN 16",jamBetclosed:"16:15",jamResult:"16:30",linkSitus:"https://huahinlottery.com/",linkStreaming:"https://www.youtube.com/@huahinlottery5727",category:"Thailand"},
-        {pasaran:"KING KONG4D SORE",jamBetclosed:"17:00",jamResult:"17:15",linkSitus:"https://kingkongpools.id/",linkStreaming:"https://kick.com/king-kong-pools",category:"Indonesia"},
-        {pasaran:"SINGAPORE",jamBetclosed:"17:30",jamResult:"17:45",linkSitus:"https://online.singaporepools.com/en/lottery",linkStreaming:"",category:"Singapore"},
-        {pasaran:"MAGNUM 4D",jamBetclosed:"18:10",jamResult:"18:40",linkSitus:"https://www.magnum4d.my/",linkStreaming:"",category:"Malaysia"},
-        {pasaran:"TOTO MACAU MALAM I",jamBetclosed:"19:00",jamResult:"19:15",linkSitus:"http://totomacau-pools.us/",linkStreaming:"https://kick.com/live-ttm4d",category:"International"},
-        {pasaran:"CHELSEA 19",jamBetclosed:"19:00",jamResult:"19:15",linkSitus:"https://chelseapools.co.uk/",linkStreaming:"",category:"UK"},
-        {pasaran:"POIPET 19",jamBetclosed:"19:30",jamResult:"19:45",linkSitus:"https://poipetlottery.com/",linkStreaming:"https://dlive.com/PoipetPools",category:"Cambodia"},
-        {pasaran:"PCSO",jamBetclosed:"19:50",jamResult:"20:10",linkSitus:"https://www.pcso.gov.ph/",linkStreaming:"",category:"Philippines"},
-        {pasaran:"TOTOMALI 2030",jamBetclosed:"20:15",jamResult:"20:30",linkSitus:"https://totomali.com/",linkStreaming:"https://www.youtube.com/@TotoMaliLive",category:"International"},
-        {pasaran:"HUAHIN 21",jamBetclosed:"20:45",jamResult:"21:00",linkSitus:"https://huahinlottery.com/",linkStreaming:"https://www.youtube.com/@huahinlottery5727",category:"Thailand"},
-        {pasaran:"CHELSEA 21",jamBetclosed:"21:00",jamResult:"21:15",linkSitus:"https://chelseapools.co.uk/",linkStreaming:"",category:"UK"},
-        {pasaran:"TOTO MACAU 5D MALAM",jamBetclosed:"21:15",jamResult:"21:30",linkSitus:"http://totomacau-pools.us/",linkStreaming:"https://kick.com/studio-live-game",category:"International"},
-        {pasaran:"NEVADA",jamBetclosed:"21:15",jamResult:"21:30",linkSitus:"https://www.nevadalottery.us/",linkStreaming:"",category:"USA"},
-        {pasaran:"BRUNEI 21",jamBetclosed:"21:30",jamResult:"21:45",linkSitus:"https://bruneipools.com/",linkStreaming:"",category:"Brunei"},
-        {pasaran:"TOTO MACAU MALAM II",jamBetclosed:"22:00",jamResult:"22:15",linkSitus:"http://totomacau-pools.us/",linkStreaming:"https://kick.com/live-ttm4d",category:"International"},
-        {pasaran:"POIPET 22",jamBetclosed:"22:30",jamResult:"22:45",linkSitus:"https://poipetlottery.com/",linkStreaming:"https://dlive.com/PoipetPools",category:"Cambodia"},
-        {pasaran:"HONGKONG",jamBetclosed:"22:59",jamResult:"23:15",linkSitus:"https://lottohongkong.fun/",linkStreaming:"https://kick.com/hongkong-lotto-official",category:"Hong Kong"},
-        {pasaran:"TOTO MACAU MALAM III",jamBetclosed:"23:00",jamResult:"23:15",linkSitus:"http://totomacau-pools.us/",linkStreaming:"https://kick.com/live-ttm4d",category:"International"},
-        {pasaran:"TOTOMALI 2330",jamBetclosed:"23:15",jamResult:"23:30",linkSitus:"https://totomali.com/",linkStreaming:"https://www.youtube.com/@TotoMaliLive",category:"International"},
-        {pasaran:"JAKARTA 2330",jamBetclosed:"23:25",jamResult:"23:40",linkSitus:"https://jakartapool.com/",linkStreaming:"https://kick.com/studio-live-game",category:"Indonesia"},
-        {pasaran:"KING KONG4D MALAM",jamBetclosed:"23:30",jamResult:"23:45",linkSitus:"https://kingkongpools.id/",linkStreaming:"https://kick.com/king-kong-pools",category:"Indonesia"}
-    ];
-    for(let i=0;i<24;i++){const h=i.toString().padStart(2,'0');D.push({pasaran:`HOKIDRAW ${h}:00`,jamBetclosed:`${h}:00`,jamResult:`${h}:00`,linkSitus:"https://hokidraw.com/",linkStreaming:"https://dlive.tv/u/HOKIDRAW",category:"Inggris"})}
+<div id="sets-tab" style="display:none">
+<div class="nst">
+<div class="nsc"><div class="nsch"><i class="fas fa-palette"></i>Warna</div><div class="nsb"><div class="bg">
+<button class="opt sel" onclick="sTh('#d4943a',this)"><span class="cdot" style="background:#d4943a"></span>Amber</button>
+<button class="opt" onclick="sTh('#e04040',this)"><span class="cdot" style="background:#e04040"></span>Ruby</button>
+<button class="opt" onclick="sTh('#3ad47a',this)"><span class="cdot" style="background:#3ad47a"></span>Emerald</button>
+<button class="opt" onclick="sTh('#a78bfa',this)"><span class="cdot" style="background:#a78bfa"></span>Violet</button>
+<button class="opt" onclick="sTh('#e8e8ef',this)"><span class="cdot" style="background:#e8e8ef"></span>Silver</button>
+</div></div></div>
+<div class="nsc"><div class="nsch"><i class="fas fa-image"></i>Background</div><div class="nsb"><div class="bg">
+<button class="opt sel" onclick="sWp('default',this)"><i class="fas fa-atom"></i>Default</button>
+<button class="opt" onclick="sWp('void',this)"><i class="fas fa-moon"></i>Void</button>
+<button class="opt" onclick="sWp('ember',this)"><i class="fas fa-fire"></i>Ember</button>
+<button class="opt" onclick="sWp('ocean',this)"><i class="fas fa-water"></i>Ocean</button>
+</div><label class="ul" for="cwp"><i class="fas fa-cloud-upload-alt"></i>Upload</label><input type="file" id="cwp" accept="image/*" style="display:none" onchange="hUp(this)"></div></div>
+<div class="nsc"><div class="nsch"><i class="fas fa-th-list"></i>Layout</div><div class="nsb"><div class="bg">
+<button class="opt sel" onclick="sLy('grid',this)"><i class="fas fa-th-large"></i>Grid</button>
+<button class="opt" onclick="sLy('list',this)"><i class="fas fa-list"></i>List</button>
+<button class="opt" onclick="tgCp(this)"><i class="fas fa-compress-alt"></i>Compact</button>
+</div></div></div>
+<div class="nsc"><div class="nsch"><i class="fas fa-wand-magic-sparkles"></i>Effects</div><div class="nsb">
+<div class="tr"><div class="trl"><i class="fas fa-atom"></i>Particles</div><div class="tg on" id="tp" onclick="tEf('p',this)"></div></div>
+<div class="tr"><div class="trl"><i class="fas fa-border-all"></i>Dot Grid</div><div class="tg on" id="td" onclick="tEf('d',this)"></div></div>
+<div class="tr"><div class="trl"><i class="fas fa-sun"></i>Orbs</div><div class="tg on" id="to" onclick="tEf('o',this)"></div></div>
+<div class="tr"><div class="trl"><i class="fas fa-lightbulb"></i>Card Light</div><div class="tg on" id="tlight" onclick="tEf('l',this)"></div></div>
+<button class="opt dng" onclick="rVis()" style="width:100%;margin-top:.4rem"><i class="fas fa-undo"></i>Reset All</button>
+</div></div>
+<div class="nsc fw"><div class="nsch"><i class="fas fa-terminal"></i>System</div><div class="nsb"><div class="bg">
+<button class="opt dng" onclick="rDt()"><i class="fas fa-sync"></i>Refresh</button>
+<button class="opt dng" onclick="clCch()"><i class="fas fa-trash-alt"></i>Cache</button>
+<button class="opt dng" onclick="window.print()"><i class="fas fa-print"></i>Print</button>
+</div></div></div>
+</div>
+</div>
+</div>
 
-    let sndOn=true,alrOn=true,cFil='all',vol=.7,actx=null,trig=new Set(),aInt=[],rTmr;
-    function iA(){if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();return actx}
-    function pTone(){const c=iA();if(c.state==='suspended')c.resume();const t=c.currentTime;[1200,800,2000].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.type=['square','sawtooth','triangle'][i];o.frequency.setValueAtTime(f,t+i*.15);g.gain.setValueAtTime(.4*vol,t+i*.15);g.gain.exponentialRampToValueAtTime(.001,t+i*.15+.12);o.connect(g);g.connect(c.destination);o.start(t+i*.15);o.stop(t+i*.15+.12)})}
-    function stA(){if(!sndOn||!alrOn)return;trig.add('_a');const id=setInterval(()=>{if(!trig.has('_a')){clearInterval(id);return}pTone()},1000);aInt.push(id)}
-    function spA(){trig.delete('_a');aInt.forEach(i=>clearInterval(i));aInt=[]}
-    function gS(s){const n=new Date(),c=n.getHours()*60+n.getMinutes(),[bh,bm]=s.jamBetclosed.split(':').map(Number),[rh,rm]=s.jamResult.split(':').map(Number),bc=bh*60+bm,r=rh*60+rm;if(c>=r)return'passed';if(c>=bc&&c<r)return'active';return'upcoming'}
-    function sl(ms){return new Promise(r=>setTimeout(r,ms))}
-    function uClk(){document.getElementById('clk').innerText=new Date().toLocaleTimeString('en-GB')}
-    setInterval(uClk,1000);
+<script>
+const D=[
+{pasaran:"TOTO MACAU PAGI",jamBetclosed:"00:00",jamResult:"00:15",linkSitus:"http://totomacau-pools.us/",linkStreaming:"https://kick.com/live-ttm4d",category:"International"},
+{pasaran:"KENTUCKY MIDDAY",jamBetclosed:"00:05",jamResult:"00:20",linkSitus:"https://www.kylottery.com/apps/draw_games/pick4/",linkStreaming:"https://www.youtube.com/@NewYorkLottery",category:"USA"},
+{pasaran:"FLORIDA MIDDAY",jamBetclosed:"00:20",jamResult:"00:30",linkSitus:"https://floridalottery.com/games/draw-games/pick-4",linkStreaming:"https://www.youtube.com/user/floridalottery",category:"USA"},
+{pasaran:"HUAHIN 01",jamBetclosed:"00:45",jamResult:"01:00",linkSitus:"https://huahinlottery.com/",linkStreaming:"https://www.youtube.com/@huahinlottery5727",category:"Thailand"},
+{pasaran:"BANGKOK 0130",jamBetclosed:"01:15",jamResult:"01:30",linkSitus:"https://bangkokpoolstoday.com/",linkStreaming:"",category:"Thailand"},
+{pasaran:"NEW YORK MIDDAY",jamBetclosed:"01:15",jamResult:"01:25",linkSitus:"https://nylottery.ny.gov/draw-game?game=win4",linkStreaming:"https://www.youtube.com/user/NewYorkLottery",category:"USA"},
+{pasaran:"CAROLINA DAY",jamBetclosed:"01:45",jamResult:"02:00",linkSitus:"https://www.wral.com/entertainment/lottery/",linkStreaming:"",category:"USA"},
+{pasaran:"BRUNEI 02",jamBetclosed:"02:30",jamResult:"02:45",linkSitus:"https://bruneipools.com/live-draw.html",linkStreaming:"",category:"Brunei"},
+{pasaran:"OREGON 03",jamBetclosed:"02:50",jamResult:"03:00",linkSitus:"https://www.oregonlottery.org/pick-4/winning-numbers/",linkStreaming:"",category:"USA"},
+{pasaran:"OREGON 06",jamBetclosed:"05:50",jamResult:"06:00",linkSitus:"https://www.oregonlottery.org/pick-4/winning-numbers/",linkStreaming:"",category:"USA"},
+{pasaran:"CALIFORNIA",jamBetclosed:"08:25",jamResult:"08:30",linkSitus:"http://www.calottery.com/play/draw-games/daily-4",linkStreaming:"",category:"USA"},
+{pasaran:"FLORIDA EVENING",jamBetclosed:"08:35",jamResult:"08:45",linkSitus:"https://floridalottery.com/games/draw-games/pick-4",linkStreaming:"https://www.youtube.com/user/floridalottery",category:"USA"},
+{pasaran:"OREGON 09",jamBetclosed:"08:50",jamResult:"09:00",linkSitus:"https://www.oregonlottery.org/pick-4/winning-numbers/",linkStreaming:"",category:"USA"},
+{pasaran:"BANGKOK 0930",jamBetclosed:"09:15",jamResult:"09:30",linkSitus:"https://bangkokpoolstoday.com/",linkStreaming:"",category:"Thailand"},
+{pasaran:"NEW YORK EVENING",jamBetclosed:"09:25",jamResult:"09:35",linkSitus:"https://nylottery.ny.gov/draw-game?game=win4",linkStreaming:"https://www.youtube.com/user/NewYorkLottery",category:"USA"},
+{pasaran:"KENTUCKY EVENING",jamBetclosed:"09:45",jamResult:"10:00",linkSitus:"https://www.kylottery.com/apps/draw_games/pick4/",linkStreaming:"",category:"USA"},
+{pasaran:"CAROLINA EVENING",jamBetclosed:"10:17",jamResult:"10:22",linkSitus:"http://www.wral.com/news/video/1075494/",linkStreaming:"",category:"USA"},
+{pasaran:"TOTO CAMBODIA",jamBetclosed:"10:45",jamResult:"11:00",linkSitus:"https://totocambodialive.com/",linkStreaming:"https://kick.com/totocambodia",category:"Cambodia"},
+{pasaran:"CHELSEA 11",jamBetclosed:"11:00",jamResult:"11:15",linkSitus:"https://chelseapools.co.uk/",linkStreaming:"",category:"UK"},
+{pasaran:"OREGON 12",jamBetclosed:"11:50",jamResult:"12:00",linkSitus:"https://www.oregonlottery.org/pick-4/winning-numbers/",linkStreaming:"",category:"USA"},
+{pasaran:"POIPET 12",jamBetclosed:"12:15",jamResult:"12:30",linkSitus:"https://poipetlottery.com/result",linkStreaming:"https://dlive.com/PoipetPools",category:"Cambodia"},
+{pasaran:"BULLSEYE",jamBetclosed:"12:00",jamResult:"12:15",linkSitus:"https://mylotto.co.nz/results/bullseye",linkStreaming:"",category:"New Zealand"},
+{pasaran:"TOTO MACAU SIANG",jamBetclosed:"13:00",jamResult:"13:15",linkSitus:"http://totomacau-pools.us/",linkStreaming:"https://kick.com/live-ttm4d",category:"International"},
+{pasaran:"SYDNEY",jamBetclosed:"13:49",jamResult:"14:05",linkSitus:"https://sydneylottobaru.site/",linkStreaming:"https://kick.com/sydney-lotto-official",category:"Australia"},
+{pasaran:"JAKARTA 1400",jamBetclosed:"13:55",jamResult:"14:10",linkSitus:"https://jakartapool.com/",linkStreaming:"https://kick.com/studio-live-game",category:"Indonesia"},
+{pasaran:"BRUNEI 14",jamBetclosed:"14:30",jamResult:"14:45",linkSitus:"https://bruneipools.com/",linkStreaming:"",category:"Brunei"},
+{pasaran:"CHELSEA 15",jamBetclosed:"15:00",jamResult:"15:15",linkSitus:"https://chelseapools.co.uk/",linkStreaming:"",category:"UK"},
+{pasaran:"TOTOMACAU 5D SORE",jamBetclosed:"15:15",jamResult:"15:30",linkSitus:"http://totomacau-pools.us/",linkStreaming:"https://kick.com/studio-live-game",category:"International"},
+{pasaran:"POIPET 15",jamBetclosed:"15:15",jamResult:"15:30",linkSitus:"https://poipetlottery.com/",linkStreaming:"https://dlive.com/PoipetPools",category:"Cambodia"},
+{pasaran:"TOTOMALI 1530",jamBetclosed:"15:15",jamResult:"15:30",linkSitus:"https://totomali.com/",linkStreaming:"https://www.youtube.com/@TotoMaliLive",category:"International"},
+{pasaran:"TOTO MACAU SORE",jamBetclosed:"16:00",jamResult:"16:15",linkSitus:"http://totomacau-pools.us/",linkStreaming:"https://kick.com/live-ttm4d",category:"International"},
+{pasaran:"HUAHIN 16",jamBetclosed:"16:15",jamResult:"16:30",linkSitus:"https://huahinlottery.com/",linkStreaming:"https://www.youtube.com/@huahinlottery5727",category:"Thailand"},
+{pasaran:"KING KONG4D SORE",jamBetclosed:"17:00",jamResult:"17:15",linkSitus:"https://kingkongpools.id/",linkStreaming:"https://kick.com/king-kong-pools",category:"Indonesia"},
+{pasaran:"SINGAPORE",jamBetclosed:"17:30",jamResult:"17:45",linkSitus:"https://online.singaporepools.com/en/lottery",linkStreaming:"",category:"Singapore"},
+{pasaran:"MAGNUM 4D",jamBetclosed:"18:10",jamResult:"18:40",linkSitus:"https://www.magnum4d.my/",linkStreaming:"",category:"Malaysia"},
+{pasaran:"TOTO MACAU MALAM I",jamBetclosed:"19:00",jamResult:"19:15",linkSitus:"http://totomacau-pools.us/",linkStreaming:"https://kick.com/live-ttm4d",category:"International"},
+{pasaran:"CHELSEA 19",jamBetclosed:"19:00",jamResult:"19:15",linkSitus:"https://chelseapools.co.uk/",linkStreaming:"",category:"UK"},
+{pasaran:"POIPET 19",jamBetclosed:"19:30",jamResult:"19:45",linkSitus:"https://poipetlottery.com/",linkStreaming:"https://dlive.com/PoipetPools",category:"Cambodia"},
+{pasaran:"PCSO",jamBetclosed:"19:50",jamResult:"20:10",linkSitus:"https://www.pcso.gov.ph/",linkStreaming:"",category:"Philippines"},
+{pasaran:"TOTOMALI 2030",jamBetclosed:"20:15",jamResult:"20:30",linkSitus:"https://totomali.com/",linkStreaming:"https://www.youtube.com/@TotoMaliLive",category:"International"},
+{pasaran:"HUAHIN 21",jamBetclosed:"20:45",jamResult:"21:00",linkSitus:"https://huahinlottery.com/",linkStreaming:"https://www.youtube.com/@huahinlottery5727",category:"Thailand"},
+{pasaran:"CHELSEA 21",jamBetclosed:"21:00",jamResult:"21:15",linkSitus:"https://chelseapools.co.uk/",linkStreaming:"",category:"UK"},
+{pasaran:"TOTO MACAU 5D MALAM",jamBetclosed:"21:15",jamResult:"21:30",linkSitus:"http://totomacau-pools.us/",linkStreaming:"https://kick.com/studio-live-game",category:"International"},
+{pasaran:"NEVADA",jamBetclosed:"21:15",jamResult:"21:30",linkSitus:"https://www.nevadalottery.us/",linkStreaming:"",category:"USA"},
+{pasaran:"BRUNEI 21",jamBetclosed:"21:30",jamResult:"21:45",linkSitus:"https://bruneipools.com/",linkStreaming:"",category:"Brunei"},
+{pasaran:"TOTO MACAU MALAM II",jamBetclosed:"22:00",jamResult:"22:15",linkSitus:"http://totomacau-pools.us/",linkStreaming:"https://kick.com/live-ttm4d",category:"International"},
+{pasaran:"POIPET 22",jamBetclosed:"22:30",jamResult:"22:45",linkSitus:"https://poipetlottery.com/",linkStreaming:"https://dlive.com/PoipetPools",category:"Cambodia"},
+{pasaran:"HONGKONG",jamBetclosed:"22:59",jamResult:"23:15",linkSitus:"https://lottohongkong.fun/",linkStreaming:"https://kick.com/hongkong-lotto-official",category:"Hong Kong"},
+{pasaran:"TOTO MACAU MALAM III",jamBetclosed:"23:00",jamResult:"23:15",linkSitus:"http://totomacau-pools.us/",linkStreaming:"https://kick.com/live-ttm4d",category:"International"},
+{pasaran:"TOTOMALI 2330",jamBetclosed:"23:15",jamResult:"23:30",linkSitus:"https://totomali.com/",linkStreaming:"https://www.youtube.com/@TotoMaliLive",category:"International"},
+{pasaran:"JAKARTA 2330",jamBetclosed:"23:25",jamResult:"23:40",linkSitus:"https://jakartapool.com/",linkStreaming:"https://kick.com/studio-live-game",category:"Indonesia"},
+{pasaran:"KING KONG4D MALAM",jamBetclosed:"23:30",jamResult:"23:45",linkSitus:"https://kingkongpools.id/",linkStreaming:"https://kick.com/king-kong-pools",category:"Indonesia"}
+];
+for(let i=0;i<24;i++){const h=i.toString().padStart(2,'0');D.push({pasaran:`HOKIDRAW ${h}:00`,jamBetclosed:`${h}:00`,jamResult:`${h}:00`,linkSitus:"https://hokidraw.com/",linkStreaming:"https://dlive.tv/u/HOKIDRAW",category:"Inggris"})}
 
-    function h2r(h){h=h.replace('#','');if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];return parseInt(h.substring(0,2),16)+','+parseInt(h.substring(2,4),16)+','+parseInt(h.substring(4,6),16)}
+let sndOn=true,alrOn=true,cFil='all',vol=.7,actx=null,trig=new Set(),aInt=[],rTmr,lightOn=true;
+function iA(){if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();return actx}
+function pT(){const c=iA();if(c.state==='suspended')c.resume();const t=c.currentTime;[1200,800,2000].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.type=['square','sawtooth','triangle'][i];o.frequency.setValueAtTime(f,t+i*.15);g.gain.setValueAtTime(.4*vol,t+i*.15);g.gain.exponentialRampToValueAtTime(.001,t+i*.15+.12);o.connect(g);g.connect(c.destination);o.start(t+i*.15);o.stop(t+i*.15+.12)})}
+function stA(){if(!sndOn||!alrOn)return;trig.add('_a');const id=setInterval(()=>{if(!trig.has('_a')){clearInterval(id);return}pT()},1000);aInt.push(id)}
+function spA(){trig.delete('_a');aInt.forEach(i=>clearInterval(i));aInt=[]}
+function gS(s){const n=new Date(),c=n.getHours()*60+n.getMinutes(),[bh,bm]=s.jamBetclosed.split(':').map(Number),[rh,rm]=s.jamResult.split(':').map(Number),bc=bh*60+bm,r=rh*60+rm;if(c>=r)return'passed';if(c>=bc&&c<r)return'active';return'upcoming'}
+function sl(ms){return new Promise(r=>setTimeout(r,ms))}
+function uClk(){document.getElementById('clk').innerText=new Date().toLocaleTimeString('en-GB')}
+setInterval(uClk,1000);
+function h2r(h){h=h.replace('#','');if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];return parseInt(h.substring(0,2),16)+','+parseInt(h.substring(2,4),16)+','+parseInt(h.substring(4,6),16)}
 
-    // BACKGROUND
-    function iBg(){iPts();iGeo();document.addEventListener('mousemove',e=>{const s=document.getElementById('mspot');s.style.left=e.clientX+'px';s.style.top=e.clientY+'px'})}
-    function iPts(){const c=document.getElementById('bgc'),x=c.getContext('2d');let w,h,ps=[];function rs(){w=c.width=innerWidth;h=c.height=innerHeight}addEventListener('resize',rs);rs();const N=70;for(let i=0;i<N;i++)ps.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,r:Math.random()*1.5+.5});function dr(){x.clearRect(0,0,w,h);const rgb=getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim()||'0,232,198';for(let i=0;i<N;i++){for(let j=i+1;j<N;j++){const dx=ps[i].x-ps[j].x,dy=ps[i].y-ps[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<140){x.beginPath();x.moveTo(ps[i].x,ps[i].y);x.lineTo(ps[j].x,ps[j].y);x.strokeStyle=`rgba(${rgb},${(1-d/140)*.1})`;x.lineWidth=.5;x.stroke()}}}ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>w)p.vx*=-1;if(p.y<0||p.y>h)p.vy*=-1;x.beginPath();x.arc(p.x,p.y,p.r,0,Math.PI*2);x.fillStyle=`rgba(${rgb},.45)`;x.fill()});requestAnimationFrame(dr)}dr()}
-    function iGeo(){const c=document.getElementById('geos');const sh=['c','d','t'];for(let i=0;i<12;i++){const e=document.createElement('div'),s=sh[i%3];e.className='geo '+s;const sz=18+Math.random()*35;e.style.width=sz+'px';e.style.height=sz+'px';e.style.left=Math.random()*100+'%';e.style.top=Math.random()*100+'%';e.style.animationDuration=(20+Math.random()*25)+'s';e.style.animationDelay=(-Math.random()*20)+'s';if(s==='t'){const b=sz/2;e.style.borderLeftWidth=b+'px';e.style.borderRightWidth=b+'px';e.style.borderBottomWidth=b*1.5+'px'}c.appendChild(e)}}
+function iBg(){iPts();document.addEventListener('mousemove',e=>{if(!lightOn)return;document.querySelectorAll('.cd').forEach(c=>{const r=c.getBoundingClientRect();c.style.setProperty('--mx',(e.clientX-r.left)+'px');c.style.setProperty('--my',(e.clientY-r.top)+'px')})})}
+function iPts(){const c=document.getElementById('bgc'),x=c.getContext('2d');let w,h,ps=[];function rs(){w=c.width=innerWidth;h=c.height=innerHeight}addEventListener('resize',rs);rs();const N=55;for(let i=0;i<N;i++)ps.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,r:Math.random()*1+.4});function dr(){x.clearRect(0,0,w,h);const rgb=getComputedStyle(document.documentElement).getPropertyValue('--ac-rgb').trim()||'212,148,58';for(let i=0;i<N;i++){for(let j=i+1;j<N;j++){const dx=ps[i].x-ps[j].x,dy=ps[i].y-ps[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){x.beginPath();x.moveTo(ps[i].x,ps[i].y);x.lineTo(ps[j].x,ps[j].y);x.strokeStyle=`rgba(${rgb},${(1-d/120)*.06})`;x.lineWidth=.4;x.stroke()}}}ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>w)p.vx*=-1;if(p.y<0||p.y>h)p.vy*=-1;x.beginPath();x.arc(p.x,p.y,p.r,0,Math.PI*2);x.fillStyle=`rgba(${rgb},.3)`;x.fill()});requestAnimationFrame(dr)}dr()}
 
-    // FIREWORKS
-    function fw(){const b=document.getElementById('fwbox');b.innerHTML='';const cols=['#ff2d55','#f5c542','#fff','#00e8c6','#a78bfa'];for(let e=0;e<5;e++)setTimeout(()=>{const ox=40+Math.random()*20,oy=30+Math.random()*40;for(let i=0;i<45;i++){const p=document.createElement('div');p.className='fwp';const cl=cols[Math.floor(Math.random()*cols.length)],sz=Math.random()*5+2+'px';Object.assign(p.style,{width:sz,height:sz,background:cl,boxShadow:`0 0 8px ${cl}`,left:ox+'%',top:oy+'%','--tx':(Math.cos(Math.random()*Math.PI*2)*22)+'vw','--ty':(Math.sin(Math.random()*Math.PI*2)*22)+'vh'});b.appendChild(p);setTimeout(()=>p.remove(),1200)}},e*200)}
+function rTick(){const tk=document.getElementById('ticker-track');const now=new Date(),cm=now.getHours()*60+now.getMinutes();const up=D.filter(s=>{const[rh,rm]=s.jamResult.split(':').map(Number);return rh*60+rm>cm}).sort((a,b)=>{const ta=a.jamResult.split(':').map(Number),tb=b.jamResult.split(':').map(Number);return(ta[0]*60+ta[1])-(tb[0]*60+tb[1])}).slice(0,15);if(!up.length){tk.innerHTML='<div class="ti">No upcoming</div>';return}let html='';for(let i=0;i<2;i++)up.forEach(s=>{html+=`<div class="ti"><i class="fas fa-circle"></i><span>${s.pasaran}</span> ${s.jamResult}</div>`});tk.innerHTML=html}
 
-    // RESULT
-    async function shR(nm,tm){const ov=document.getElementById('rov'),se=document.getElementById('rstat'),mk=document.getElementById('rmkt'),te=document.getElementById('rtm'),nu=document.getElementById('rnum'),lw=document.getElementById('rlw'),lb=document.getElementById('rlb'),tb=document.getElementById('rtb');document.getElementById('fwbox').innerHTML='';ov.classList.add('open');mk.innerText=nm;te.innerText=tm;nu.innerText='0000';nu.classList.add('ld');se.innerText='INITIALIZING...';se.classList.remove('ok');lb.style.width='0%';lw.style.opacity='1';tb.style.width='100%';stA();uHud('active',nm);await sl(500);se.innerText='AUTHENTICATING...';lb.style.width='30%';await sl(250);lb.style.width='60%';await sl(250);lb.style.width='90%';await sl(200);lb.style.width='100%';await sl(300);se.innerText='DECRYPTING...';lw.style.opacity='0';await sl(400);se.innerText='COMPLETE';se.classList.add('ok');const res=Math.floor(1000+Math.random()*9000).toString();nu.classList.remove('ld');scr(nu,res);fw();let tl=10;if(rTmr)clearInterval(rTmr);rTmr=setInterval(()=>{tl--;tb.style.width=(tl/10*100)+'%';if(tl<=0)clR()},1000)}
-    function clR(){document.getElementById('rov').classList.remove('open');spA();if(rTmr)clearInterval(rTmr);document.getElementById('fwbox').innerHTML='';setTimeout(uHud,500)}
-    function scr(el,f){const ch='!<>-_\\/[]{}=+*^?#';let it=0;const iv=setInterval(()=>{el.innerText=f.split('').map((c,i)=>i<it?c:ch[Math.floor(Math.random()*ch.length)]).join('');if(it>=f.length)clearInterval(iv);it+=.5},25)}
+function fw(){const b=document.getElementById('fwbox');b.innerHTML='';const cols=['#e04040','#d4943a','#f0c870','#fff','#3ad47a'];for(let e=0;e<5;e++)setTimeout(()=>{const ox=40+Math.random()*20,oy=30+Math.random()*40;for(let i=0;i<35;i++){const p=document.createElement('div');p.className='fwp';const cl=cols[Math.floor(Math.random()*cols.length)],sz=Math.random()*4+2+'px';Object.assign(p.style,{width:sz,height:sz,background:cl,boxShadow:`0 0 6px ${cl}`,left:ox+'%',top:oy+'%','--tx':(Math.cos(Math.random()*Math.PI*2)*20)+'vw','--ty':(Math.sin(Math.random()*Math.PI*2)*20)+'vh'});b.appendChild(p);setTimeout(()=>p.remove(),1200)}},e*200)}
 
-    // UI
-    function iDD(){const s=document.getElementById('msel');D.forEach(d=>{const o=document.createElement('option');o.value=d.pasaran;o.innerText=d.pasaran;s.appendChild(o)})}
-    function rLv(){const w=document.getElementById('lsec'),g=document.getElementById('lgrid'),lv=D.filter(s=>gS(s)==='active');if(lv.length){w.classList.add('vis');document.getElementById('lcnt').innerText=lv.length+' active';g.innerHTML='';lv.forEach(s=>{const ft=`${s.pasaran} Tutup Pasaran Pukul ${s.jamBetclosed} WIB Dan Keluaran Nomor Result Pukul ${s.jamResult} WIB.`;const d=document.createElement('div');d.className='nc il';d.innerHTML=`<div class="nc-l"><div><div class="nc-name">${s.pasaran}</div><div class="nc-cat">${s.category}</div></div><div class="badge lv">LIVE</div></div><div class="nc-m"><div class="ns"><span class="ns-l"><i class="far fa-clock"></i>Cutoff</span><span class="ns-v">${s.jamBetclosed}</span></div><div class="ns"><span class="ns-l"><i class="fas fa-crosshairs"></i>Result</span><span class="ns-v">${s.jamResult}</span></div></div><div class="nc-r">${s.linkSitus?`<a href="${s.linkSitus}" target="_blank" class="btn"><i class="fas fa-external-link-alt"></i>Web</a>`:''}${s.linkStreaming?`<a href="${s.linkStreaming}" target="_blank" class="btn pr"><i class="fas fa-play"></i>Watch</a>`:''}<button class="btn" onclick="cpT('${ft.replace(/'/g,"\\'")}',this)"><i class="far fa-copy"></i>Copy</button></div>`;g.appendChild(d)})}else w.classList.remove('vis')}
-    function rGr(){const g=document.getElementById('mgr'),t=document.getElementById('sinp').value.toLowerCase();g.innerHTML='';let ls=D.filter(s=>{if(cFil!=='all'&&gS(s)!==cFil)return false;if(t&&!s.pasaran.toLowerCase().includes(t))return false;return true});ls.sort((a,b)=>{const sa=gS(a),sb=gS(b);if(sa==='active'&&sb!=='active')return -1;if(sb==='active'&&sa!=='active')return 1;const ta=a.jamResult.split(':').map(Number),tb=b.jamResult.split(':').map(Number);return(ta[0]*60+ta[1])-(tb[0]*60+tb[1])});if(!ls.length)g.innerHTML='<div class="empty"><i class="fas fa-satellite-dish"></i><p>No data streams found.</p></div>';ls.forEach((s,i)=>{const st=gS(s),lv=st==='active',ft=`${s.pasaran} Tutup Pasaran Pukul ${s.jamBetclosed} WIB Dan Keluaran Nomor Result Pukul ${s.jamResult} WIB.`,fn=Array.from({length:4},()=>Math.floor(Math.random()*10)).join(''),d=document.createElement('div');d.className='nc'+(lv?' il':'');d.innerHTML=`<div class="nc-l"><div><div class="nc-name">${s.pasaran}</div><div class="nc-cat">${s.category}</div></div><div class="badge${lv?' lv':''}">${st.toUpperCase()}</div></div><div class="nc-m"><div class="ns"><span class="ns-l"><i class="far fa-clock"></i>Cutoff</span><span class="ns-v">${s.jamBetclosed}</span></div><div class="ns"><span class="ns-l"><i class="fas fa-crosshairs"></i>Result</span><span class="ns-v">${s.jamResult}</span></div></div><div class="nc-deco">${fn} ${fn} ${fn}</div><div class="nc-r">${s.linkSitus?`<a href="${s.linkSitus}" target="_blank" class="btn"><i class="fas fa-external-link-alt"></i>Web</a>`:''}${s.linkStreaming?`<a href="${s.linkStreaming}" target="_blank" class="btn pr"><i class="fas fa-play"></i>Watch</a>`:''}<button class="btn" onclick="cpT('${ft.replace(/'/g,"\\'")}',this)"><i class="far fa-copy"></i>Copy</button></div>`;g.appendChild(d)});uCnt()}
-    function uCnt(){let a=0,u=0,p=0;D.forEach(s=>{const st=gS(s);if(st==='active')a++;else if(st==='upcoming')u++;else p++});document.getElementById('fa').innerText=D.length;document.getElementById('fl').innerText=a;document.getElementById('fp').innerText=u;document.getElementById('fr').innerText=p;document.getElementById('nca').innerText=a;document.getElementById('xt').innerText=D.length;document.getElementById('xl').innerText=a;document.getElementById('xp').innerText=u}
-    function rDst(){const rg={};D.forEach(s=>rg[s.category]=(rg[s.category]||0)+1);const el=document.getElementById('dbars'),tot=D.length;el.innerHTML='';Object.entries(rg).sort((a,b)=>b[1]-a[1]).forEach(([r,c])=>{el.innerHTML+=`<div class="br"><div class="brl">${r}</div><div class="brt"><div class="brf" style="width:${(c/tot*100).toFixed(1)}%"></div></div><div class="brc">${c}</div></div>`})}
-    function uHud(m,n){const d=document.getElementById('sdot'),t=document.getElementById('stxt');d.className='sdot';t.className='stxt';if(m==='active'){d.classList.add('live');t.innerHTML=`<strong>${n}</strong>`;t.classList.add('act')}else{const now=new Date(),c=now.getHours()*60+now.getMinutes();let nx=null,nt=Infinity;D.forEach(s=>{const[rh,rm]=s.jamResult.split(':').map(Number),r=rh*60+rm;if(c<r&&r<nt){nt=r;nx=s}});if(nx){d.classList.add('next');t.innerText='NEXT: '+nx.pasaran}else t.innerText='System Standby'}}
+async function shR(nm,tm){const ov=document.getElementById('rov'),se=document.getElementById('rstat'),mk=document.getElementById('rmkt'),te=document.getElementById('rtm'),nu=document.getElementById('rnum'),lw=document.getElementById('rlw'),lb=document.getElementById('rlb'),tb=document.getElementById('rtb');document.getElementById('fwbox').innerHTML='';ov.classList.add('open');mk.innerText=nm;te.innerText=tm;nu.innerText='0000';nu.classList.add('ld');se.innerText='INITIALIZING...';se.classList.remove('ok');lb.style.width='0%';lw.style.opacity='1';tb.style.width='100%';stA();uHud('active',nm);await sl(500);se.innerText='AUTHENTICATING...';lb.style.width='30%';await sl(250);lb.style.width='60%';await sl(250);lb.style.width='90%';await sl(200);lb.style.width='100%';await sl(300);se.innerText='DECRYPTING...';lw.style.opacity='0';await sl(400);se.innerText='COMPLETE';se.classList.add('ok');const res=Math.floor(1000+Math.random()*9000).toString();nu.classList.remove('ld');scr(nu,res);fw();let tl=10;if(rTmr)clearInterval(rTmr);rTmr=setInterval(()=>{tl--;tb.style.width=(tl/10*100)+'%';if(tl<=0)clR()},1000)}
+function clR(){document.getElementById('rov').classList.remove('open');spA();if(rTmr)clearInterval(rTmr);document.getElementById('fwbox').innerHTML='';setTimeout(uHud,500)}
+function scr(el,f){const ch='!<>-_\\/[]{}=+*^?#';let it=0;const iv=setInterval(()=>{el.innerText=f.split('').map((c,i)=>i<it?c:ch[Math.floor(Math.random()*ch.length)]).join('');if(it>=f.length)clearInterval(iv);it+=.5},25)}
 
-    function swTab(id,btn){document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');['sched','stats','sets'].forEach(t=>document.getElementById(t+'-tab').style.display=t===id?'block':'none');if(id==='stats')setTimeout(rDst,50)}
-    function sF(f,btn){cFil=f;document.querySelectorAll('.chip').forEach(b=>b.classList.remove('on'));if(btn)btn.classList.add('on');rGr()}
-    function apMF(){const v=document.getElementById('msel').value;document.getElementById('sinp').value=v==='all'?'':v;rGr()}
-    function tgSnd(){sndOn=!sndOn;const b=document.getElementById('bsnd');b.innerHTML=sndOn?'<i class="fas fa-volume-up"></i>Audio':'<i class="fas fa-volume-mute"></i>Muted';b.classList.toggle('on',sndOn);if(!sndOn)spA();tst(sndOn?'Audio Online':'Audio Muted')}
-    function tgAlr(){alrOn=!alrOn;const b=document.getElementById('balr');b.innerHTML=alrOn?'<i class="fas fa-bell"></i>Alerts':'<i class="fas fa-bell-slash"></i>Off';b.classList.toggle('on',alrOn);if(!alrOn)spA();tst(alrOn?'Alerts Armed':'Alerts Off')}
-    function tgVol(){document.getElementById('vp').classList.toggle('open')}
-    function uVol(){vol=document.getElementById('vslider').value/100;document.getElementById('vval').innerText=document.getElementById('vslider').value+'%'}
-    function tstA(){pTone();document.getElementById('mmsg').innerText='Test alarm signal initiated.';document.getElementById('mdl').classList.add('open')}
-    function clM(){document.getElementById('mdl').classList.remove('open');spA()}
-    function cpT(txt,btn){const el=document.createElement('textarea');el.value=txt;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);btn.classList.add('ok');const og=btn.innerHTML;btn.innerHTML='<i class="fas fa-check"></i>OK';setTimeout(()=>{btn.innerHTML=og;btn.classList.remove('ok')},1200);tst('Copied to clipboard')}
-    function tst(m){const t=document.getElementById('toast');document.getElementById('tmsg').innerText=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+function iDD(){const s=document.getElementById('msel');D.forEach(d=>{const o=document.createElement('option');o.value=d.pasaran;o.innerText=d.pasaran;s.appendChild(o)})}
+function rLv(){const w=document.getElementById('lvsec'),g=document.getElementById('lvgrid'),lv=D.filter(s=>gS(s)==='active');if(lv.length){w.classList.add('vis');document.getElementById('lcnt').innerText=lv.length+' active';g.innerHTML='';lv.forEach(s=>{const ft=`${s.pasaran} Tutup Pasaran Pukul ${s.jamBetclosed} WIB Dan Keluaran Nomor Result Pukul ${s.jamResult} WIB.`;const d=document.createElement('div');d.className='cd live';d.innerHTML=`<div class="cd-t"><div><div class="cn">${s.pasaran}</div><div class="ccat">${s.category}</div></div><div class="bdg lv">LIVE</div></div><div class="cd-m"><div class="sr"><span class="srl"><i class="far fa-clock"></i>Cutoff</span><span class="srv">${s.jamBetclosed}</span></div><div class="sr"><span class="srl"><i class="fas fa-crosshairs"></i>Result</span><span class="srv">${s.jamResult}</span></div></div><div class="cd-b">${s.linkSitus?`<a href="${s.linkSitus}" target="_blank" class="bt"><i class="fas fa-external-link-alt"></i>Web</a>`:''}${s.linkStreaming?`<a href="${s.linkStreaming}" target="_blank" class="bt pr"><i class="fas fa-play"></i>Watch</a>`:''}<button class="bt" onclick="cpT('${ft.replace(/'/g,"\\'")}',this)"><i class="far fa-copy"></i>Copy</button></div>`;g.appendChild(d)})}else w.classList.remove('vis')}
 
-    // SETTINGS
-    function sTh(c,el){if(!el)return;const rgb=h2r(c);document.documentElement.style.setProperty('--accent',c);document.documentElement.style.setProperty('--accent-rgb',rgb);document.documentElement.style.setProperty('--accent-dim',`rgba(${rgb},0.15)`);document.documentElement.style.setProperty('--accent-glow',`rgba(${rgb},0.4)`);const row=el.closest('.bg');if(row)row.querySelectorAll('.opt').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');if(document.getElementById('stats-tab').style.display!=='none')rDst();tst('Theme updated')}
-    function sWp(tp,el){if(!el)return;const row=el.closest('.nsb')||el.closest('.bg');if(row)row.querySelectorAll('.opt').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');const bd=document.body,cv=document.getElementById('bgc'),ob=document.querySelector('.orbs'),ge=document.getElementById('geos');bd.style.backgroundImage='none';bd.style.backgroundColor='var(--bg)';cv.style.opacity='1';ob.style.opacity='1';ge.style.opacity='1';if(tp==='void'){cv.style.opacity='.15';ob.style.opacity='.1';ge.style.opacity='.15'}else if(tp==='ember'){bd.style.backgroundColor='#0a0302';bd.style.backgroundImage='radial-gradient(circle at 50% 50%,#2a0500 0%,#000 100%)';cv.style.opacity='0';ob.style.opacity='0';ge.style.opacity='0'}else if(tp==='royal'){bd.style.backgroundColor='#05020a';bd.style.backgroundImage='radial-gradient(circle at 50% 50%,#150030 0%,#000 100%)';cv.style.opacity='0';ob.style.opacity='0';ge.style.opacity='0'}tst('Wallpaper: '+tp)}
-    function hUp(inp){if(inp.files&&inp.files[0]){const r=new FileReader();r.onload=e=>{document.body.style.backgroundImage=`url(${e.target.result})`;document.getElementById('bgc').style.opacity='0';document.querySelector('.orbs').style.opacity='0';document.getElementById('geos').style.opacity='0';tst('Custom wallpaper applied')};r.readAsDataURL(inp.files[0])}}
-    function sLy(tp,el){if(!el)return;document.body.classList.remove('is-list','is-compact');const row=el.closest('.bg');if(row)row.querySelectorAll('.opt').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');if(tp==='list')document.body.classList.add('is-list');tst('Layout: '+tp)}
-    function tgCmp(el){if(!el)return;document.body.classList.remove('is-list');document.body.classList.toggle('is-compact');el.classList.toggle('sel');const row=el.closest('.bg');if(row)row.querySelectorAll('.opt').forEach(b=>{if(b!==el)b.classList.remove('sel')});tst(document.body.classList.contains('is-compact')?'Compact on':'Compact off')}
-    function tEf(n,el){if(!el)return;el.classList.toggle('on');const on=el.classList.contains('on');if(n==='p')document.getElementById('bgc').style.opacity=on?'1':'0';if(n==='g')document.getElementById('geos').style.opacity=on?'1':'0';if(n==='o')document.querySelector('.orbs').style.opacity=on?'1':'0';if(n==='s')document.getElementById('mspot').style.opacity=on?'1':'0'}
-    function rVis(){const t=document.querySelector('.nsc:nth-child(1) .opt');if(t)sTh('#00e8c6',t);const w=document.querySelector('.nsc:nth-child(2) .opt');if(w)sWp('default',w);['p','g','o','s'].forEach(e=>{const t=document.getElementById(e==='p'?'tp':e==='g'?'tg2':e==='o'?'to':'ts');if(t&&!t.classList.contains('on'))t.click()});document.body.classList.remove('is-list','is-compact');const g=document.querySelector('.nsc:nth-child(3) .opt');if(g){const row=g.closest('.bg');row.querySelectorAll('.opt').forEach(b=>b.classList.remove('sel'));g.classList.add('sel')}tst('Visuals reset')}
-    function rData(){const b=event.target.closest('.opt'),og=b.innerHTML;b.innerHTML='<i class="fas fa-spinner fa-spin"></i>...';setTimeout(()=>{b.innerHTML=og;rGr();rDst();tst('Data refreshed')},800)}
-    function clCch(){tst('Cache cleared')}
+function rGr(){const g=document.getElementById('mgr'),t=document.getElementById('sinp').value.toLowerCase();g.innerHTML='';let ls=D.filter(s=>{if(cFil!=='all'&&gS(s)!==cFil)return false;if(t&&!s.pasaran.toLowerCase().includes(t))return false;return true});ls.sort((a,b)=>{const sa=gS(a),sb=gS(b);if(sa==='active'&&sb!=='active')return -1;if(sb==='active'&&sa!=='active')return 1;const ta=a.jamResult.split(':').map(Number),tb=b.jamResult.split(':').map(Number);return(ta[0]*60+ta[1])-(tb[0]*60+tb[1])});if(!ls.length)g.innerHTML='<div class="empty"><i class="fas fa-satellite-dish"></i>No data found.</div>';ls.forEach(s=>{const st=gS(s),lv=st==='active',ft=`${s.pasaran} Tutup Pasaran Pukul ${s.jamBetclosed} WIB Dan Keluaran Nomor Result Pukul ${s.jamResult} WIB.`,d=document.createElement('div');d.className='cd'+(lv?' live':'');if(!lightOn)d.style.setProperty('--mx','50%');d.innerHTML=`<div class="cd-t"><div><div class="cn">${s.pasaran}</div><div class="ccat">${s.category}</div></div><div class="bdg${lv?' lv':''}">${st.toUpperCase()}</div></div><div class="cd-m"><div class="sr"><span class="srl"><i class="far fa-clock"></i>Cutoff</span><span class="srv">${s.jamBetclosed}</span></div><div class="sr"><span class="srl"><i class="fas fa-crosshairs"></i>Result</span><span class="srv">${s.jamResult}</span></div></div><div class="cd-b">${s.linkSitus?`<a href="${s.linkSitus}" target="_blank" class="bt"><i class="fas fa-external-link-alt"></i>Web</a>`:''}${s.linkStreaming?`<a href="${s.linkStreaming}" target="_blank" class="bt pr"><i class="fas fa-play"></i>Watch</a>`:''}<button class="bt" onclick="cpT('${ft.replace(/'/g,"\\'")}',this)"><i class="far fa-copy"></i>Copy</button></div>`;g.appendChild(d)});uCnt()}
+function uCnt(){let a=0,u=0,p=0;D.forEach(s=>{const st=gS(s);if(st==='active')a++;else if(st==='upcoming')u++;else p++});document.getElementById('fa').innerText=D.length;document.getElementById('fl').innerText=a;document.getElementById('fp').innerText=u;document.getElementById('fr').innerText=p;document.getElementById('nca').innerText=a;document.getElementById('xt').innerText=D.length;document.getElementById('xl').innerText=a;document.getElementById('xp').innerText=u}
+function rDst(){const rg={};D.forEach(s=>rg[s.category]=(rg[s.category]||0)+1);const el=document.getElementById('dbars'),tot=D.length;el.innerHTML='';Object.entries(rg).sort((a,b)=>b[1]-a[1]).forEach(([r,c])=>{el.innerHTML+=`<div class="br"><div class="brl">${r}</div><div class="brt"><div class="brf" style="width:${(c/tot*100).toFixed(1)}%"></div></div><div class="brc">${c}</div></div>`})}
+function uHud(m,n){const d=document.getElementById('sdot'),t=document.getElementById('stxt');d.className='sdot';t.className='stxt';if(m==='active'){d.classList.add('l');t.innerHTML=`<strong>${n}</strong>`;t.classList.add('a')}else{const now=new Date(),c=now.getHours()*60+now.getMinutes();let nx=null,nt=Infinity;D.forEach(s=>{const[rh,rm]=s.jamResult.split(':').map(Number),r=rh*60+rm;if(c<r&&r<nt){nt=r;nx=s}});if(nx){d.classList.add('n');t.innerText='NEXT: '+nx.pasaran}else t.innerText='Standby'}}
 
-    // MAIN LOOP
-    setInterval(()=>{if(!alrOn)return;const now=new Date(),cm=now.getHours()*60+now.getMinutes(),cs=now.getSeconds();uHud();rLv();D.forEach(s=>{const[rh,rm]=s.jamResult.split(':').map(Number),rm2=rh*60+rm;if(cm===rm2&&cs===0){const k=`R_${s.pasaran}_${rh}:${rm}`;if(!trig.has(k)){trig.add(k);shR(s.pasaran,s.jamResult);setTimeout(()=>trig.delete(k),120000)}}const[bh,bm]=s.jamBetclosed.split(':').map(Number),bm2=bh*60+bm;if(cm===bm2&&cs===0){const k=`B_${s.pasaran}_${bh}:${bm}`;if(!trig.has(k)){trig.add(k);tst('Bet Closed: '+s.pasaran);setTimeout(()=>trig.delete(k),60000)}}})},1000);
-    document.getElementById('sinp').addEventListener('input',rGr);
+function swT(id,btn){document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');['sched','stats','sets'].forEach(t=>document.getElementById(t+'-tab').style.display=t===id?'block':'none');if(id==='stats')setTimeout(rDst,50)}
+function sF(f,btn){cFil=f;document.querySelectorAll('.chip').forEach(b=>b.classList.remove('on'));if(btn)btn.classList.add('on');rGr()}
+function apMF(){const v=document.getElementById('msel').value;document.getElementById('sinp').value=v==='all'?'':v;rGr()}
+function tgSn(){sndOn=!sndOn;const b=document.getElementById('bsnd');b.innerHTML=sndOn?'<i class="fas fa-volume-up"></i>Audio':'<i class="fas fa-volume-mute"></i>Muted';b.classList.toggle('on',sndOn);if(!sndOn)spA();tst(sndOn?'Audio On':'Audio Off')}
+function tgAl(){alrOn=!alrOn;const b=document.getElementById('balr');b.innerHTML=alrOn?'<i class="fas fa-bell"></i>Alerts':'<i class="fas fa-bell-slash"></i>Off';b.classList.toggle('on',alrOn);if(!alrOn)spA();tst(alrOn?'Alerts On':'Alerts Off')}
+function tgVol(){document.getElementById('vp').classList.toggle('open')}
+function uVol(){vol=document.getElementById('vsl').value/100;document.getElementById('vvl').innerText=document.getElementById('vsl').value+'%'}
+function tstA(){pT();document.getElementById('mmsg').innerText='Test signal.';document.getElementById('mdl').classList.add('open')}
+function clM(){document.getElementById('mdl').classList.remove('open');spA()}
+function cpT(txt,btn){const el=document.createElement('textarea');el.value=txt;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);btn.classList.add('ok');const og=btn.innerHTML;btn.innerHTML='<i class="fas fa-check"></i>OK';setTimeout(()=>{btn.innerHTML=og;btn.classList.remove('ok')},1200);tst('Copied')}
+function tst(m){const t=document.getElementById('toast');document.getElementById('tmsg').innerText=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
 
-    // PROTECTION
-    const sc={all:{},add(c,cb,o){o=Object.assign({type:'keydown',propagate:false,disable_in_input:false,target:document,keycode:false},o||{});const tg=typeof o.target==='string'?document.getElementById(o.target):o.target;c=c.toLowerCase();const h=e=>{e=e||window.event;if(o.disable_in_input){let el=e.target||e.srcElement;if(el.nodeType===3)el=el.parentNode;if(el.tagName==='INPUT'||el.tagName==='TEXTAREA')return}const code=e.keyCode||e.which;let key=String.fromCharCode(code).toLowerCase();if(code===188)key=',';if(code===190)key='.';const keys=c.split('+');let mc=0;const sp={esc:27,escape:27,tab:9,space:32,return:13,enter:13,backspace:8,left:37,up:38,right:39,down:40,f1:112,f2:113,f3:114,f4:115,f5:116,f6:117,f7:118,f8:119,f9:120,f10:121,f11:122,f12:123};let cR=false,sR=false,aR=false,mR=false;let ctrl=e.ctrlKey,shift=e.shiftKey,alt=e.altKey,meta=e.metaKey;for(let i=0;i<keys.length;i++){const k=keys[i];if(k==='ctrl'||k==='control'){cR=true;mc++}else if(k==='shift'){sR=true;mc++}else if(k==='alt'){aR=true;mc++}else if(k==='meta'){mR=true;mc++}else if(k.length>1){if(sp[k]===code)mc++}else if(o.keycode?o.keycode===code:key===k){mc++}}if(mc===keys.length&&ctrl===cR&&shift===sR&&alt===aR&&meta===mR){cb(e);if(!o.propagate){e.cancelBubble=true;e.returnValue=false;if(e.stopPropagation)e.stopPropagation();if(e.preventDefault)e.preventDefault();return false}}};this.all[c]={callback:h,target:tg,event:o.type};tg.addEventListener(o.type,h,false)}};
-    function noop(){}
-    sc.add('Ctrl+U',noop);sc.add('f12',noop);sc.add('Ctrl+Shift+I',noop);sc.add('Ctrl+Shift+J',noop);sc.add('Ctrl+Shift+C',noop);
-    document.addEventListener('keydown',e=>{if(e.keyCode===123){e.preventDefault();return false}if(e.ctrlKey&&e.shiftKey&&(e.keyCode===73||e.keyCode===74||e.keyCode===67)){e.preventDefault();return false}if(e.ctrlKey&&(e.keyCode===85||e.keyCode===83)){e.preventDefault();return false}});
-    document.addEventListener('contextmenu',e=>{e.preventDefault();return false});
+function sTh(c,el){if(!el)return;const rgb=h2r(c);document.documentElement.style.setProperty('--ac',c);document.documentElement.style.setProperty('--ac-rgb',rgb);document.documentElement.style.setProperty('--ac-d',`rgba(${rgb},0.1)`);document.documentElement.style.setProperty('--ac-g',`rgba(${rgb},0.35)`);const row=el.closest('.bg');if(row)row.querySelectorAll('.opt').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');if(document.getElementById('stats-tab').style.display!=='none')rDst();tst('Theme updated')}
+function sWp(tp,el){if(!el)return;const row=el.closest('.nsb')||el.closest('.bg');if(row)row.querySelectorAll('.opt').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');const bd=document.body,cv=document.getElementById('bgc'),ob=document.querySelector('.orbs'),dg=document.getElementById('dotgrid');bd.style.backgroundImage='none';bd.style.backgroundColor='var(--bg)';cv.style.opacity='.6';ob.style.opacity='1';dg.style.opacity='1';if(tp==='void'){cv.style.opacity='.08';ob.style.opacity='.06';dg.style.opacity='.06'}else if(tp==='ember'){bd.style.backgroundColor='#0a0302';bd.style.backgroundImage='radial-gradient(circle at 50% 50%,#2a0500 0%,#000 100%)';cv.style.opacity='0';ob.style.opacity='0';dg.style.opacity='0'}else if(tp==='ocean'){bd.style.backgroundColor='#020508';bd.style.backgroundImage='radial-gradient(circle at 50% 50%,#001a2a 0%,#000 100%)';cv.style.opacity='0';ob.style.opacity='0';dg.style.opacity='0'}tst('Wallpaper: '+tp)}
+function hUp(inp){if(inp.files&&inp.files[0]){const r=new FileReader();r.onload=e=>{document.body.style.backgroundImage=`url(${e.target.result})`;document.getElementById('bgc').style.opacity='0';document.querySelector('.orbs').style.opacity='0';document.getElementById('dotgrid').style.opacity='0';tst('Applied')};r.readAsDataURL(inp.files[0])}}
+function sLy(tp,el){if(!el)return;document.body.classList.remove('ls','cp');const row=el.closest('.bg');if(row)row.querySelectorAll('.opt').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');if(tp==='list')document.body.classList.add('ls');tst('Layout: '+tp)}
+function tgCp(el){if(!el)return;document.body.classList.remove('ls');document.body.classList.toggle('cp');el.classList.toggle('sel');const row=el.closest('.bg');if(row)row.querySelectorAll('.opt').forEach(b=>{if(b!==el)b.classList.remove('sel')});tst(document.body.classList.contains('cp')?'Compact on':'Compact off')}
+function tEf(n,el){if(!el)return;el.classList.toggle('on');const on=el.classList.contains('on');if(n==='p')document.getElementById('bgc').style.opacity=on?'.6':'0';if(n==='d')document.getElementById('dotgrid').style.opacity=on?'1':'0';if(n==='o')document.querySelector('.orbs').style.opacity=on?'1':'0';if(n==='l')lightOn=on}
+function rVis(){const t=document.querySelector('.nsc:nth-child(1) .opt');if(t)sTh('#d4943a',t);const w=document.querySelector('.nsc:nth-child(2) .opt');if(w)sWp('default',w);['p','d','o','l'].forEach(e=>{const t=document.getElementById(e==='p'?'tp':e==='d'?'td':e==='o'?'to':'tlight');if(t&&!t.classList.contains('on'))t.click()});document.body.classList.remove('ls','cp');const g=document.querySelector('.nsc:nth-child(3) .opt');if(g){const row=g.closest('.bg');row.querySelectorAll('.opt').forEach(b=>b.classList.remove('sel'));g.classList.add('sel')}tst('Reset')}
+function rDt(){const b=event.target.closest('.opt'),og=b.innerHTML;b.innerHTML='<i class="fas fa-spinner fa-spin"></i>...';setTimeout(()=>{b.innerHTML=og;rGr();rDst();rTick();tst('Refreshed')},800)}
+function clCch(){tst('Cache cleared')}
 
-    // INIT
-    iBg();iDD();uClk();rGr();rLv();uHud();
-    </script>
+setInterval(()=>{if(!alrOn)return;const now=new Date(),cm=now.getHours()*60+now.getMinutes(),cs=now.getSeconds();uHud();rLv();rTick();D.forEach(s=>{const[rh,rm]=s.jamResult.split(':').map(Number),rm2=rh*60+rm;if(cm===rm2&&cs===0){const k=`R_${s.pasaran}_${rh}:${rm}`;if(!trig.has(k)){trig.add(k);shR(s.pasaran,s.jamResult);setTimeout(()=>trig.delete(k),120000)}}const[bh,bm]=s.jamBetclosed.split(':').map(Number),bm2=bh*60+bm;if(cm===bm2&&cs===0){const k=`B_${s.pasaran}_${bh}:${bm}`;if(!trig.has(k)){trig.add(k);tst('Bet Closed: '+s.pasaran);setTimeout(()=>trig.delete(k),60000)}}})},1000);
+document.getElementById('sinp').addEventListener('input',rGr);
+
+const sc={all:{},add(c,cb,o){o=Object.assign({type:'keydown',propagate:false,disable_in_input:false,target:document,keycode:false},o||{});const tg=typeof o.target==='string'?document.getElementById(o.target):o.target;c=c.toLowerCase();const h=e=>{e=e||window.event;if(o.disable_in_input){let el=e.target||e.srcElement;if(el.nodeType===3)el=el.parentNode;if(el.tagName==='INPUT'||el.tagName==='TEXTAREA')return}const code=e.keyCode||e.which;let key=String.fromCharCode(code).toLowerCase();if(code===188)key=',';if(code===190)key='.';const keys=c.split('+');let mc=0;const sp={esc:27,escape:27,tab:9,space:32,return:13,enter:13,backspace:8,left:37,up:38,right:39,down:40,f1:112,f2:113,f3:114,f4:115,f5:116,f6:117,f7:118,f8:119,f9:120,f10:121,f11:122,f12:123};let cR=false,sR=false,aR=false,mR=false;let ctrl=e.ctrlKey,shift=e.shiftKey,alt=e.altKey,meta=e.metaKey;for(let i=0;i<keys.length;i++){const k=keys[i];if(k==='ctrl'||k==='control'){cR=true;mc++}else if(k==='shift'){sR=true;mc++}else if(k==='alt'){aR=true;mc++}else if(k==='meta'){mR=true;mc++}else if(k.length>1){if(sp[k]===code)mc++}else if(o.keycode?o.keycode===code:key===k){mc++}}if(mc===keys.length&&ctrl===cR&&shift===sR&&alt===aR&&meta===mR){cb(e);if(!o.propagate){e.cancelBubble=true;e.returnValue=false;if(e.stopPropagation)e.stopPropagation();if(e.preventDefault)e.preventDefault();return false}}};this.all[c]={callback:h,target:tg,event:o.type};tg.addEventListener(o.type,h,false)}};
+function noop(){}
+sc.add('Ctrl+U',noop);sc.add('f12',noop);sc.add('Ctrl+Shift+I',noop);sc.add('Ctrl+Shift+J',noop);sc.add('Ctrl+Shift+C',noop);
+document.addEventListener('keydown',e=>{if(e.keyCode===123){e.preventDefault();return false}if(e.ctrlKey&&e.shiftKey&&(e.keyCode===73||e.keyCode===74||e.keyCode===67)){e.preventDefault();return false}if(e.ctrlKey&&(e.keyCode===85||e.keyCode===83)){e.preventDefault();return false}});
+document.addEventListener('contextmenu',e=>{e.preventDefault();return false});
+
+iBg();iDD();uClk();rGr();rLv();uHud();rTick();
+</script>
 </body>
 </html>
