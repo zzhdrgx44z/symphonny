@@ -397,30 +397,6 @@
     }
     .col-action button:hover { border-color: var(--accent-pink); color: var(--accent-pink); }
 
-    .assets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding: 24px; }
-    .asset-card {
-      background: rgba(10, 12, 20, 0.8); backdrop-filter: blur(8px);
-      border-radius: 24px; border: 1px solid var(--border-subtle);
-      transition: all 0.25s ease; overflow: hidden;
-    }
-    .asset-card:hover { transform: translateY(-4px); border-color: var(--accent-pink); box-shadow: 0 8px 30px rgba(255,46,99,0.15); }
-    .asset-header { padding: 16px 18px 8px; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 0.85rem; }
-    .asset-display {
-      margin: 4px 18px 8px; padding: 12px;
-      background: rgba(0,0,0,0.4); border-radius: 12px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 1.1rem; font-weight: 600;
-      color: var(--accent-gold); text-align: center;
-      border: 1px solid rgba(255,215,0,0.15);
-    }
-    .btn-copy-action {
-      background: rgba(255,46,99,0.1); border: 1px solid rgba(255,46,99,0.3);
-      border-radius: 40px; padding: 6px 16px;
-      color: var(--accent-pink); font-size: 0.75rem;
-      font-weight: 600; cursor: pointer; transition: 0.2s;
-    }
-    .btn-copy-action:hover { background: rgba(255,46,99,0.2); }
-
     .layout-split { display: flex; flex-direction: row; height: 100%; min-height: 400px; }
     .sidebar-col { width: 260px; flex-shrink: 0; background: rgba(0, 0, 0, 0.35); border-right: 1px solid var(--border-subtle); overflow-y: auto; }
     .sidebar-header { padding: 14px 20px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent-cyan); border-bottom: 1px solid var(--border-subtle); }
@@ -829,6 +805,7 @@
   const SID='19AodSFSw4shpSZVZ4I-_sD91eU1HPITMeg4cwLiEV1c';
   const SHEETS=['bonus','PK_anti_audit','PK_LULUS_SENSOR_AUDIT','seputar_gantirek','seputar_pk'];
   const CCC=['PK_LULUS_SENSOR_AUDIT','seputar_gantirek','seputar_pk'];
+  const SIDEBAR_SHEETS=['bonus','PK_anti_audit'];
   let allData={},currentSheet='bonus',isRefreshing=false;
   async function fetchSheet(sn){try{const r=await fetch(`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sn)}`),t=await r.text(),j=JSON.parse(t.substring(47,t.length-2));if(!j.table?.rows)return[];const c=j.table.cols||[],h=c.map(col=>col.label||`col_${col.id}`);return j.table.rows.map(row=>{const o={};row.c?.forEach((cell,idx)=>{o[h[idx]||`col_${idx}`]=cell?cell.v:null;});return o;});}catch(e){return[];}}
   async function loadAllSheets(silent){
@@ -837,39 +814,57 @@
   async function handleRefresh(){if(isRefreshing)return;isRefreshing=true;const btn=document.getElementById('refreshBtn'),icon=document.getElementById('refreshIcon'),text=document.getElementById('refreshText'),ov=document.getElementById('refreshOverlay');btn.classList.add('is-loading');icon.classList.add('icon-spin');text.textContent='Loading...';ov.classList.add('active');try{await loadAllSheets(true);showToast('Data berhasil diperbarui!','success');}catch(e){showToast('Gagal memuat data.','info');}ov.classList.remove('active');btn.classList.remove('is-loading');icon.classList.remove('icon-spin');text.textContent='Refresh';isRefreshing=false;}
   function escapeHTML(s){if(!s)return'';return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]||m);}
   function renderQna(data){if(!data.length)return'<div class="empty-state">Tidak ada data</div>';const k=Object.keys(data[0]),cA=k[0],cB=k[1],cC=k[2]||null,oC=CCC.includes(currentSheet);let h='<table class="qna-table"><thead><tr><th>'+escapeHTML(cA)+'</th>'+(cC?'<th>'+escapeHTML(cB)+'</th><th>'+escapeHTML(cC)+'</th>':'<th>'+escapeHTML(cB)+'</th>')+'<th>Copy</th></tr></thead><tbody>';data.forEach(r=>{const v1=r[k[0]]||'',v2=r[k[1]]||'',v3=cC?(r[k[2]]||''):'';let ct=oC?(v3||v2||v1):[v1,v2,v3].filter(Boolean).join(' — ');h+='<tr><td>'+escapeHTML(v1)+'</td>'+(cC?'<td>'+escapeHTML(v2)+'</td><td>'+escapeHTML(v3)+'</td>':'<td>'+escapeHTML(v2)+'</td>')+'<td class="col-action"><button class="copy-trigger copy-btn" data-text="'+escapeHTML(ct)+'"><i class="fas fa-copy"></i> Salin</button></td></tr>';});h+='</tbody></table>';return h;}
+
+  /* ====== Sidebar layout — dipakai oleh bonus & PK_anti_audit ====== */
   function renderSidebarLayout(data){if(!data.length)return'<div class="empty-state">Tidak ada data</div>';const k=Object.keys(data[0]);let h=`<div class="layout-split"><div class="sidebar-col"><div class="sidebar-header"><i class="fas fa-list"></i> Index</div><div class="sidebar-list">`;data.forEach((r,i)=>{h+=`<div class="sidebar-item" data-index="${i}"><i class="fas fa-caret-right"></i> ${escapeHTML(r[k[0]]||`Item ${i+1}`)}</div>`;});h+=`</div></div><div class="detail-col" id="detailPanel"><div class="detail-content"><i class="fas fa-info-circle"></i> Pilih item</div></div></div>`;return h;}
 
-  /* ====== YANG DIUBAH: bonus sekarang pakai renderQna, bukan renderAssetsGrid ====== */
+  /* ====== Init sidebar interaksi (dipakai bersama oleh bonus & PK_anti_audit) ====== */
+  function initSidebarInteraction(data){
+    const items=document.querySelectorAll('.sidebar-item'),panel=document.getElementById('detailPanel');
+    if(!items.length)return;
+    const k=Object.keys(data[0]);
+    const update=i=>{
+      const r=data[i],t=r[k[0]]||'-';
+      /* Ambil semua nilai kolom setelah kolom pertama sebagai deskripsi */
+      const descParts=[];
+      for(let j=1;j<k.length;j++){const v=r[k[j]];if(v)descParts.push(v);}
+      const d=descParts.join('\n\n')||'-';
+      panel.innerHTML=`<div class="detail-content"><div style="color:#ff2e63;font-weight:600;font-size:0.95rem;">📌 ${escapeHTML(t)}</div><div style="margin-top:12px;background:rgba(0,0,0,0.3);padding:14px;border-radius:16px;font-size:0.82rem;color:var(--text-secondary);line-height:1.7;white-space:pre-wrap;">${escapeHTML(d)}</div><button class="copy-btn" data-desc="${escapeHTML(d)}" style="margin-top:16px;width:100%;padding:10px;background:rgba(255,46,99,0.1);border:1px solid rgba(255,46,99,0.3);border-radius:40px;color:#ff2e63;cursor:pointer;font-weight:600;font-size:0.8rem;"><i class="fas fa-copy"></i> Copy Deskripsi</button></div>`;
+    };
+    items.forEach(item=>{item.addEventListener('click',()=>{items.forEach(i=>i.classList.remove('active'));item.classList.add('active');update(parseInt(item.dataset.index));});});
+    if(items[0]){items[0].classList.add('active');update(0);}
+  }
+
+  /* ====== YANG DIUBAH: bonus & PK_anti_audit sama-sama pakai sidebar layout ====== */
   function renderSheet(sn){
     currentSheet=sn;
     document.getElementById('pageTitle').innerHTML=sn.toUpperCase().replace(/_/g,' ');
     document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.sheet===sn));
     document.getElementById('searchInput').value='';
     const data=allData[sn]||[],c=document.getElementById('tableContainer');
-    if(sn==='bonus')       c.innerHTML=renderQna(data);       /* ← diubah dari renderAssetsGrid */
-    else if(sn==='PK_anti_audit'){
+
+    if(SIDEBAR_SHEETS.includes(sn)){
+      /* bonus & PK_anti_audit → sidebar + detail panel */
       c.innerHTML=renderSidebarLayout(data);
-      setTimeout(()=>{
-        const items=document.querySelectorAll('.sidebar-item'),panel=document.getElementById('detailPanel');
-        if(!items.length)return;
-        const update=i=>{const r=data[i],k=Object.keys(r),t=r[k[0]]||'-',d=r[k[2]]||r[k[1]]||'-';panel.innerHTML=`<div class="detail-content"><div style="color:#ff2e63;font-weight:600;font-size:0.95rem;">📌 ${escapeHTML(t)}</div><div style="margin-top:12px;background:rgba(0,0,0,0.3);padding:14px;border-radius:16px;font-size:0.82rem;color:var(--text-secondary);line-height:1.7;">${escapeHTML(d)}</div><button class="copy-btn" data-desc="${escapeHTML(d)}" style="margin-top:16px;width:100%;padding:10px;background:rgba(255,46,99,0.1);border:1px solid rgba(255,46,99,0.3);border-radius:40px;color:#ff2e63;cursor:pointer;font-weight:600;font-size:0.8rem;"><i class="fas fa-copy"></i> Copy Deskripsi</button></div>`;};
-        items.forEach(item=>{item.addEventListener('click',()=>{items.forEach(i=>i.classList.remove('active'));item.classList.add('active');update(parseInt(item.dataset.index));});});
-        if(items[0]){items[0].classList.add('active');update(0);}
-      },60);
+      setTimeout(()=>initSidebarInteraction(data),60);
+    }else{
+      /* sheet lainnya → tabel QnA */
+      c.innerHTML=renderQna(data);
     }
-    else c.innerHTML=renderQna(data);
   }
 
   function handleSearch(){
     const q=document.getElementById('searchInput').value.toLowerCase(),data=allData[currentSheet]||[];
     if(!data.length)return;
-    if(currentSheet==='PK_anti_audit'){
+    if(SIDEBAR_SHEETS.includes(currentSheet)){
+      /* Sidebar search — filter item di sidebar */
       const items=document.querySelectorAll('.sidebar-item');let f=-1;
       items.forEach((item,i)=>{const m=Object.values(data[i]).some(v=>v&&String(v).toLowerCase().includes(q));item.style.display=m?'flex':'none';if(m&&f===-1)f=i;});
       const a=document.querySelector('.sidebar-item.active');if((!a||a.style.display==='none')&&f!==-1)document.querySelector(`.sidebar-item[data-index="${f}"]`)?.click();
+    }else{
+      /* Tabel search — filter rows */
+      document.getElementById('tableContainer').innerHTML=renderQna(data.filter(r=>Object.values(r).some(v=>v&&String(v).toLowerCase().includes(q))));
     }
-    /* ====== YANG DIUBAH: bonus search juga pakai renderQna ====== */
-    else document.getElementById('tableContainer').innerHTML=renderQna(data.filter(r=>Object.values(r).some(v=>v&&String(v).toLowerCase().includes(q))));
   }
 
   function addLightningFlash(el){if(!el)return;el.style.transition='box-shadow 0.1s';el.style.boxShadow='0 0 20px rgba(255,46,99,0.6),inset 0 0 10px rgba(255,46,99,0.2)';setTimeout(()=>{el.style.boxShadow='';},250);}
