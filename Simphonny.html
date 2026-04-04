@@ -30,7 +30,6 @@
             flex-direction: column;
         }
 
-        /* --- BACKGROUND & EFFECTS --- */
         .bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
         #bg-canvas { opacity: 0.6; }
         .grid-overlay { background-image: linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px); background-size: 50px 50px; animation: gridMove 20s linear infinite; }
@@ -43,19 +42,231 @@
         .orb-2 { width: 30vw; height: 30vw; max-width: 400px; max-height: 400px; background: var(--neon-pink); bottom: -5%; left: -5%; animation-delay: -5s; }
         @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-20px, 20px) scale(0.9); } }
 
-        /* --- LOADER --- */
-        .loader-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); display: flex; justify-content: center; align-items: center; flex-direction: column; z-index: 9999; transition: opacity 0.8s ease, visibility 0.8s; }
+        /* ============================================================
+           NEW LOADER — CYBER TERMINAL BOOT SEQUENCE
+           ============================================================ */
+        .loader-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark);
+            display: flex; justify-content: center; align-items: center;
+            flex-direction: column; z-index: 9999;
+            transition: opacity 0.8s ease, visibility 0.8s;
+        }
         .loader-container.hide { opacity: 0; visibility: hidden; }
-        .loader-ring { width: 100px; height: 100px; position: relative; }
-        .loader-ring::before, .loader-ring::after { content: ''; position: absolute; border-radius: 50%; border: 3px solid transparent; }
-        .loader-ring::before { inset: 0; border-top-color: var(--neon-cyan); border-right-color: var(--neon-cyan); animation: spinRing 1.2s linear infinite; }
-        .loader-ring::after { inset: 15px; border-bottom-color: var(--neon-pink); border-left-color: var(--neon-pink); animation: spinRing 1s linear infinite reverse; }
-        .loader-core { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 20px; height: 20px; background: var(--neon-green); border-radius: 50%; animation: pulse 1s ease-in-out infinite; box-shadow: 0 0 30px var(--neon-green); }
-        @keyframes spinRing { 100% { transform: rotate(360deg); } }
-        @keyframes pulse { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(0.6); } }
-        .loader-text { margin-top: 30px; font-family: 'Orbitron', sans-serif; font-size: clamp(0.7rem, 2vw, 0.9rem); letter-spacing: 5px; color: var(--neon-cyan); }
 
-        /* --- HEADER --- */
+        .loader-terminal {
+            width: clamp(320px, 80vw, 520px);
+            background: rgba(5, 10, 18, 0.95);
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow:
+                0 0 60px rgba(0, 240, 255, 0.08),
+                0 30px 80px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(255,255,255,0.03);
+            position: relative;
+        }
+        .loader-terminal::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent 0%, var(--neon-cyan) 30%, var(--neon-pink) 70%, transparent 100%);
+            animation: scanBar 2s ease-in-out infinite;
+        }
+        @keyframes scanBar {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        /* Terminal Title Bar */
+        .terminal-bar {
+            display: flex; align-items: center; gap: 8px;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.5);
+            border-bottom: 1px solid rgba(0, 240, 255, 0.08);
+        }
+        .terminal-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+        }
+        .terminal-dot.red { background: #ff3b30; box-shadow: 0 0 6px #ff3b30; }
+        .terminal-dot.yellow { background: #ffcc00; box-shadow: 0 0 6px #ffcc00; }
+        .terminal-dot.green { background: #34c759; box-shadow: 0 0 6px #34c759; }
+        .terminal-title {
+            flex: 1; text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.6rem; letter-spacing: 3px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        /* Terminal Body */
+        .terminal-body { padding: 20px 18px 18px; }
+
+        .loader-brand {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 20px;
+        }
+        .loader-logo {
+            width: 40px; height: 40px;
+            border: 2px solid var(--neon-cyan);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem; font-weight: 900;
+            color: var(--neon-cyan);
+            position: relative;
+            animation: logoPulse 2s ease-in-out infinite;
+        }
+        .loader-logo::after {
+            content: ''; position: absolute; inset: -4px;
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            border-radius: 13px;
+            animation: logoRing 2s ease-in-out infinite;
+        }
+        @keyframes logoPulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(0, 240, 255, 0.3); }
+            50% { box-shadow: 0 0 25px rgba(0, 240, 255, 0.6); }
+        }
+        @keyframes logoRing {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+        .loader-brand-text h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem; font-weight: 700;
+            letter-spacing: 3px; color: var(--text-primary);
+        }
+        .loader-brand-text span {
+            font-size: 0.65rem; color: var(--neon-pink);
+            letter-spacing: 2px; text-transform: uppercase;
+        }
+
+        /* Log Lines */
+        .loader-log {
+            height: 110px;
+            overflow: hidden;
+            margin-bottom: 18px;
+            position: relative;
+        }
+        .loader-log::after {
+            content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+            height: 30px;
+            background: linear-gradient(transparent, rgba(5, 10, 18, 0.95));
+            pointer-events: none;
+        }
+        .log-line {
+            display: flex; align-items: flex-start; gap: 8px;
+            font-family: 'Rajdhani', monospace;
+            font-size: 0.78rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            opacity: 0;
+            transform: translateY(8px);
+            transition: all 0.4s ease;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        .log-line.active {
+            opacity: 1; transform: translateY(0);
+        }
+        .log-line .log-prefix {
+            color: var(--neon-cyan); font-weight: 700; flex-shrink: 0;
+        }
+        .log-line .log-ok {
+            color: var(--neon-green); font-weight: 700; flex-shrink: 0;
+        }
+        .log-line .log-warn {
+            color: var(--neon-orange); font-weight: 700; flex-shrink: 0;
+        }
+        .log-line .log-text { color: var(--text-secondary); }
+        .log-cursor {
+            display: inline-block; width: 7px; height: 14px;
+            background: var(--neon-cyan);
+            animation: cursorBlink 0.6s step-end infinite;
+            vertical-align: middle; margin-left: 2px;
+        }
+        @keyframes cursorBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Progress Section */
+        .loader-progress-section {
+            border-top: 1px solid rgba(0, 240, 255, 0.06);
+            padding-top: 16px;
+        }
+        .progress-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 8px;
+        }
+        .progress-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.6rem; letter-spacing: 2px;
+            color: var(--text-secondary); text-transform: uppercase;
+        }
+        .progress-percent {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem; font-weight: 700;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
+            min-width: 40px; text-align: right;
+        }
+        .progress-track {
+            width: 100%; height: 4px;
+            background: rgba(0, 240, 255, 0.06);
+            border-radius: 4px; overflow: hidden;
+            position: relative;
+        }
+        .progress-fill {
+            height: 100%; width: 0%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
+            transition: width 0.3s ease;
+            position: relative;
+        }
+        .progress-fill::after {
+            content: ''; position: absolute;
+            top: 0; right: 0; bottom: 0; width: 30px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4));
+            animation: shimmer 1s ease-in-out infinite;
+        }
+        @keyframes shimmer {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+        .progress-details {
+            display: flex; justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.65rem; color: var(--text-secondary);
+            letter-spacing: 1px;
+        }
+        .progress-details .detail-val { color: var(--neon-green); font-weight: 700; }
+
+        /* Loader Footer */
+        .loader-footer {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            margin-top: 16px;
+        }
+        .loader-footer .pulse-dot {
+            width: 5px; height: 5px; border-radius: 50%;
+            background: var(--neon-cyan);
+            animation: dotPulse 1.4s ease-in-out infinite;
+        }
+        .loader-footer .pulse-dot:nth-child(2) { animation-delay: 0.2s; }
+        .loader-footer .pulse-dot:nth-child(3) { animation-delay: 0.4s; }
+        .loader-footer span {
+            font-size: 0.65rem; color: var(--text-secondary);
+            letter-spacing: 2px; text-transform: uppercase;
+            margin-left: 8px;
+        }
+        @keyframes dotPulse {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
+            40% { transform: scale(1.2); opacity: 1; }
+        }
+
+        /* ============================================================
+           END NEW LOADER
+           ============================================================ */
+
         header { padding: 60px 20px 30px; text-align: center; position: relative; }
         .header-decoration { position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-pink), transparent); }
         .title-container { position: relative; display: inline-block; width: 100%; }
@@ -69,7 +280,6 @@
         .title-line::after { right: 0; background: var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink); }
         .subtitle { margin-top: 20px; font-family: 'Orbitron', sans-serif; font-size: clamp(0.6rem, 1.5vw, 0.75rem); color: var(--neon-pink); letter-spacing: clamp(2px, 1vw, 8px); text-transform: uppercase; opacity: 0.8; }
 
-        /* --- SEARCH BAR --- */
         .search-container { max-width: 600px; width: 90%; margin: 0 auto 30px; position: relative; z-index: 10; }
         .search-wrapper { background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 60px; padding: 5px; display: flex; align-items: center; transition: all 0.4s ease; backdrop-filter: blur(10px); overflow: hidden; }
         .search-wrapper:focus-within { border-color: var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 240, 255, 0.2); }
@@ -85,7 +295,6 @@
         .result-item i { color: var(--neon-cyan); width: 20px; text-align: center; }
         .result-item span { font-weight: 600; font-size: 0.95rem; }
 
-        /* --- STATUS PANEL --- */
         .status-panel { max-width: 1400px; width: 95%; margin: 0 auto 40px; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
         .ticker-wrap { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 45, 106, 0.2); border-radius: 10px; overflow: hidden; display: flex; align-items: center; padding: 0 15px; }
         .ticker-label { background: var(--neon-pink); color: #000; padding: 5px 12px; border-radius: 4px; font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 700; white-space: nowrap; margin-right: 15px; box-shadow: 0 0 10px var(--neon-pink); }
@@ -100,14 +309,12 @@
         .stat-value { font-family: 'Orbitron', sans-serif; font-size: 1.1rem; color: var(--neon-cyan); text-shadow: 0 0 5px var(--neon-cyan); }
         .stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); }
 
-        /* --- GRID CONTAINER --- */
         .main-container { max-width: 1400px; width: 100%; margin: 0 auto; padding: 0 clamp(15px, 5vw, 40px) 150px; }
         .section-header { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; }
         .section-line { flex: 1; height: 1px; background: linear-gradient(90deg, var(--neon-cyan), transparent); }
         .section-title { font-family: 'Orbitron', sans-serif; font-size: clamp(0.7rem, 1.5vw, 0.85rem); color: var(--neon-cyan); letter-spacing: 3px; white-space: nowrap; }
         .grid-system { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: clamp(15px, 2.5vw, 25px); }
 
-        /* --- CARD STYLE (3D ENHANCED) --- */
         .tech-card {
             background: var(--bg-card);
             border: 1px solid rgba(0, 240, 255, 0.1);
@@ -115,86 +322,37 @@
             padding: 20px;
             position: relative;
             overflow: hidden;
-            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out; /* Smooth transition for tilt */
-            display: flex;
-            flex-direction: column;
-            opacity: 0;
-            transform: translateY(40px) scale(0.95);
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+            display: flex; flex-direction: column;
+            opacity: 0; transform: translateY(40px) scale(0.95);
             backdrop-filter: blur(5px);
             will-change: transform;
         }
-
         .tech-card.visible { opacity: 1; transform: translateY(0) scale(1); }
-        
-        .tech-card::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-            background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
-            opacity: 0; transition: opacity 0.3s ease; z-index: 2;
-        }
-        .tech-card::after {
-            content: ''; position: absolute; inset: 0;
-            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0, 240, 255, 0.06) 0%, transparent 50%);
-            opacity: 0; transition: opacity 0.3s ease; pointer-events: none;
-        }
+        .tech-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent); opacity: 0; transition: opacity 0.3s ease; z-index: 2; }
+        .tech-card::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0, 240, 255, 0.06) 0%, transparent 50%); opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
         .tech-card:hover::before, .tech-card:hover::after { opacity: 1; }
-
         .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; z-index: 1; }
         .card-header-text h3 { font-family: 'Orbitron', sans-serif; font-size: clamp(0.9rem, 2vw, 1.1rem); margin-bottom: 6px; letter-spacing: 1px; transition: color 0.3s ease; }
         .tech-card:hover .card-header-text h3 { color: var(--neon-cyan); }
         .card-status { font-size: 0.6rem; padding: 4px 8px; border-radius: 15px; background: rgba(57, 255, 20, 0.1); color: var(--neon-green); border: 1px solid rgba(57, 255, 20, 0.2); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; display: flex; align-items: center; gap: 5px; }
         .card-status::before { content: ''; width: 5px; height: 5px; background: var(--neon-green); border-radius: 50%; box-shadow: 0 0 8px var(--neon-green); animation: blink 1.5s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        
-        .card-icon-box {
-            width: 45px; height: 45px; background: rgba(0, 240, 255, 0.05);
-            border: 1px solid rgba(0, 240, 255, 0.1); border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.2rem; color: var(--neon-cyan);
-            transition: all 0.4s ease; flex-shrink: 0;
-        }
-        .tech-card:hover .card-icon-box {
-            background: var(--neon-cyan); border-color: var(--neon-cyan);
-            color: var(--bg-dark); box-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
-            transform: rotate(-5deg) scale(1.1);
-        }
-
+        .card-icon-box { width: 45px; height: 45px; background: rgba(0, 240, 255, 0.05); border: 1px solid rgba(0, 240, 255, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: var(--neon-cyan); transition: all 0.4s ease; flex-shrink: 0; }
+        .tech-card:hover .card-icon-box { background: var(--neon-cyan); border-color: var(--neon-cyan); color: var(--bg-dark); box-shadow: 0 0 20px rgba(0, 240, 255, 0.5); transform: rotate(-5deg) scale(1.1); }
         .card-body { flex-grow: 1; margin-bottom: 15px; z-index: 1; }
         .card-desc { color: var(--text-secondary); line-height: 1.5; font-size: clamp(0.8rem, 1.8vw, 0.9rem); }
         .card-footer { border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 15px; margin-top: auto; z-index: 1; }
         .btn-connect { width: 100%; padding: 10px; background: transparent; border: 1px solid rgba(255, 255, 255, 0.15); color: var(--text-primary); border-radius: 10px; font-family: 'Orbitron', sans-serif; font-size: clamp(0.65rem, 1.5vw, 0.75rem); cursor: pointer; transition: all 0.4s ease; text-transform: uppercase; letter-spacing: 2px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-connect:hover { border-color: var(--neon-cyan); color: var(--neon-cyan); background: rgba(0, 240, 255, 0.05); box-shadow: 0 0 15px rgba(0, 240, 255, 0.2); }
 
-        /* --- ALERT TOASTS --- */
-        .toast-container {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            z-index: 2000;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .toast {
-            background: rgba(8, 15, 25, 0.95);
-            border: 1px solid var(--neon-cyan);
-            border-left: 4px solid var(--neon-cyan);
-            padding: 12px 20px;
-            border-radius: 6px;
-            color: var(--text-primary);
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 0.85rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            animation: slideInRight 0.5s ease, fadeOut 0.5s ease 4s forwards;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        .toast-container { position: fixed; top: 80px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: rgba(8, 15, 25, 0.95); border: 1px solid var(--neon-cyan); border-left: 4px solid var(--neon-cyan); padding: 12px 20px; border-radius: 6px; color: var(--text-primary); font-family: 'Rajdhani', sans-serif; font-size: 0.85rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: slideInRight 0.5s ease, fadeOut 0.5s ease 4s forwards; display: flex; align-items: center; gap: 10px; }
         .toast.error { border-color: var(--neon-pink); border-left-color: var(--neon-pink); }
         .toast.success { border-color: var(--neon-green); border-left-color: var(--neon-green); }
         @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeOut { to { opacity: 0; transform: translateX(100%); } }
 
-        /* --- FOOTER --- */
         .footer-bar { position: fixed; bottom: 0; width: 100%; background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.95)); backdrop-filter: blur(20px); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-secondary); z-index: 50; border-top: 1px solid rgba(0, 240, 255, 0.1); }
         .footer-left { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         .status-indicator { display: flex; align-items: center; gap: 8px; background: rgba(57, 255, 20, 0.05); padding: 5px 10px; border-radius: 30px; border: 1px solid rgba(57, 255, 20, 0.1); font-size: 0.7rem; }
@@ -202,7 +360,6 @@
         .time-display { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: var(--neon-cyan); letter-spacing: 2px; }
         .footer-right { font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; }
 
-        /* Responsive */
         @media (max-width: 900px) { .status-panel { grid-template-columns: 1fr; } }
         @media (max-width: 768px) {
             .footer-bar { flex-direction: column; gap: 8px; padding: 10px 15px; }
@@ -215,26 +372,98 @@
 </head>
 <body>
 
-    <!-- Background Layers -->
     <canvas id="bg-canvas" class="bg-layer"></canvas>
     <div class="bg-layer grid-overlay"></div>
     <div class="bg-layer scanline"></div>
     <div class="bg-layer vignette"></div>
-    
-    <!-- Glow Orbs -->
     <div class="glow-orb orb-1"></div>
     <div class="glow-orb orb-2"></div>
 
-    <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- Loader -->
+    <!-- ========== NEW LOADER ========== -->
     <div class="loader-container" id="loader">
-        <div class="loader-ring"><div class="loader-core"></div></div>
-        <p class="loader-text">INITIALIZING SYSTEM</p>
-    </div>
+        <div class="loader-terminal">
+            <!-- Title Bar -->
+            <div class="terminal-bar">
+                <div class="terminal-dot red"></div>
+                <div class="terminal-dot yellow"></div>
+                <div class="terminal-dot green"></div>
+                <div class="terminal-title">symphonny_boot.sys</div>
+                <div style="width:30px;"></div>
+            </div>
 
-    <!-- Header -->
+            <!-- Body -->
+            <div class="terminal-body">
+                <!-- Brand -->
+                <div class="loader-brand">
+                    <div class="loader-logo">S</div>
+                    <div class="loader-brand-text">
+                        <h2>SYMPHONNY</h2>
+                        <span>Cyber_Ops v2.0</span>
+                    </div>
+                </div>
+
+                <!-- Log Lines -->
+                <div class="loader-log" id="loaderLog">
+                    <div class="log-line" data-delay="200">
+                        <span class="log-prefix">[SYS]</span>
+                        <span class="log-text">Initializing kernel modules...</span>
+                    </div>
+                    <div class="log-line" data-delay="500">
+                        <span class="log-prefix">[NET]</span>
+                        <span class="log-text">Establishing secure tunnel...</span>
+                    </div>
+                    <div class="log-line" data-delay="850">
+                        <span class="log-prefix">[SEC]</span>
+                        <span class="log-text">Loading encryption keys (AES-256)...</span>
+                    </div>
+                    <div class="log-line" data-delay="1200">
+                        <span class="log-prefix">[DB]</span>
+                        <span class="log-text">Syncing 18 module databases...</span>
+                    </div>
+                    <div class="log-line" data-delay="1550">
+                        <span class="log-ok">[OK]</span>
+                        <span class="log-text">Firewall active — 0 threats detected</span>
+                    </div>
+                    <div class="log-line" data-delay="1900">
+                        <span class="log-warn">[!]</span>
+                        <span class="log-text">Running integrity check...</span>
+                    </div>
+                    <div class="log-line" data-delay="2300" id="finalLog">
+                        <span class="log-ok">[OK]</span>
+                        <span class="log-text">All systems nominal<span class="log-cursor"></span></span>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="loader-progress-section">
+                    <div class="progress-header">
+                        <span class="progress-label">Boot Progress</span>
+                        <span class="progress-percent" id="progressPercent">0%</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-details">
+                        <span>Modules: <span class="detail-val">18/18</span></span>
+                        <span>Nodes: <span class="detail-val">204</span></span>
+                        <span>Latency: <span class="detail-val" id="loaderPing">--</span></span>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="loader-footer">
+                    <div class="pulse-dot"></div>
+                    <div class="pulse-dot"></div>
+                    <div class="pulse-dot"></div>
+                    <span>Establishing connection</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ========== END NEW LOADER ========== -->
+
     <header>
         <div class="header-decoration"></div>
         <div class="title-container">
@@ -246,7 +475,6 @@
         <div class="subtitle">Secure Network Portal</div>
     </header>
 
-    <!-- Search -->
     <div class="search-container">
         <div class="search-wrapper">
             <i class="fas fa-search search-icon"></i>
@@ -255,7 +483,6 @@
         <div class="search-results" id="searchResults"></div>
     </div>
 
-    <!-- Status Panel -->
     <div class="status-panel">
         <div class="ticker-wrap">
             <div class="ticker-label">ALERT</div>
@@ -281,7 +508,6 @@
         </div>
     </div>
 
-    <!-- Content -->
     <div class="main-container">
         <div class="section-header">
             <span class="section-title">System Modules</span>
@@ -290,7 +516,6 @@
         <div class="grid-system" id="engineGrid"></div>
     </div>
 
-    <!-- Footer -->
     <footer class="footer-bar">
         <div class="footer-left">
             <div class="status-indicator">
@@ -303,7 +528,58 @@
     </footer>
 
     <script>
-        // --- DATA ENGINE ---
+        /* ============================================================
+           LOADER BOOT SEQUENCE LOGIC
+           ============================================================ */
+        (function bootSequence() {
+            const logLines = document.querySelectorAll('#loaderLog .log-line');
+            const progressFill = document.getElementById('progressFill');
+            const progressPercent = document.getElementById('progressPercent');
+            const loaderPing = document.getElementById('loaderPing');
+            const loader = document.getElementById('loader');
+            const footerText = document.querySelector('.loader-footer span');
+
+            const totalDuration = 3000; // Total boot time in ms
+            const steps = logLines.length;
+
+            logLines.forEach((line, i) => {
+                const delay = parseInt(line.dataset.delay) || i * 300;
+
+                setTimeout(() => {
+                    line.classList.add('active');
+
+                    // Update progress bar proportionally
+                    const progress = Math.min(100, Math.round(((i + 1) / steps) * 100));
+                    progressFill.style.width = progress + '%';
+                    progressPercent.textContent = progress + '%';
+
+                    // Simulate ping
+                    loaderPing.textContent = (Math.floor(Math.random() * 8) + 10) + 'ms';
+
+                    // Update footer text based on step
+                    const footerMessages = [
+                        'Establishing connection',
+                        'Negotiating handshake',
+                        'Verifying credentials',
+                        'Loading resources',
+                        'Scanning perimeter',
+                        'Checking integrity',
+                        'Connection secured'
+                    ];
+                    if (footerMessages[i]) footerText.textContent = footerMessages[i];
+
+                }, delay);
+            });
+
+            // Hide loader after total duration
+            setTimeout(() => {
+                loader.classList.add('hide');
+            }, totalDuration + 400);
+        })();
+
+        /* ============================================================
+           DATA ENGINE
+           ============================================================ */
         const dataEngine = [
             { id: 1, title: "ALL PK", desc: "Database pusat seluruh PK yang tersedia dengan akses terintegrasi.", url: "https://symphonny.vercel.app/DATABASE.html", icon: "fa-database" },
             { id: 2, title: "Pemutar Video", desc: "Platform streaming dengan kualitas tinggi tanpa buffering.", url: "https://symphonny.vercel.app/pemutar_video.html", icon: "fa-play" },
@@ -325,7 +601,9 @@
             { id: 18, title: "Text Gen", desc: "Generator kata kunci otomatis untuk optimasi.", url: "https://symphonny.vercel.app/generate_kata.html", icon: "fa-font" }
         ];
 
-        // --- RENDER CARDS & 3D TILT LOGIC ---
+        /* ============================================================
+           RENDER CARDS & 3D TILT
+           ============================================================ */
         const grid = document.getElementById('engineGrid');
 
         dataEngine.forEach((item, index) => {
@@ -355,21 +633,16 @@
             `;
             grid.appendChild(card);
 
-            // 3D Tilt Effect Logic
             card.addEventListener('mousemove', (e) => {
                 const rect = card.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
-
                 const centerX = rect.width / 2;
                 const centerY = rect.height / 2;
-
-                const rotateX = ((y - centerY) / centerY) * -10; 
+                const rotateX = ((y - centerY) / centerY) * -10;
                 const rotateY = ((x - centerX) / centerX) * 10;
-
                 card.style.setProperty('--mouse-x', (x / rect.width) * 100 + '%');
                 card.style.setProperty('--mouse-y', (y / rect.height) * 100 + '%');
-
                 card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
             });
 
@@ -378,7 +651,9 @@
             });
         });
 
-        // --- INTERSECTION OBSERVER ---
+        /* ============================================================
+           INTERSECTION OBSERVER
+           ============================================================ */
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) entry.target.classList.add('visible');
@@ -387,16 +662,16 @@
 
         document.querySelectorAll('.tech-card').forEach(card => observer.observe(card));
 
-        // --- SEARCH LOGIC ---
+        /* ============================================================
+           SEARCH
+           ============================================================ */
         const searchInput = document.getElementById('searchInput');
         const searchResults = document.getElementById('searchResults');
 
         searchInput.addEventListener('input', (e) => {
             const val = e.target.value.toLowerCase();
             if (val.length < 2) { searchResults.classList.remove('show'); return; }
-
             const found = dataEngine.filter(d => d.title.toLowerCase().includes(val) || d.desc.toLowerCase().includes(val));
-
             if (found.length > 0) {
                 searchResults.innerHTML = found.map(f => `
                     <div class="result-item" onclick="window.open('${f.url}', '_blank')">
@@ -418,22 +693,21 @@
             if (!e.target.closest('.search-container')) searchResults.classList.remove('show');
         });
 
-        // --- TIME & STATS DISPLAY ---
+        /* ============================================================
+           TIME & STATS
+           ============================================================ */
         function updateTime() {
             document.getElementById('timeDisplay').innerText = new Date().toLocaleTimeString('en-US', { hour12: false });
-            
-            const ping = Math.floor(Math.random() * 10) + 10;
-            const load = Math.floor(Math.random() * 20) + 50;
-            const users = Math.floor(Math.random() * 50) + 180;
-            
-            document.getElementById('pingStat').innerText = ping + 'ms';
-            document.getElementById('loadStat').innerText = load + '%';
-            document.getElementById('userStat').innerText = users;
+            document.getElementById('pingStat').innerText = (Math.floor(Math.random() * 10) + 10) + 'ms';
+            document.getElementById('loadStat').innerText = (Math.floor(Math.random() * 20) + 50) + '%';
+            document.getElementById('userStat').innerText = Math.floor(Math.random() * 50) + 180;
         }
         setInterval(updateTime, 1000);
         updateTime();
 
-        // --- BACKGROUND MATRIX RAIN ---
+        /* ============================================================
+           MATRIX RAIN BACKGROUND
+           ============================================================ */
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         let columns, drops = [];
@@ -467,7 +741,9 @@
         }
         setInterval(drawMatrix, 50);
 
-        // --- RANDOM TOAST NOTIFICATIONS ---
+        /* ============================================================
+           RANDOM TOAST NOTIFICATIONS
+           ============================================================ */
         const toastContainer = document.getElementById('toastContainer');
         const toastMessages = [
             { text: "Security Patch Applied", type: "success" },
@@ -483,21 +759,15 @@
             toast.className = `toast ${msg.type}`;
             toast.innerHTML = `<i class="fas fa-info-circle"></i> ${msg.text}`;
             toastContainer.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.remove();
-            }, 4500);
+            setTimeout(() => toast.remove(), 4500);
         }
-        
+
         setTimeout(showToast, 3000);
-        setInterval(() => {
-            if (Math.random() > 0.6) showToast();
-        }, 5000);
+        setInterval(() => { if (Math.random() > 0.6) showToast(); }, 5000);
 
-        // --- LOADER ---
-        window.onload = () => { setTimeout(() => { document.getElementById('loader').classList.add('hide'); }, 1500); };
-
-        // --- PROTECTION ---
+        /* ============================================================
+           PROTECTION
+           ============================================================ */
         document.addEventListener('keydown', function(e) {
             if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && e.keyCode === 73) || (e.ctrlKey && e.shiftKey && e.keyCode === 74) || (e.ctrlKey && e.keyCode === 85)) {
                 e.preventDefault(); return false;
