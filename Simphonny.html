@@ -43,7 +43,7 @@
         @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-20px, 20px) scale(0.9); } }
 
         /* ============================================================
-           NEW LOADER — CYBER TERMINAL BOOT SEQUENCE
+           NEW LOADER — HEXAGONAL SHIELD SCAN
            ============================================================ */
         .loader-container {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -51,216 +51,298 @@
             display: flex; justify-content: center; align-items: center;
             flex-direction: column; z-index: 9999;
             transition: opacity 0.8s ease, visibility 0.8s;
+            overflow: hidden;
         }
         .loader-container.hide { opacity: 0; visibility: hidden; }
 
-        .loader-terminal {
-            width: clamp(320px, 80vw, 520px);
-            background: rgba(5, 10, 18, 0.95);
-            border: 1px solid rgba(0, 240, 255, 0.15);
-            border-radius: 14px;
-            overflow: hidden;
-            box-shadow:
-                0 0 60px rgba(0, 240, 255, 0.08),
-                0 30px 80px rgba(0, 0, 0, 0.6),
-                inset 0 1px 0 rgba(255,255,255,0.03);
+        /* Ambient Background Particles */
+        .loader-bg-particles {
+            position: absolute; inset: 0; overflow: hidden;
+        }
+        .loader-bg-particles span {
+            position: absolute; width: 2px; height: 2px;
+            background: var(--neon-cyan); border-radius: 50%;
+            opacity: 0;
+            animation: particleFloat linear infinite;
+        }
+        @keyframes particleFloat {
+            0% { opacity: 0; transform: translateY(100vh) scale(0); }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { opacity: 0; transform: translateY(-10vh) scale(1); }
+        }
+
+        /* Shield Container */
+        .shield-wrap {
+            position: relative;
+            width: clamp(220px, 50vw, 300px);
+            height: clamp(220px, 50vw, 300px);
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 35px;
+        }
+
+        /* Outer Glow Ring */
+        .shield-glow {
+            position: absolute;
+            width: 110%; height: 110%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0,240,255,0.08) 0%, transparent 70%);
+            animation: glowPulse 2s ease-in-out infinite;
+        }
+        @keyframes glowPulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.15); opacity: 1; }
+        }
+
+        /* Rotating Outer Ring */
+        .shield-ring-outer {
+            position: absolute; width: 100%; height: 100%;
+            border: 1px solid rgba(0, 240, 255, 0.12);
+            border-radius: 50%;
+            animation: rotateSlow 12s linear infinite;
+        }
+        .shield-ring-outer::before {
+            content: ''; position: absolute;
+            top: -3px; left: 50%; transform: translateX(-50%);
+            width: 6px; height: 6px; background: var(--neon-cyan);
+            border-radius: 50%; box-shadow: 0 0 12px var(--neon-cyan);
+        }
+        .shield-ring-outer::after {
+            content: ''; position: absolute;
+            bottom: -3px; left: 50%; transform: translateX(-50%);
+            width: 6px; height: 6px; background: var(--neon-pink);
+            border-radius: 50%; box-shadow: 0 0 12px var(--neon-pink);
+        }
+        @keyframes rotateSlow { 100% { transform: rotate(360deg); } }
+
+        /* Counter-Rotating Inner Ring */
+        .shield-ring-inner {
+            position: absolute; width: 75%; height: 75%;
+            border: 1px dashed rgba(0, 240, 255, 0.1);
+            border-radius: 50%;
+            animation: rotateSlow 8s linear infinite reverse;
+        }
+        .shield-ring-inner::before {
+            content: ''; position: absolute;
+            top: 50%; right: -3px; transform: translateY(-50%);
+            width: 4px; height: 4px; background: var(--neon-green);
+            border-radius: 50%; box-shadow: 0 0 8px var(--neon-green);
+        }
+
+        /* Hexagon SVG */
+        .shield-hex {
+            position: absolute;
+            width: 60%; height: 60%;
+            animation: rotateSlow 20s linear infinite;
+        }
+        .shield-hex svg { width: 100%; height: 100%; }
+        .hex-path {
+            fill: none;
+            stroke: var(--neon-cyan);
+            stroke-width: 1.5;
+            stroke-dasharray: 600;
+            stroke-dashoffset: 600;
+            animation: drawHex 2s ease forwards, hexGlow 2s ease-in-out infinite 2s;
+        }
+        @keyframes drawHex {
+            to { stroke-dashoffset: 0; }
+        }
+        @keyframes hexGlow {
+            0%, 100% { filter: drop-shadow(0 0 4px rgba(0,240,255,0.4)); stroke: var(--neon-cyan); }
+            50% { filter: drop-shadow(0 0 12px rgba(0,240,255,0.8)); stroke: #fff; }
+        }
+
+        /* Inner Hexagon */
+        .shield-hex-inner {
+            position: absolute;
+            width: 38%; height: 38%;
+            animation: rotateSlow 15s linear infinite reverse;
+        }
+        .shield-hex-inner svg { width: 100%; height: 100%; }
+        .hex-path-inner {
+            fill: rgba(0, 240, 255, 0.03);
+            stroke: var(--neon-pink);
+            stroke-width: 1;
+            stroke-dasharray: 400;
+            stroke-dashoffset: 400;
+            animation: drawHexInner 1.5s ease 0.5s forwards, hexInnerGlow 3s ease-in-out infinite 2s;
+        }
+        @keyframes drawHexInner {
+            to { stroke-dashoffset: 0; }
+        }
+        @keyframes hexInnerGlow {
+            0%, 100% { filter: drop-shadow(0 0 2px rgba(255,45,106,0.3)); }
+            50% { filter: drop-shadow(0 0 8px rgba(255,45,106,0.7)); }
+        }
+
+        /* Scan Line (Radial Sweep) */
+        .shield-scan {
+            position: absolute; width: 50%; height: 50%;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, transparent 0%, transparent 60%, rgba(0,240,255,0.4) 80%, rgba(0,240,255,0.8) 100%);
+            animation: scanSweep 1.8s linear infinite;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .shield-scan.active { opacity: 1; }
+        @keyframes scanSweep { 100% { transform: rotate(360deg); } }
+
+        /* Center Core */
+        .shield-core {
+            position: absolute; z-index: 5;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+        .core-icon {
+            font-size: clamp(1.4rem, 4vw, 2rem);
+            color: var(--neon-cyan);
+            text-shadow: 0 0 20px var(--neon-cyan), 0 0 40px rgba(0,240,255,0.3);
+            animation: corePulse 2s ease-in-out infinite;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .core-icon.show { opacity: 1; transform: scale(1); }
+        @keyframes corePulse {
+            0%, 100% { text-shadow: 0 0 20px var(--neon-cyan), 0 0 40px rgba(0,240,255,0.3); }
+            50% { text-shadow: 0 0 30px var(--neon-cyan), 0 0 60px rgba(0,240,255,0.6), 0 0 80px rgba(0,240,255,0.2); }
+        }
+
+        /* Orbiting Nodes */
+        .shield-nodes {
+            position: absolute; width: 100%; height: 100%;
+            animation: rotateSlow 6s linear infinite;
+        }
+        .s-node {
+            position: absolute; width: 8px; height: 8px;
+            border-radius: 50%;
+            box-shadow: 0 0 8px currentColor;
+        }
+        .s-node:nth-child(1) { top: 0; left: 50%; transform: translate(-50%, -50%); color: var(--neon-cyan); background: var(--neon-cyan); }
+        .s-node:nth-child(2) { top: 15%; right: 5%; color: var(--neon-pink); background: var(--neon-pink); animation: nodePing 2s infinite; }
+        .s-node:nth-child(3) { bottom: 15%; right: 5%; color: var(--neon-green); background: var(--neon-green); animation: nodePing 2s infinite 0.7s; }
+        .s-node:nth-child(4) { bottom: 0; left: 50%; transform: translate(-50%, 50%); color: var(--neon-cyan); background: var(--neon-cyan); animation: nodePing 2s infinite 1.4s; }
+        .s-node:nth-child(5) { bottom: 15%; left: 5%; color: var(--neon-orange); background: var(--neon-orange); animation: nodePing 2s infinite 0.3s; }
+        .s-node:nth-child(6) { top: 15%; left: 5%; color: var(--neon-green); background: var(--neon-green); animation: nodePing 2s infinite 1s; }
+        @keyframes nodePing {
+            0%, 100% { box-shadow: 0 0 8px currentColor; transform: scale(1); }
+            50% { box-shadow: 0 0 16px currentColor, 0 0 30px currentColor; transform: scale(1.5); }
+        }
+
+        /* Corner Brackets */
+        .shield-bracket {
+            position: absolute; width: 20px; height: 20px;
+            border-color: rgba(0, 240, 255, 0.25);
+            border-style: solid;
+            border-width: 0;
+        }
+        .shield-bracket.tl { top: -5px; left: -5px; border-top-width: 2px; border-left-width: 2px; }
+        .shield-bracket.tr { top: -5px; right: -5px; border-top-width: 2px; border-right-width: 2px; }
+        .shield-bracket.bl { bottom: -5px; left: -5px; border-bottom-width: 2px; border-left-width: 2px; }
+        .shield-bracket.br { bottom: -5px; right: -5px; border-bottom-width: 2px; border-right-width: 2px; }
+
+        /* Text Section */
+        .loader-text-section {
+            text-align: center; z-index: 10;
             position: relative;
         }
-        .loader-terminal::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-            background: linear-gradient(90deg, transparent 0%, var(--neon-cyan) 30%, var(--neon-pink) 70%, transparent 100%);
-            animation: scanBar 2s ease-in-out infinite;
-        }
-        @keyframes scanBar {
-            0%, 100% { opacity: 0.4; }
-            50% { opacity: 1; }
-        }
-
-        /* Terminal Title Bar */
-        .terminal-bar {
-            display: flex; align-items: center; gap: 8px;
-            padding: 12px 16px;
-            background: rgba(0, 0, 0, 0.5);
-            border-bottom: 1px solid rgba(0, 240, 255, 0.08);
-        }
-        .terminal-dot {
-            width: 10px; height: 10px; border-radius: 50%;
-        }
-        .terminal-dot.red { background: #ff3b30; box-shadow: 0 0 6px #ff3b30; }
-        .terminal-dot.yellow { background: #ffcc00; box-shadow: 0 0 6px #ffcc00; }
-        .terminal-dot.green { background: #34c759; box-shadow: 0 0 6px #34c759; }
-        .terminal-title {
-            flex: 1; text-align: center;
+        .loader-title {
             font-family: 'Orbitron', sans-serif;
-            font-size: 0.6rem; letter-spacing: 3px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
+            font-size: clamp(1rem, 3vw, 1.3rem);
+            font-weight: 700; letter-spacing: 6px;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            opacity: 0; transform: translateY(15px);
+            transition: all 0.6s ease;
         }
+        .loader-title.show { opacity: 1; transform: translateY(0); }
 
-        /* Terminal Body */
-        .terminal-body { padding: 20px 18px 18px; }
-
-        .loader-brand {
-            display: flex; align-items: center; gap: 12px;
-            margin-bottom: 20px;
+        .loader-sub {
+            font-size: 0.7rem; color: var(--neon-pink);
+            letter-spacing: 4px; text-transform: uppercase;
+            margin-bottom: 25px;
+            opacity: 0; transition: opacity 0.5s ease 0.2s;
         }
-        .loader-logo {
-            width: 40px; height: 40px;
-            border: 2px solid var(--neon-cyan);
-            border-radius: 10px;
+        .loader-sub.show { opacity: 0.8; }
+
+        /* Circular Progress */
+        .circular-progress {
+            position: relative;
+            width: 70px; height: 70px;
+            margin: 0 auto 20px;
+            opacity: 0; transform: scale(0.8);
+            transition: all 0.5s ease;
+        }
+        .circular-progress.show { opacity: 1; transform: scale(1); }
+        .circular-progress svg { transform: rotate(-90deg); }
+        .progress-bg {
+            fill: none; stroke: rgba(0, 240, 255, 0.06);
+            stroke-width: 3;
+        }
+        .progress-fg {
+            fill: none; stroke: url(#progressGrad);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-dasharray: 188.5;
+            stroke-dashoffset: 188.5;
+            transition: stroke-dashoffset 0.3s ease;
+            filter: drop-shadow(0 0 6px rgba(0,240,255,0.5));
+        }
+        .progress-center {
+            position: absolute; inset: 0;
             display: flex; align-items: center; justify-content: center;
             font-family: 'Orbitron', sans-serif;
-            font-size: 1rem; font-weight: 900;
+            font-size: 0.85rem; font-weight: 700;
             color: var(--neon-cyan);
-            position: relative;
-            animation: logoPulse 2s ease-in-out infinite;
-        }
-        .loader-logo::after {
-            content: ''; position: absolute; inset: -4px;
-            border: 1px solid rgba(0, 240, 255, 0.2);
-            border-radius: 13px;
-            animation: logoRing 2s ease-in-out infinite;
-        }
-        @keyframes logoPulse {
-            0%, 100% { box-shadow: 0 0 10px rgba(0, 240, 255, 0.3); }
-            50% { box-shadow: 0 0 25px rgba(0, 240, 255, 0.6); }
-        }
-        @keyframes logoRing {
-            0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.1); opacity: 1; }
-        }
-        .loader-brand-text h2 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1rem; font-weight: 700;
-            letter-spacing: 3px; color: var(--text-primary);
-        }
-        .loader-brand-text span {
-            font-size: 0.65rem; color: var(--neon-pink);
-            letter-spacing: 2px; text-transform: uppercase;
+            text-shadow: 0 0 8px var(--neon-cyan);
         }
 
-        /* Log Lines */
-        .loader-log {
-            height: 110px;
-            overflow: hidden;
-            margin-bottom: 18px;
-            position: relative;
+        /* Data Stream Bar */
+        .data-stream {
+            display: flex; align-items: center; justify-content: center;
+            gap: 12px; margin-bottom: 18px;
+            opacity: 0; transition: opacity 0.5s ease;
         }
-        .loader-log::after {
-            content: ''; position: absolute; bottom: 0; left: 0; right: 0;
-            height: 30px;
-            background: linear-gradient(transparent, rgba(5, 10, 18, 0.95));
-            pointer-events: none;
+        .data-stream.show { opacity: 1; }
+        .ds-block {
+            display: flex; flex-direction: column; align-items: center; gap: 3px;
         }
-        .log-line {
-            display: flex; align-items: flex-start; gap: 8px;
-            font-family: 'Rajdhani', monospace;
-            font-size: 0.78rem;
-            line-height: 1.8;
-            color: var(--text-secondary);
-            opacity: 0;
-            transform: translateY(8px);
-            transition: all 0.4s ease;
-            white-space: nowrap;
-            overflow: hidden;
-        }
-        .log-line.active {
-            opacity: 1; transform: translateY(0);
-        }
-        .log-line .log-prefix {
-            color: var(--neon-cyan); font-weight: 700; flex-shrink: 0;
-        }
-        .log-line .log-ok {
-            color: var(--neon-green); font-weight: 700; flex-shrink: 0;
-        }
-        .log-line .log-warn {
-            color: var(--neon-orange); font-weight: 700; flex-shrink: 0;
-        }
-        .log-line .log-text { color: var(--text-secondary); }
-        .log-cursor {
-            display: inline-block; width: 7px; height: 14px;
-            background: var(--neon-cyan);
-            animation: cursorBlink 0.6s step-end infinite;
-            vertical-align: middle; margin-left: 2px;
-        }
-        @keyframes cursorBlink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-
-        /* Progress Section */
-        .loader-progress-section {
-            border-top: 1px solid rgba(0, 240, 255, 0.06);
-            padding-top: 16px;
-        }
-        .progress-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 8px;
-        }
-        .progress-label {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.6rem; letter-spacing: 2px;
-            color: var(--text-secondary); text-transform: uppercase;
-        }
-        .progress-percent {
+        .ds-val {
             font-family: 'Orbitron', sans-serif;
             font-size: 0.75rem; font-weight: 700;
             color: var(--neon-cyan);
-            text-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
-            min-width: 40px; text-align: right;
         }
-        .progress-track {
-            width: 100%; height: 4px;
-            background: rgba(0, 240, 255, 0.06);
-            border-radius: 4px; overflow: hidden;
-            position: relative;
+        .ds-label {
+            font-size: 0.55rem; letter-spacing: 2px;
+            color: var(--text-secondary); text-transform: uppercase;
         }
-        .progress-fill {
-            height: 100%; width: 0%;
-            border-radius: 4px;
-            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
-            box-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
-            transition: width 0.3s ease;
-            position: relative;
+        .ds-divider {
+            width: 1px; height: 28px;
+            background: rgba(0, 240, 255, 0.15);
         }
-        .progress-fill::after {
-            content: ''; position: absolute;
-            top: 0; right: 0; bottom: 0; width: 30px;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4));
-            animation: shimmer 1s ease-in-out infinite;
-        }
-        @keyframes shimmer {
-            0%, 100% { opacity: 0; }
-            50% { opacity: 1; }
-        }
-        .progress-details {
-            display: flex; justify-content: space-between;
-            margin-top: 10px;
-            font-size: 0.65rem; color: var(--text-secondary);
-            letter-spacing: 1px;
-        }
-        .progress-details .detail-val { color: var(--neon-green); font-weight: 700; }
 
-        /* Loader Footer */
-        .loader-footer {
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-            margin-top: 16px;
+        /* Status Text */
+        .loader-status {
+            font-size: 0.75rem; color: var(--text-secondary);
+            letter-spacing: 3px; text-transform: uppercase;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            opacity: 0; transition: opacity 0.5s ease;
         }
-        .loader-footer .pulse-dot {
-            width: 5px; height: 5px; border-radius: 50%;
+        .loader-status.show { opacity: 1; }
+        .status-bar {
+            width: 60px; height: 2px;
+            background: rgba(0, 240, 255, 0.1);
+            border-radius: 2px; overflow: hidden;
+        }
+        .status-bar-fill {
+            width: 30%; height: 100%;
             background: var(--neon-cyan);
-            animation: dotPulse 1.4s ease-in-out infinite;
+            border-radius: 2px;
+            animation: barSlide 1.2s ease-in-out infinite;
         }
-        .loader-footer .pulse-dot:nth-child(2) { animation-delay: 0.2s; }
-        .loader-footer .pulse-dot:nth-child(3) { animation-delay: 0.4s; }
-        .loader-footer span {
-            font-size: 0.65rem; color: var(--text-secondary);
-            letter-spacing: 2px; text-transform: uppercase;
-            margin-left: 8px;
-        }
-        @keyframes dotPulse {
-            0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
-            40% { transform: scale(1.2); opacity: 1; }
+        @keyframes barSlide {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(340%); }
         }
 
         /* ============================================================
@@ -316,17 +398,11 @@
         .grid-system { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: clamp(15px, 2.5vw, 25px); }
 
         .tech-card {
-            background: var(--bg-card);
-            border: 1px solid rgba(0, 240, 255, 0.1);
-            border-radius: 16px;
-            padding: 20px;
-            position: relative;
-            overflow: hidden;
+            background: var(--bg-card); border: 1px solid rgba(0, 240, 255, 0.1);
+            border-radius: 16px; padding: 20px; position: relative; overflow: hidden;
             transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
-            display: flex; flex-direction: column;
-            opacity: 0; transform: translateY(40px) scale(0.95);
-            backdrop-filter: blur(5px);
-            will-change: transform;
+            display: flex; flex-direction: column; opacity: 0;
+            transform: translateY(40px) scale(0.95); backdrop-filter: blur(5px); will-change: transform;
         }
         .tech-card.visible { opacity: 1; transform: translateY(0) scale(1); }
         .tech-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent); opacity: 0; transition: opacity 0.3s ease; z-index: 2; }
@@ -381,88 +457,100 @@
 
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- ========== NEW LOADER ========== -->
+    <!-- ========== NEW LOADER: HEXAGONAL SHIELD SCAN ========== -->
     <div class="loader-container" id="loader">
-        <div class="loader-terminal">
-            <!-- Title Bar -->
-            <div class="terminal-bar">
-                <div class="terminal-dot red"></div>
-                <div class="terminal-dot yellow"></div>
-                <div class="terminal-dot green"></div>
-                <div class="terminal-title">symphonny_boot.sys</div>
-                <div style="width:30px;"></div>
+        <!-- Background Particles -->
+        <div class="loader-bg-particles" id="loaderParticles"></div>
+
+        <!-- Shield Visual -->
+        <div class="shield-wrap">
+            <div class="shield-glow"></div>
+            <div class="shield-bracket tl"></div>
+            <div class="shield-bracket tr"></div>
+            <div class="shield-bracket bl"></div>
+            <div class="shield-bracket br"></div>
+
+            <div class="shield-ring-outer"></div>
+            <div class="shield-ring-inner"></div>
+
+            <!-- Hexagon SVGs -->
+            <div class="shield-hex">
+                <svg viewBox="0 0 100 100">
+                    <polygon class="hex-path" points="50,3 93,25 93,75 50,97 7,75 7,25"/>
+                </svg>
+            </div>
+            <div class="shield-hex-inner">
+                <svg viewBox="0 0 100 100">
+                    <polygon class="hex-path-inner" points="50,5 92,27.5 92,72.5 50,95 8,72.5 8,27.5"/>
+                </svg>
             </div>
 
-            <!-- Body -->
-            <div class="terminal-body">
-                <!-- Brand -->
-                <div class="loader-brand">
-                    <div class="loader-logo">S</div>
-                    <div class="loader-brand-text">
-                        <h2>SYMPHONNY</h2>
-                        <span>Cyber_Ops v2.0</span>
-                    </div>
-                </div>
+            <!-- Scan Sweep -->
+            <div class="shield-scan" id="shieldScan"></div>
 
-                <!-- Log Lines -->
-                <div class="loader-log" id="loaderLog">
-                    <div class="log-line" data-delay="200">
-                        <span class="log-prefix">[SYS]</span>
-                        <span class="log-text">Initializing kernel modules...</span>
-                    </div>
-                    <div class="log-line" data-delay="500">
-                        <span class="log-prefix">[NET]</span>
-                        <span class="log-text">Establishing secure tunnel...</span>
-                    </div>
-                    <div class="log-line" data-delay="850">
-                        <span class="log-prefix">[SEC]</span>
-                        <span class="log-text">Loading encryption keys (AES-256)...</span>
-                    </div>
-                    <div class="log-line" data-delay="1200">
-                        <span class="log-prefix">[DB]</span>
-                        <span class="log-text">Syncing 18 module databases...</span>
-                    </div>
-                    <div class="log-line" data-delay="1550">
-                        <span class="log-ok">[OK]</span>
-                        <span class="log-text">Firewall active — 0 threats detected</span>
-                    </div>
-                    <div class="log-line" data-delay="1900">
-                        <span class="log-warn">[!]</span>
-                        <span class="log-text">Running integrity check...</span>
-                    </div>
-                    <div class="log-line" data-delay="2300" id="finalLog">
-                        <span class="log-ok">[OK]</span>
-                        <span class="log-text">All systems nominal<span class="log-cursor"></span></span>
-                    </div>
-                </div>
+            <!-- Orbiting Nodes -->
+            <div class="shield-nodes">
+                <div class="s-node"></div>
+                <div class="s-node"></div>
+                <div class="s-node"></div>
+                <div class="s-node"></div>
+                <div class="s-node"></div>
+                <div class="s-node"></div>
+            </div>
 
-                <!-- Progress Bar -->
-                <div class="loader-progress-section">
-                    <div class="progress-header">
-                        <span class="progress-label">Boot Progress</span>
-                        <span class="progress-percent" id="progressPercent">0%</span>
-                    </div>
-                    <div class="progress-track">
-                        <div class="progress-fill" id="progressFill"></div>
-                    </div>
-                    <div class="progress-details">
-                        <span>Modules: <span class="detail-val">18/18</span></span>
-                        <span>Nodes: <span class="detail-val">204</span></span>
-                        <span>Latency: <span class="detail-val" id="loaderPing">--</span></span>
-                    </div>
-                </div>
+            <!-- Center Icon -->
+            <div class="shield-core">
+                <i class="fas fa-shield-halved core-icon" id="coreIcon"></i>
+            </div>
+        </div>
 
-                <!-- Footer -->
-                <div class="loader-footer">
-                    <div class="pulse-dot"></div>
-                    <div class="pulse-dot"></div>
-                    <div class="pulse-dot"></div>
-                    <span>Establishing connection</span>
+        <!-- Text Section -->
+        <div class="loader-text-section">
+            <div class="loader-title" id="loaderTitle">SYMPHONNY</div>
+            <div class="loader-sub" id="loaderSub">Shield Protocol Active</div>
+
+            <!-- Circular Progress -->
+            <div class="circular-progress" id="circProgress">
+                <svg width="70" height="70" viewBox="0 0 70 70">
+                    <defs>
+                        <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#00f0ff"/>
+                            <stop offset="100%" stop-color="#39ff14"/>
+                        </linearGradient>
+                    </defs>
+                    <circle class="progress-bg" cx="35" cy="35" r="30"/>
+                    <circle class="progress-fg" id="progressCircle" cx="35" cy="35" r="30"/>
+                </svg>
+                <div class="progress-center" id="progressNum">0%</div>
+            </div>
+
+            <!-- Data Stream -->
+            <div class="data-stream" id="dataStream">
+                <div class="ds-block">
+                    <span class="ds-val" id="dsModules">0</span>
+                    <span class="ds-label">Modules</span>
                 </div>
+                <div class="ds-divider"></div>
+                <div class="ds-block">
+                    <span class="ds-val" id="dsNodes">0</span>
+                    <span class="ds-label">Nodes</span>
+                </div>
+                <div class="ds-divider"></div>
+                <div class="ds-block">
+                    <span class="ds-val" id="dsPing">--</span>
+                    <span class="ds-label">Ping</span>
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div class="loader-status" id="loaderStatus">
+                <div class="status-bar"><div class="status-bar-fill"></div></div>
+                <span id="statusText">Initializing</span>
+                <div class="status-bar"><div class="status-bar-fill"></div></div>
             </div>
         </div>
     </div>
-    <!-- ========== END NEW LOADER ========== -->
+    <!-- ========== END LOADER ========== -->
 
     <header>
         <div class="header-decoration"></div>
@@ -529,52 +617,94 @@
 
     <script>
         /* ============================================================
-           LOADER BOOT SEQUENCE LOGIC
+           LOADER: HEXAGONAL SHIELD SCAN — SEQUENCE LOGIC
            ============================================================ */
-        (function bootSequence() {
-            const logLines = document.querySelectorAll('#loaderLog .log-line');
-            const progressFill = document.getElementById('progressFill');
-            const progressPercent = document.getElementById('progressPercent');
-            const loaderPing = document.getElementById('loaderPing');
+        (function shieldBoot() {
+            // Generate background particles
+            const particlesContainer = document.getElementById('loaderParticles');
+            for (let i = 0; i < 30; i++) {
+                const span = document.createElement('span');
+                span.style.left = Math.random() * 100 + '%';
+                span.style.animationDuration = (Math.random() * 4 + 3) + 's';
+                span.style.animationDelay = (Math.random() * 3) + 's';
+                span.style.width = span.style.height = (Math.random() * 2 + 1) + 'px';
+                if (Math.random() > 0.7) span.style.background = '#ff2d6a';
+                particlesContainer.appendChild(span);
+            }
+
+            // Elements
+            const coreIcon = document.getElementById('coreIcon');
+            const shieldScan = document.getElementById('shieldScan');
+            const loaderTitle = document.getElementById('loaderTitle');
+            const loaderSub = document.getElementById('loaderSub');
+            const circProgress = document.getElementById('circProgress');
+            const progressCircle = document.getElementById('progressCircle');
+            const progressNum = document.getElementById('progressNum');
+            const dataStream = document.getElementById('dataStream');
+            const dsModules = document.getElementById('dsModules');
+            const dsNodes = document.getElementById('dsNodes');
+            const dsPing = document.getElementById('dsPing');
+            const loaderStatus = document.getElementById('loaderStatus');
+            const statusText = document.getElementById('statusText');
             const loader = document.getElementById('loader');
-            const footerText = document.querySelector('.loader-footer span');
 
-            const totalDuration = 3000; // Total boot time in ms
-            const steps = logLines.length;
+            const circumference = 2 * Math.PI * 30; // r=30
+            const totalMs = 3200;
+            const startTime = Date.now();
 
-            logLines.forEach((line, i) => {
-                const delay = parseInt(line.dataset.delay) || i * 300;
+            // Phase timings
+            const phases = [
+                { at: 300,  fn: () => coreIcon.classList.add('show') },
+                { at: 800,  fn: () => shieldScan.classList.add('active') },
+                { at: 600,  fn: () => { loaderTitle.classList.add('show'); loaderSub.classList.add('show'); } },
+                { at: 1000, fn: () => { circProgress.classList.add('show'); dataStream.classList.add('show'); loaderStatus.classList.add('show'); } },
+            ];
 
-                setTimeout(() => {
-                    line.classList.add('active');
+            // Status text sequence
+            const statusSteps = [
+                { at: 0,    text: 'Initializing' },
+                { at: 600,  text: 'Scanning Perimeter' },
+                { at: 1200, text: 'Syncing Modules' },
+                { at: 2000, text: 'Verifying Nodes' },
+                { at: 2700, text: 'Connection Secured' },
+            ];
 
-                    // Update progress bar proportionally
-                    const progress = Math.min(100, Math.round(((i + 1) / steps) * 100));
-                    progressFill.style.width = progress + '%';
-                    progressPercent.textContent = progress + '%';
+            // Animation loop
+            function tick() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(1, elapsed / totalMs);
+                const pct = Math.round(progress * 100);
 
-                    // Simulate ping
-                    loaderPing.textContent = (Math.floor(Math.random() * 8) + 10) + 'ms';
+                // Run phases
+                phases.forEach(p => { if (elapsed >= p.at && !p.done) { p.fn(); p.done = true; } });
 
-                    // Update footer text based on step
-                    const footerMessages = [
-                        'Establishing connection',
-                        'Negotiating handshake',
-                        'Verifying credentials',
-                        'Loading resources',
-                        'Scanning perimeter',
-                        'Checking integrity',
-                        'Connection secured'
-                    ];
-                    if (footerMessages[i]) footerText.textContent = footerMessages[i];
+                // Update status text
+                let currentStatus = statusSteps[0].text;
+                statusSteps.forEach(s => { if (elapsed >= s.at) currentStatus = s.text; });
+                statusText.textContent = currentStatus;
 
-                }, delay);
-            });
+                // Circular progress
+                const offset = circumference - (progress * circumference);
+                progressCircle.style.strokeDashoffset = offset;
+                progressNum.textContent = pct + '%';
 
-            // Hide loader after total duration
-            setTimeout(() => {
-                loader.classList.add('hide');
-            }, totalDuration + 400);
+                // Data stream counters
+                dsModules.textContent = Math.min(18, Math.round(progress * 18));
+                dsNodes.textContent = Math.min(204, Math.round(progress * 204));
+                if (progress > 0.15) {
+                    dsPing.textContent = (Math.floor(Math.random() * 8) + 10) + 'ms';
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(tick);
+                } else {
+                    // Boot complete
+                    setTimeout(() => loader.classList.add('hide'), 400);
+                }
+            }
+
+            // Start after small delay
+            setTimeout(tick, 200);
         })();
 
         /* ============================================================
