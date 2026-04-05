@@ -70,6 +70,7 @@
         .db-status { position: fixed; bottom: 10px; left: 10px; font-size: 10px; background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 10px; font-family: monospace; }
         .offline-mode-indicator { position: fixed; bottom: 10px; right: 10px; background: var(--warning); padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; display: flex; align-items: center; gap: 6px; }
         .saved-badge { background: var(--success); padding: 2px 10px; border-radius: 20px; font-size: 0.7rem; margin-left: 8px; }
+        .time-chip { background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 4px; }
         @media (max-width: 700px) { .controls { flex-direction: column; } .stats { grid-template-columns: 1fr 1fr; } .btn { width: 100%; } }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -93,12 +94,13 @@
     <div class="header">
         <div class="logo-icon"><i class="fas fa-database"></i></div>
         <div class="logo-text"><h1>SCREEN RECORDER PRO</h1></div>
-        <p class="tagline" style="color:#ccc;">Full HD 1080p | <strong style="color:#f59e0b;">OFFLINE + BACKUP DATABASE</strong> | Rekam & Cadangkan</p>
+        <p class="tagline" style="color:#ccc;">Full HD 1080p | <strong style="color:#f59e0b;">OFFLINE + BACKUP DATABASE</strong> | Lihat Waktu & Durasi Video</p>
         <div class="badges">
             <div class="badge"><i class="fas fa-wifi-slash"></i> Offline Mode</div>
             <div class="badge"><i class="fas fa-database"></i> Local DB</div>
             <div class="badge"><i class="fas fa-archive"></i> Backup/Restore</div>
             <div class="badge"><i class="fas fa-shield-alt"></i> 100% Private</div>
+            <div class="badge"><i class="fas fa-clock"></i> Waktu & Durasi</div>
         </div>
     </div>
 
@@ -122,7 +124,7 @@
             <div class="stat-card"><div class="stat-value" id="totalSizeCloud">0 GB</div><div>Total Storage</div></div>
         </div>
         <div style="background:rgba(245,158,11,0.2); border-radius:var(--radius-md); padding:12px; margin-top:10px; text-align:center;">
-            <i class="fas fa-wifi-slash"></i> <strong>MODE OFFLINE AKTIF</strong> — Rekam tanpa internet | Semua video di IndexedDB | <i class="fas fa-archive"></i> Backup & Restore Database tersedia
+            <i class="fas fa-wifi-slash"></i> <strong>MODE OFFLINE AKTIF</strong> — Rekam tanpa internet | Semua video di IndexedDB | <i class="fas fa-clock"></i> Waktu rekaman & durasi terlihat jelas
         </div>
     </div>
 
@@ -185,7 +187,7 @@
 <script>
     // ======================== OFFLINE DATABASE ========================
     const DB_NAME = 'ScreenRecorder_OfflineMode';
-    const DB_VERSION = 16;
+    const DB_VERSION = 17; // version bump
     const STORE_VIDEOS = 'videos';
 
     let db = null;
@@ -420,7 +422,7 @@
     }
 
     // ======================== RECORDING & UI ========================
-    async function startRecording() { /* sama seperti kode awal dengan perbaikan minor */ 
+    async function startRecording() { 
         try {
             if (!navigator.mediaDevices?.getDisplayMedia) throw new Error('Browser tidak support screen capture');
             const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } }, audio: true });
@@ -477,24 +479,80 @@
         document.getElementById('videoOverlay').style.display='flex';
     }
     function updateFileSizeUI(){ const total = currentRecording.chunks.reduce((s,chunk)=>s+chunk.size,0); document.getElementById('fileSize').innerText=formatFileSize(total); }
-    async function exportAllVideos(){ /* reuse backupDatabaseToZip for consistency */ backupDatabaseToZip(); }
+    async function exportAllVideos(){ backupDatabaseToZip(); }
     async function downloadLatestVideo(){ const videos=await getAllVideos(); if(videos.length) downloadVideo(videos[0].blob, `${videos[0].title.replace(/[^a-z0-9]/gi,'_')}_1080p.webm`); }
     function downloadVideo(blob,filename){ const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url),100); showToast(`📥 Download ${filename}`, 'success'); }
-    async function renderVideoGrid(){ /* sama seperti sebelumnya */ const videos=await getAllVideos(); const searchTerm=document.getElementById('searchInput')?.value.toLowerCase()||''; const filtered=videos.filter(v=>v.title.toLowerCase().includes(searchTerm)); const grid=document.getElementById('videoGrid'); const emptyLib=document.getElementById('emptyLibrary'); if(filtered.length===0){ emptyLib.style.display='block'; grid.innerHTML=''; return; } emptyLib.style.display='none'; grid.innerHTML=filtered.map(v=>`<div class="video-card" onclick="openVideoModal('${v.id}')"><div class="video-thumbnail"><i class="fas fa-video"></i><span style="position:absolute;bottom:8px;right:12px;background:black;padding:2px 8px;border-radius:20px;font-size:11px;">${formatDuration(v.duration)}</span><span class="saved-badge"><i class="fas fa-database"></i> Offline</span></div><div class="video-info"><div class="video-title">${escapeHtml(v.title)}</div><div class="video-meta">${formatFileSize(v.size)} • ${new Date(v.date).toLocaleDateString()}</div><div class="video-actions" onclick="event.stopPropagation()"><button class="action-btn play-vid" data-id="${v.id}"><i class="fas fa-play"></i> Play</button><button class="action-btn del-vid" data-id="${v.id}"><i class="fas fa-trash"></i></button></div></div></div>`).join('');
+    
+    // format waktu lengkap dengan jam:menit
+    function formatDateTime(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleString('id-ID', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    }
+    
+    async function renderVideoGrid(){ 
+        const videos=await getAllVideos(); 
+        const searchTerm=document.getElementById('searchInput')?.value.toLowerCase()||''; 
+        const filtered=videos.filter(v=>v.title.toLowerCase().includes(searchTerm)); 
+        const grid=document.getElementById('videoGrid'); 
+        const emptyLib=document.getElementById('emptyLibrary'); 
+        if(filtered.length===0){ emptyLib.style.display='block'; grid.innerHTML=''; return; } 
+        emptyLib.style.display='none'; 
+        grid.innerHTML=filtered.map(v=>`<div class="video-card" onclick="openVideoModal('${v.id}')">
+            <div class="video-thumbnail"><i class="fas fa-video"></i>
+                <span style="position:absolute;bottom:8px;right:12px;background:black;padding:2px 8px;border-radius:20px;font-size:11px;">${formatDuration(v.duration)}</span>
+                <span class="saved-badge"><i class="fas fa-database"></i> Offline</span>
+            </div>
+            <div class="video-info">
+                <div class="video-title">${escapeHtml(v.title)}</div>
+                <div class="video-meta">
+                    <span class="time-chip"><i class="far fa-calendar-alt"></i> ${formatDateTime(v.date)}</span>
+                    <span><i class="fas fa-file-video"></i> ${formatFileSize(v.size)}</span>
+                </div>
+                <div class="video-actions" onclick="event.stopPropagation()">
+                    <button class="action-btn play-vid" data-id="${v.id}"><i class="fas fa-play"></i> Play</button>
+                    <button class="action-btn del-vid" data-id="${v.id}"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        </div>`).join('');
         document.querySelectorAll('.play-vid').forEach(btn=>btn.addEventListener('click',(e)=>{ e.stopPropagation(); openVideoModal(btn.dataset.id); }));
         document.querySelectorAll('.del-vid').forEach(btn=>btn.addEventListener('click',(e)=>{ e.stopPropagation(); deleteVideo(btn.dataset.id); }));
     }
-    async function openVideoModal(id){ const video=await getVideoById(id); if(!video?.blob){ showToast('Video tidak ditemukan','error'); return; } const url=URL.createObjectURL(video.blob); const modal=document.getElementById('videoModal'); const player=document.getElementById('modalVideoPlayer'); player.src=url; document.getElementById('modalTitle').innerText=video.title; document.getElementById('modalMeta').innerHTML=`<div><i class="fas fa-clock"></i> Durasi: ${formatDuration(video.duration)} | Ukuran: ${formatFileSize(video.size)} | <i class="fas fa-wifi-slash"></i> Offline</div>`; document.getElementById('shareLinkInput').value=video.shareLink; modal.style.display='flex'; player.onended=()=>URL.revokeObjectURL(url); document.getElementById('modalDownload').onclick=()=>downloadVideo(video.blob, `${video.title}_1080p.webm`); document.getElementById('modalDelete').onclick=async()=>{ await deleteVideo(video.id); modal.style.display='none'; }; document.getElementById('copyLinkBtn').onclick=()=>{ navigator.clipboard.writeText(video.shareLink); showToast('Link disalin','success'); }; }
+    
+    async function openVideoModal(id){ 
+        const video=await getVideoById(id); 
+        if(!video?.blob){ showToast('Video tidak ditemukan','error'); return; } 
+        const url=URL.createObjectURL(video.blob); 
+        const modal=document.getElementById('videoModal'); 
+        const player=document.getElementById('modalVideoPlayer'); 
+        player.src=url; 
+        document.getElementById('modalTitle').innerText=video.title; 
+        // Tampilkan detail lengkap termasuk waktu rekaman dan durasi
+        document.getElementById('modalMeta').innerHTML=`
+            <div style="display:flex; flex-wrap:wrap; gap:12px; background:rgba(0,0,0,0.3); padding:12px; border-radius:12px;">
+                <div><i class="fas fa-clock"></i> <strong>Durasi:</strong> ${formatDuration(video.duration)}</div>
+                <div><i class="fas fa-hdd"></i> <strong>Ukuran:</strong> ${formatFileSize(video.size)}</div>
+                <div><i class="fas fa-calendar-week"></i> <strong>Waktu Rekam:</strong> ${formatDateTime(video.date)}</div>
+                <div><i class="fas fa-microphone-alt"></i> <strong>Kualitas:</strong> ${video.quality || '1080p'} • Offline</div>
+            </div>
+        `; 
+        document.getElementById('shareLinkInput').value=video.shareLink; 
+        modal.style.display='flex'; 
+        player.onended=()=>URL.revokeObjectURL(url); 
+        document.getElementById('modalDownload').onclick=()=>downloadVideo(video.blob, `${video.title}_1080p.webm`); 
+        document.getElementById('modalDelete').onclick=async()=>{ await deleteVideo(video.id); modal.style.display='none'; }; 
+        document.getElementById('copyLinkBtn').onclick=()=>{ navigator.clipboard.writeText(video.shareLink); showToast('Link disalin','success'); }; 
+    }
+    
     async function deleteVideo(id){ if(confirm('Hapus video?')){ await deleteVideoFromDB(id); await loadAllVideos(); showToast('Video dihapus','info'); } }
     async function clearAll(){ if(confirm('Hapus SEMUA video? Tindakan permanen.')){ await clearAllVideos(); await loadAllVideos(); showToast('Semua video dihapus','warning'); } }
-    async function showDbInfo(){ const videos=await getAllVideos(); const totalSize=videos.reduce((s,v)=>s+(v.size||0),0); alert(`📊 OFFLINE DATABASE\nTotal Video: ${videos.length}\nTotal Storage: ${formatFileSize(totalSize)}\nKualitas: Full HD\n\n✅ Backup & Restore tersedia\n📁 Gunakan Backup Database untuk menyimpan arsip`); }
+    async function showDbInfo(){ const videos=await getAllVideos(); const totalSize=videos.reduce((s,v)=>s+(v.size||0),0); alert(`📊 OFFLINE DATABASE\nTotal Video: ${videos.length}\nTotal Storage: ${formatFileSize(totalSize)}\nKualitas: Full HD\n\n✅ Backup & Restore tersedia\n📁 Gunakan Backup Database untuk menyimpan arsip\n⏱️ Waktu dan durasi setiap video tersimpan rapi.`); }
     function formatDuration(sec){ if(!sec) return '00:00:00'; let h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60; return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`; }
     function formatFileSize(bytes){ if(bytes<1024) return bytes+' B'; if(bytes<1048576) return (bytes/1024).toFixed(1)+' KB'; if(bytes<1073741824) return (bytes/1048576).toFixed(1)+' MB'; return (bytes/1073741824).toFixed(2)+' GB'; }
     function escapeHtml(str){ return str.replace(/[&<>]/g,function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
     function showToast(msg,type='info'){ let container=document.getElementById('toastContainer'); if(!container){ container=document.createElement('div'); container.id='toastContainer'; container.className='toast-container'; document.body.appendChild(container); } const toast=document.createElement('div'); toast.className='toast'; toast.innerHTML=`<i class="fas ${type==='success'?'fa-check-circle':type==='error'?'fa-exclamation-circle':'fa-info-circle'}"></i><span>${msg}</span><button style="background:none;border:none;color:white;margin-left:10px;cursor:pointer;" onclick="this.parentElement.remove()">✖</button>`; container.appendChild(toast); setTimeout(()=>toast.remove(),4000); }
     function handleShareHash(){ const hash=window.location.hash.substring(1); if(hash.startsWith('share=')){ const videoId=hash.split('=')[1]; openVideoModal(videoId); window.location.hash=''; } }
     window.addEventListener('beforeunload',async()=>{ if(currentRecording.active && currentRecording.chunks.length>0) await saveCurrentRecording(true); });
-    (async()=>{ await initDatabase(); await loadAllVideos(); document.getElementById('loading').style.display='none'; document.getElementById('recordBtn').onclick=startRecording; document.getElementById('stopBtn').onclick=stopRecording; document.getElementById('downloadBtn').onclick=downloadLatestVideo; document.getElementById('exportFullBtn').onclick=exportAllVideos; document.getElementById('refreshBtn').onclick=()=>loadAllVideos(); document.getElementById('dbInfoBtn').onclick=showDbInfo; document.getElementById('clearAllBtn').onclick=clearAll; document.getElementById('closeModalBtn').onclick=()=>document.getElementById('videoModal').style.display='none'; document.getElementById('searchInput').addEventListener('input',()=>renderVideoGrid()); document.getElementById('cancelProgressBtn').onclick=()=>{ if(isProcessing){ isProcessing=false; document.getElementById('progressModal').style.display='none'; } }; document.getElementById('backupDbBtn').onclick=backupDatabaseToZip; document.getElementById('restoreDbBtn').onclick=()=>document.getElementById('restoreFileInput').click(); document.getElementById('restoreFileInput').onchange=(e)=>{ if(e.target.files.length) restoreDatabaseFromZip(e.target.files[0]); e.target.value=''; }; handleShareHash(); window.addEventListener('hashchange',handleShareHash); showToast('📀 MODE OFFLINE + BACKUP DATABASE SIAP', 'success'); })();
+    (async()=>{ await initDatabase(); await loadAllVideos(); document.getElementById('loading').style.display='none'; document.getElementById('recordBtn').onclick=startRecording; document.getElementById('stopBtn').onclick=stopRecording; document.getElementById('downloadBtn').onclick=downloadLatestVideo; document.getElementById('exportFullBtn').onclick=exportAllVideos; document.getElementById('refreshBtn').onclick=()=>loadAllVideos(); document.getElementById('dbInfoBtn').onclick=showDbInfo; document.getElementById('clearAllBtn').onclick=clearAll; document.getElementById('closeModalBtn').onclick=()=>document.getElementById('videoModal').style.display='none'; document.getElementById('searchInput').addEventListener('input',()=>renderVideoGrid()); document.getElementById('cancelProgressBtn').onclick=()=>{ if(isProcessing){ isProcessing=false; document.getElementById('progressModal').style.display='none'; } }; document.getElementById('backupDbBtn').onclick=backupDatabaseToZip; document.getElementById('restoreDbBtn').onclick=()=>document.getElementById('restoreFileInput').click(); document.getElementById('restoreFileInput').onchange=(e)=>{ if(e.target.files.length) restoreDatabaseFromZip(e.target.files[0]); e.target.value=''; }; handleShareHash(); window.addEventListener('hashchange',handleShareHash); showToast('📀 MODE OFFLINE + WAKTU VIDEO TAMPAK JELAS', 'success'); })();
 </script>
 <div id="toastContainer" class="toast-container"></div>
 </body>
