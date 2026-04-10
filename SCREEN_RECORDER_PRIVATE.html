@@ -39,12 +39,12 @@
         .recording-status { position: absolute; top: 15px; left: 15px; background: var(--danger); padding: 8px 16px; border-radius: 50px; display: none; align-items: center; gap: 8px; font-weight: bold; z-index: 10; font-size: 12px; }
         .offline-badge { position: absolute; top: 15px; right: 15px; background: var(--warning); padding: 8px 16px; border-radius: 50px; display: flex; align-items: center; gap: 8px; z-index: 10; font-size: 0.8rem; }
         
-        /* ========== JAM DIGITAL HIGH CLASS LUXURY PREMIUM ========== */
+        /* ========== JAM DIGITAL HIGH CLASS LUXURY PREMIUM - MENGIKUTI WAKTU LOKAL PERANGKAT ========== */
         .digital-clock {
             position: fixed;
             top: 25px;
             right: 25px;
-            background: linear-gradient(145deg, rgba(20, 20, 40, 0.75), rgba(10, 10, 25, 0.85));
+            background: linear-gradient(145deg, rgba(20, 20, 40, 0.85), rgba(10, 10, 25, 0.95));
             backdrop-filter: blur(20px);
             border-radius: 80px;
             padding: 10px 28px 10px 20px;
@@ -63,7 +63,6 @@
             border-color: rgba(212, 175, 55, 0.7);
             box-shadow: 0 25px 45px rgba(0,0,0,0.5), 0 0 0 1px rgba(212, 175, 55, 0.5) inset, 0 0 35px rgba(212, 175, 55, 0.3);
         }
-        /* Efek cincin emas di sekitar jam */
         .digital-clock::after {
             content: '';
             position: absolute;
@@ -182,6 +181,12 @@
         .clock-date span {
             color: var(--gold-light);
         }
+        .clock-timezone {
+            font-size: 7px;
+            color: rgba(212, 175, 55, 0.7);
+            margin-left: 6px;
+            letter-spacing: 0.5px;
+        }
         
         /* Efek shimmer untuk teks jam */
         @keyframes goldShimmer {
@@ -191,6 +196,15 @@
         .clock-time {
             background-size: 200% auto;
             animation: goldShimmer 5s linear infinite;
+        }
+        
+        @keyframes goldPulse {
+            0% { opacity: 0.6; text-shadow: 0 0 0px rgba(212,175,55,0); }
+            50% { opacity: 1; text-shadow: 0 0 12px rgba(212,175,55,0.6); }
+            100% { opacity: 0.6; text-shadow: 0 0 0px rgba(212,175,55,0); }
+        }
+        .clock-seconds {
+            animation: goldPulse 1.5s ease-in-out infinite;
         }
         
         .controls { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; }
@@ -243,29 +257,22 @@
             .clock-seconds { font-size: 0.7rem; min-width: 28px; } 
             .clock-date { font-size: 6px; } 
             .clock-ampm { font-size: 7px; }
+            .clock-timezone { font-size: 5px; }
         }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes slideIn { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes goldPulse {
-            0% { opacity: 0.6; text-shadow: 0 0 0px rgba(212,175,55,0); }
-            50% { opacity: 1; text-shadow: 0 0 12px rgba(212,175,55,0.6); }
-            100% { opacity: 0.6; text-shadow: 0 0 0px rgba(212,175,55,0); }
-        }
-        .clock-seconds {
-            animation: goldPulse 1.5s ease-in-out infinite;
-        }
     </style>
 </head>
 <body>
 
-<!-- JAM DIGITAL HIGH CLASS LUXURY PREMIUM - GOLD EDITION -->
+<!-- JAM DIGITAL HIGH CLASS LUXURY PREMIUM - MENGIKUTI WAKTU LOKAL PERANGKAT DI MANA PUN -->
 <div class="digital-clock" id="liveClock">
     <div class="clock-icon">
-        <i class="fas fa-crown"></i>
+        <i class="fas fa-globe"></i>
     </div>
     <div class="clock-time-wrapper">
-        <div class="clock-label">LOCAL TIME • GMT+7</div>
+        <div class="clock-label">LOCAL TIME • <span id="timezoneName">--</span></div>
         <div class="clock-main">
             <span class="clock-time" id="clockTime">--:--</span>
             <span class="clock-seconds" id="clockSeconds">--</span>
@@ -412,9 +419,12 @@
     };
     let isProcessing = false;
 
-    // ======================== FUNGSI JAM HIGH CLASS ========================
+    // ======================== FUNGSI JAM HIGH CLASS - MENGIKUTI WAKTU LOKAL PERANGKAT ========================
     function updateDigitalClock() {
+        // Menggunakan waktu lokal perangkat secara real-time
         const now = new Date();
+        
+        // Format waktu 12 jam dengan AM/PM
         let hours = now.getHours();
         const minutes = now.getMinutes().toString().padStart(2, '0');
         const seconds = now.getSeconds().toString().padStart(2, '0');
@@ -424,6 +434,7 @@
         const hoursStr = hours.toString().padStart(2, '0');
         const timeString = `${hoursStr}:${minutes}`;
         
+        // Update elemen jam
         const clockSpan = document.getElementById('clockTime');
         const secondsSpan = document.getElementById('clockSeconds');
         const ampmSpan = document.getElementById('clockAmPm');
@@ -431,7 +442,7 @@
         if (secondsSpan) secondsSpan.innerHTML = seconds;
         if (ampmSpan) ampmSpan.innerHTML = ampm;
         
-        // Format tanggal mewah
+        // Format tanggal lengkap (Mengikuti lokal perangkat)
         const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
         const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
         const dayName = days[now.getDay()];
@@ -441,11 +452,17 @@
         const dateString = `${dayName}, ${date} ${month} ${year}`;
         const dateElement = document.getElementById('dateText');
         if (dateElement) dateElement.innerHTML = dateString;
+        
+        // Tampilkan timezone perangkat (mengikuti dimana pun perangkat berada)
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const timezoneShort = timezone.split('/').pop().replace(/_/g, ' ');
+        const tzElement = document.getElementById('timezoneName');
+        if (tzElement) tzElement.innerHTML = timezoneShort || 'Local';
     }
     
-    // Update jam setiap detik
+    // Update jam setiap detik (1000ms) - real-time mengikuti sistem perangkat
     setInterval(updateDigitalClock, 1000);
-    updateDigitalClock();
+    updateDigitalClock(); // Panggil pertama kali
 
     function initDatabase() {
         return new Promise((resolve, reject) => {
@@ -834,7 +851,7 @@
         
         handleShareHash(); 
         window.addEventListener('hashchange',handleShareHash); 
-        showToast('✨ HIGH CLASS LUXURY CLOCK | MODE OFFLINE AKTIF | GOLD EDITION ✨', 'success'); 
+        showToast('✨ HIGH CLASS LUXURY CLOCK | WAKTU MENGIKUTI PERANGKAT | GOLD EDITION ✨', 'success'); 
     })();
 </script>
 <div id="toastContainer" class="toast-container"></div>
