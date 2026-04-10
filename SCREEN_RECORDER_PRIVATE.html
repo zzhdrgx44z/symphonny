@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>OBS Studio Recorder - Live Clock Edition</title>
+    <title>OBS Studio Recorder - Live Clock</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -22,13 +22,11 @@
             --obs-panel: #2d2d2d;
             --obs-border: #3c3c3c;
             --obs-accent: #00b4d8;
-            --obs-accent-hover: #0096c7;
             --obs-red: #ef233c;
             --obs-green: #2ecc71;
             --obs-yellow: #f4a261;
             --obs-text: #e0e0e0;
             --obs-text-dim: #a0a0a0;
-            --obs-glow: rgba(0, 180, 216, 0.3);
         }
 
         body {
@@ -112,7 +110,7 @@
             border: 1px solid rgba(0, 180, 216, 0.3);
         }
 
-        /* JAM OBS STYLE - LIVE REAL TIME */
+        /* ========== JAM DIGITAL OBS STYLE - REAL TIME ========== */
         .obs-clock-live {
             background: linear-gradient(145deg, #0a0a0a, #1a1a1a);
             backdrop-filter: blur(4px);
@@ -219,7 +217,7 @@
             align-items: center;
             justify-content: center;
             background: rgba(0,0,0,0.7);
-            gap: 12px;
+            gap: 15px;
         }
         .recording-indicator {
             position: absolute;
@@ -553,14 +551,14 @@
         @media (max-width: 600px) {
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .obs-header { flex-direction: column; align-items: flex-start; }
-            .obs-clock-live { font-size: 0.9rem; padding: 4px 12px; }
+            .obs-clock-live { font-size: 0.9rem; padding: 4px 12px; flex-wrap: wrap; }
         }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <!-- Header OBS dengan JAM LIVE REAL TIME -->
+    <!-- Header OBS dengan JAM LIVE yang PASTI TAMPIL -->
     <div class="obs-header">
         <div class="logo-area">
             <div class="logo-icon"><i class="fas fa-desktop"></i></div>
@@ -572,7 +570,7 @@
         <div class="status-badges">
             <div class="badge-obs"><i class="fas fa-wifi-slash"></i> Offline Mode</div>
             <div class="badge-obs"><i class="fas fa-database"></i> Local DB</div>
-            <!-- JAM LIVE REAL TIME - BERJALAN TERUS -->
+            <!-- JAM LIVE - PASTI TAMPIL -->
             <div class="obs-clock-live" id="liveClockWidget">
                 <i class="fas fa-clock"></i>
                 <span id="liveHourMin" class="clock-time-main">--:--</span>
@@ -694,6 +692,49 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
+    // ==================== JAM DIGITAL REAL TIME - PASTI BERJALAN ====================
+    function updateLiveClock() {
+        const now = new Date();
+        
+        // Format 12 jam
+        let hours = now.getHours();
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const seconds = now.getSeconds().toString().padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12 || 12;
+        const hourMinStr = `${hours.toString().padStart(2, '0')}:${minutes}`;
+        
+        // Update elemen jam
+        const hourMinEl = document.getElementById('liveHourMin');
+        const secondsEl = document.getElementById('liveSeconds');
+        const ampmEl = document.getElementById('liveAmPm');
+        const dateEl = document.getElementById('liveDate');
+        const tzEl = document.getElementById('liveTimezone');
+        
+        if (hourMinEl) hourMinEl.innerHTML = hourMinStr;
+        if (secondsEl) secondsEl.innerHTML = seconds;
+        if (ampmEl) ampmEl.innerHTML = ampm;
+        
+        // Format tanggal
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        const dateString = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+        if (dateEl) dateEl.innerHTML = dateString;
+        
+        // Timezone
+        try {
+            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const tzShort = tz.split('/').pop().replace(/_/g, ' ') || 'Local';
+            if (tzEl) tzEl.innerHTML = tzShort;
+        } catch(e) {
+            if (tzEl) tzEl.innerHTML = 'Local';
+        }
+    }
+    
+    // Jalankan setiap detik - REAL TIME
+    setInterval(updateLiveClock, 1000);
+    updateLiveClock(); // Panggil pertama kali
+    
     // ==================== DATABASE CONFIG ====================
     const DB_NAME = 'OBS_Style_Recorder_Live';
     const DB_VERSION = 6;
@@ -716,40 +757,6 @@
         isSaving: false
     };
 
-    // ==================== JAM LIVE REAL TIME (BERJALAN TERUS) ====================
-    function updateLiveClock() {
-        const now = new Date();
-        
-        // Format 12 jam dengan AM/PM
-        let hours = now.getHours();
-        const minutes = now.getMinutes().toString().padStart(2, '0');
-        const seconds = now.getSeconds().toString().padStart(2, '0');
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12 || 12;
-        const hourMinStr = `${hours.toString().padStart(2, '0')}:${minutes}`;
-        
-        // Update elemen jam
-        document.getElementById('liveHourMin').innerHTML = hourMinStr;
-        document.getElementById('liveSeconds').innerHTML = seconds;
-        document.getElementById('liveAmPm').innerHTML = ampm;
-        
-        // Format tanggal lengkap
-        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-        const dateString = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
-        document.getElementById('liveDate').innerHTML = dateString;
-        
-        // Timezone perangkat
-        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        const tzShort = tz.split('/').pop().replace(/_/g, ' ') || 'Local';
-        document.getElementById('liveTimezone').innerHTML = tzShort;
-    }
-    
-    // Jalankan setiap detik (1000ms) - REAL TIME CONTINUOUS
-    setInterval(updateLiveClock, 1000);
-    updateLiveClock(); // Panggil pertama kali
-    
-    // ==================== INIT DB ====================
     function initDB() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -825,7 +832,6 @@
         document.getElementById('dbStatus').innerHTML = `💾 Offline Mode | Total: ${videos.length} video | Waktu Real-Time`;
     }
 
-    // ==================== RENDER GRID ====================
     async function renderVideoGrid(videosList = null) {
         const videos = videosList || await getAllVideos();
         const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
@@ -1030,6 +1036,7 @@
         const modal = document.getElementById('progressModal');
         const fill = document.getElementById('progressFill');
         const detail = document.getElementById('progressDetail');
+        document.getElementById('progressTitle').innerText = 'Membuat Backup...';
         modal.style.display = 'flex';
         try {
             const zip = new JSZip();
@@ -1061,6 +1068,7 @@
         const modal = document.getElementById('progressModal');
         const fill = document.getElementById('progressFill');
         const detail = document.getElementById('progressDetail');
+        document.getElementById('progressTitle').innerText = 'Restore Database...';
         modal.style.display = 'flex';
         try {
             const zip = await JSZip.loadAsync(file);
@@ -1130,6 +1138,9 @@
     document.getElementById('searchInput').addEventListener('input', () => loadAllVideos());
 
     initDB().catch(console.error);
+    
+    // Tampilkan pesan bahwa jam sudah berjalan
+    console.log('Jam Real-Time berjalan setiap detik');
 </script>
 </body>
 </html>
