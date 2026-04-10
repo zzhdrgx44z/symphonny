@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Studio Recorder - Multi-Tab Live Clock</title>
+    <title>OBS Studio Recorder - Multi-Tab Live Clock</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -11,1172 +11,834 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{
+            --obs-bg:#1a1a1a;--obs-panel:#252525;--obs-border:#363636;
+            --obs-accent:#00c8ff;--obs-accent-dim:rgba(0,200,255,0.15);
+            --obs-red:#ff2d55;--obs-green:#30d158;--obs-yellow:#ffd60a;
+            --obs-text:#eaeaea;--obs-text-dim:#888;
+        }
+        body{font-family:'Inter','Segoe UI',sans-serif;background:var(--obs-bg);color:var(--obs-text);min-height:100vh;overflow-x:hidden}
+        ::-webkit-scrollbar{width:6px;height:6px}
+        ::-webkit-scrollbar-track{background:var(--obs-panel)}
+        ::-webkit-scrollbar-thumb{background:var(--obs-accent);border-radius:3px}
+
+        /* ===== STICKY HEADER - JAM SELALU TERLIHAT ===== */
+        .obs-header{
+            position:sticky;top:0;z-index:100;
+            background:linear-gradient(180deg,#1e1e1e 0%,#1a1a1a 100%);
+            border-bottom:1px solid var(--obs-border);
+            padding:10px 20px;
+            display:flex;justify-content:space-between;align-items:center;
+            flex-wrap:wrap;gap:12px;
+            backdrop-filter:blur(12px);
+            -webkit-backdrop-filter:blur(12px);
+        }
+        .logo-area{display:flex;align-items:center;gap:10px}
+        .logo-icon{
+            width:34px;height:34px;
+            background:linear-gradient(135deg,var(--obs-accent),#0070c0);
+            border-radius:7px;display:flex;align-items:center;justify-content:center;
+            font-size:16px;color:#fff;
+        }
+        .logo-text h1{font-size:1.1rem;font-weight:700;letter-spacing:-0.3px;line-height:1.2}
+        .logo-text p{font-size:0.62rem;color:var(--obs-text-dim);letter-spacing:0.5px}
+        .header-right{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+        .badge{
+            padding:4px 12px;border-radius:20px;font-size:0.68rem;font-weight:500;
+            display:inline-flex;align-items:center;gap:6px;
+        }
+        .badge-offline{background:rgba(255,45,85,0.12);border:1px solid rgba(255,45,85,0.25);color:#ff6b8a}
+        .badge-db{background:var(--obs-accent-dim);border:1px solid rgba(0,200,255,0.25);color:var(--obs-accent)}
+        .badge-tab{background:rgba(255,214,10,0.1);border:1px solid rgba(255,214,10,0.2);color:var(--obs-yellow);font-family:'JetBrains Mono',monospace;font-size:0.62rem}
+
+        /* ===== JAM LIVE UTAMA ===== */
+        .clock-master{
+            position:relative;
+            background:linear-gradient(135deg,#0d0d0d,#161616);
+            padding:8px 18px 8px 14px;
+            border-radius:50px;
+            font-family:'JetBrains Mono',monospace;
+            display:flex;align-items:center;gap:8px;
+            border:1.5px solid var(--obs-accent);
+            box-shadow:
+                0 0 12px rgba(0,200,255,0.15),
+                0 0 30px rgba(0,200,255,0.05),
+                inset 0 0 20px rgba(0,200,255,0.03);
+            transition:all 0.3s ease;
+            overflow:hidden;
+        }
+        .clock-master::before{
+            content:'';position:absolute;top:-1px;left:-1px;right:-1px;bottom:-1px;
+            border-radius:50px;
+            background:conic-gradient(from 0deg,transparent,var(--obs-accent),transparent,var(--obs-accent),transparent);
+            z-index:-1;opacity:0;
+            animation:borderSpin 4s linear infinite;
+            transition:opacity 0.5s;
+        }
+        .clock-master.active::before{opacity:0.3}
+        @keyframes borderSpin{to{transform:rotate(360deg)}}
+
+        .clock-master:hover{
+            box-shadow:0 0 20px rgba(0,200,255,0.3),0 0 50px rgba(0,200,255,0.08);
+            transform:scale(1.03);
+        }
+        .clock-icon{
+            width:28px;height:28px;border-radius:50%;
+            background:linear-gradient(135deg,var(--obs-accent),#0070c0);
+            display:flex;align-items:center;justify-content:center;
+            font-size:12px;color:#fff;flex-shrink:0;
+            position:relative;
+        }
+        .clock-icon .ping{
+            position:absolute;inset:-3px;border-radius:50%;
+            border:1.5px solid var(--obs-accent);
+            animation:pingRing 2s ease-out infinite;
+        }
+        @keyframes pingRing{
+            0%{transform:scale(1);opacity:0.6}
+            100%{transform:scale(1.8);opacity:0}
+        }
+        .clock-time-group{display:flex;align-items:baseline;gap:2px}
+        .clock-hm{
+            font-size:1.35rem;font-weight:700;letter-spacing:2px;
+            background:linear-gradient(180deg,#ffffff 30%,var(--obs-accent));
+            -webkit-background-clip:text;background-clip:text;color:transparent;
+            line-height:1;
+        }
+        .clock-sep{
+            font-size:1.35rem;font-weight:700;
+            color:var(--obs-accent);
+            animation:blinkSep 1s step-end infinite;
+            line-height:1;
+        }
+        @keyframes blinkSep{0%,100%{opacity:1}50%{opacity:0.2}}
+        .clock-sec{
+            font-size:1.1rem;font-weight:700;letter-spacing:1px;
+            background:linear-gradient(135deg,var(--obs-yellow),var(--obs-red));
+            -webkit-background-clip:text;background-clip:text;color:transparent;
+            min-width:30px;display:inline-block;text-align:left;
+            line-height:1;
+        }
+        .clock-ampm{
+            font-size:0.65rem;font-weight:600;
+            color:var(--obs-accent);margin-left:4px;
+            letter-spacing:1px;
+        }
+        .clock-divider{
+            width:1px;height:24px;
+            background:linear-gradient(180deg,transparent,var(--obs-border),transparent);
+            margin:0 4px;flex-shrink:0;
+        }
+        .clock-date-text{
+            font-size:0.6rem;font-family:'Inter',sans-serif;font-weight:400;
+            color:var(--obs-text-dim);letter-spacing:0.3px;white-space:nowrap;
+        }
+        .clock-tz{
+            font-size:0.55rem;font-family:'JetBrains Mono',monospace;
+            background:rgba(0,0,0,0.5);padding:1px 6px;border-radius:10px;
+            color:var(--obs-text-dim);white-space:nowrap;
         }
 
-        :root {
-            --obs-bg: #1e1e1e;
-            --obs-panel: #2d2d2d;
-            --obs-border: #3c3c3c;
-            --obs-accent: #00b4d8;
-            --obs-red: #ef233c;
-            --obs-green: #2ecc71;
-            --obs-yellow: #f4a261;
-            --obs-text: #e0e0e0;
-            --obs-text-dim: #a0a0a0;
+        /* Background tab indicator */
+        .bg-tab-badge{
+            font-size:0.55rem;
+            background:rgba(255,214,10,0.15);color:var(--obs-yellow);
+            padding:2px 8px;border-radius:10px;
+            display:none;align-items:center;gap:4px;
+            animation:fadePulse 2s ease infinite;
         }
+        .bg-tab-badge.visible{display:inline-flex}
+        @keyframes fadePulse{0%,100%{opacity:0.6}50%{opacity:1}}
 
-        body {
-            font-family: 'Inter', 'Segoe UI', sans-serif;
-            background: var(--obs-bg);
-            color: var(--obs-text);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
+        /* ===== MAIN CONTENT ===== */
+        .app-body{max-width:1600px;margin:0 auto;padding:16px}
+        .obs-grid{display:grid;grid-template-columns:1fr 310px;gap:14px;margin-bottom:16px}
+        .preview-panel{background:#000;border-radius:8px;overflow:hidden;border:1px solid var(--obs-border);position:relative}
+        .panel-header{background:var(--obs-panel);padding:7px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--obs-border);font-size:0.78rem;font-weight:500}
+        .video-container{position:relative;aspect-ratio:16/9;background:#080808}
+        .video-preview{width:100%;height:100%;object-fit:contain;display:none}
+        .video-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);gap:12px}
+        .rec-dot{position:absolute;top:12px;left:12px;background:var(--obs-red);padding:5px 12px;border-radius:20px;font-size:0.68rem;font-weight:700;display:none;align-items:center;gap:7px;z-index:10;animation:pulseRed 1.5s infinite}
+        @keyframes pulseRed{0%{box-shadow:0 0 0 0 rgba(255,45,85,0.4)}70%{box-shadow:0 0 0 8px rgba(255,45,85,0)}100%{box-shadow:0 0 0 0 rgba(255,45,85,0)}}
 
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+        .controls-panel{background:var(--obs-panel);border-radius:8px;border:1px solid var(--obs-border);padding:14px}
+        .ctrl-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--obs-text-dim);margin-bottom:14px;border-left:3px solid var(--obs-accent);padding-left:9px}
+        .btn-col{display:flex;gap:10px;flex-direction:column}
+        .btn-obs{
+            padding:11px 18px;border:none;border-radius:6px;font-weight:600;font-size:0.82rem;
+            cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;
+            transition:all 0.15s ease;background:#383838;color:var(--obs-text);
         }
-        ::-webkit-scrollbar-track {
-            background: var(--obs-panel);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--obs-accent);
-            border-radius: 4px;
-        }
+        .btn-obs:hover:not(:disabled){filter:brightness(1.15);transform:translateY(-1px)}
+        .btn-obs:active:not(:disabled){transform:translateY(0)}
+        .btn-rec{background:var(--obs-red);color:#fff}
+        .btn-stop{background:#555}
+        .btn-dl{background:var(--obs-green);color:#111}
+        .btn-exp{background:var(--obs-yellow);color:#111}
+        .btn-obs:disabled{opacity:0.4;cursor:not-allowed;transform:none}
 
-        .app-container {
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: 16px;
-        }
+        .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+        .stat-card{background:#1e1e1e;border-radius:6px;padding:10px;text-align:center;border:1px solid var(--obs-border)}
+        .stat-val{font-size:1.35rem;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--obs-accent)}
+        .stat-lbl{font-size:0.62rem;color:var(--obs-text-dim);margin-top:3px}
 
-        .obs-header {
-            background: var(--obs-panel);
-            border-bottom: 1px solid var(--obs-border);
-            padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 20px;
-            border-radius: 8px 8px 0 0;
+        .mini-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+        .sm-btn{
+            background:#333;border:none;padding:4px 10px;border-radius:4px;
+            color:#ccc;font-size:0.68rem;cursor:pointer;display:flex;align-items:center;gap:4px;
+            transition:background 0.15s;
         }
-        .logo-area {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .logo-icon {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, var(--obs-accent), #0077b6);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-        .logo-text h1 {
-            font-size: 1.3rem;
-            font-weight: 600;
-            letter-spacing: -0.5px;
-        }
-        .logo-text p {
-            font-size: 0.7rem;
-            color: var(--obs-text-dim);
-        }
-        .status-badges {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .badge-obs {
-            background: rgba(0, 180, 216, 0.15);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border: 1px solid rgba(0, 180, 216, 0.3);
-        }
+        .sm-btn:hover{background:#444}
+        .sm-btn.danger{background:rgba(255,45,85,0.15);color:#ff6b8a}
+        .sm-btn.danger:hover{background:rgba(255,45,85,0.25)}
 
-        /* ========== JAM DIGITAL OBS STYLE - MULTI TAB SUPPORT ========== */
-        .obs-clock-live {
-            background: linear-gradient(145deg, #0a0a0a, #1a1a1a);
-            backdrop-filter: blur(4px);
-            padding: 8px 20px;
-            border-radius: 40px;
-            font-family: 'JetBrains Mono', 'Inter', monospace;
-            font-size: 1.15rem;
-            font-weight: 600;
-            letter-spacing: 1.5px;
-            border: 1px solid var(--obs-accent);
-            box-shadow: 0 0 10px rgba(0, 180, 216, 0.2);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: all 0.3s ease;
-        }
-        .obs-clock-live:hover {
-            box-shadow: 0 0 18px rgba(0, 180, 216, 0.4);
-            border-color: #00d4ff;
-            transform: scale(1.02);
-        }
-        .obs-clock-live i {
-            font-size: 0.9rem;
-            color: var(--obs-accent);
-        }
-        .clock-time-main {
-            background: linear-gradient(135deg, #fff, var(--obs-accent));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-shadow: 0 0 8px rgba(0,180,216,0.3);
-        }
-        .clock-seconds-live {
-            background: linear-gradient(135deg, #f4a261, #ef233c);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            font-weight: 700;
-            min-width: 42px;
-            display: inline-block;
-            animation: pulseSecond 1s step-end infinite;
-        }
-        @keyframes pulseSecond {
-            0%, 100% { opacity: 1; text-shadow: 0 0 2px rgba(244,162,97,0.5); }
-            50% { opacity: 0.8; text-shadow: 0 0 8px rgba(239,35,60,0.6); }
-        }
-        .clock-date-small {
-            font-size: 0.65rem;
-            font-family: 'Inter', sans-serif;
-            font-weight: 400;
-            color: var(--obs-text-dim);
-            letter-spacing: 0.5px;
-        }
-        .timezone-badge {
-            font-size: 0.6rem;
-            background: rgba(0,0,0,0.5);
-            padding: 2px 6px;
-            border-radius: 20px;
-            margin-left: 6px;
-        }
+        .lib-panel{background:var(--obs-panel);border-radius:8px;border:1px solid var(--obs-border);overflow:hidden}
+        .lib-header{padding:10px 14px;background:#222;border-bottom:1px solid var(--obs-border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+        .lib-header h3{font-size:0.85rem;font-weight:600}
+        .search-box{background:#181818;border:1px solid var(--obs-border);border-radius:5px;padding:5px 10px;color:#fff;font-size:0.78rem;width:190px;outline:none;transition:border 0.2s}
+        .search-box:focus{border-color:var(--obs-accent)}
+        .vid-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:14px;max-height:380px;overflow-y:auto}
+        .vid-card{background:#1e1e1e;border-radius:6px;overflow:hidden;cursor:pointer;transition:all 0.2s;border:1px solid var(--obs-border)}
+        .vid-card:hover{border-color:var(--obs-accent);transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,200,255,0.08)}
+        .vid-thumb{height:130px;background:linear-gradient(135deg,#0d1117,#161b22);display:flex;align-items:center;justify-content:center;position:relative}
+        .vid-thumb i{font-size:2.2rem;color:var(--obs-accent);opacity:0.7}
+        .dur-badge{position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,0.75);padding:2px 6px;border-radius:3px;font-size:0.6rem;font-family:monospace}
+        .vid-info{padding:9px}
+        .vid-title{font-size:0.78rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .vid-meta{font-size:0.6rem;color:var(--obs-text-dim);margin-top:5px;display:flex;gap:10px}
+        .vid-actions{display:flex;gap:6px;margin-top:7px}
 
-        /* Tab Info */
-        .tab-info {
-            font-size: 0.65rem;
-            background: rgba(0,180,216,0.2);
-            padding: 4px 10px;
-            border-radius: 20px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
+        /* MODAL */
+        .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);backdrop-filter:blur(8px);z-index:2000;align-items:center;justify-content:center;padding:20px}
+        .modal-box{background:var(--obs-panel);border-radius:12px;max-width:880px;width:100%;max-height:85vh;overflow-y:auto;border:1px solid var(--obs-accent)}
+        .modal-top{padding:14px;border-bottom:1px solid var(--obs-border);display:flex;justify-content:space-between;align-items:center}
+        .modal-top h4{font-size:0.9rem;font-weight:600}
+        .modal-x{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;line-height:1}
+        .modal-x:hover{color:var(--obs-red)}
+        .modal-body{padding:14px}
+        .modal-vid{width:100%;border-radius:6px;background:#000}
+        .modal-meta{margin-top:10px;font-size:0.78rem;display:flex;gap:16px;flex-wrap:wrap}
+        .modal-btns{display:flex;gap:8px;margin-top:14px}
 
-        .obs-grid {
-            display: grid;
-            grid-template-columns: 1fr 320px;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
+        /* PROGRESS */
+        .prog-bg{position:fixed;inset:0;background:rgba(0,0,0,0.95);display:none;align-items:center;justify-content:center;z-index:2500}
+        .prog-card{background:var(--obs-panel);padding:28px;border-radius:12px;width:90%;max-width:420px;text-align:center;border:1px solid var(--obs-accent)}
+        .prog-bar{width:100%;height:6px;background:#383838;border-radius:3px;overflow:hidden;margin:18px 0}
+        .prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--obs-accent),#00e5ff);transition:width 0.3s;border-radius:3px}
 
-        .preview-panel {
-            background: #000000;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid var(--obs-border);
-            position: relative;
-        }
-        .preview-header {
-            background: var(--obs-panel);
-            padding: 8px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--obs-border);
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-        .video-container {
-            position: relative;
-            aspect-ratio: 16/9;
-            background: #0a0a0a;
-        }
-        .video-preview {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: none;
-        }
-        .video-overlay {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0,0,0,0.7);
-            gap: 15px;
-        }
-        .recording-indicator {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            background: var(--obs-red);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            display: none;
-            align-items: center;
-            gap: 8px;
-            z-index: 10;
-            animation: pulseRed 1.5s infinite;
-        }
-        @keyframes pulseRed {
-            0% { opacity: 1; box-shadow: 0 0 0 0 rgba(239, 35, 60, 0.4); }
-            70% { box-shadow: 0 0 0 8px rgba(239, 35, 60, 0); }
-            100% { opacity: 1; }
-        }
+        /* TOAST */
+        .toast-wrap{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:3000;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+        .toast{background:#2a2a2a;border-left:4px solid var(--obs-accent);padding:9px 18px;border-radius:5px;display:flex;gap:8px;align-items:center;pointer-events:auto;animation:toastIn 0.3s ease;font-size:0.82rem}
+        .toast.error{border-left-color:var(--obs-red)}
+        .toast.success{border-left-color:var(--obs-green)}
+        .toast.warn{border-left-color:var(--obs-yellow)}
+        @keyframes toastIn{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
 
-        .controls-panel {
-            background: var(--obs-panel);
-            border-radius: 8px;
-            border: 1px solid var(--obs-border);
-            padding: 16px;
-        }
-        .controls-title {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--obs-text-dim);
-            margin-bottom: 16px;
-            border-left: 3px solid var(--obs-accent);
-            padding-left: 10px;
-        }
-        .btn-group {
-            display: flex;
-            gap: 12px;
-            flex-direction: column;
-        }
-        .btn-obs {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: all 0.2s ease;
-            background: #3a3a3a;
-            color: var(--obs-text);
-        }
-        .btn-obs:hover:not(:disabled) {
-            filter: brightness(1.1);
-            transform: translateY(-1px);
-        }
-        .btn-record {
-            background: var(--obs-red);
-            color: white;
-        }
-        .btn-stop {
-            background: #555;
-        }
-        .btn-download {
-            background: var(--obs-green);
-            color: #1e1e1e;
-        }
-        .btn-export {
-            background: var(--obs-yellow);
-            color: #1e1e1e;
-        }
-        .btn-obs:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        .db-bar{position:fixed;bottom:6px;left:6px;font-size:0.6rem;background:rgba(0,0,0,0.7);padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;z-index:999;color:var(--obs-text-dim)}
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin: 16px 0;
-        }
-        .stat-card-obs {
-            background: #252525;
-            border-radius: 6px;
-            padding: 12px;
-            text-align: center;
-            border: 1px solid var(--obs-border);
-        }
-        .stat-value-obs {
-            font-size: 1.5rem;
-            font-weight: 700;
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--obs-accent);
-        }
-        .stat-label-obs {
-            font-size: 0.7rem;
-            color: var(--obs-text-dim);
-            margin-top: 4px;
-        }
+        /* Version selector */
+        .ver-row{margin-top:10px;padding-top:10px;border-top:1px solid var(--obs-border);display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:0.72rem;color:var(--obs-text-dim)}
+        .ver-sel{background:#181818;border:1px solid var(--obs-border);border-radius:4px;padding:3px 7px;color:#fff;font-size:0.7rem;outline:none}
 
-        .library-panel {
-            background: var(--obs-panel);
-            border-radius: 8px;
-            border: 1px solid var(--obs-border);
-            margin-top: 16px;
-            overflow: hidden;
-        }
-        .library-header {
-            padding: 12px 16px;
-            background: #262626;
-            border-bottom: 1px solid var(--obs-border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .library-header h3 {
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-        .search-input {
-            background: #1e1e1e;
-            border: 1px solid var(--obs-border);
-            border-radius: 6px;
-            padding: 6px 12px;
-            color: white;
-            font-size: 0.8rem;
-            width: 200px;
-        }
-        .video-grid-obs {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 12px;
-            padding: 16px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .video-card-obs {
-            background: #252525;
-            border-radius: 6px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid var(--obs-border);
-        }
-        .video-card-obs:hover {
-            border-color: var(--obs-accent);
-            transform: translateY(-2px);
-        }
-        .video-thumb-obs {
-            height: 140px;
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        .video-thumb-obs i {
-            font-size: 2.5rem;
-            color: var(--obs-accent);
-        }
-        .duration-badge {
-            position: absolute;
-            bottom: 8px;
-            right: 8px;
-            background: rgba(0,0,0,0.7);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.65rem;
-            font-family: monospace;
-        }
-        .video-info-obs {
-            padding: 10px;
-        }
-        .video-title-obs {
-            font-size: 0.8rem;
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .video-meta-obs {
-            font-size: 0.65rem;
-            color: var(--obs-text-dim);
-            margin-top: 6px;
-            display: flex;
-            gap: 10px;
-        }
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-            margin-top: 8px;
-        }
-        .small-btn {
-            background: #3a3a3a;
-            border: none;
-            padding: 4px 10px;
-            border-radius: 4px;
-            color: white;
-            font-size: 0.7rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .small-btn:hover {
-            background: #4a4a4a;
-        }
-
-        .modal-obs {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.95);
-            backdrop-filter: blur(8px);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .modal-content-obs {
-            background: var(--obs-panel);
-            border-radius: 12px;
-            max-width: 900px;
-            width: 100%;
-            max-height: 85vh;
-            overflow-y: auto;
-            border: 1px solid var(--obs-accent);
-        }
-        .modal-header {
-            padding: 16px;
-            border-bottom: 1px solid var(--obs-border);
-            display: flex;
-            justify-content: space-between;
-        }
-        .modal-body {
-            padding: 16px;
-        }
-        .modal-video {
-            width: 100%;
-            border-radius: 8px;
-            background: black;
-        }
-
-        .toast-container {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 3000;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            pointer-events: none;
-        }
-        .toast {
-            background: #2d2d2d;
-            border-left: 4px solid var(--obs-accent);
-            padding: 10px 20px;
-            border-radius: 6px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            pointer-events: auto;
-            animation: slideUp 0.3s ease;
-        }
-        @keyframes slideUp {
-            from { transform: translateY(100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .progress-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.95);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 2500;
-        }
-        .progress-card {
-            background: var(--obs-panel);
-            padding: 30px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 450px;
-            text-align: center;
-            border: 1px solid var(--obs-accent);
-        }
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #444;
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 20px 0;
-        }
-        .progress-fill {
-            height: 100%;
-            width: 0%;
-            background: var(--obs-accent);
-            transition: width 0.3s;
-        }
-
-        .db-status-bar {
-            position: fixed;
-            bottom: 8px;
-            left: 8px;
-            font-size: 0.65rem;
-            background: rgba(0,0,0,0.6);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-family: monospace;
-            z-index: 999;
-        }
-
-        @media (max-width: 900px) {
-            .obs-grid { grid-template-columns: 1fr; }
-            .stats-grid { grid-template-columns: repeat(4, 1fr); }
-        }
-        @media (max-width: 600px) {
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .obs-header { flex-direction: column; align-items: flex-start; }
-            .obs-clock-live { font-size: 0.9rem; padding: 4px 12px; flex-wrap: wrap; }
+        /* Responsive */
+        @media(max-width:900px){.obs-grid{grid-template-columns:1fr}.stats-grid{grid-template-columns:repeat(4,1fr)}}
+        @media(max-width:640px){
+            .obs-header{flex-direction:column;align-items:stretch;gap:8px;padding:8px 12px}
+            .header-right{justify-content:space-between}
+            .clock-master{padding:6px 12px 6px 10px;gap:5px;border-radius:12px;flex-wrap:wrap;justify-content:center}
+            .clock-hm{font-size:1.1rem}.clock-sec{font-size:0.9rem}
+            .clock-divider{display:none}
+            .stats-grid{grid-template-columns:1fr 1fr}
+            .badge-tab{display:none}
         }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div class="obs-header">
-        <div class="logo-area">
-            <div class="logo-icon"><i class="fas fa-desktop"></i></div>
-            <div class="logo-text">
-                <h1>Studio Recorder</h1>
-                <p>Multi-Tab Live Clock | Offline Mode</p>
-            </div>
-        </div>
-        <div class="status-badges">
-            <div class="badge-obs"><i class="fas fa-wifi-slash"></i> Offline Mode</div>
-            <div class="badge-obs"><i class="fas fa-database"></i> Local DB</div>
-            <div class="tab-info" id="tabIdDisplay">
-                <i class="fas fa-window-maximize"></i> Tab ID: <span id="tabId">---</span>
-            </div>
-            <!-- JAM LIVE - AKAN TAMPIL DI SEMUA TAB -->
-            <div class="obs-clock-live" id="liveClockWidget">
-                <i class="fas fa-clock"></i>
-                <span id="liveHourMin" class="clock-time-main">--:--</span>
-                <span id="liveSeconds" class="clock-seconds-live">--</span>
-                <span id="liveAmPm" style="font-size:0.75rem; font-weight:500;">--</span>
-                <div class="clock-date-small" id="liveDate"></div>
-                <span class="timezone-badge" id="liveTimezone">UTC</span>
-            </div>
+<!-- ===== STICKY HEADER DENGAN JAM ===== -->
+<header class="obs-header" id="obsHeader">
+    <div class="logo-area">
+        <div class="logo-icon"><i class="fas fa-desktop"></i></div>
+        <div class="logo-text">
+            <h1>OBS STUDIO RECORDER</h1>
+            <p>MULTI-TAB LIVE CLOCK &bull; WORKER SYNC</p>
         </div>
     </div>
+    <div class="header-right">
+        <span class="badge badge-offline"><i class="fas fa-wifi-slash"></i> Offline</span>
+        <span class="badge badge-db"><i class="fas fa-database"></i> Local DB</span>
+        <span class="badge badge-tab" id="tabBadge"><i class="fas fa-window-maximize"></i> <span id="tabId">---</span></span>
+        <span class="bg-tab-badge" id="bgBadge"><i class="fas fa-eye-slash"></i> Background</span>
 
+        <!-- === JAM MASTER === -->
+        <div class="clock-master" id="clockWidget">
+            <div class="clock-icon">
+                <i class="fas fa-clock"></i>
+                <span class="ping"></span>
+            </div>
+            <div class="clock-time-group">
+                <span class="clock-hm" id="cHM">--:--</span>
+                <span class="clock-sep" id="cSep">:</span>
+                <span class="clock-sec" id="cSec">--</span>
+                <span class="clock-ampm" id="cAP">--</span>
+            </div>
+            <div class="clock-divider"></div>
+            <span class="clock-date-text" id="cDate">---</span>
+            <span class="clock-tz" id="cTZ">UTC</span>
+        </div>
+    </div>
+</header>
+
+<!-- ===== MAIN BODY ===== -->
+<div class="app-body">
     <div class="obs-grid">
         <div class="preview-panel">
-            <div class="preview-header">
+            <div class="panel-header">
                 <span><i class="fas fa-eye"></i> Preview</span>
                 <span id="previewStatus">Standby</span>
             </div>
             <div class="video-container">
                 <video class="video-preview" id="preview" autoplay muted playsinline></video>
                 <div class="video-overlay" id="videoOverlay">
-                    <i class="fas fa-desktop fa-3x"></i>
-                    <h3>Screen Preview</h3>
-                    <p style="font-size: 0.8rem;">Klik START RECORDING untuk memilih layar</p>
+                    <i class="fas fa-desktop" style="font-size:2.5rem;opacity:0.5"></i>
+                    <h3 style="font-size:1rem;font-weight:500">Screen Preview</h3>
+                    <p style="font-size:0.75rem;color:var(--obs-text-dim)">Klik START RECORDING untuk memilih layar</p>
                 </div>
-                <div class="recording-indicator" id="recordingIndicator">
-                    <i class="fas fa-circle" style="font-size: 10px;"></i> RECORDING
-                </div>
+                <div class="rec-dot" id="recDot"><i class="fas fa-circle" style="font-size:8px"></i> REC</div>
             </div>
         </div>
 
         <div class="controls-panel">
-            <div class="controls-title"><i class="fas fa-sliders-h"></i> Kontrol Rekaman</div>
-            <div class="btn-group">
-                <button class="btn-obs btn-record" id="recordBtn"><i class="fas fa-circle"></i> START RECORDING</button>
+            <div class="ctrl-label"><i class="fas fa-sliders-h"></i> Kontrol Rekaman</div>
+            <div class="btn-col">
+                <button class="btn-obs btn-rec" id="recordBtn"><i class="fas fa-circle"></i> START RECORDING</button>
                 <button class="btn-obs btn-stop" id="stopBtn" disabled><i class="fas fa-stop"></i> STOP</button>
-                <button class="btn-obs btn-download" id="downloadBtn" disabled><i class="fas fa-download"></i> DOWNLOAD TERBARU</button>
-                <button class="btn-obs btn-export" id="exportBtn"><i class="fas fa-file-archive"></i> BACKUP DATABASE (ZIP)</button>
+                <button class="btn-obs btn-dl" id="downloadBtn" disabled><i class="fas fa-download"></i> DOWNLOAD TERBARU</button>
+                <button class="btn-obs btn-exp" id="exportBtn"><i class="fas fa-file-archive"></i> BACKUP DATABASE (ZIP)</button>
             </div>
             <div class="stats-grid">
-                <div class="stat-card-obs">
-                    <div class="stat-value-obs" id="timerDisplay">00:00:00</div>
-                    <div class="stat-label-obs">Durasi Rekam</div>
-                </div>
-                <div class="stat-card-obs">
-                    <div class="stat-value-obs" id="fileSizeDisplay">0 MB</div>
-                    <div class="stat-label-obs">Ukuran Sementara</div>
-                </div>
-                <div class="stat-card-obs">
-                    <div class="stat-value-obs" id="totalVideosCount">0</div>
-                    <div class="stat-label-obs">Total Video</div>
-                </div>
-                <div class="stat-card-obs">
-                    <div class="stat-value-obs" id="totalStorage">0 GB</div>
-                    <div class="stat-label-obs">Total Storage</div>
-                </div>
+                <div class="stat-card"><div class="stat-val" id="timerDisp">00:00:00</div><div class="stat-lbl">Durasi Rekam</div></div>
+                <div class="stat-card"><div class="stat-val" id="sizeDisp">0 MB</div><div class="stat-lbl">Ukuran Sementara</div></div>
+                <div class="stat-card"><div class="stat-val" id="vidCount">0</div><div class="stat-lbl">Total Video</div></div>
+                <div class="stat-card"><div class="stat-val" id="totalSize">0 GB</div><div class="stat-lbl">Total Storage</div></div>
             </div>
-            <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
-                <button class="small-btn" id="refreshLibBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
-                <button class="small-btn" id="restoreDbBtn"><i class="fas fa-upload"></i> Restore DB</button>
-                <button class="small-btn" id="clearAllBtn" style="background: #ef233c20;"><i class="fas fa-trash"></i> Hapus Semua</button>
-                <input type="file" id="restoreFileInput" accept=".zip" style="display:none;">
+            <div class="mini-btns">
+                <button class="sm-btn" id="refreshBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
+                <button class="sm-btn" id="restoreBtn"><i class="fas fa-upload"></i> Restore DB</button>
+                <button class="sm-btn danger" id="clearBtn"><i class="fas fa-trash"></i> Hapus Semua</button>
+                <input type="file" id="restoreFile" accept=".zip" style="display:none">
             </div>
-            <div class="version-selector" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--obs-border); display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <div class="ver-row">
                 <i class="fas fa-code-branch"></i>
-                <select id="backupVersionSelect" style="background:#1e1e1e; border:1px solid var(--obs-border); border-radius:4px; padding:4px 8px; color:white;">
-                    <option value="1.0.5">Versi 1.0.5</option>
-                    <option value="1.0.4">Versi 1.0.4</option>
-                    <option value="1.0.3">Versi 1.0.3</option>
+                <select class="ver-sel" id="verSel">
+                    <option value="1.0.5">v1.0.5</option>
+                    <option value="1.0.4">v1.0.4</option>
+                    <option value="1.0.3">v1.0.3</option>
                 </select>
-                <button class="small-btn" id="restoreVersionBtn">Restore Versi</button>
+                <button class="sm-btn" id="verRestoreBtn">Restore Versi</button>
             </div>
         </div>
     </div>
 
-    <div class="library-panel">
-        <div class="library-header">
-            <h3><i class="fas fa-video"></i> Media Library (Offline Storage)</h3>
-            <input type="text" id="searchInput" class="search-input" placeholder="Cari video...">
+    <div class="lib-panel">
+        <div class="lib-header">
+            <h3><i class="fas fa-video"></i> Media Library</h3>
+            <input type="text" id="searchInput" class="search-box" placeholder="Cari video...">
         </div>
-        <div class="video-grid-obs" id="videoGrid"></div>
-        <div id="emptyLibraryMsg" style="text-align:center; padding: 40px; display:none;">
-            <i class="fas fa-film fa-2x"></i>
-            <p style="margin-top: 12px;">Belum ada rekaman. Klik START RECORDING</p>
+        <div class="vid-grid" id="vidGrid"></div>
+        <div id="emptyMsg" style="text-align:center;padding:36px;display:none">
+            <i class="fas fa-film" style="font-size:2rem;opacity:0.3"></i>
+            <p style="margin-top:10px;font-size:0.82rem;color:var(--obs-text-dim)">Belum ada rekaman</p>
         </div>
     </div>
 </div>
 
-<div class="db-status-bar" id="dbStatus">💾 Offline Mode | Multi-Tab Clock Active</div>
+<div class="db-bar" id="dbBar">Worker Clock Active | Multi-Tab Sync</div>
 
-<div class="modal-obs" id="videoModal">
-    <div class="modal-content-obs">
-        <div class="modal-header">
-            <h4 id="modalTitle">Video Player</h4>
-            <button id="closeModalBtn" style="background:none; border:none; color:white; font-size:24px; cursor:pointer;">&times;</button>
+<!-- MODAL VIDEO -->
+<div class="modal-bg" id="vidModal">
+    <div class="modal-box">
+        <div class="modal-top">
+            <h4 id="mTitle">Video Player</h4>
+            <button class="modal-x" id="mClose">&times;</button>
         </div>
         <div class="modal-body">
-            <video class="modal-video" id="modalVideoPlayer" controls></video>
-            <div id="modalMeta" style="margin-top: 12px; font-size:0.8rem;"></div>
-            <div style="display:flex; gap:10px; margin-top: 16px;">
-                <button class="small-btn" id="modalDownloadBtn" style="flex:1;"><i class="fas fa-download"></i> Download</button>
-                <button class="small-btn" id="modalDeleteBtn" style="flex:1; background:#ef233c;"><i class="fas fa-trash"></i> Hapus</button>
+            <video class="modal-vid" id="mPlayer" controls></video>
+            <div class="modal-meta" id="mMeta"></div>
+            <div class="modal-btns">
+                <button class="sm-btn" id="mDl" style="flex:1;justify-content:center;padding:8px"><i class="fas fa-download"></i> Download</button>
+                <button class="sm-btn danger" id="mDel" style="flex:1;justify-content:center;padding:8px"><i class="fas fa-trash"></i> Hapus</button>
             </div>
         </div>
     </div>
 </div>
 
-<div class="progress-modal" id="progressModal">
-    <div class="progress-card">
-        <i class="fas fa-spinner fa-pulse fa-2x"></i>
-        <h3 id="progressTitle" style="margin: 15px 0;">Memproses...</h3>
-        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-        <p id="progressDetail" style="font-size:0.8rem;">Mempersiapkan...</p>
-        <button id="cancelProgressBtn" class="small-btn" style="margin-top:15px;">Batal</button>
+<!-- PROGRESS -->
+<div class="prog-bg" id="progModal">
+    <div class="prog-card">
+        <i class="fas fa-spinner fa-pulse" style="font-size:1.8rem;color:var(--obs-accent)"></i>
+        <h3 id="progTitle" style="margin:12px 0;font-size:1rem">Memproses...</h3>
+        <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+        <p id="progDetail" style="font-size:0.78rem;color:var(--obs-text-dim)">Mempersiapkan...</p>
+        <button class="sm-btn" id="progCancel" style="margin-top:12px">Batal</button>
     </div>
 </div>
-<div class="toast-container" id="toastContainer"></div>
+
+<div class="toast-wrap" id="toastWrap"></div>
 
 <script>
-    // ==================== MULTI-TAB CLOCK SYSTEM ====================
-    // Generate unique ID untuk tab ini
-    const tabId = 'tab_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
-    document.getElementById('tabId').innerText = tabId.substr(0, 12);
-    
-    // Broadcast Channel untuk komunikasi antar tab
-    const channel = new BroadcastChannel('obs_clock_sync');
-    
-    // Variabel untuk jam
-    let lastSyncTime = Date.now();
-    
-    // Fungsi update jam (dijalankan setiap detik di setiap tab)
-    function updateLiveClock() {
-        const now = new Date();
-        
-        // Format 12 jam
-        let hours = now.getHours();
-        const minutes = now.getMinutes().toString().padStart(2, '0');
-        const seconds = now.getSeconds().toString().padStart(2, '0');
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12 || 12;
-        const hourMinStr = `${hours.toString().padStart(2, '0')}:${minutes}`;
-        
-        // Update semua elemen jam
-        const hourMinEl = document.getElementById('liveHourMin');
-        const secondsEl = document.getElementById('liveSeconds');
-        const ampmEl = document.getElementById('liveAmPm');
-        const dateEl = document.getElementById('liveDate');
-        const tzEl = document.getElementById('liveTimezone');
-        
-        if (hourMinEl) hourMinEl.innerHTML = hourMinStr;
-        if (secondsEl) secondsEl.innerHTML = seconds;
-        if (ampmEl) ampmEl.innerHTML = ampm;
-        
-        // Format tanggal
-        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-        const dateString = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
-        if (dateEl) dateEl.innerHTML = dateString;
-        
-        // Timezone
-        try {
-            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const tzShort = tz.split('/').pop().replace(/_/g, ' ') || 'Local';
-            if (tzEl) tzEl.innerHTML = tzShort;
-        } catch(e) {
-            if (tzEl) tzEl.innerHTML = 'Local';
+// ================================================================
+//  MULTI-TAB LIVE CLOCK — WEB WORKER (tidak di-throttle)
+// ================================================================
+
+// Generate ID unik per tab
+const TAB_ID = 'T' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4);
+document.getElementById('tabId').textContent = TAB_ID;
+
+// BroadcastChannel untuk sinkronisasi antar tab
+const bc = new BroadcastChannel('obs_multitab_clock');
+
+// ===== INLINE WEB WORKER =====
+// Worker ini TIDAK di-throttle oleh browser saat tab di background
+const workerCode = `
+    let intervalId = null;
+    self.onmessage = function(e) {
+        if (e.data.cmd === 'start') {
+            if (intervalId) clearInterval(intervalId);
+            intervalId = setInterval(function() {
+                self.postMessage({ t: Date.now() });
+            }, 200); // update 5x per detik untuk akurasi tinggi
         }
-        
-        // Kirim sinyal ke tab lain setiap 5 detik untuk sinkronisasi
-        if (Date.now() - lastSyncTime > 5000) {
-            lastSyncTime = Date.now();
-            channel.postMessage({ type: 'clock_tick', time: now.getTime(), tabId: tabId });
-        }
-    }
-    
-    // Jalankan update jam setiap detik di setiap tab
-    setInterval(updateLiveClock, 1000);
-    updateLiveClock(); // Panggil pertama kali
-    
-    // Dengarkan pesan dari tab lain
-    channel.onmessage = (event) => {
-        if (event.data.type === 'clock_tick') {
-            // Tab lain mengirim sinyal, kita bisa update jika perlu
-            // Tampilkan di console bahwa jam sinkron antar tab
-            console.log(`[Sync] Tab ${event.data.tabId} mengirim sync pada ${new Date(event.data.time).toLocaleTimeString()}`);
+        if (e.data.cmd === 'stop') {
+            if (intervalId) clearInterval(intervalId);
         }
     };
-    
-    // Kirim pesan bahwa tab ini aktif
-    channel.postMessage({ type: 'tab_active', tabId: tabId, time: Date.now() });
-    
-    // Tampilkan informasi bahwa jam berjalan di semua tab
-    console.log(`✨ Jam Real-Time aktif di tab: ${tabId}`);
-    console.log(`📡 BroadcastChannel siap, semua tab akan menampilkan jam yang sama`);
-    
-    // ==================== DATABASE CONFIG ====================
-    const DB_NAME = 'OBS_Style_Recorder_MultiTab';
-    const DB_VERSION = 7;
-    const STORE_NAME = 'videos';
-    let db = null;
-    let isProcessing = false;
+`;
+const workerBlob = new Blob([workerCode], { type: 'application/javascript' });
+const workerURL = URL.createObjectURL(workerBlob);
+const clockWorker = new Worker(workerURL);
 
-    let recording = {
-        active: false,
-        mediaRecorder: null,
-        stream: null,
-        chunks: [],
-        startTime: null,
-        timerInterval: null,
-        saveInterval: null,
-        videoId: null,
-        videoTitle: null,
-        lastChunkCount: 0,
-        isSaving: false
-    };
+// Elemen DOM jam
+const elHM = document.getElementById('cHM');
+const elSec = document.getElementById('cSec');
+const elAP = document.getElementById('cAP');
+const elDate = document.getElementById('cDate');
+const elTZ = document.getElementById('cTZ');
+const elSep = document.getElementById('cSep');
+const elWidget = document.getElementById('clockWidget');
+const elBgBadge = document.getElementById('bgBadge');
 
-    function initDB() {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open(DB_NAME, DB_VERSION);
-            request.onerror = () => reject(request.error);
-            request.onsuccess = (e) => {
-                db = e.target.result;
-                loadAllVideos();
-                resolve(db);
-            };
-            request.onupgradeneeded = (e) => {
-                const dbRef = e.target.result;
-                if (!dbRef.objectStoreNames.contains(STORE_NAME)) {
-                    dbRef.createObjectStore(STORE_NAME, { keyPath: 'id' });
-                }
-            };
-        });
+// Cek apakah tab visible
+let isTabVisible = true;
+let lastBroadcast = 0;
+
+// Timezone info (hitung sekali)
+let tzShort = 'Local';
+try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    tzShort = tz.split('/').pop().replace(/_/g, ' ');
+    if (tzShort.length > 12) tzShort = tz.split('/').slice(-2).join('/').replace(/_/g,' ');
+} catch(e) {}
+elTZ.textContent = tzShort;
+
+// Nama hari & bulan (hitung sekali)
+const DAY_NAMES = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+
+// ===== FUNGSI UPDATE JAM =====
+function renderClock(timestamp) {
+    const now = new Date(timestamp);
+    let h = now.getHours();
+    const m = now.getMinutes();
+    const s = now.getSeconds();
+    const ap = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+
+    elHM.textContent = h.toString().padStart(2, '0') + ':' + m.toString().padStart(2, '0');
+    elSec.textContent = s.toString().padStart(2, '0');
+    elAP.textContent = ap;
+    elDate.textContent = DAY_NAMES[now.getDay()] + ', ' + now.getDate() + ' ' + MONTH_NAMES[now.getMonth()] + ' ' + now.getFullYear();
+
+    // Update document title agar terlihat di tab browser
+    const timeStr = h.toString().padStart(2,'0') + ':' + m.toString().padStart(2,'0') + ':' + s.toString().padStart(2,'0') + ' ' + ap;
+    document.title = timeStr + ' — OBS Studio Recorder';
+
+    // Broadcast ke tab lain (max 1x per detik)
+    if (timestamp - lastBroadcast > 1000) {
+        lastBroadcast = timestamp;
+        bc.postMessage({ type: 'tick', t: timestamp, tab: TAB_ID });
     }
+}
 
-    async function saveVideoRecord(data, blob) {
-        return new Promise((resolve, reject) => {
-            const tx = db.transaction(STORE_NAME, 'readwrite');
-            const store = tx.objectStore(STORE_NAME);
-            const record = { ...data, blob, savedAt: Date.now() };
-            store.put(record).onsuccess = () => resolve(record);
-            store.put(record).onerror = (err) => reject(err);
-        });
+// Worker mengirim timestamp setiap 200ms
+clockWorker.onmessage = function(e) {
+    renderClock(e.data.t);
+};
+
+// Mulai worker
+clockWorker.postMessage({ cmd: 'start' });
+
+// ===== VISIBILITY CHANGE — resync saat tab kembali aktif =====
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+        isTabVisible = false;
+        elBgBadge.classList.add('visible');
+        elWidget.classList.remove('active');
+    } else {
+        isTabVisible = true;
+        elBgBadge.classList.remove('visible');
+        elWidget.classList.add('active');
+        // Langsung update dengan waktu terbaru saat tab jadi visible
+        renderClock(Date.now());
+        // Broadcast bahwa tab ini aktif
+        bc.postMessage({ type: 'focus', tab: TAB_ID, t: Date.now() });
     }
+});
 
-    async function getAllVideos() {
-        if (!db) return [];
-        return new Promise((resolve) => {
-            const tx = db.transaction(STORE_NAME, 'readonly');
-            const store = tx.objectStore(STORE_NAME);
-            const req = store.getAll();
-            req.onsuccess = () => {
-                const videos = req.result || [];
-                videos.sort((a, b) => new Date(b.date) - new Date(a.date));
-                resolve(videos);
-            };
-            req.onerror = () => resolve([]);
-        });
+// Set awal
+if (!document.hidden) elWidget.classList.add('active');
+
+// ===== DENGARKAN PESAN DARI TAB LAIN =====
+bc.onmessage = function(e) {
+    const d = e.data;
+    if (d.type === 'tick' && d.tab !== TAB_ID) {
+        // Tab lain mengirim tick — update jam kita juga untuk sinkronisasi
+        renderClock(d.t);
     }
-
-    async function getVideoById(id) {
-        return new Promise((resolve) => {
-            const tx = db.transaction(STORE_NAME, 'readonly');
-            const store = tx.objectStore(STORE_NAME);
-            store.get(id).onsuccess = (e) => resolve(e.target.result);
-        });
+    if (d.type === 'focus' && d.tab !== TAB_ID) {
+        // Tab lain jadi fokus — pastikan jam kita juga update
+        renderClock(d.t);
     }
+};
 
-    async function deleteVideoById(id) {
-        return new Promise((resolve) => {
-            const tx = db.transaction(STORE_NAME, 'readwrite');
-            tx.objectStore(STORE_NAME).delete(id).onsuccess = () => resolve();
-        });
-    }
+// Broadcast ke tab lain bahwa kita online
+bc.postMessage({ type: 'online', tab: TAB_ID, t: Date.now() });
 
-    async function clearAllVideos() {
-        return new Promise((resolve) => {
-            const tx = db.transaction(STORE_NAME, 'readwrite');
-            tx.objectStore(STORE_NAME).clear().onsuccess = () => resolve();
-        });
-    }
+console.log('%c⏱ Multi-Tab Clock Active', 'color:#00c8ff;font-size:14px;font-weight:bold');
+console.log('%cWorker interval: 200ms (tidak di-throttle saat background)', 'color:#888');
+console.log('%cTab ID: ' + TAB_ID, 'color:#ffd60a');
+console.log('%cDocument title akan menampilkan waktu real-time', 'color:#30d158');
 
-    async function loadAllVideos() {
-        const videos = await getAllVideos();
-        const totalSize = videos.reduce((sum, v) => sum + (v.size || 0), 0);
-        document.getElementById('totalVideosCount').innerText = videos.length;
-        document.getElementById('totalStorage').innerText = formatFileSize(totalSize);
-        document.getElementById('downloadBtn').disabled = videos.length === 0;
-        renderVideoGrid(videos);
-        document.getElementById('dbStatus').innerHTML = `💾 Multi-Tab Mode | Total: ${videos.length} video | Clock Sync Active`;
-    }
 
-    async function renderVideoGrid(videosList = null) {
-        const videos = videosList || await getAllVideos();
-        const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
-        const filtered = videos.filter(v => v.title.toLowerCase().includes(searchTerm));
-        const grid = document.getElementById('videoGrid');
-        const emptyMsg = document.getElementById('emptyLibraryMsg');
-        if (filtered.length === 0) {
-            emptyMsg.style.display = 'block';
-            grid.innerHTML = '';
-            return;
-        }
-        emptyMsg.style.display = 'none';
-        grid.innerHTML = filtered.map(v => `
-            <div class="video-card-obs" data-id="${v.id}">
-                <div class="video-thumb-obs">
-                    <i class="fas fa-play-circle"></i>
-                    <span class="duration-badge">${formatDuration(v.duration)}</span>
-                </div>
-                <div class="video-info-obs">
-                    <div class="video-title-obs">${escapeHtml(v.title)}</div>
-                    <div class="video-meta-obs">
-                        <span><i class="far fa-calendar"></i> ${formatLocalDate(v.date)}</span>
-                        <span><i class="fas fa-hdd"></i> ${formatFileSize(v.size)}</span>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="small-btn play-btn" data-id="${v.id}"><i class="fas fa-play"></i> Play</button>
-                        <button class="small-btn del-btn" data-id="${v.id}"><i class="fas fa-trash"></i> Hapus</button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-        document.querySelectorAll('.play-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => { e.stopPropagation(); openVideoModal(btn.dataset.id); });
-        });
-        document.querySelectorAll('.del-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => { e.stopPropagation(); deleteVideoHandler(btn.dataset.id); });
-        });
-        document.querySelectorAll('.video-card-obs').forEach(card => {
-            card.addEventListener('click', (e) => {
-                if (e.target.classList.contains('play-btn') || e.target.classList.contains('del-btn')) return;
-                openVideoModal(card.dataset.id);
-            });
-        });
-    }
+// ================================================================
+//  DATABASE & RECORDING LOGIC
+// ================================================================
+const DB_NAME = 'OBS_Recorder_MT';
+const DB_VER = 8;
+const STORE = 'videos';
+let db = null;
+let busy = false;
 
-    function formatLocalDate(isoString) {
-        if (!isoString) return '--';
-        const d = new Date(isoString);
-        return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-    }
+const rec = {
+    on: false, mr: null, stream: null, chunks: [],
+    start: null, tInt: null, sInt: null,
+    vid: null, title: null, lastSave: 0, saving: false
+};
 
-    async function openVideoModal(id) {
-        const video = await getVideoById(id);
-        if (!video?.blob) { showToast('Video tidak ditemukan', 'error'); return; }
-        const url = URL.createObjectURL(video.blob);
-        const player = document.getElementById('modalVideoPlayer');
-        player.src = url;
-        document.getElementById('modalTitle').innerText = video.title;
-        document.getElementById('modalMeta').innerHTML = `
-            <div style="display:flex; gap:16px; flex-wrap:wrap;">
-                <span><i class="fas fa-clock"></i> Durasi: ${formatDuration(video.duration)}</span>
-                <span><i class="fas fa-database"></i> Ukuran: ${formatFileSize(video.size)}</span>
-                <span><i class="fas fa-calendar"></i> Rekam: ${new Date(video.date).toLocaleString()}</span>
-            </div>
-        `;
-        document.getElementById('videoModal').style.display = 'flex';
-        const modalDownload = document.getElementById('modalDownloadBtn');
-        const modalDelete = document.getElementById('modalDeleteBtn');
-        modalDownload.onclick = () => downloadBlob(video.blob, `${video.title}.webm`);
-        modalDelete.onclick = async () => {
-            await deleteVideoById(video.id);
-            await loadAllVideos();
-            document.getElementById('videoModal').style.display = 'none';
-            showToast('Video dihapus', 'info');
+function openDB() {
+    return new Promise((res, rej) => {
+        const r = indexedDB.open(DB_NAME, DB_VER);
+        r.onerror = () => rej(r.error);
+        r.onsuccess = e => { db = e.target.result; refreshLib(); res(db); };
+        r.onupgradeneeded = e => {
+            const d = e.target.result;
+            if (!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE, { keyPath: 'id' });
         };
-        player.onended = () => URL.revokeObjectURL(url);
-    }
+    });
+}
 
-    async function deleteVideoHandler(id) {
-        if (confirm('Hapus video ini?')) {
-            await deleteVideoById(id);
-            await loadAllVideos();
-            showToast('Video terhapus', 'success');
-        }
-    }
+function dbPut(data, blob) {
+    return new Promise((res, rej) => {
+        const tx = db.transaction(STORE, 'readwrite');
+        const s = tx.objectStore(STORE);
+        const req = s.put({ ...data, blob, savedAt: Date.now() });
+        req.onsuccess = () => res();
+        req.onerror = () => rej(req.error);
+    });
+}
 
-    function downloadBlob(blob, filename) {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = filename; a.click();
-        setTimeout(() => URL.revokeObjectURL(url), 100);
-    }
+function dbGetAll() {
+    return new Promise(res => {
+        const tx = db.transaction(STORE, 'readonly');
+        const s = tx.objectStore(STORE);
+        const r = s.getAll();
+        r.onsuccess = () => { const v = r.result || []; v.sort((a,b) => new Date(b.date) - new Date(a.date)); res(v); };
+        r.onerror = () => res([]);
+    });
+}
 
-    // ==================== RECORDING LOGIC ====================
-    async function startRecording() {
-        try {
-            const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: { width: 1920, height: 1080 }, audio: true });
-            const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null);
-            let finalStream = screenStream;
-            if (audioStream) finalStream = new MediaStream([...screenStream.getTracks(), ...audioStream.getAudioTracks()]);
-            recording.stream = finalStream;
-            recording.chunks = [];
-            recording.videoId = `studio_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
-            recording.videoTitle = `Recording ${new Date().toLocaleString()}`;
-            recording.startTime = Date.now();
-            recording.lastChunkCount = 0;
-            document.getElementById('preview').srcObject = finalStream;
-            document.getElementById('preview').style.display = 'block';
-            document.getElementById('videoOverlay').style.display = 'none';
-            const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 'video/webm;codecs=vp8' : 'video/webm';
-            recording.mediaRecorder = new MediaRecorder(finalStream, { mime, videoBitsPerSecond: 2500000 });
-            recording.mediaRecorder.ondataavailable = async (e) => {
-                if (e.data.size > 0) {
-                    recording.chunks.push(e.data);
-                    updateFileSizeUI();
-                    if (recording.chunks.length - recording.lastChunkCount >= 5 && !recording.isSaving) {
-                        recording.isSaving = true;
-                        await saveCurrentChunk(false);
-                        recording.isSaving = false;
-                    }
+function dbGet(id) {
+    return new Promise(res => {
+        const tx = db.transaction(STORE, 'readonly');
+        tx.objectStore(STORE).get(id).onsuccess = e => res(e.target.result);
+    });
+}
+
+function dbDel(id) {
+    return new Promise(res => {
+        const tx = db.transaction(STORE, 'readwrite');
+        tx.objectStore(STORE).delete(id).onsuccess = () => res();
+    });
+}
+
+function dbClear() {
+    return new Promise(res => {
+        const tx = db.transaction(STORE, 'readwrite');
+        tx.objectStore(STORE).clear().onsuccess = () => res();
+    });
+}
+
+async function refreshLib() {
+    const vids = await dbGetAll();
+    const ts = vids.reduce((s, v) => s + (v.size || 0), 0);
+    document.getElementById('vidCount').textContent = vids.length;
+    document.getElementById('totalSize').textContent = fmtSize(ts);
+    document.getElementById('downloadBtn').disabled = vids.length === 0;
+    renderGrid(vids);
+    document.getElementById('dbBar').innerHTML = `<i class="fas fa-microchip"></i> Worker Clock &bull; ${vids.length} video &bull; Tab ${TAB_ID}`;
+}
+
+function renderGrid(list) {
+    const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
+    const f = list.filter(v => v.title.toLowerCase().includes(q));
+    const g = document.getElementById('vidGrid');
+    const e = document.getElementById('emptyMsg');
+    if (!f.length) { e.style.display = 'block'; g.innerHTML = ''; return; }
+    e.style.display = 'none';
+    g.innerHTML = f.map(v => `
+        <div class="vid-card" data-id="${v.id}">
+            <div class="vid-thumb"><i class="fas fa-play-circle"></i><span class="dur-badge">${fmtDur(v.duration)}</span></div>
+            <div class="vid-info">
+                <div class="vid-title">${esc(v.title)}</div>
+                <div class="vid-meta"><span><i class="far fa-calendar"></i> ${fmtDate(v.date)}</span><span><i class="fas fa-hdd"></i> ${fmtSize(v.size)}</span></div>
+                <div class="vid-actions">
+                    <button class="sm-btn pb" data-id="${v.id}"><i class="fas fa-play"></i> Play</button>
+                    <button class="sm-btn danger db" data-id="${v.id}"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    g.querySelectorAll('.pb').forEach(b => b.onclick = e => { e.stopPropagation(); openModal(b.dataset.id); });
+    g.querySelectorAll('.db').forEach(b => b.onclick = e => { e.stopPropagation(); delVid(b.dataset.id); });
+    g.querySelectorAll('.vid-card').forEach(c => c.onclick = e => { if(e.target.closest('.pb,.db')) return; openModal(c.dataset.id); });
+}
+
+async function openModal(id) {
+    const v = await dbGet(id);
+    if (!v?.blob) return toast('Video tidak ditemukan','error');
+    const url = URL.createObjectURL(v.blob);
+    const p = document.getElementById('mPlayer');
+    p.src = url;
+    document.getElementById('mTitle').textContent = v.title;
+    document.getElementById('mMeta').innerHTML = `<span><i class="fas fa-clock"></i> ${fmtDur(v.duration)}</span><span><i class="fas fa-database"></i> ${fmtSize(v.size)}</span><span><i class="fas fa-calendar"></i> ${new Date(v.date).toLocaleString()}</span>`;
+    document.getElementById('vidModal').style.display = 'flex';
+    document.getElementById('mDl').onclick = () => dlBlob(v.blob, v.title + '.webm');
+    document.getElementById('mDel').onclick = async () => { await dbDel(v.id); await refreshLib(); document.getElementById('vidModal').style.display = 'none'; toast('Video dihapus','success'); };
+    p.onended = () => URL.revokeObjectURL(url);
+}
+
+async function delVid(id) {
+    if (!confirm('Hapus video ini?')) return;
+    await dbDel(id); await refreshLib(); toast('Video terhapus','success');
+}
+
+function dlBlob(blob, name) {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 200);
+}
+
+// ===== RECORDING =====
+async function startRec() {
+    try {
+        const ss = await navigator.mediaDevices.getDisplayMedia({ video: { width:1920, height:1080 }, audio: true });
+        const as = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null);
+        let fs = ss;
+        if (as) fs = new MediaStream([...ss.getTracks(), ...as.getAudioTracks()]);
+        rec.stream = fs; rec.chunks = [];
+        rec.vid = 'rec_' + Date.now() + '_' + Math.random().toString(36).substr(2,5);
+        rec.title = 'Recording ' + new Date().toLocaleString();
+        rec.start = Date.now(); rec.lastSave = 0; rec.saving = false;
+
+        document.getElementById('preview').srcObject = fs;
+        document.getElementById('preview').style.display = 'block';
+        document.getElementById('videoOverlay').style.display = 'none';
+
+        const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 'video/webm;codecs=vp8' : 'video/webm';
+        rec.mr = new MediaRecorder(fs, { mime, videoBitsPerSecond: 2500000 });
+
+        rec.mr.ondataavailable = async e => {
+            if (e.data.size > 0) {
+                rec.chunks.push(e.data);
+                updSize();
+                if (rec.chunks.length - rec.lastSave >= 5 && !rec.saving) {
+                    rec.saving = true;
+                    await saveChunk(false);
+                    rec.saving = false;
                 }
-            };
-            recording.mediaRecorder.onstop = async () => {
-                if (recording.chunks.length) await saveCurrentChunk(true);
-                cleanupRecording();
-                await loadAllVideos();
-            };
-            recording.mediaRecorder.start(3000);
-            recording.active = true;
-            recording.timerInterval = setInterval(() => {
-                if (recording.startTime) {
-                    const sec = Math.floor((Date.now() - recording.startTime) / 1000);
-                    document.getElementById('timerDisplay').innerText = formatDuration(sec);
-                }
-            }, 1000);
-            recording.saveInterval = setInterval(async () => {
-                if (recording.active && !recording.isSaving) await saveCurrentChunk(false);
-            }, 10000);
-            document.getElementById('recordBtn').disabled = true;
-            document.getElementById('stopBtn').disabled = false;
-            document.getElementById('recordingIndicator').style.display = 'flex';
-            showToast('🎬 Merekam - OBS Style Active', 'success');
-        } catch (err) {
-            showToast('Gagal: ' + err.message, 'error');
-        }
-    }
-
-    async function saveCurrentChunk(isFinal = false) {
-        if (recording.chunks.length === 0) return;
-        const blob = new Blob(recording.chunks, { type: 'video/webm' });
-        if (blob.size === 0) return;
-        const duration = Math.floor((Date.now() - recording.startTime) / 1000);
-        await saveVideoRecord({
-            id: recording.videoId,
-            title: recording.videoTitle,
-            duration: duration,
-            date: new Date().toISOString(),
-            quality: '1080p',
-            size: blob.size
-        }, blob);
-        recording.lastChunkCount = recording.chunks.length;
-        if (!isFinal) await loadAllVideos();
-    }
-
-    function stopRecording() {
-        if (recording.mediaRecorder && recording.active) recording.mediaRecorder.stop();
-    }
-
-    function cleanupRecording() {
-        recording.active = false;
-        if (recording.saveInterval) clearInterval(recording.saveInterval);
-        if (recording.timerInterval) clearInterval(recording.timerInterval);
-        document.getElementById('stopBtn').disabled = true;
-        document.getElementById('recordBtn').disabled = false;
-        document.getElementById('recordingIndicator').style.display = 'none';
-        document.getElementById('timerDisplay').innerText = '00:00:00';
-        document.getElementById('fileSizeDisplay').innerText = '0 MB';
-        if (recording.stream) recording.stream.getTracks().forEach(t => t.stop());
-        document.getElementById('preview').srcObject = null;
-        document.getElementById('preview').style.display = 'none';
-        document.getElementById('videoOverlay').style.display = 'flex';
-    }
-
-    function updateFileSizeUI() {
-        const total = recording.chunks.reduce((s, c) => s + c.size, 0);
-        document.getElementById('fileSizeDisplay').innerText = formatFileSize(total);
-    }
-
-    async function downloadLatestVideo() {
-        const videos = await getAllVideos();
-        if (videos.length) downloadBlob(videos[0].blob, `${videos[0].title}.webm`);
-        else showToast('Tidak ada video', 'warning');
-    }
-
-    // ==================== BACKUP & RESTORE ====================
-    async function backupDatabase() {
-        if (isProcessing) return;
-        if (typeof JSZip === 'undefined') { showToast('JSZip tidak tersedia', 'error'); return; }
-        const videos = await getAllVideos();
-        if (videos.length === 0) { showToast('Tidak ada video', 'warning'); return; }
-        isProcessing = true;
-        const modal = document.getElementById('progressModal');
-        const fill = document.getElementById('progressFill');
-        const detail = document.getElementById('progressDetail');
-        document.getElementById('progressTitle').innerText = 'Membuat Backup...';
-        modal.style.display = 'flex';
-        try {
-            const zip = new JSZip();
-            const folder = zip.folder("videos");
-            const metadata = [];
-            for (let i = 0; i < videos.length; i++) {
-                const v = videos[i];
-                detail.innerText = `📦 ${i+1}/${videos.length}: ${v.title.substring(0,40)}`;
-                fill.style.width = `${(i/videos.length)*100}%`;
-                if (v.blob) {
-                    const filename = `${v.id}.webm`;
-                    folder.file(filename, v.blob);
-                    metadata.push({ id: v.id, title: v.title, duration: v.duration, size: v.size, date: v.date, filename });
-                }
-                await new Promise(r => setTimeout(r, 5));
             }
-            zip.file("metadata.json", JSON.stringify({ exportDate: new Date().toISOString(), total: videos.length, videos: metadata }));
-            const zipBlob = await zip.generateAsync({ type: "blob" });
-            saveAs(zipBlob, `obs_backup_${Date.now()}.zip`);
-            showToast('Backup berhasil!', 'success');
-        } catch(e) { showToast('Backup gagal', 'error'); }
-        finally { isProcessing = false; modal.style.display = 'none'; fill.style.width = '0%'; }
-    }
+        };
+        rec.mr.onstop = async () => {
+            if (rec.chunks.length) await saveChunk(true);
+            cleanup(); await refreshLib();
+        };
 
-    async function restoreFromZip(file, versionHint = null) {
-        if (isProcessing) return;
-        if (!file || typeof JSZip === 'undefined') return;
-        isProcessing = true;
-        const modal = document.getElementById('progressModal');
-        const fill = document.getElementById('progressFill');
-        const detail = document.getElementById('progressDetail');
-        document.getElementById('progressTitle').innerText = 'Restore Database...';
-        modal.style.display = 'flex';
-        try {
-            const zip = await JSZip.loadAsync(file);
-            const metaFile = zip.file("metadata.json");
-            if (!metaFile) throw new Error("Invalid backup");
-            const meta = JSON.parse(await metaFile.async("string"));
-            const list = meta.videos || [];
-            for (let i = 0; i < list.length; i++) {
-                const item = list[i];
-                fill.style.width = `${(i/list.length)*100}%`;
-                detail.innerText = `Restore ${item.title}`;
-                const videoFile = zip.file(`videos/${item.filename}`);
-                if (videoFile) {
-                    const blob = await videoFile.async("blob");
-                    await saveVideoRecord({
-                        id: item.id, title: item.title, duration: item.duration,
-                        date: item.date || new Date().toISOString(), size: blob.size, quality: '1080p'
-                    }, blob);
-                }
-                await new Promise(r => setTimeout(r, 10));
+        rec.mr.start(3000);
+        rec.on = true;
+        rec.tInt = setInterval(() => {
+            if (rec.start) document.getElementById('timerDisp').textContent = fmtDur(Math.floor((Date.now()-rec.start)/1000));
+        }, 500);
+        rec.sInt = setInterval(async () => { if (rec.on && !rec.saving) await saveChunk(false); }, 10000);
+
+        document.getElementById('recordBtn').disabled = true;
+        document.getElementById('stopBtn').disabled = false;
+        document.getElementById('recDot').style.display = 'flex';
+        toast('Merekam dimulai','success');
+    } catch(err) { toast('Gagal: ' + err.message, 'error'); }
+}
+
+async function saveChunk(final) {
+    if (!rec.chunks.length) return;
+    const blob = new Blob(rec.chunks, { type: 'video/webm' });
+    if (!blob.size) return;
+    const dur = Math.floor((Date.now() - rec.start) / 1000);
+    await dbPut({ id: rec.vid, title: rec.title, duration: dur, date: new Date().toISOString(), quality: '1080p', size: blob.size }, blob);
+    rec.lastSave = rec.chunks.length;
+    if (!final) await refreshLib();
+}
+
+function stopRec() { if (rec.mr && rec.on) rec.mr.stop(); }
+
+function cleanup() {
+    rec.on = false;
+    clearInterval(rec.sInt); clearInterval(rec.tInt);
+    document.getElementById('stopBtn').disabled = true;
+    document.getElementById('recordBtn').disabled = false;
+    document.getElementById('recDot').style.display = 'none';
+    document.getElementById('timerDisp').textContent = '00:00:00';
+    document.getElementById('sizeDisp').textContent = '0 MB';
+    if (rec.stream) rec.stream.getTracks().forEach(t => t.stop());
+    document.getElementById('preview').srcObject = null;
+    document.getElementById('preview').style.display = 'none';
+    document.getElementById('videoOverlay').style.display = 'flex';
+}
+
+function updSize() {
+    const t = rec.chunks.reduce((s, c) => s + c.size, 0);
+    document.getElementById('sizeDisp').textContent = fmtSize(t);
+}
+
+async function dlLatest() {
+    const v = await dbGetAll();
+    if (v.length) dlBlob(v[0].blob, v[0].title + '.webm');
+    else toast('Tidak ada video','warn');
+}
+
+// ===== BACKUP & RESTORE =====
+async function backupDB() {
+    if (busy) return;
+    if (typeof JSZip === 'undefined') return toast('JSZip tidak tersedia','error');
+    const vids = await dbGetAll();
+    if (!vids.length) return toast('Tidak ada video','warn');
+    busy = true;
+    const pm = document.getElementById('progModal');
+    const pf = document.getElementById('progFill');
+    const pd = document.getElementById('progDetail');
+    document.getElementById('progTitle').textContent = 'Membuat Backup...';
+    pm.style.display = 'flex';
+    try {
+        const zip = new JSZip();
+        const folder = zip.folder('videos');
+        const meta = [];
+        for (let i = 0; i < vids.length; i++) {
+            const v = vids[i];
+            pd.textContent = `${i+1}/${vids.length}: ${v.title.substring(0,35)}`;
+            pf.style.width = `${(i/vids.length)*100}%`;
+            if (v.blob) {
+                const fn = v.id + '.webm';
+                folder.file(fn, v.blob);
+                meta.push({ id:v.id, title:v.title, duration:v.duration, size:v.size, date:v.date, filename:fn });
             }
-            await loadAllVideos();
-            showToast(`Restore selesai! ${list.length} video`, 'success');
-        } catch(e) { showToast('Restore gagal', 'error'); }
-        finally { isProcessing = false; modal.style.display = 'none'; fill.style.width = '0%'; }
-    }
+            await new Promise(r => setTimeout(r, 5));
+        }
+        zip.file('metadata.json', JSON.stringify({ exportDate:new Date().toISOString(), total:vids.length, videos:meta }));
+        const zb = await zip.generateAsync({ type:'blob' });
+        saveAs(zb, 'obs_backup_' + Date.now() + '.zip');
+        toast('Backup berhasil!','success');
+    } catch(e) { toast('Backup gagal','error'); }
+    finally { busy = false; pm.style.display = 'none'; pf.style.width = '0%'; }
+}
 
-    // ==================== UTILITIES ====================
-    function formatDuration(sec) {
-        if (!sec) return '00:00:00';
-        let h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
-        return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-    }
-    function formatFileSize(bytes) {
-        if (bytes < 1024) return bytes + ' B';
-        if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
-        if (bytes < 1073741824) return (bytes/1048576).toFixed(1) + ' MB';
-        return (bytes/1073741824).toFixed(2) + ' GB';
-    }
-    function escapeHtml(str) { return str.replace(/[&<>]/g, function(m) { if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
-    function showToast(msg, type = 'info') {
-        const container = document.getElementById('toastContainer');
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i><span>${msg}</span>`;
-        container.appendChild(toast);
-        setTimeout(() => toast.remove(), 3500);
-    }
+async function restoreZip(file) {
+    if (busy || !file || typeof JSZip === 'undefined') return;
+    busy = true;
+    const pm = document.getElementById('progModal');
+    const pf = document.getElementById('progFill');
+    const pd = document.getElementById('progDetail');
+    document.getElementById('progTitle').textContent = 'Restore Database...';
+    pm.style.display = 'flex';
+    try {
+        const zip = await JSZip.loadAsync(file);
+        const mf = zip.file('metadata.json');
+        if (!mf) throw new Error('Invalid backup');
+        const meta = JSON.parse(await mf.async('string'));
+        const list = meta.videos || [];
+        for (let i = 0; i < list.length; i++) {
+            const item = list[i];
+            pf.style.width = `${(i/list.length)*100}%`;
+            pd.textContent = item.title;
+            const vf = zip.file('videos/' + item.filename);
+            if (vf) {
+                const blob = await vf.async('blob');
+                await dbPut({ id:item.id, title:item.title, duration:item.duration, date:item.date||new Date().toISOString(), size:blob.size, quality:'1080p' }, blob);
+            }
+            await new Promise(r => setTimeout(r, 10));
+        }
+        await refreshLib();
+        toast(`Restore selesai! ${list.length} video`,'success');
+    } catch(e) { toast('Restore gagal','error'); }
+    finally { busy = false; pm.style.display = 'none'; pf.style.width = '0%'; }
+}
 
-    // EVENT LISTENERS
-    document.getElementById('recordBtn').onclick = startRecording;
-    document.getElementById('stopBtn').onclick = stopRecording;
-    document.getElementById('downloadBtn').onclick = downloadLatestVideo;
-    document.getElementById('exportBtn').onclick = backupDatabase;
-    document.getElementById('refreshLibBtn').onclick = () => loadAllVideos();
-    document.getElementById('clearAllBtn').onclick = async () => { if(confirm('Hapus SEMUA video?')) { await clearAllVideos(); await loadAllVideos(); showToast('Semua video dihapus', 'warning'); } };
-    document.getElementById('restoreDbBtn').onclick = () => document.getElementById('restoreFileInput').click();
-    document.getElementById('restoreFileInput').onchange = (e) => { if(e.target.files[0]) restoreFromZip(e.target.files[0]); e.target.value = ''; };
-    document.getElementById('restoreVersionBtn').onclick = () => {
-        const ver = document.getElementById('backupVersionSelect').value;
-        const inp = document.getElementById('restoreFileInput');
-        inp.onchange = (e) => { if(e.target.files[0]) restoreFromZip(e.target.files[0], ver); inp.value = ''; };
-        inp.click();
-    };
-    document.getElementById('closeModalBtn').onclick = () => document.getElementById('videoModal').style.display = 'none';
-    document.getElementById('cancelProgressBtn').onclick = () => { if(isProcessing) isProcessing = false; document.getElementById('progressModal').style.display = 'none'; };
-    document.getElementById('searchInput').addEventListener('input', () => loadAllVideos());
+// ===== UTILITAS =====
+function fmtDur(s) { if(!s) return '00:00:00'; const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60; return [h,m,sec].map(v=>String(v).padStart(2,'0')).join(':'); }
+function fmtSize(b) { if(b<1024) return b+' B'; if(b<1048576) return (b/1024).toFixed(1)+' KB'; if(b<1073741824) return (b/1048576).toFixed(1)+' MB'; return (b/1073741824).toFixed(2)+' GB'; }
+function fmtDate(iso) { if(!iso) return '--'; const d=new Date(iso); return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}); }
+function esc(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+function toast(msg, type='info') {
+    const w = document.getElementById('toastWrap');
+    const t = document.createElement('div');
+    t.className = 'toast' + (type !== 'info' ? ' ' + type : '');
+    const icons = { success:'fa-check-circle', error:'fa-exclamation-circle', warn:'fa-exclamation-triangle' };
+    t.innerHTML = `<i class="fas ${icons[type]||'fa-info-circle'}"></i><span>${msg}</span>`;
+    w.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+}
 
-    initDB().catch(console.error);
-    
-    // Tampilkan pesan di console bahwa multi-tab clock aktif
-    console.log('✅ Multi-Tab Clock System Active - Jam akan tampil di SEMUA tab yang membuka halaman ini');
+// ===== EVENT LISTENERS =====
+document.getElementById('recordBtn').onclick = startRec;
+document.getElementById('stopBtn').onclick = stopRec;
+document.getElementById('downloadBtn').onclick = dlLatest;
+document.getElementById('exportBtn').onclick = backupDB;
+document.getElementById('refreshBtn').onclick = () => refreshLib();
+document.getElementById('clearBtn').onclick = async () => { if(!confirm('Hapus SEMUA video?')) return; await dbClear(); await refreshLib(); toast('Semua dihapus','warn'); };
+document.getElementById('restoreBtn').onclick = () => document.getElementById('restoreFile').click();
+document.getElementById('restoreFile').onchange = e => { if(e.target.files[0]) restoreZip(e.target.files[0]); e.target.value=''; };
+document.getElementById('verRestoreBtn').onclick = () => {
+    const inp = document.getElementById('restoreFile');
+    const orig = inp.onchange;
+    inp.onchange = e => { if(e.target.files[0]) restoreZip(e.target.files[0]); inp.onchange = orig; e.target.value=''; };
+    inp.click();
+};
+document.getElementById('mClose').onclick = () => document.getElementById('vidModal').style.display = 'none';
+document.getElementById('progCancel').onclick = () => { busy=false; document.getElementById('progModal').style.display='none'; };
+document.getElementById('searchInput').addEventListener('input', () => refreshLib());
+
+// Klik di luar modal untuk tutup
+document.getElementById('vidModal').addEventListener('click', e => { if(e.target === e.currentTarget) e.currentTarget.style.display = 'none'; });
+
+// Init database
+openDB().catch(console.error);
 </script>
 </body>
 </html>
