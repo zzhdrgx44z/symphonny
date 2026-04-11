@@ -149,7 +149,7 @@
             margin-right: 3px;
         }
         
-        /* ========== FLOATING CLOCK WINDOW (POPOUT) + RECORDING TIMER ========== */
+        /* ========== FLOATING CLOCK (opsional) ========== */
         .floating-clock-container {
             position: fixed;
             bottom: 20px;
@@ -206,32 +206,6 @@
             padding-left: 8px;
             border-left: 1px solid rgba(212,175,55,0.3);
         }
-        /* RECORDING TIMER di dalam floating clock */
-        .floating-rec-timer {
-            display: none;
-            align-items: center;
-            gap: 6px;
-            background: rgba(239,68,68,0.25);
-            padding: 2px 10px;
-            border-radius: 40px;
-            margin-left: 8px;
-            border-left: 1px solid var(--danger);
-        }
-        .floating-rec-timer i {
-            color: var(--danger);
-            font-size: 10px;
-            animation: pulseRed 1s infinite;
-        }
-        @keyframes pulseRed {
-            0% { opacity: 0.4; transform: scale(0.9);}
-            100% { opacity: 1; transform: scale(1.2);}
-        }
-        .floating-rec-duration {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: #ff8c8c;
-            letter-spacing: 1px;
-        }
         .close-floating {
             background: none;
             border: none;
@@ -266,6 +240,47 @@
             background: var(--primary);
         }
         
+        /* ========== TIMER PEREKAMAN BESAR (PASTI MUNCUL) ========== */
+        .recording-timer-overlay {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 60px;
+            padding: 12px 24px;
+            border: 2px solid #ef4444;
+            box-shadow: 0 0 20px rgba(239,68,68,0.6);
+            z-index: 10002;
+            font-family: 'JetBrains Mono', monospace;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            cursor: move;
+            transition: all 0.2s;
+        }
+        .recording-timer-overlay i {
+            font-size: 20px;
+            color: #ef4444;
+            animation: pulseRed 1s infinite;
+        }
+        .recording-timer-overlay .timer-label {
+            font-size: 12px;
+            letter-spacing: 2px;
+            color: #f87171;
+        }
+        .recording-timer-overlay .timer-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #ff8c8c;
+            text-shadow: 0 0 8px rgba(239,68,68,0.5);
+            letter-spacing: 2px;
+        }
+        @keyframes pulseRed {
+            0% { opacity: 0.5; transform: scale(0.9);}
+            100% { opacity: 1; transform: scale(1.2);}
+        }
+        
         .recorder-section, .settings, .library { background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); border-radius: var(--radius-lg); padding: 25px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.1); }
         .video-container { background: #000; border-radius: var(--radius-md); aspect-ratio: 16/9; position: relative; overflow: hidden; margin-bottom: 25px; }
         .video-preview { width: 100%; height: 100%; object-fit: contain; display: none; }
@@ -282,7 +297,6 @@
         .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 15px; margin-bottom: 25px; }
         .stat-card { background: rgba(255,255,255,0.05); border-radius: var(--radius-md); padding: 18px; text-align: center; transition: 0.2s; }
         .stat-value { font-size: 1.8rem; font-weight: 700; background: var(--gradient-primary); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        /* RECORDING TIMER BESAR */
         .stat-value.recording-active {
             font-size: 2.5rem;
             background: linear-gradient(135deg, #ff6b6b, #ff3b3b);
@@ -325,7 +339,7 @@
         .saved-badge { background: var(--success); padding: 2px 10px; border-radius: 20px; font-size: 0.7rem; margin-left: 8px; }
         .time-chip { background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 4px; }
         .version-selector { background: rgba(0,0,0,0.3); border-radius: var(--radius-md); padding: 12px; margin-top: 15px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-        @media (max-width: 700px) { .controls { flex-direction: column; } .stats { grid-template-columns: 1fr 1fr; } .btn { width: 100%; } .digital-clock-premium { display: none; } .floating-clock { padding: 5px 12px; } .floating-time { font-size: 0.9rem; } }
+        @media (max-width: 700px) { .controls { flex-direction: column; } .stats { grid-template-columns: 1fr 1fr; } .btn { width: 100%; } .digital-clock-premium { display: none; } .floating-clock { padding: 5px 12px; } .floating-time { font-size: 0.9rem; } .recording-timer-overlay .timer-value { font-size: 20px; } }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes slideIn { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -351,7 +365,7 @@
     </div>
 </div>
 
-<!-- FLOATING CLOCK (ALWAYS ON TOP - BISA DI-DRAG) + RECORDING TIMER -->
+<!-- FLOATING CLOCK (opsional, bisa ditutup) -->
 <div class="floating-clock-container" id="floatingContainer" draggable="false">
     <div class="floating-clock" id="floatingClock">
         <div class="floating-clock-icon">
@@ -361,13 +375,15 @@
         <span class="floating-seconds" id="floatSeconds">--</span>
         <span style="font-size:0.7rem;" id="floatAmPm">--</span>
         <span class="floating-date" id="floatDate">--</span>
-        <!-- RECORDING TIMER INSIDE FLOATING CLOCK -->
-        <div class="floating-rec-timer" id="floatingRecTimer">
-            <i class="fas fa-circle"></i>
-            <span class="floating-rec-duration" id="floatingRecDuration">00:00:00</span>
-        </div>
         <button class="close-floating" id="closeFloatingBtn" title="Tutup floating clock">✕</button>
     </div>
+</div>
+
+<!-- TIMER PEREKAMAN BESAR (PASTI MUNCUL SAAT REKAM) -->
+<div id="recordingTimerOverlay" class="recording-timer-overlay" draggable="true">
+    <i class="fas fa-circle"></i>
+    <div class="timer-label">🔴 REKAM</div>
+    <div class="timer-value" id="bigTimerValue">00:00:00</div>
 </div>
 
 <!-- Tombol untuk membuka floating clock lagi -->
@@ -375,7 +391,7 @@
     <i class="fas fa-window-restore"></i> Tampilkan Jam Terpisah
 </button>
 
-<div class="loading" id="loading"><div style="width:50px;height:50px;border:4px solid rgba(255,255,255,0.2);border-top:4px solid var(--primary);border-radius:50%;animation:spin 1s linear infinite;"></div><div>Memulai Mode Offline...</div><div style="font-size:12px;margin-top:10px;">✅ Jam selalu terlihat | Bisa dipisah ke window sendiri | <strong style="color:#ff6b6b;">🔴 Jam Perekaman muncul otomatis saat merekam</strong></div></div>
+<div class="loading" id="loading"><div style="width:50px;height:50px;border:4px solid rgba(255,255,255,0.2);border-top:4px solid var(--primary);border-radius:50%;animation:spin 1s linear infinite;"></div><div>Memulai Mode Offline...</div><div style="font-size:12px;margin-top:10px;">✅ Jam selalu terlihat | <strong style="color:#ff6b6b;">🔴 Timer perekaman besar akan muncul otomatis saat rekaman dimulai</strong></div></div>
 
 <div class="progress-modal" id="progressModal">
     <div class="progress-card">
@@ -391,13 +407,13 @@
     <div class="header">
         <div class="logo-icon"><i class="fas fa-database"></i></div>
         <div class="logo-text"><h1>SCREEN RECORDER PRO</h1></div>
-        <p class="tagline" style="color:#ccc;">Full HD 1080p | <strong style="color:#f59e0b;">ALWAYS ON TOP CLOCK + RECORDING TIMER</strong></p>
+        <p class="tagline" style="color:#ccc;">Full HD 1080p | <strong style="color:#f59e0b;">TIMER PEREKAMAN BESAR SELALU MUNCUL</strong></p>
         <div class="badges">
             <div class="badge"><i class="fas fa-wifi-slash"></i> Offline Mode</div>
             <div class="badge"><i class="fas fa-database"></i> Local DB</div>
             <div class="badge"><i class="fas fa-archive"></i> Backup/Restore</div>
             <div class="badge"><i class="fas fa-clock"></i> Always Visible</div>
-            <div class="badge"><i class="fas fa-stopwatch"></i> <strong style="color:#ff6b6b;">Jam Perekaman</strong></div>
+            <div class="badge"><i class="fas fa-stopwatch"></i> <strong style="color:#ff6b6b;">Big Recording Timer</strong></div>
         </div>
     </div>
 
@@ -421,7 +437,7 @@
             <div class="stat-card"><div class="stat-value" id="totalSizeCloud">0 GB</div><div>Total Storage</div></div>
         </div>
         <div style="background:rgba(245,158,11,0.2); border-radius:var(--radius-md); padding:12px; margin-top:10px; text-align:center;">
-            <i class="fas fa-stopwatch"></i> <strong>🔴 JAM PEREKAMAN:</strong> Saat merekam, durasi akan muncul di jam mengambang dan di sini dengan efek merah menyala.
+            <i class="fas fa-stopwatch"></i> <strong>🔴 JAM PEREKAMAN:</strong> Saat merekam, akan muncul <strong style="color:#ff8c8c;">kotak timer besar berwarna merah</strong> di pojok kiri bawah (bisa digeser).
         </div>
     </div>
 
@@ -542,6 +558,51 @@
     const showFloatingBtn = document.getElementById('showFloatingBtn');
     let isDragging = false;
     let dragStartX, dragStartY, initialLeft, initialTop;
+    
+    // Drag untuk timer overlay
+    const timerOverlay = document.getElementById('recordingTimerOverlay');
+    let isDraggingTimer = false;
+    let timerDragStartX, timerDragStartY, timerInitialLeft, timerInitialTop;
+    
+    timerOverlay.addEventListener('mousedown', (e) => {
+        isDraggingTimer = true;
+        timerDragStartX = e.clientX;
+        timerDragStartY = e.clientY;
+        const rect = timerOverlay.getBoundingClientRect();
+        timerInitialLeft = rect.left;
+        timerInitialTop = rect.top;
+        timerOverlay.style.cursor = 'grabbing';
+        e.preventDefault();
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+        if (isDraggingTimer) {
+            const deltaX = e.clientX - timerDragStartX;
+            const deltaY = e.clientY - timerDragStartY;
+            let newLeft = timerInitialLeft + deltaX;
+            let newTop = timerInitialTop + deltaY;
+            newLeft = Math.max(0, Math.min(window.innerWidth - timerOverlay.offsetWidth, newLeft));
+            newTop = Math.max(0, Math.min(window.innerHeight - timerOverlay.offsetHeight, newTop));
+            timerOverlay.style.left = newLeft + 'px';
+            timerOverlay.style.top = newTop + 'px';
+            timerOverlay.style.bottom = 'auto';
+            timerOverlay.style.right = 'auto';
+        }
+    });
+    
+    document.addEventListener('mouseup', () => {
+        isDraggingTimer = false;
+        timerOverlay.style.cursor = 'move';
+    });
+    
+    function ensureFloatingClockVisible() {
+        if (floatingContainer.style.display === 'none') {
+            floatingContainer.style.display = 'block';
+            showFloatingBtn.style.display = 'none';
+            localStorage.setItem('floatingClockHidden', 'false');
+            showToast('🔔 Jam perekaman dimunculkan kembali!', 'info');
+        }
+    }
     
     if (localStorage.getItem('floatingClockHidden') === 'true') {
         floatingContainer.style.display = 'none';
@@ -666,7 +727,7 @@
     }
     
     function updateOfflineStatus() {
-        document.getElementById('dbStatus').innerHTML = `💾 Offline Mode | IndexedDB | Total: ${document.getElementById('videoCount').innerText} video | Always On Top + Rec Timer`;
+        document.getElementById('dbStatus').innerHTML = `💾 Offline Mode | IndexedDB | Total: ${document.getElementById('videoCount').innerText} video | Always On Top + Big Timer`;
     }
     
     async function saveVideoToDB(videoData, blob) {
@@ -847,27 +908,28 @@
         return `${window.location.origin}${window.location.pathname}#share=${videoId}`;
     }
     
-    // ======================== RECORDING + JAM PEREKAMAN ========================
+    // ======================== RECORDING + TIMER BESAR ========================
     const timerElement = document.getElementById('timer');
-    const floatingRecTimerDiv = document.getElementById('floatingRecTimer');
-    const floatingRecDurationSpan = document.getElementById('floatingRecDuration');
+    const bigTimerValue = document.getElementById('bigTimerValue');
     
     function updateRecordingUI(seconds) {
         const formatted = formatDuration(seconds);
         timerElement.innerText = formatted;
+        bigTimerValue.innerText = formatted;
         if (currentRecording.active) {
             timerElement.classList.add('recording-active');
-            floatingRecTimerDiv.style.display = 'flex';
-            floatingRecDurationSpan.innerText = formatted;
+            timerOverlay.style.display = 'flex';
         } else {
             timerElement.classList.remove('recording-active');
-            floatingRecTimerDiv.style.display = 'none';
-            floatingRecDurationSpan.innerText = '00:00:00';
+            timerOverlay.style.display = 'none';
         }
     }
     
     async function startRecording() { 
         try {
+            // Pastikan floating clock terlihat
+            ensureFloatingClockVisible();
+            
             if (!navigator.mediaDevices?.getDisplayMedia) throw new Error('Browser tidak support screen capture');
             const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } }, audio: true });
             const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null);
@@ -900,7 +962,7 @@
             document.getElementById('recordBtn').disabled = true;
             document.getElementById('stopBtn').disabled = false;
             document.getElementById('recordingStatus').style.display = 'flex';
-            showToast('🎬 Merekam (Offline) - Auto save aktif - Jam Perekaman Muncul', 'success');
+            showToast('🎬 Merekam - Timer besar muncul di pojok kiri bawah!', 'success');
         } catch(e) { showToast('❌ Gagal: '+e.message, 'error'); }
     }
     
@@ -1035,7 +1097,7 @@
         };
         handleShareHash(); 
         window.addEventListener('hashchange',handleShareHash); 
-        showToast('⏰ JAM PEREKAMAN MUNCUL SAAT MEREKAM (di jam mengambang dan di statistik)', 'success'); 
+        showToast('🔴 TIMER PEREKAMAN BESAR AKAN MUNCUL SAAT MULAI REKAM (pojok kiri bawah, bisa digeser)', 'success'); 
     })();
 </script>
 <div id="toastContainer" class="toast-container"></div>
