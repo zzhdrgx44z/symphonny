@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Screen Recorder PRO - Always On Top Clock</title>
+    <title>Screen Recorder PRO - Always On Top Clock + Recording Timer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -149,7 +149,7 @@
             margin-right: 3px;
         }
         
-        /* ========== FLOATING CLOCK WINDOW (POPOUT) ========== */
+        /* ========== FLOATING CLOCK WINDOW (POPOUT) + RECORDING TIMER ========== */
         .floating-clock-container {
             position: fixed;
             bottom: 20px;
@@ -206,6 +206,32 @@
             padding-left: 8px;
             border-left: 1px solid rgba(212,175,55,0.3);
         }
+        /* RECORDING TIMER di dalam floating clock */
+        .floating-rec-timer {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            background: rgba(239,68,68,0.25);
+            padding: 2px 10px;
+            border-radius: 40px;
+            margin-left: 8px;
+            border-left: 1px solid var(--danger);
+        }
+        .floating-rec-timer i {
+            color: var(--danger);
+            font-size: 10px;
+            animation: pulseRed 1s infinite;
+        }
+        @keyframes pulseRed {
+            0% { opacity: 0.4; transform: scale(0.9);}
+            100% { opacity: 1; transform: scale(1.2);}
+        }
+        .floating-rec-duration {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #ff8c8c;
+            letter-spacing: 1px;
+        }
         .close-floating {
             background: none;
             border: none;
@@ -254,8 +280,22 @@
         .btn.export { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: rgba(255,255,255,0.05); border-radius: var(--radius-md); padding: 18px; text-align: center; }
+        .stat-card { background: rgba(255,255,255,0.05); border-radius: var(--radius-md); padding: 18px; text-align: center; transition: 0.2s; }
         .stat-value { font-size: 1.8rem; font-weight: 700; background: var(--gradient-primary); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        /* RECORDING TIMER BESAR */
+        .stat-value.recording-active {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #ff6b6b, #ff3b3b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 10px rgba(239,68,68,0.5);
+            animation: pulseGlow 1.2s infinite;
+        }
+        @keyframes pulseGlow {
+            0% { opacity: 0.9; text-shadow: 0 0 0px rgba(239,68,68,0);}
+            100% { opacity: 1; text-shadow: 0 0 8px rgba(239,68,68,0.8);}
+        }
         .section-title { font-size: 1.4rem; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; border-left: 4px solid var(--primary); padding-left: 15px; }
         .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; max-height: 600px; overflow-y: auto; padding: 5px; }
         .video-card { background: rgba(0,0,0,0.4); border-radius: var(--radius-md); overflow: hidden; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; }
@@ -311,7 +351,7 @@
     </div>
 </div>
 
-<!-- FLOATING CLOCK (ALWAYS ON TOP - BISA DI-DRAG) -->
+<!-- FLOATING CLOCK (ALWAYS ON TOP - BISA DI-DRAG) + RECORDING TIMER -->
 <div class="floating-clock-container" id="floatingContainer" draggable="false">
     <div class="floating-clock" id="floatingClock">
         <div class="floating-clock-icon">
@@ -321,6 +361,11 @@
         <span class="floating-seconds" id="floatSeconds">--</span>
         <span style="font-size:0.7rem;" id="floatAmPm">--</span>
         <span class="floating-date" id="floatDate">--</span>
+        <!-- RECORDING TIMER INSIDE FLOATING CLOCK -->
+        <div class="floating-rec-timer" id="floatingRecTimer">
+            <i class="fas fa-circle"></i>
+            <span class="floating-rec-duration" id="floatingRecDuration">00:00:00</span>
+        </div>
         <button class="close-floating" id="closeFloatingBtn" title="Tutup floating clock">✕</button>
     </div>
 </div>
@@ -330,7 +375,7 @@
     <i class="fas fa-window-restore"></i> Tampilkan Jam Terpisah
 </button>
 
-<div class="loading" id="loading"><div style="width:50px;height:50px;border:4px solid rgba(255,255,255,0.2);border-top:4px solid var(--primary);border-radius:50%;animation:spin 1s linear infinite;"></div><div>Memulai Mode Offline...</div><div style="font-size:12px;margin-top:10px;">✅ Jam selalu terlihat | Bisa dipisah ke window sendiri</div></div>
+<div class="loading" id="loading"><div style="width:50px;height:50px;border:4px solid rgba(255,255,255,0.2);border-top:4px solid var(--primary);border-radius:50%;animation:spin 1s linear infinite;"></div><div>Memulai Mode Offline...</div><div style="font-size:12px;margin-top:10px;">✅ Jam selalu terlihat | Bisa dipisah ke window sendiri | <strong style="color:#ff6b6b;">🔴 Jam Perekaman muncul otomatis saat merekam</strong></div></div>
 
 <div class="progress-modal" id="progressModal">
     <div class="progress-card">
@@ -346,13 +391,13 @@
     <div class="header">
         <div class="logo-icon"><i class="fas fa-database"></i></div>
         <div class="logo-text"><h1>SCREEN RECORDER PRO</h1></div>
-        <p class="tagline" style="color:#ccc;">Full HD 1080p | <strong style="color:#f59e0b;">ALWAYS ON TOP CLOCK</strong></p>
+        <p class="tagline" style="color:#ccc;">Full HD 1080p | <strong style="color:#f59e0b;">ALWAYS ON TOP CLOCK + RECORDING TIMER</strong></p>
         <div class="badges">
             <div class="badge"><i class="fas fa-wifi-slash"></i> Offline Mode</div>
             <div class="badge"><i class="fas fa-database"></i> Local DB</div>
             <div class="badge"><i class="fas fa-archive"></i> Backup/Restore</div>
             <div class="badge"><i class="fas fa-clock"></i> Always Visible</div>
-            <div class="badge"><i class="fas fa-window-maximize"></i> Popout Window</div>
+            <div class="badge"><i class="fas fa-stopwatch"></i> <strong style="color:#ff6b6b;">Jam Perekaman</strong></div>
         </div>
     </div>
 
@@ -370,13 +415,13 @@
             <button class="btn export" id="exportFullBtn"><i class="fas fa-file-export"></i> EXPORT ALL (ZIP)</button>
         </div>
         <div class="stats">
-            <div class="stat-card"><div class="stat-value" id="timer">00:00:00</div><div>Duration</div></div>
+            <div class="stat-card"><div class="stat-value" id="timer">00:00:00</div><div>⏱️ DURASI REKAMAN</div></div>
             <div class="stat-card"><div class="stat-value" id="fileSize">0 MB</div><div>Current Size</div></div>
             <div class="stat-card"><div class="stat-value" id="videoCount">0</div><div>Total Videos</div></div>
             <div class="stat-card"><div class="stat-value" id="totalSizeCloud">0 GB</div><div>Total Storage</div></div>
         </div>
         <div style="background:rgba(245,158,11,0.2); border-radius:var(--radius-md); padding:12px; margin-top:10px; text-align:center;">
-            <i class="fas fa-clock"></i> <strong>JAM SELALU TERLIHAT</strong> — Floating clock dapat dipisah ke window terpisah
+            <i class="fas fa-stopwatch"></i> <strong>🔴 JAM PEREKAMAN:</strong> Saat merekam, durasi akan muncul di jam mengambang dan di sini dengan efek merah menyala.
         </div>
     </div>
 
@@ -454,7 +499,6 @@
     function updateAllClocks() {
         const now = new Date();
         
-        // Format 12 jam
         let hours = now.getHours();
         const minutes = now.getMinutes().toString().padStart(2, '0');
         const seconds = now.getSeconds().toString().padStart(2, '0');
@@ -462,7 +506,6 @@
         hours = hours % 12 || 12;
         const hourMinStr = `${hours.toString().padStart(2, '0')}:${minutes}`;
         
-        // Update Main Clock
         const mainHourMin = document.getElementById('mainHourMin');
         const mainSeconds = document.getElementById('mainSeconds');
         const mainAmPm = document.getElementById('mainAmPm');
@@ -472,7 +515,6 @@
         if (mainSeconds) mainSeconds.innerHTML = seconds;
         if (mainAmPm) mainAmPm.innerHTML = ampm;
         
-        // Update Floating Clock
         const floatHourMin = document.getElementById('floatHourMin');
         const floatSeconds = document.getElementById('floatSeconds');
         const floatAmPm = document.getElementById('floatAmPm');
@@ -482,7 +524,6 @@
         if (floatSeconds) floatSeconds.innerHTML = seconds;
         if (floatAmPm) floatAmPm.innerHTML = ampm;
         
-        // Format tanggal
         const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
         const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
         const dateString = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
@@ -492,7 +533,6 @@
         if (floatDate) floatDate.innerHTML = shortDateString;
     }
     
-    // Update setiap detik
     setInterval(updateAllClocks, 1000);
     updateAllClocks();
     
@@ -503,7 +543,6 @@
     let isDragging = false;
     let dragStartX, dragStartY, initialLeft, initialTop;
     
-    // Cek apakah floating clock tersimpan di localStorage
     if (localStorage.getItem('floatingClockHidden') === 'true') {
         floatingContainer.style.display = 'none';
         showFloatingBtn.style.display = 'flex';
@@ -512,7 +551,6 @@
         showFloatingBtn.style.display = 'none';
     }
     
-    // Drag functionality
     floatingContainer.addEventListener('mousedown', (e) => {
         if (e.target === closeFloatingBtn || e.target.parentElement === closeFloatingBtn) return;
         isDragging = true;
@@ -531,11 +569,8 @@
         const deltaY = e.clientY - dragStartY;
         let newLeft = initialLeft + deltaX;
         let newTop = initialTop + deltaY;
-        
-        // Batasi agar tidak keluar layar
         newLeft = Math.max(0, Math.min(window.innerWidth - floatingContainer.offsetWidth, newLeft));
         newTop = Math.max(0, Math.min(window.innerHeight - floatingContainer.offsetHeight, newTop));
-        
         floatingContainer.style.left = newLeft + 'px';
         floatingContainer.style.top = newTop + 'px';
         floatingContainer.style.bottom = 'auto';
@@ -547,135 +582,36 @@
         floatingContainer.style.cursor = 'move';
     });
     
-    // Tutup floating clock
     closeFloatingBtn.addEventListener('click', () => {
         floatingContainer.style.display = 'none';
         showFloatingBtn.style.display = 'flex';
         localStorage.setItem('floatingClockHidden', 'true');
     });
     
-    // Tampilkan floating clock
     showFloatingBtn.addEventListener('click', () => {
         floatingContainer.style.display = 'block';
         showFloatingBtn.style.display = 'none';
         localStorage.setItem('floatingClockHidden', 'false');
     });
     
-    // Popout ke window terpisah (menggunakan window.open)
     let popoutWindow = null;
-    
     function createPopoutClock() {
         if (popoutWindow && !popoutWindow.closed) {
             popoutWindow.focus();
             return;
         }
-        
         const popoutHTML = `
         <!DOCTYPE html>
         <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Floating Clock - Screen Recorder</title>
-            <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-            <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body {
-                    background: transparent;
-                    font-family: 'JetBrains Mono', monospace;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    min-height: 100vh;
-                    overflow: hidden;
-                }
-                .popout-clock {
-                    background: linear-gradient(145deg, rgba(10,10,25,0.95), rgba(20,20,45,0.98));
-                    backdrop-filter: blur(20px);
-                    border-radius: 60px;
-                    padding: 15px 30px;
-                    border: 2px solid #d4af37;
-                    box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 30px rgba(212,175,55,0.4);
-                    text-align: center;
-                    min-width: 300px;
-                }
-                .clock-icon {
-                    font-size: 24px;
-                    color: #d4af37;
-                    margin-bottom: 8px;
-                }
-                .time {
-                    font-size: 2.5rem;
-                    font-weight: 700;
-                    letter-spacing: 4px;
-                    background: linear-gradient(135deg, #ffffff, #d4af37);
-                    -webkit-background-clip: text;
-                    background-clip: text;
-                    color: transparent;
-                }
-                .seconds {
-                    font-size: 1.3rem;
-                    font-weight: 600;
-                    color: #fbbf24;
-                    margin-left: 8px;
-                }
-                .ampm {
-                    font-size: 0.9rem;
-                    color: #34d399;
-                    margin-left: 6px;
-                }
-                .date {
-                    font-size: 0.7rem;
-                    color: #94a3b8;
-                    margin-top: 6px;
-                    letter-spacing: 1px;
-                }
-                .close-btn {
-                    position: absolute;
-                    top: 5px;
-                    right: 10px;
-                    background: none;
-                    border: none;
-                    color: #94a3b8;
-                    cursor: pointer;
-                    font-size: 16px;
-                }
-                .close-btn:hover { color: #ef4444; }
-            </style>
-        </head>
-        <body>
-            <div class="popout-clock">
-                <button class="close-btn" onclick="window.close()">✕</button>
-                <div class="clock-icon"><i class="fas fa-hourglass-half"></i></div>
-                <div>
-                    <span class="time" id="popoutHourMin">--:--</span>
-                    <span class="seconds" id="popoutSeconds">--</span>
-                    <span class="ampm" id="popoutAmPm">--</span>
-                </div>
-                <div class="date" id="popoutDate">--</div>
-            </div>
-            <script>
-                function updatePopoutClock() {
-                    const now = new Date();
-                    let hours = now.getHours();
-                    const minutes = now.getMinutes().toString().padStart(2, '0');
-                    const seconds = now.getSeconds().toString().padStart(2, '0');
-                    const ampm = hours >= 12 ? 'PM' : 'AM';
-                    hours = hours % 12 || 12;
-                    document.getElementById('popoutHourMin').innerHTML = hours.toString().padStart(2, '0') + ':' + minutes;
-                    document.getElementById('popoutSeconds').innerHTML = seconds;
-                    document.getElementById('popoutAmPm').innerHTML = ampm;
-                    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-                    document.getElementById('popoutDate').innerHTML = days[now.getDay()] + ', ' + now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
-                }
-                setInterval(updatePopoutClock, 1000);
-                updatePopoutClock();
-            <\/script>
-        </body>
-        </html>
+        <head><meta charset="UTF-8"><title>Floating Clock - Screen Recorder</title><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><style>
+            *{margin:0;padding:0;box-sizing:border-box;}body{background:transparent;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;justify-content:center;min-height:100vh;overflow:hidden;}
+            .popout-clock{background:linear-gradient(145deg,rgba(10,10,25,0.95),rgba(20,20,45,0.98));backdrop-filter:blur(20px);border-radius:60px;padding:15px 30px;border:2px solid #d4af37;box-shadow:0 10px 40px rgba(0,0,0,0.5),0 0 30px rgba(212,175,55,0.4);text-align:center;min-width:300px;}
+            .clock-icon{font-size:24px;color:#d4af37;margin-bottom:8px;}.time{font-size:2.5rem;font-weight:700;letter-spacing:4px;background:linear-gradient(135deg,#ffffff,#d4af37);-webkit-background-clip:text;background-clip:text;color:transparent;}
+            .seconds{font-size:1.3rem;font-weight:600;color:#fbbf24;margin-left:8px;}.ampm{font-size:0.9rem;color:#34d399;margin-left:6px;}.date{font-size:0.7rem;color:#94a3b8;margin-top:6px;letter-spacing:1px;}
+            .close-btn{position:absolute;top:5px;right:10px;background:none;border:none;color:#94a3b8;cursor:pointer;font-size:16px;}.close-btn:hover{color:#ef4444;}
+        </style></head><body><div class="popout-clock"><button class="close-btn" onclick="window.close()">✕</button><div class="clock-icon"><i class="fas fa-hourglass-half"></i></div><div><span class="time" id="popoutHourMin">--:--</span><span class="seconds" id="popoutSeconds">--</span><span class="ampm" id="popoutAmPm">--</span></div><div class="date" id="popoutDate">--</div></div>
+        <script>function updatePopoutClock(){const now=new Date();let hours=now.getHours();const minutes=now.getMinutes().toString().padStart(2,'0');const seconds=now.getSeconds().toString().padStart(2,'0');const ampm=hours>=12?'PM':'AM';hours=hours%12||12;document.getElementById('popoutHourMin').innerHTML=hours.toString().padStart(2,'0')+':'+minutes;document.getElementById('popoutSeconds').innerHTML=seconds;document.getElementById('popoutAmPm').innerHTML=ampm;const days=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];const months=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];document.getElementById('popoutDate').innerHTML=days[now.getDay()]+', '+now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();}setInterval(updatePopoutClock,1000);updatePopoutClock();<\/script></body></html>
         `;
-        
         popoutWindow = window.open('', 'FloatingClock', 'width=350,height=180,menubar=no,toolbar=no,location=no,status=no,resizable=yes');
         if (popoutWindow) {
             popoutWindow.document.write(popoutHTML);
@@ -683,14 +619,10 @@
             popoutWindow.onbeforeunload = () => { popoutWindow = null; };
         }
     }
-    
-    // Double click pada floating clock untuk popout
     floatingContainer.addEventListener('dblclick', () => {
         createPopoutClock();
         showToast('⌛ Jam terpisah dibuka di window baru!', 'success');
     });
-    
-    // Tombol popout di badge (opsional)
     const popoutBadge = document.createElement('div');
     popoutBadge.className = 'popout-btn';
     popoutBadge.style.position = 'fixed';
@@ -699,15 +631,12 @@
     popoutBadge.style.background = 'rgba(79,70,229,0.3)';
     popoutBadge.innerHTML = '<i class="fas fa-external-link-alt"></i> Buka Jam Terpisah';
     popoutBadge.onclick = createPopoutClock;
-    if (!document.querySelector('.popout-btn')) {
-        document.body.appendChild(popoutBadge);
-    }
+    if (!document.querySelector('.popout-btn')) document.body.appendChild(popoutBadge);
     
-    // ======================== OFFLINE DATABASE (SAMA SEPERTI SEBELUMNYA) ========================
+    // ======================== OFFLINE DATABASE ========================
     const DB_NAME = 'ScreenRecorder_OfflineMode';
     const DB_VERSION = 18;
     const STORE_VIDEOS = 'videos';
-
     let db = null;
     let currentRecording = {
         active: false, mediaRecorder: null, stream: null, chunks: [],
@@ -716,7 +645,7 @@
         lastSavedChunkCount: 0, isSaving: false
     };
     let isProcessing = false;
-
+    
     function initDatabase() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -735,11 +664,11 @@
             };
         });
     }
-
+    
     function updateOfflineStatus() {
-        document.getElementById('dbStatus').innerHTML = `💾 Offline Mode | IndexedDB | Total: ${document.getElementById('videoCount').innerText} video | Always On Top Clock`;
+        document.getElementById('dbStatus').innerHTML = `💾 Offline Mode | IndexedDB | Total: ${document.getElementById('videoCount').innerText} video | Always On Top + Rec Timer`;
     }
-
+    
     async function saveVideoToDB(videoData, blob) {
         return new Promise((resolve, reject) => {
             const transaction = db.transaction([STORE_VIDEOS], 'readwrite');
@@ -750,7 +679,7 @@
             request.onerror = () => reject(request.error);
         });
     }
-
+    
     async function getAllVideos() {
         return new Promise((resolve, reject) => {
             if (!db) { resolve([]); return; }
@@ -765,7 +694,7 @@
             request.onerror = () => reject(request.error);
         });
     }
-
+    
     async function getVideoById(id) {
         return new Promise((resolve, reject) => {
             const transaction = db.transaction([STORE_VIDEOS], 'readonly');
@@ -775,7 +704,7 @@
             request.onerror = () => reject(request.error);
         });
     }
-
+    
     async function deleteVideoFromDB(id) {
         return new Promise((resolve, reject) => {
             const transaction = db.transaction([STORE_VIDEOS], 'readwrite');
@@ -785,7 +714,7 @@
             request.onerror = () => reject(request.error);
         });
     }
-
+    
     async function clearAllVideos() {
         return new Promise((resolve, reject) => {
             const transaction = db.transaction([STORE_VIDEOS], 'readwrite');
@@ -795,7 +724,7 @@
             request.onerror = () => reject(request.error);
         });
     }
-
+    
     async function loadAllVideos() {
         const videos = await getAllVideos();
         const totalVideos = videos.length;
@@ -808,14 +737,11 @@
         await renderVideoGrid();
         updateOfflineStatus();
     }
-
-    // ======================== BACKUP DATABASE ========================
+    
+    // ======================== BACKUP & RESTORE ========================
     async function backupDatabaseToZip() {
         if (isProcessing) { showToast('Sedang memproses, tunggu...', 'warning'); return; }
-        if (typeof JSZip === 'undefined') {
-            showToast('❌ JSZip tidak tersedia.', 'error');
-            return;
-        }
+        if (typeof JSZip === 'undefined') { showToast('❌ JSZip tidak tersedia.', 'error'); return; }
         const videos = await getAllVideos();
         if (videos.length === 0) { showToast('Tidak ada video untuk di-backup', 'warning'); return; }
         isProcessing = true;
@@ -846,13 +772,7 @@
                 completed++;
                 await new Promise(r => setTimeout(r, 5));
             }
-            zip.file("database_metadata.json", JSON.stringify({ 
-                exportDate: new Date().toISOString(), 
-                totalVideos: total, 
-                offlineBackup: true,
-                version: DB_VERSION,
-                videos: metadata 
-            }, null, 2));
+            zip.file("database_metadata.json", JSON.stringify({ exportDate: new Date().toISOString(), totalVideos: total, offlineBackup: true, version: DB_VERSION, videos: metadata }, null, 2));
             const zipBlob = await zip.generateAsync({ type: "blob" });
             const saveFunc = window.saveAs || function(blob, filename) {
                 const url = URL.createObjectURL(blob);
@@ -872,13 +792,10 @@
             progressFill.style.width = '0%';
         }
     }
-
+    
     async function restoreDatabaseFromZip(file, versionHint = null) {
         if (isProcessing) { showToast('Sedang memproses, tunggu...', 'warning'); return; }
-        if (typeof JSZip === 'undefined') {
-            showToast('❌ JSZip tidak tersedia untuk restore.', 'error');
-            return;
-        }
+        if (typeof JSZip === 'undefined') { showToast('❌ JSZip tidak tersedia untuk restore.', 'error'); return; }
         if (!file) return;
         isProcessing = true;
         const modal = document.getElementById('progressModal');
@@ -902,22 +819,12 @@
                 progressFill.innerText = `${Math.round((restored/total)*100)}%`;
                 progressDetail.innerText = `📀 Restore: ${item.title.substring(0,40)} (${restored+1}/${total})`;
                 const videoFile = zip.file(`videos/${item.filename}`);
-                if (!videoFile) {
-                    console.warn(`File video tidak ditemukan: ${item.filename}`);
-                    restored++;
-                    continue;
-                }
+                if (!videoFile) { restored++; continue; }
                 const blob = await videoFile.async("blob");
                 const videoRecord = {
-                    id: item.id,
-                    title: item.title,
-                    duration: item.duration,
-                    size: blob.size,
-                    date: item.date || new Date().toISOString(),
-                    quality: item.quality || '1080p',
-                    shareLink: item.shareLink || generateShareLink(item.id),
-                    isFinal: true,
-                    blob: blob
+                    id: item.id, title: item.title, duration: item.duration, size: blob.size,
+                    date: item.date || new Date().toISOString(), quality: item.quality || '1080p',
+                    shareLink: item.shareLink || generateShareLink(item.id), isFinal: true, blob: blob
                 };
                 await saveVideoToDB(videoRecord, blob);
                 restored++;
@@ -935,12 +842,30 @@
             progressFill.style.width = '0%';
         }
     }
-
+    
     function generateShareLink(videoId) {
         return `${window.location.origin}${window.location.pathname}#share=${videoId}`;
     }
-
-    // ======================== RECORDING ========================
+    
+    // ======================== RECORDING + JAM PEREKAMAN ========================
+    const timerElement = document.getElementById('timer');
+    const floatingRecTimerDiv = document.getElementById('floatingRecTimer');
+    const floatingRecDurationSpan = document.getElementById('floatingRecDuration');
+    
+    function updateRecordingUI(seconds) {
+        const formatted = formatDuration(seconds);
+        timerElement.innerText = formatted;
+        if (currentRecording.active) {
+            timerElement.classList.add('recording-active');
+            floatingRecTimerDiv.style.display = 'flex';
+            floatingRecDurationSpan.innerText = formatted;
+        } else {
+            timerElement.classList.remove('recording-active');
+            floatingRecTimerDiv.style.display = 'none';
+            floatingRecDurationSpan.innerText = '00:00:00';
+        }
+    }
+    
     async function startRecording() { 
         try {
             if (!navigator.mediaDevices?.getDisplayMedia) throw new Error('Browser tidak support screen capture');
@@ -963,14 +888,22 @@
             currentRecording.mediaRecorder.onstop = async () => { if(currentRecording.chunks.length>0) await saveCurrentRecording(true); cleanupRecording(); await loadAllVideos(); };
             currentRecording.mediaRecorder.start(3000);
             currentRecording.active = true;
-            currentRecording.timerInterval = setInterval(() => { if(currentRecording.startTime){ const sec = Math.floor((Date.now()-currentRecording.startTime)/1000); document.getElementById('timer').innerText = formatDuration(sec); } }, 1000);
+            updateRecordingUI(0);
+            if (currentRecording.timerInterval) clearInterval(currentRecording.timerInterval);
+            currentRecording.timerInterval = setInterval(() => { 
+                if(currentRecording.startTime){ 
+                    const sec = Math.floor((Date.now()-currentRecording.startTime)/1000); 
+                    updateRecordingUI(sec);
+                } 
+            }, 1000);
             currentRecording.saveInterval = setInterval(async () => { if(currentRecording.active && !currentRecording.isSaving) await saveCurrentRecording(); }, 10000);
             document.getElementById('recordBtn').disabled = true;
             document.getElementById('stopBtn').disabled = false;
             document.getElementById('recordingStatus').style.display = 'flex';
-            showToast('🎬 Merekam (Offline) - Auto save aktif', 'success');
+            showToast('🎬 Merekam (Offline) - Auto save aktif - Jam Perekaman Muncul', 'success');
         } catch(e) { showToast('❌ Gagal: '+e.message, 'error'); }
     }
+    
     async function saveCurrentRecording(isFinal=false){
         if(currentRecording.chunks.length===0) return;
         const currentBlob = new Blob(currentRecording.chunks, { type: 'video/webm' });
@@ -982,7 +915,9 @@
             if(!isFinal) await loadAllVideos();
         } catch(e){ console.error(e); }
     }
+    
     function stopRecording() { if(currentRecording.mediaRecorder && currentRecording.active) currentRecording.mediaRecorder.stop(); }
+    
     function cleanupRecording(){
         currentRecording.active=false;
         if(currentRecording.saveInterval) clearInterval(currentRecording.saveInterval);
@@ -990,13 +925,14 @@
         document.getElementById('stopBtn').disabled=true;
         document.getElementById('recordBtn').disabled=false;
         document.getElementById('recordingStatus').style.display='none';
-        document.getElementById('timer').innerText='00:00:00';
+        updateRecordingUI(0);
         document.getElementById('fileSize').innerText='0 MB';
         if(currentRecording.stream) currentRecording.stream.getTracks().forEach(t=>t.stop());
         document.getElementById('preview').srcObject=null;
         document.getElementById('preview').style.display='none';
         document.getElementById('videoOverlay').style.display='flex';
     }
+    
     function updateFileSizeUI(){ const total = currentRecording.chunks.reduce((s,chunk)=>s+chunk.size,0); document.getElementById('fileSize').innerText=formatFileSize(total); }
     async function exportAllVideos(){ backupDatabaseToZip(); }
     async function downloadLatestVideo(){ const videos=await getAllVideos(); if(videos.length) downloadVideo(videos[0].blob, `${videos[0].title.replace(/[^a-z0-9]/gi,'_')}_1080p.webm`); }
@@ -1063,7 +999,7 @@
     
     async function deleteVideo(id){ if(confirm('Hapus video?')){ await deleteVideoFromDB(id); await loadAllVideos(); showToast('Video dihapus','info'); } }
     async function clearAll(){ if(confirm('Hapus SEMUA video? Tindakan permanen.')){ await clearAllVideos(); await loadAllVideos(); showToast('Semua video dihapus','warning'); } }
-    async function showDbInfo(){ const videos=await getAllVideos(); const totalSize=videos.reduce((s,v)=>s+(v.size||0),0); alert(`📊 OFFLINE DATABASE\nTotal Video: ${videos.length}\nTotal Storage: ${formatFileSize(totalSize)}\nKualitas: Full HD\n\n✅ Backup & Restore tersedia\n📁 Gunakan Backup Database untuk menyimpan arsip\n⏱️ Waktu dan durasi setiap video tersimpan rapi.`); }
+    async function showDbInfo(){ const videos=await getAllVideos(); const totalSize=videos.reduce((s,v)=>s+(v.size||0),0); alert(`📊 OFFLINE DATABASE\nTotal Video: ${videos.length}\nTotal Storage: ${formatFileSize(totalSize)}\nKualitas: Full HD\n\n✅ Backup & Restore tersedia\n📁 Gunakan Backup Database untuk menyimpan arsip`); }
     function formatDuration(sec){ if(!sec) return '00:00:00'; let h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60; return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`; }
     function formatFileSize(bytes){ if(bytes<1024) return bytes+' B'; if(bytes<1048576) return (bytes/1024).toFixed(1)+' KB'; if(bytes<1073741824) return (bytes/1048576).toFixed(1)+' MB'; return (bytes/1073741824).toFixed(2)+' GB'; }
     function escapeHtml(str){ return str.replace(/[&<>]/g,function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
@@ -1088,22 +1024,18 @@
         document.getElementById('backupDbBtn').onclick=backupDatabaseToZip; 
         document.getElementById('restoreDbBtn').onclick=()=>document.getElementById('restoreFileInput').click(); 
         document.getElementById('restoreFileInput').onchange=(e)=>{ if(e.target.files.length) restoreDatabaseFromZip(e.target.files[0]); e.target.value=''; };
-        
         document.getElementById('restoreVersionBtn').onclick=()=>{
             const selectedVersion = document.getElementById('backupVersionSelect').value;
             const fileInput = document.getElementById('restoreFileInput');
             fileInput.onchange = (e) => {
-                if(e.target.files.length) {
-                    restoreDatabaseFromZip(e.target.files[0], selectedVersion);
-                }
+                if(e.target.files.length) restoreDatabaseFromZip(e.target.files[0], selectedVersion);
                 fileInput.value = '';
             };
             fileInput.click();
         };
-        
         handleShareHash(); 
         window.addEventListener('hashchange',handleShareHash); 
-        showToast('⏰ JAM SELALU TERLIHAT | Bisa dipisah ke window terpisah (double klik floating clock)', 'success'); 
+        showToast('⏰ JAM PEREKAMAN MUNCUL SAAT MEREKAM (di jam mengambang dan di statistik)', 'success'); 
     })();
 </script>
 <div id="toastContainer" class="toast-container"></div>
