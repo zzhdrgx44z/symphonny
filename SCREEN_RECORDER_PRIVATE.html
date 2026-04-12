@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Screen Recorder PRO · Timestamp Overlay di Video</title>
+    <title>Screen Recorder PRO - Floating Clock & Recording Timer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -11,7 +11,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
-        /* (Style sama dengan versi premium, hanya tambahan untuk canvas) */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --primary: #4f46e5;
@@ -22,7 +21,6 @@
             --gradient-dark: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
             --radius-lg: 20px;
             --radius-md: 12px;
-            --glass-bg: rgba(10, 10, 20, 0.75);
         }
         body { font-family: 'Inter', sans-serif; background: var(--gradient-dark); color: #f8fafc; min-height: 100vh; }
         .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
@@ -31,211 +29,123 @@
         .logo-text h1 { font-size: 2.2rem; background: linear-gradient(135deg, #4f46e5, #7c3aed); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .badges { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin: 20px 0; }
         .badge { padding: 8px 18px; background: rgba(255,255,255,0.1); border-radius: 50px; backdrop-filter: blur(10px); font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
-
-        /* Floating Clock (tetap sebagai kontrol visual) */
+        
+        /* FLOATING CLOCK - ALWAYS ON TOP */
         .floating-clock-container {
             position: fixed;
-            bottom: 24px;
-            left: 24px;
+            bottom: 20px;
+            left: 20px;
             z-index: 10001;
             cursor: move;
             user-select: none;
-            filter: drop-shadow(0 15px 25px rgba(0,0,0,0.5));
-            transition: opacity 0.3s ease;
         }
         .floating-clock {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border-radius: 80px;
-            padding: 8px 20px 8px 12px;
-            border: 1.5px solid;
-            border-color: rgba(212, 175, 55, 0.5) rgba(255, 215, 0, 0.3) rgba(212, 175, 55, 0.5) rgba(255, 215, 0, 0.3);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5), 0 0 0 1px rgba(212,175,55,0.2), 0 0 20px rgba(212,175,55,0.3);
+            background: linear-gradient(145deg, rgba(0,0,0,0.85), rgba(30,30,60,0.95));
+            backdrop-filter: blur(20px);
+            border-radius: 60px;
+            padding: 10px 20px;
+            border: 1px solid var(--gold);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4), 0 0 15px rgba(212,175,55,0.3);
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 15px;
             font-family: 'JetBrains Mono', monospace;
-            transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1);
+            transition: all 0.3s ease;
         }
         .floating-clock:hover {
-            border-color: var(--gold);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 30px rgba(212,175,55,0.5);
-            transform: translateY(-2px);
+            transform: scale(1.02);
+            border-color: rgba(212,175,55,0.8);
         }
         .clock-icon {
-            background: radial-gradient(circle at 30% 30%, #f5e7a3, var(--gold));
-            width: 48px;
-            height: 48px;
+            background: linear-gradient(135deg, var(--gold), #f5b042);
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
-            box-shadow: inset 0 -2px 4px rgba(0,0,0,0.2), 0 4px 8px rgba(0,0,0,0.3);
-            color: #0f172a;
+            font-size: 18px;
         }
+        .clock-icon i { color: #1e1b4b; }
         .live-time {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            line-height: 1.3;
-        }
-        .live-time .time-row {
-            display: flex;
-            align-items: baseline;
-            gap: 4px;
         }
         .live-time .time {
-            font-size: 1.9rem;
+            font-size: 1.5rem;
             font-weight: 700;
             letter-spacing: 2px;
-            color: #f5e7a3;
-            text-shadow: 0 0 8px rgba(212,175,55,0.6);
-            line-height: 1;
+            color: var(--gold);
+            line-height: 1.2;
         }
         .live-time .seconds {
-            font-size: 1rem;
-            font-weight: 500;
+            font-size: 0.8rem;
             color: #fbbf24;
-            margin-left: 2px;
-            opacity: 0.9;
-        }
-        .live-time .ampm {
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: #cbd5e1;
-            margin-left: 6px;
-            align-self: flex-end;
-            margin-bottom: 3px;
+            margin-left: 4px;
         }
         .live-time .date {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: #94a3b8;
-            letter-spacing: 0.3px;
-            margin-top: 2px;
-            text-transform: uppercase;
         }
         .recording-timer {
             display: none;
             align-items: center;
             gap: 8px;
-            background: rgba(239, 68, 68, 0.15);
-            backdrop-filter: blur(5px);
-            padding: 6px 14px;
-            border-radius: 60px;
-            border-left: 2px solid var(--danger);
-            margin-left: 4px;
-            transition: all 0.2s;
+            background: rgba(239,68,68,0.25);
+            padding: 4px 12px;
+            border-radius: 40px;
+            border-left: 1px solid var(--danger);
         }
         .recording-timer i {
             color: var(--danger);
             font-size: 12px;
-            animation: pulseRed 1.2s infinite;
+            animation: pulseRed 1s infinite;
         }
         .recording-timer .duration {
-            font-size: 1.4rem;
+            font-size: 1.1rem;
             font-weight: 700;
-            color: #ffb3b3;
-            letter-spacing: 1.5px;
-            text-shadow: 0 0 5px rgba(239,68,68,0.5);
+            color: #ff8c8c;
+            letter-spacing: 1px;
         }
         @keyframes pulseRed {
-            0% { opacity: 0.6; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.2); text-shadow: 0 0 8px red; }
-            100% { opacity: 0.6; transform: scale(1); }
+            0% { opacity: 0.4; transform: scale(0.9);}
+            100% { opacity: 1; transform: scale(1.2);}
         }
-        .clock-controls {
-            display: flex;
-            flex-direction: column;
-            margin-left: 4px;
-        }
-        .close-floating, .toggle-recording-hide {
-            background: rgba(255,255,255,0.05);
+        .close-floating {
+            background: none;
             border: none;
             color: #94a3b8;
             cursor: pointer;
             font-size: 12px;
-            padding: 4px 6px;
-            border-radius: 30px;
-            transition: all 0.2s;
-            line-height: 1;
+            margin-left: 8px;
+            padding: 2px 6px;
+            border-radius: 20px;
         }
-        .close-floating:hover { background: rgba(239,68,68,0.4); color: #fecaca; }
-        .toggle-recording-hide { margin-bottom: 2px; }
-        .toggle-recording-hide:hover { background: rgba(79,70,229,0.4); color: #c7d2fe; }
-        .toggle-recording-hide.active { background: var(--primary); color: white; }
+        .close-floating:hover { background: rgba(239,68,68,0.3); color: #ef4444; }
         .show-floating-btn {
             position: fixed;
-            bottom: 24px;
-            right: 24px;
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--gold);
-            border-radius: 40px;
-            padding: 10px 18px;
-            font-size: 13px;
-            font-weight: 500;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--primary);
+            border-radius: 30px;
+            padding: 6px 12px;
+            font-size: 10px;
             cursor: pointer;
             z-index: 999;
             display: none;
             align-items: center;
-            gap: 8px;
-            color: #f5e7a3;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            transition: 0.2s;
+            gap: 6px;
         }
-        .show-floating-btn:hover { background: var(--primary); border-color: var(--primary); color: white; }
-        .clock-tooltip {
-            position: absolute;
-            bottom: 100%;
-            left: 0;
-            background: rgba(0,0,0,0.8);
-            color: #ccc;
-            font-size: 11px;
-            padding: 6px 10px;
-            border-radius: 20px;
-            margin-bottom: 8px;
-            white-space: nowrap;
-            backdrop-filter: blur(5px);
-            border: 1px solid var(--gold);
-            opacity: 0;
-            transition: 0.2s;
-            pointer-events: none;
-            font-family: 'Inter', sans-serif;
-        }
-        .floating-clock-container:hover .clock-tooltip {
-            opacity: 1;
-            transform: translateY(-4px);
-        }
-
-        /* Canvas untuk overlay timestamp */
-        .video-container {
-            background: #000;
-            border-radius: var(--radius-md);
-            aspect-ratio: 16/9;
-            position: relative;
-            overflow: hidden;
-            margin-bottom: 25px;
-        }
-        .video-preview {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: none;
-        }
-        #previewCanvas {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: none;
-            background: black;
-        }
+        .show-floating-btn:hover { background: var(--primary); }
+        
+        /* Komponen utama recorder */
+        .recorder-section, .settings, .library { background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); border-radius: var(--radius-lg); padding: 25px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.1); }
+        .video-container { background: #000; border-radius: var(--radius-md); aspect-ratio: 16/9; position: relative; overflow: hidden; margin-bottom: 25px; }
+        .video-preview { width: 100%; height: 100%; object-fit: contain; display: none; }
         .video-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.6); gap: 15px; }
         .recording-status { position: absolute; top: 15px; left: 15px; background: var(--danger); padding: 8px 16px; border-radius: 50px; display: none; align-items: center; gap: 8px; font-weight: bold; z-index: 10; font-size: 12px; }
-
-        /* Komponen lainnya sama */
-        .recorder-section, .settings, .library { background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); border-radius: var(--radius-lg); padding: 25px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.1); }
         .controls { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; }
         .btn { padding: 14px 25px; border: none; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 10px; justify-content: center; flex: 1; }
         .btn.record { background: var(--danger); color: white; }
@@ -271,52 +181,34 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes slideIn { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        @media (max-width: 700px) {
-            .floating-clock { padding: 6px 12px; gap: 8px; }
-            .live-time .time { font-size: 1.3rem; }
-            .recording-timer .duration { font-size: 1rem; }
-        }
+        @media (max-width: 700px) { .floating-clock { padding: 6px 12px; } .live-time .time { font-size: 1rem; } .recording-timer .duration { font-size: 0.8rem; } }
     </style>
 </head>
 <body>
 
-<!-- FLOATING CLOCK PREMIUM (sebagai kontrol) -->
-<div class="floating-clock-container" id="floatingContainer">
+<!-- FLOATING CLOCK (ALWAYS ON TOP) -->
+<div class="floating-clock-container" id="floatingContainer" draggable="false">
     <div class="floating-clock" id="floatingClock">
-        <div class="clock-icon"><i class="fas fa-crown"></i></div>
+        <div class="clock-icon">
+            <i class="fas fa-clock"></i>
+        </div>
         <div class="live-time">
-            <div class="time-row">
-                <span class="time" id="floatHourMin">--:--</span>
-                <span class="seconds" id="floatSeconds">--</span>
-                <span class="ampm" id="floatAmPm">--</span>
-            </div>
+            <div><span class="time" id="floatHourMin">--:--</span><span class="seconds" id="floatSeconds">--</span><span style="font-size:0.7rem;" id="floatAmPm">--</span></div>
             <div class="date" id="floatDate">--</div>
         </div>
         <div class="recording-timer" id="recordingTimerBlock">
             <i class="fas fa-circle"></i>
             <span class="duration" id="floatDuration">00:00:00</span>
         </div>
-        <div class="clock-controls">
-            <button class="toggle-recording-hide" id="toggleHideWhileRecording" title="Sembunyikan jam kontrol (tidak mempengaruhi overlay di video)">
-                <i class="fas fa-eye-slash"></i>
-            </button>
-            <button class="close-floating" id="closeFloatingBtn" title="Tutup jam kontrol">✕</button>
-        </div>
-    </div>
-    <div class="clock-tooltip">
-        <i class="fas fa-check-circle"></i> Timestamp SELALU muncul di video (overlay canvas)
+        <button class="close-floating" id="closeFloatingBtn" title="Tutup jam">✕</button>
     </div>
 </div>
 
 <button class="show-floating-btn" id="showFloatingBtn">
-    <i class="fas fa-crown"></i> Tampilkan Jam Kontrol
+    <i class="fas fa-clock"></i> Tampilkan Jam
 </button>
 
-<div class="loading" id="loading">
-    <div style="width:50px;height:50px;border:4px solid rgba(255,255,255,0.2);border-top:4px solid var(--gold);border-radius:50%;animation:spin 1s linear infinite;"></div>
-    <div>Memulai Mode Offline...</div>
-    <div style="font-size:12px;margin-top:10px; color: #fbbf24;">✨ Timestamp overlay aktif · Jam & durasi di video</div>
-</div>
+<div class="loading" id="loading"><div style="width:50px;height:50px;border:4px solid rgba(255,255,255,0.2);border-top:4px solid #4f46e5;border-radius:50%;animation:spin 1s linear infinite;"></div><div>Memulai Mode Offline...</div><div style="font-size:12px;margin-top:10px;">✅ Jam live selalu terlihat | Saat merekam, durasi muncul otomatis</div></div>
 
 <div class="progress-modal" id="progressModal">
     <div class="progress-card">
@@ -330,23 +222,21 @@
 
 <div class="container">
     <div class="header">
-        <div class="logo-icon"><i class="fas fa-video"></i></div>
-        <div class="logo-text"><h1>SCREEN RECORDER <span style="color: var(--gold);">PRO+</span></h1></div>
-        <p class="tagline" style="color:#ccc;">Full HD 1080p · <strong style="color: var(--gold);">TIMESTAMP OVERLAY DI VIDEO</strong> · Durasi Otomatis</p>
+        <div class="logo-icon"><i class="fas fa-database"></i></div>
+        <div class="logo-text"><h1>SCREEN RECORDER PRO</h1></div>
+        <p class="tagline" style="color:#ccc;">Full HD 1080p | <strong style="color:#f59e0b;">FLOATING CLOCK + RECORDING TIMER</strong></p>
         <div class="badges">
             <div class="badge"><i class="fas fa-wifi-slash"></i> Offline Mode</div>
             <div class="badge"><i class="fas fa-database"></i> Local DB</div>
-            <div class="badge"><i class="fas fa-paint-brush"></i> Canvas Overlay</div>
-            <div class="badge"><i class="fas fa-clock"></i> Timestamp Wajib</div>
+            <div class="badge"><i class="fas fa-archive"></i> Backup/Restore</div>
+            <div class="badge"><i class="fas fa-clock"></i> Always Visible</div>
             <div class="badge"><i class="fas fa-stopwatch"></i> Recording Timer</div>
         </div>
     </div>
 
     <div class="recorder-section">
         <div class="video-container">
-            <!-- Video asli disembunyikan, kita pakai canvas untuk preview dan rekaman -->
-            <video class="video-preview" id="sourceVideo" autoplay muted playsinline></video>
-            <canvas id="previewCanvas" width="1920" height="1080"></canvas>
+            <video class="video-preview" id="preview" autoplay muted playsinline></video>
             <div class="video-overlay" id="videoOverlay"><i class="fas fa-desktop fa-3x"></i><h3>Screen Preview</h3><p>Klik Start Recording & pilih layar/jendela</p></div>
             <div class="recording-status" id="recordingStatus"><div style="width:10px;height:10px;background:white;border-radius:50%;animation:pulse 1s infinite;"></div> RECORDING</div>
         </div>
@@ -362,13 +252,11 @@
             <div class="stat-card"><div class="stat-value" id="videoCount">0</div><div>Total Videos</div></div>
             <div class="stat-card"><div class="stat-value" id="totalSizeCloud">0 GB</div><div>Total Storage</div></div>
         </div>
-        <div style="background:rgba(16,185,129,0.15); border-radius:var(--radius-md); padding:12px; text-align:center; border-left: 4px solid var(--success);">
-            <i class="fas fa-check-circle" style="color: var(--success);"></i> 
-            <strong>TIMESTAMP OVERLAY:</strong> Jam dan durasi akan SELALU muncul di hasil rekaman (ditambahkan langsung ke frame video).
+        <div style="background:rgba(245,158,11,0.2); border-radius:var(--radius-md); padding:12px; text-align:center;">
+            <i class="fas fa-clock"></i> <strong>FLOATING CLOCK:</strong> Menampilkan jam live (waktu sekarang). Saat merekam, durasi rekaman muncul di sampingnya.
         </div>
     </div>
 
-    <!-- Settings & Library sama seperti sebelumnya -->
     <div class="settings">
         <h2 class="section-title"><i class="fas fa-server"></i> Manajemen Database Offline</h2>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
@@ -392,7 +280,6 @@
     <div class="db-status" id="dbStatus">💾 Offline Mode | IndexedDB</div>
 </div>
 
-<!-- Modal Video Player -->
 <div class="modal" id="videoModal">
     <div class="modal-content">
         <div style="display:flex;justify-content:space-between;"><h3 id="modalTitle">Video Player</h3><button id="closeModalBtn" style="background:none;border:none;color:white;font-size:24px;">&times;</button></div>
@@ -406,597 +293,389 @@
 </div>
 
 <script>
-    (function() {
-        "use strict";
+    // ======================== JAM LIVE (FLOATING CLOCK) ========================
+    function updateLiveClock() {
+        const now = new Date();
+        let hours = now.getHours();
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const seconds = now.getSeconds().toString().padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12 || 12;
+        document.getElementById('floatHourMin').innerHTML = `${hours.toString().padStart(2, '0')}:${minutes}`;
+        document.getElementById('floatSeconds').innerHTML = seconds;
+        document.getElementById('floatAmPm').innerHTML = ampm;
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        document.getElementById('floatDate').innerHTML = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`;
+    }
+    setInterval(updateLiveClock, 1000);
+    updateLiveClock();
 
-        // ---------- FLOATING CLOCK (Kontrol UI) ----------
-        function updateLiveClock() {
-            const now = new Date();
-            let hours = now.getHours();
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            const seconds = now.getSeconds().toString().padStart(2, '0');
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12 || 12;
-            document.getElementById('floatHourMin').innerHTML = `${hours.toString().padStart(2, '0')}:${minutes}`;
-            document.getElementById('floatSeconds').innerHTML = seconds;
-            document.getElementById('floatAmPm').innerHTML = ampm;
-            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-            document.getElementById('floatDate').innerHTML = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`;
-        }
-        setInterval(updateLiveClock, 1000);
-        updateLiveClock();
-
-        // Drag & Visibility
-        const floatingContainer = document.getElementById('floatingContainer');
-        const closeFloatingBtn = document.getElementById('closeFloatingBtn');
-        const showFloatingBtn = document.getElementById('showFloatingBtn');
-        const toggleHideWhileRecording = document.getElementById('toggleHideWhileRecording');
-        let isDragging = false, dragStartX, dragStartY, initialLeft, initialTop;
-        let hideDuringRecording = false;
-
-        function ensureFloatingVisible() {
-            if (floatingContainer.style.display === 'none') {
-                floatingContainer.style.display = 'block';
-                showFloatingBtn.style.display = 'none';
-                localStorage.setItem('floatingHidden', 'false');
-            }
-        }
-
-        if (localStorage.getItem('floatingHidden') === 'true') {
-            floatingContainer.style.display = 'none';
-            showFloatingBtn.style.display = 'flex';
-        } else {
-            floatingContainer.style.display = 'block';
-            showFloatingBtn.style.display = 'none';
-        }
-
-        toggleHideWhileRecording.addEventListener('click', function() {
-            hideDuringRecording = !hideDuringRecording;
-            this.classList.toggle('active', hideDuringRecording);
-            this.innerHTML = hideDuringRecording ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
-            if (currentRecording.active) {
-                floatingContainer.style.opacity = hideDuringRecording ? '0' : '1';
-            }
-        });
-
-        floatingContainer.addEventListener('mousedown', (e) => {
-            if (e.target.closest('button')) return;
-            isDragging = true;
-            dragStartX = e.clientX;
-            dragStartY = e.clientY;
-            const rect = floatingContainer.getBoundingClientRect();
-            initialLeft = rect.left;
-            initialTop = rect.top;
-            floatingContainer.style.cursor = 'grabbing';
-            e.preventDefault();
-        });
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            let newLeft = initialLeft + (e.clientX - dragStartX);
-            let newTop = initialTop + (e.clientY - dragStartY);
-            newLeft = Math.max(0, Math.min(window.innerWidth - floatingContainer.offsetWidth, newLeft));
-            newTop = Math.max(0, Math.min(window.innerHeight - floatingContainer.offsetHeight, newTop));
-            floatingContainer.style.left = newLeft + 'px';
-            floatingContainer.style.top = newTop + 'px';
-            floatingContainer.style.bottom = 'auto';
-            floatingContainer.style.right = 'auto';
-        });
-        document.addEventListener('mouseup', () => { isDragging = false; floatingContainer.style.cursor = 'move'; });
-        closeFloatingBtn.addEventListener('click', () => {
-            floatingContainer.style.display = 'none';
-            showFloatingBtn.style.display = 'flex';
-            localStorage.setItem('floatingHidden', 'true');
-        });
-        showFloatingBtn.addEventListener('click', () => {
+    // ======================== DRAG FLOATING CLOCK ========================
+    const floatingContainer = document.getElementById('floatingContainer');
+    const closeFloatingBtn = document.getElementById('closeFloatingBtn');
+    const showFloatingBtn = document.getElementById('showFloatingBtn');
+    let isDragging = false, dragStartX, dragStartY, initialLeft, initialTop;
+    
+    function ensureFloatingVisible() {
+        if (floatingContainer.style.display === 'none') {
             floatingContainer.style.display = 'block';
             showFloatingBtn.style.display = 'none';
             localStorage.setItem('floatingHidden', 'false');
+        }
+    }
+    
+    if (localStorage.getItem('floatingHidden') === 'true') {
+        floatingContainer.style.display = 'none';
+        showFloatingBtn.style.display = 'flex';
+    } else {
+        floatingContainer.style.display = 'block';
+        showFloatingBtn.style.display = 'none';
+    }
+    
+    floatingContainer.addEventListener('mousedown', (e) => {
+        if (e.target === closeFloatingBtn || e.target.parentElement === closeFloatingBtn) return;
+        isDragging = true;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        const rect = floatingContainer.getBoundingClientRect();
+        initialLeft = rect.left;
+        initialTop = rect.top;
+        floatingContainer.style.cursor = 'grabbing';
+        e.preventDefault();
+    });
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        let newLeft = initialLeft + (e.clientX - dragStartX);
+        let newTop = initialTop + (e.clientY - dragStartY);
+        newLeft = Math.max(0, Math.min(window.innerWidth - floatingContainer.offsetWidth, newLeft));
+        newTop = Math.max(0, Math.min(window.innerHeight - floatingContainer.offsetHeight, newTop));
+        floatingContainer.style.left = newLeft + 'px';
+        floatingContainer.style.top = newTop + 'px';
+        floatingContainer.style.bottom = 'auto';
+        floatingContainer.style.right = 'auto';
+    });
+    document.addEventListener('mouseup', () => { isDragging = false; floatingContainer.style.cursor = 'move'; });
+    
+    closeFloatingBtn.addEventListener('click', () => {
+        floatingContainer.style.display = 'none';
+        showFloatingBtn.style.display = 'flex';
+        localStorage.setItem('floatingHidden', 'true');
+    });
+    showFloatingBtn.addEventListener('click', () => {
+        floatingContainer.style.display = 'block';
+        showFloatingBtn.style.display = 'none';
+        localStorage.setItem('floatingHidden', 'false');
+    });
+
+    // ======================== OFFLINE DATABASE ========================
+    const DB_NAME = 'ScreenRecorder_Offline';
+    const DB_VERSION = 1;
+    const STORE = 'videos';
+    let db = null;
+    let currentRecording = { active: false, mediaRecorder: null, stream: null, chunks: [], startTime: null, timerInterval: null, saveInterval: null, videoId: null, videoTitle: null, lastSavedChunkCount: 0, isSaving: false };
+    let isProcessing = false;
+    
+    function initDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+            request.onerror = () => reject(request.error);
+            request.onsuccess = (e) => { db = e.target.result; loadAllVideos(); resolve(db); };
+            request.onupgradeneeded = (e) => {
+                if (!e.target.result.objectStoreNames.contains(STORE))
+                    e.target.result.createObjectStore(STORE, { keyPath: 'id' });
+            };
         });
-
-        // ---------- DATABASE ----------
-        const DB_NAME = 'ScreenRecorder_Offline';
-        const DB_VERSION = 1;
-        const STORE = 'videos';
-        let db = null;
-        let currentRecording = {
-            active: false,
-            mediaRecorder: null,
-            sourceStream: null,      // stream dari getDisplayMedia
-            canvasStream: null,      // stream dari canvas.captureStream()
-            audioContext: null,      // untuk menggabungkan audio
-            chunks: [],
-            startTime: null,
-            timerInterval: null,
-            saveInterval: null,
-            videoId: null,
-            videoTitle: null,
-            lastSavedChunkCount: 0,
-            isSaving: false,
-            canvasAnimFrame: null
-        };
-        let isProcessing = false;
-
-        function initDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, DB_VERSION);
-                request.onerror = () => reject(request.error);
-                request.onsuccess = (e) => { db = e.target.result; loadAllVideos(); resolve(db); };
-                request.onupgradeneeded = (e) => {
-                    if (!e.target.result.objectStoreNames.contains(STORE))
-                        e.target.result.createObjectStore(STORE, { keyPath: 'id' });
-                };
-            });
-        }
-
-        async function saveVideoToDB(videoData, blob) {
-            return new Promise((resolve, reject) => {
-                const tx = db.transaction([STORE], 'readwrite');
-                const store = tx.objectStore(STORE);
-                const record = { ...videoData, blob, savedAt: Date.now() };
-                store.put(record).onsuccess = () => resolve(record);
-                store.put(record).onerror = () => reject();
-            });
-        }
-
-        async function getAllVideos() {
-            if (!db) return [];
-            return new Promise((resolve) => {
-                const tx = db.transaction([STORE], 'readonly');
-                tx.objectStore(STORE).getAll().onsuccess = (e) => resolve(e.target.result || []);
-            });
-        }
-
-        async function getVideoById(id) {
-            return new Promise((resolve) => {
-                const tx = db.transaction([STORE], 'readonly');
-                tx.objectStore(STORE).get(id).onsuccess = (e) => resolve(e.target.result);
-            });
-        }
-
-        async function deleteVideoFromDB(id) {
-            return new Promise((resolve) => {
-                const tx = db.transaction([STORE], 'readwrite');
-                tx.objectStore(STORE).delete(id).onsuccess = () => resolve();
-            });
-        }
-
-        async function clearAllVideos() {
-            return new Promise((resolve) => {
-                const tx = db.transaction([STORE], 'readwrite');
-                tx.objectStore(STORE).clear().onsuccess = () => resolve();
-            });
-        }
-
-        async function loadAllVideos() {
-            const videos = await getAllVideos();
-            const totalVideos = videos.length;
-            const totalSize = videos.reduce((s,v) => s + (v.size||0), 0);
-            document.getElementById('videoCount').innerText = totalVideos;
-            document.getElementById('totalSizeCloud').innerText = formatFileSize(totalSize);
-            document.getElementById('downloadBtn').disabled = totalVideos === 0;
-            renderVideoGrid(videos);
-        }
-
-        async function renderVideoGrid(videos) {
-            const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
-            const filtered = videos.filter(v => v.title.toLowerCase().includes(searchTerm));
-            const grid = document.getElementById('videoGrid');
-            const emptyLib = document.getElementById('emptyLibrary');
-            if (filtered.length === 0) { emptyLib.style.display = 'block'; grid.innerHTML = ''; return; }
-            emptyLib.style.display = 'none';
-            grid.innerHTML = filtered.map(v => `
-                <div class="video-card" onclick="openVideoModal('${v.id}')">
-                    <div class="video-thumbnail"><i class="fas fa-video"></i><span style="position:absolute;bottom:8px;right:12px;background:black;padding:2px 8px;border-radius:20px;">${formatDuration(v.duration)}</span></div>
-                    <div class="video-info">
-                        <div class="video-title">${escapeHtml(v.title)}</div>
-                        <div class="video-meta">${formatDateTime(v.date)} • ${formatFileSize(v.size)}</div>
-                        <div class="video-actions" onclick="event.stopPropagation()">
-                            <button class="action-btn play-vid" data-id="${v.id}"><i class="fas fa-play"></i> Play</button>
-                            <button class="action-btn del-vid" data-id="${v.id}"><i class="fas fa-trash"></i></button>
-                        </div>
+    }
+    
+    async function saveVideoToDB(videoData, blob) {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction([STORE], 'readwrite');
+            const store = tx.objectStore(STORE);
+            const record = { ...videoData, blob, savedAt: Date.now() };
+            store.put(record).onsuccess = () => resolve(record);
+            store.put(record).onerror = () => reject();
+        });
+    }
+    
+    async function getAllVideos() {
+        if (!db) return [];
+        return new Promise((resolve) => {
+            const tx = db.transaction([STORE], 'readonly');
+            tx.objectStore(STORE).getAll().onsuccess = (e) => resolve(e.target.result || []);
+        });
+    }
+    
+    async function getVideoById(id) {
+        return new Promise((resolve) => {
+            const tx = db.transaction([STORE], 'readonly');
+            tx.objectStore(STORE).get(id).onsuccess = (e) => resolve(e.target.result);
+        });
+    }
+    
+    async function deleteVideoFromDB(id) {
+        return new Promise((resolve) => {
+            const tx = db.transaction([STORE], 'readwrite');
+            tx.objectStore(STORE).delete(id).onsuccess = () => resolve();
+        });
+    }
+    
+    async function clearAllVideos() {
+        return new Promise((resolve) => {
+            const tx = db.transaction([STORE], 'readwrite');
+            tx.objectStore(STORE).clear().onsuccess = () => resolve();
+        });
+    }
+    
+    async function loadAllVideos() {
+        const videos = await getAllVideos();
+        const totalVideos = videos.length;
+        const totalSize = videos.reduce((s,v) => s + (v.size||0), 0);
+        document.getElementById('videoCount').innerText = totalVideos;
+        document.getElementById('totalSizeCloud').innerText = formatFileSize(totalSize);
+        document.getElementById('downloadBtn').disabled = totalVideos === 0;
+        renderVideoGrid(videos);
+    }
+    
+    async function renderVideoGrid(videos) {
+        const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+        const filtered = videos.filter(v => v.title.toLowerCase().includes(searchTerm));
+        const grid = document.getElementById('videoGrid');
+        const emptyLib = document.getElementById('emptyLibrary');
+        if (filtered.length === 0) { emptyLib.style.display = 'block'; grid.innerHTML = ''; return; }
+        emptyLib.style.display = 'none';
+        grid.innerHTML = filtered.map(v => `
+            <div class="video-card" onclick="openVideoModal('${v.id}')">
+                <div class="video-thumbnail"><i class="fas fa-video"></i><span style="position:absolute;bottom:8px;right:12px;background:black;padding:2px 8px;border-radius:20px;">${formatDuration(v.duration)}</span></div>
+                <div class="video-info">
+                    <div class="video-title">${escapeHtml(v.title)}</div>
+                    <div class="video-meta">${formatDateTime(v.date)} • ${formatFileSize(v.size)}</div>
+                    <div class="video-actions" onclick="event.stopPropagation()">
+                        <button class="action-btn play-vid" data-id="${v.id}"><i class="fas fa-play"></i> Play</button>
+                        <button class="action-btn del-vid" data-id="${v.id}"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>
-            `).join('');
-            document.querySelectorAll('.play-vid').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); openVideoModal(btn.dataset.id); }));
-            document.querySelectorAll('.del-vid').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); deleteVideo(btn.dataset.id); }));
-        }
-
-        async function openVideoModal(id) {
-            const video = await getVideoById(id);
-            if (!video?.blob) return;
-            const url = URL.createObjectURL(video.blob);
-            const modal = document.getElementById('videoModal');
-            document.getElementById('modalVideoPlayer').src = url;
-            document.getElementById('modalTitle').innerText = video.title;
-            document.getElementById('modalMeta').innerHTML = `<div>Durasi: ${formatDuration(video.duration)} | Ukuran: ${formatFileSize(video.size)} | ${formatDateTime(video.date)}</div>`;
-            modal.style.display = 'flex';
-            document.getElementById('modalDownload').onclick = () => downloadVideo(video.blob, `${video.title}.webm`);
-            document.getElementById('modalDelete').onclick = async () => { await deleteVideo(video.id); modal.style.display = 'none'; await loadAllVideos(); };
-        }
-
-        async function deleteVideo(id) { if (confirm('Hapus video?')) { await deleteVideoFromDB(id); await loadAllVideos(); showToast('Video dihapus'); } }
-
-        // ---------- BACKUP & RESTORE (sama) ----------
-        async function backupDatabaseToZip() {
-            if (isProcessing) return;
-            const videos = await getAllVideos();
-            if (videos.length === 0) { showToast('Tidak ada video'); return; }
-            isProcessing = true;
-            const modal = document.getElementById('progressModal');
-            const progressFill = document.getElementById('progressFill');
-            const progressDetail = document.getElementById('progressDetail');
-            modal.style.display = 'flex';
-            try {
-                const zip = new JSZip();
-                const videosFolder = zip.folder("videos");
-                const metadata = [];
-                let completed = 0;
-                for (const video of videos) {
-                    progressDetail.innerText = `${completed+1}/${videos.length}: ${video.title.substring(0,30)}`;
-                    progressFill.style.width = `${(completed/videos.length)*100}%`;
-                    progressFill.innerText = `${Math.round((completed/videos.length)*100)}%`;
-                    if (video.blob) {
-                        const filename = `${video.id}.webm`;
-                        videosFolder.file(filename, video.blob);
-                        metadata.push({ id: video.id, title: video.title, duration: video.duration, size: video.size, date: video.date, filename });
-                    }
-                    completed++;
-                    await new Promise(r => setTimeout(r, 5));
+            </div>
+        `).join('');
+        document.querySelectorAll('.play-vid').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); openVideoModal(btn.dataset.id); }));
+        document.querySelectorAll('.del-vid').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); deleteVideo(btn.dataset.id); }));
+    }
+    
+    async function openVideoModal(id) {
+        const video = await getVideoById(id);
+        if (!video?.blob) return;
+        const url = URL.createObjectURL(video.blob);
+        const modal = document.getElementById('videoModal');
+        document.getElementById('modalVideoPlayer').src = url;
+        document.getElementById('modalTitle').innerText = video.title;
+        document.getElementById('modalMeta').innerHTML = `<div>Durasi: ${formatDuration(video.duration)} | Ukuran: ${formatFileSize(video.size)} | ${formatDateTime(video.date)}</div>`;
+        modal.style.display = 'flex';
+        document.getElementById('modalDownload').onclick = () => downloadVideo(video.blob, `${video.title}.webm`);
+        document.getElementById('modalDelete').onclick = async () => { await deleteVideo(video.id); modal.style.display = 'none'; await loadAllVideos(); };
+    }
+    
+    async function deleteVideo(id) { if (confirm('Hapus video?')) { await deleteVideoFromDB(id); await loadAllVideos(); showToast('Video dihapus'); } }
+    
+    // ======================== BACKUP & RESTORE ========================
+    async function backupDatabaseToZip() {
+        if (isProcessing) return;
+        const videos = await getAllVideos();
+        if (videos.length === 0) { showToast('Tidak ada video'); return; }
+        isProcessing = true;
+        const modal = document.getElementById('progressModal');
+        const progressFill = document.getElementById('progressFill');
+        const progressDetail = document.getElementById('progressDetail');
+        modal.style.display = 'flex';
+        try {
+            const zip = new JSZip();
+            const videosFolder = zip.folder("videos");
+            const metadata = [];
+            let completed = 0;
+            for (const video of videos) {
+                progressDetail.innerText = `${completed+1}/${videos.length}: ${video.title.substring(0,30)}`;
+                progressFill.style.width = `${(completed/videos.length)*100}%`;
+                progressFill.innerText = `${Math.round((completed/videos.length)*100)}%`;
+                if (video.blob) {
+                    const filename = `${video.id}.webm`;
+                    videosFolder.file(filename, video.blob);
+                    metadata.push({ id: video.id, title: video.title, duration: video.duration, size: video.size, date: video.date, filename });
                 }
-                zip.file("metadata.json", JSON.stringify({ exportDate: new Date().toISOString(), total: videos.length, videos: metadata }));
-                const zipBlob = await zip.generateAsync({ type: "blob" });
-                saveAs(zipBlob, `screenrecorder_backup_${Date.now()}.zip`);
-                showToast('Backup berhasil');
-            } catch(e) { showToast('Gagal backup'); }
-            finally { isProcessing = false; modal.style.display = 'none'; progressFill.style.width = '0%'; }
-        }
-
-        async function restoreDatabaseFromZip(file) {
-            if (isProcessing) return;
-            if (!file) return;
-            isProcessing = true;
-            const modal = document.getElementById('progressModal');
-            const progressFill = document.getElementById('progressFill');
-            const progressDetail = document.getElementById('progressDetail');
-            modal.style.display = 'flex';
-            try {
-                const zip = await JSZip.loadAsync(file);
-                const metaFile = zip.file("metadata.json");
-                if (!metaFile) throw new Error('Invalid backup');
-                const meta = JSON.parse(await metaFile.async("string"));
-                const videosList = meta.videos || [];
-                let restored = 0;
-                for (const item of videosList) {
-                    progressDetail.innerText = `Restore: ${item.title.substring(0,30)} (${restored+1}/${videosList.length})`;
-                    progressFill.style.width = `${(restored/videosList.length)*100}%`;
-                    const videoFile = zip.file(`videos/${item.filename}`);
-                    if (videoFile) {
-                        const blob = await videoFile.async("blob");
-                        await saveVideoToDB({ id: item.id, title: item.title, duration: item.duration, size: blob.size, date: item.date || new Date().toISOString(), quality: '1080p', shareLink: '' }, blob);
-                    }
-                    restored++;
-                    await new Promise(r => setTimeout(r, 10));
+                completed++;
+                await new Promise(r => setTimeout(r, 5));
+            }
+            zip.file("metadata.json", JSON.stringify({ exportDate: new Date().toISOString(), total: videos.length, videos: metadata }));
+            const zipBlob = await zip.generateAsync({ type: "blob" });
+            saveAs(zipBlob, `screenrecorder_backup_${Date.now()}.zip`);
+            showToast('Backup berhasil');
+        } catch(e) { showToast('Gagal backup'); }
+        finally { isProcessing = false; modal.style.display = 'none'; progressFill.style.width = '0%'; }
+    }
+    
+    async function restoreDatabaseFromZip(file) {
+        if (isProcessing) return;
+        if (!file) return;
+        isProcessing = true;
+        const modal = document.getElementById('progressModal');
+        const progressFill = document.getElementById('progressFill');
+        const progressDetail = document.getElementById('progressDetail');
+        modal.style.display = 'flex';
+        try {
+            const zip = await JSZip.loadAsync(file);
+            const metaFile = zip.file("metadata.json");
+            if (!metaFile) throw new Error('Invalid backup');
+            const meta = JSON.parse(await metaFile.async("string"));
+            const videosList = meta.videos || [];
+            let restored = 0;
+            for (const item of videosList) {
+                progressDetail.innerText = `Restore: ${item.title.substring(0,30)} (${restored+1}/${videosList.length})`;
+                progressFill.style.width = `${(restored/videosList.length)*100}%`;
+                const videoFile = zip.file(`videos/${item.filename}`);
+                if (videoFile) {
+                    const blob = await videoFile.async("blob");
+                    await saveVideoToDB({ id: item.id, title: item.title, duration: item.duration, size: blob.size, date: item.date || new Date().toISOString(), quality: '1080p', shareLink: '' }, blob);
                 }
+                restored++;
+                await new Promise(r => setTimeout(r, 10));
+            }
+            await loadAllVideos();
+            showToast(`Restore selesai: ${restored} video`);
+        } catch(e) { showToast('Gagal restore'); }
+        finally { isProcessing = false; modal.style.display = 'none'; progressFill.style.width = '0%'; }
+    }
+    
+    // ======================== RECORDING & UI DURASI ========================
+    const durationElement = document.getElementById('durationTimer');
+    const floatDurationSpan = document.getElementById('floatDuration');
+    const recordingTimerBlock = document.getElementById('recordingTimerBlock');
+    
+    function updateDurationUI(seconds) {
+        const formatted = formatDuration(seconds);
+        durationElement.innerText = formatted;
+        if (currentRecording.active) {
+            recordingTimerBlock.style.display = 'flex';
+            floatDurationSpan.innerText = formatted;
+        } else {
+            recordingTimerBlock.style.display = 'none';
+            floatDurationSpan.innerText = '00:00:00';
+        }
+    }
+    
+    async function startRecording() {
+        try {
+            ensureFloatingVisible();
+            if (!navigator.mediaDevices?.getDisplayMedia) throw new Error('Screen capture tidak didukung');
+            const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: { width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: true });
+            const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null);
+            let finalStream = screenStream;
+            if (audioStream) finalStream = new MediaStream([...screenStream.getTracks(), ...audioStream.getAudioTracks()]);
+            currentRecording.stream = finalStream;
+            currentRecording.chunks = [];
+            currentRecording.lastSavedChunkCount = 0;
+            currentRecording.videoId = 'rec_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+            currentRecording.videoTitle = `Recording ${new Date().toLocaleString()}`;
+            currentRecording.startTime = Date.now();
+            document.getElementById('preview').srcObject = finalStream;
+            document.getElementById('preview').style.display = 'block';
+            document.getElementById('videoOverlay').style.display = 'none';
+            const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 'video/webm;codecs=vp8' : 'video/webm';
+            currentRecording.mediaRecorder = new MediaRecorder(finalStream, { mimeType, videoBitsPerSecond: 2500000 });
+            currentRecording.mediaRecorder.ondataavailable = async (e) => {
+                if (e.data.size > 0) {
+                    currentRecording.chunks.push(e.data);
+                    const totalSize = currentRecording.chunks.reduce((s,chunk) => s+chunk.size, 0);
+                    document.getElementById('fileSize').innerText = formatFileSize(totalSize);
+                    if (currentRecording.chunks.length - currentRecording.lastSavedChunkCount >= 5 && !currentRecording.isSaving) {
+                        currentRecording.isSaving = true;
+                        await saveCurrentRecording();
+                        currentRecording.isSaving = false;
+                    }
+                }
+            };
+            currentRecording.mediaRecorder.onstop = async () => {
+                if (currentRecording.chunks.length > 0) await saveCurrentRecording(true);
+                cleanupRecording();
                 await loadAllVideos();
-                showToast(`Restore selesai: ${restored} video`);
-            } catch(e) { showToast('Gagal restore'); }
-            finally { isProcessing = false; modal.style.display = 'none'; progressFill.style.width = '0%'; }
-        }
-
-        // ---------- CANVAS OVERLAY & RECORDING ----------
-        const sourceVideo = document.getElementById('sourceVideo');
-        const canvas = document.getElementById('previewCanvas');
-        const ctx = canvas.getContext('2d');
-        const durationElement = document.getElementById('durationTimer');
-        const floatDurationSpan = document.getElementById('floatDuration');
-        const recordingTimerBlock = document.getElementById('recordingTimerBlock');
-
-        function drawTimestampOnCanvas() {
-            if (!currentRecording.active && sourceVideo.videoWidth === 0) return;
-            
-            // Set ukuran canvas sesuai video asli
-            if (sourceVideo.videoWidth) {
-                canvas.width = sourceVideo.videoWidth;
-                canvas.height = sourceVideo.videoHeight;
-            }
-            
-            // Gambar frame video
-            ctx.drawImage(sourceVideo, 0, 0, canvas.width, canvas.height);
-            
-            // Ambil waktu sekarang dan durasi
-            const now = new Date();
-            let hours = now.getHours();
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            const seconds = now.getSeconds().toString().padStart(2, '0');
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12 || 12;
-            const timeStr = `${hours.toString().padStart(2, '0')}:${minutes}:${seconds} ${ampm}`;
-            
-            let durationStr = '';
-            if (currentRecording.active) {
-                const sec = Math.floor((Date.now() - currentRecording.startTime) / 1000);
-                durationStr = formatDuration(sec);
-            }
-            
-            // Styling teks
-            ctx.font = 'bold 28px "JetBrains Mono", monospace';
-            ctx.shadowColor = 'black';
-            ctx.shadowBlur = 10;
-            ctx.fillStyle = '#f5e7a3';
-            ctx.strokeStyle = '#0f172a';
-            ctx.lineWidth = 3;
-            
-            // Posisi: kiri atas dengan margin
-            const margin = 20;
-            const lineHeight = 40;
-            
-            // Teks waktu
-            ctx.textAlign = 'left';
-            ctx.strokeText(timeStr, margin, margin + 30);
-            ctx.fillText(timeStr, margin, margin + 30);
-            
-            // Teks durasi jika sedang merekam
-            if (durationStr) {
-                ctx.font = 'bold 22px "JetBrains Mono", monospace';
-                ctx.fillStyle = '#ffb3b3';
-                ctx.strokeStyle = '#7f1d1d';
-                ctx.strokeText(`REC ${durationStr}`, margin, margin + 70);
-                ctx.fillText(`REC ${durationStr}`, margin, margin + 70);
-            }
-            
-            // Reset shadow
-            ctx.shadowBlur = 0;
-        }
-
-        function startCanvasAnimation() {
-            function drawLoop() {
-                if (sourceVideo.readyState >= 2) {
-                    drawTimestampOnCanvas();
-                }
-                currentRecording.canvasAnimFrame = requestAnimationFrame(drawLoop);
-            }
-            drawLoop();
-        }
-
-        function updateDurationUI(seconds) {
-            const formatted = formatDuration(seconds);
-            durationElement.innerText = formatted;
-            if (currentRecording.active) {
-                recordingTimerBlock.style.display = 'flex';
-                floatDurationSpan.innerText = formatted;
-                floatingContainer.style.opacity = hideDuringRecording ? '0' : '1';
-            } else {
-                recordingTimerBlock.style.display = 'none';
-                floatDurationSpan.innerText = '00:00:00';
-                floatingContainer.style.opacity = '1';
-            }
-        }
-
-        async function startRecording() {
-            try {
-                ensureFloatingVisible();
-                if (!navigator.mediaDevices?.getDisplayMedia) throw new Error('Screen capture tidak didukung');
-                
-                // Minta screen share
-                const screenStream = await navigator.mediaDevices.getDisplayMedia({ 
-                    video: { width: { ideal: 1920 }, height: { ideal: 1080 } }, 
-                    audio: true 
-                });
-                
-                // Audio tambahan (mic) opsional
-                const micStream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null);
-                
-                // Gabungkan audio track
-                const audioTracks = screenStream.getAudioTracks();
-                if (micStream) {
-                    micStream.getAudioTracks().forEach(track => audioTracks.push(track));
-                }
-                
-                // Tampilkan di video source
-                sourceVideo.srcObject = screenStream;
-                sourceVideo.style.display = 'block';
-                canvas.style.display = 'block';
-                document.getElementById('videoOverlay').style.display = 'none';
-                
-                // Tunggu video siap
-                await new Promise(resolve => { sourceVideo.onloadedmetadata = resolve; });
-                
-                // Mulai animasi canvas
-                startCanvasAnimation();
-                
-                // Buat stream dari canvas
-                const canvasStream = canvas.captureStream(30); // 30 fps
-                
-                // Tambahkan audio track ke canvas stream
-                audioTracks.forEach(track => canvasStream.addTrack(track));
-                
-                currentRecording.sourceStream = screenStream;
-                currentRecording.canvasStream = canvasStream;
-                currentRecording.chunks = [];
-                currentRecording.lastSavedChunkCount = 0;
-                currentRecording.videoId = 'rec_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-                currentRecording.videoTitle = `Recording ${new Date().toLocaleString()}`;
-                currentRecording.startTime = Date.now();
-                
-                const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 'video/webm;codecs=vp8' : 'video/webm';
-                currentRecording.mediaRecorder = new MediaRecorder(canvasStream, { mimeType, videoBitsPerSecond: 2500000 });
-                
-                currentRecording.mediaRecorder.ondataavailable = async (e) => {
-                    if (e.data.size > 0) {
-                        currentRecording.chunks.push(e.data);
-                        const totalSize = currentRecording.chunks.reduce((s,chunk) => s+chunk.size, 0);
-                        document.getElementById('fileSize').innerText = formatFileSize(totalSize);
-                        if (currentRecording.chunks.length - currentRecording.lastSavedChunkCount >= 5 && !currentRecording.isSaving) {
-                            currentRecording.isSaving = true;
-                            await saveCurrentRecording();
-                            currentRecording.isSaving = false;
-                        }
-                    }
-                };
-                
-                currentRecording.mediaRecorder.onstop = async () => {
-                    if (currentRecording.chunks.length > 0) await saveCurrentRecording(true);
-                    cleanupRecording();
-                    await loadAllVideos();
-                };
-                
-                currentRecording.mediaRecorder.start(3000);
-                currentRecording.active = true;
-                updateDurationUI(0);
-                
-                if (currentRecording.timerInterval) clearInterval(currentRecording.timerInterval);
-                currentRecording.timerInterval = setInterval(() => {
-                    if (currentRecording.startTime) {
-                        const sec = Math.floor((Date.now() - currentRecording.startTime) / 1000);
-                        updateDurationUI(sec);
-                    }
-                }, 1000);
-                
-                currentRecording.saveInterval = setInterval(async () => {
-                    if (currentRecording.active && !currentRecording.isSaving) await saveCurrentRecording();
-                }, 10000);
-                
-                document.getElementById('recordBtn').disabled = true;
-                document.getElementById('stopBtn').disabled = false;
-                document.getElementById('recordingStatus').style.display = 'flex';
-                showToast('🔴 Merekam dengan TIMESTAMP OVERLAY (jam & durasi di video)');
-            } catch(e) {
-                showToast('Gagal: '+e.message);
-            }
-        }
-
-        async function saveCurrentRecording(isFinal = false) {
-            if (currentRecording.chunks.length === 0) return;
-            const currentBlob = new Blob(currentRecording.chunks, { type: 'video/webm' });
-            if (currentBlob.size === 0) return;
-            const duration = Math.floor((Date.now() - currentRecording.startTime) / 1000);
-            await saveVideoToDB({
-                id: currentRecording.videoId, title: currentRecording.videoTitle, duration: duration,
-                date: new Date().toISOString(), quality: '1080p', size: currentBlob.size, shareLink: ''
-            }, currentBlob);
-            currentRecording.lastSavedChunkCount = currentRecording.chunks.length;
-            if (!isFinal) await loadAllVideos();
-        }
-
-        function stopRecording() {
-            if (currentRecording.mediaRecorder && currentRecording.active) {
-                currentRecording.mediaRecorder.stop();
-            }
-        }
-
-        function cleanupRecording() {
-            currentRecording.active = false;
-            if (currentRecording.saveInterval) clearInterval(currentRecording.saveInterval);
-            if (currentRecording.timerInterval) clearInterval(currentRecording.timerInterval);
-            if (currentRecording.canvasAnimFrame) cancelAnimationFrame(currentRecording.canvasAnimFrame);
-            document.getElementById('stopBtn').disabled = true;
-            document.getElementById('recordBtn').disabled = false;
-            document.getElementById('recordingStatus').style.display = 'none';
+            };
+            currentRecording.mediaRecorder.start(3000);
+            currentRecording.active = true;
             updateDurationUI(0);
-            document.getElementById('fileSize').innerText = '0 MB';
-            
-            if (currentRecording.sourceStream) {
-                currentRecording.sourceStream.getTracks().forEach(t => t.stop());
-            }
-            if (currentRecording.canvasStream) {
-                currentRecording.canvasStream.getTracks().forEach(t => t.stop());
-            }
-            
-            sourceVideo.srcObject = null;
-            sourceVideo.style.display = 'none';
-            canvas.style.display = 'none';
-            document.getElementById('videoOverlay').style.display = 'flex';
-        }
-
-        async function downloadLatestVideo() {
-            const videos = await getAllVideos();
-            if (videos.length) downloadVideo(videos[0].blob, `${videos[0].title}.webm`);
-        }
-
-        function downloadVideo(blob, filename) {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast(`Download ${filename}`);
-        }
-
-        async function showDbInfo() {
-            const videos = await getAllVideos();
-            const totalSize = videos.reduce((s,v)=>s+(v.size||0),0);
-            alert(`Total Video: ${videos.length}\nTotal Storage: ${formatFileSize(totalSize)}`);
-        }
-
-        async function clearAll() {
-            if (confirm('Hapus semua video?')) {
-                await clearAllVideos();
-                await loadAllVideos();
-                showToast('Semua video dihapus');
-            }
-        }
-
-        // ---------- HELPERS ----------
-        function formatDuration(sec) {
-            if (!sec) return '00:00:00';
-            let h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
-            return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-        }
-        function formatFileSize(bytes) {
-            if (bytes<1024) return bytes+' B';
-            if (bytes<1048576) return (bytes/1024).toFixed(1)+' KB';
-            if (bytes<1073741824) return (bytes/1048576).toFixed(1)+' MB';
-            return (bytes/1073741824).toFixed(2)+' GB';
-        }
-        function formatDateTime(dateStr) {
-            return new Date(dateStr).toLocaleString('id-ID', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
-        }
-        function escapeHtml(str) {
-            return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m]));
-        }
-        function showToast(msg) {
-            let c = document.getElementById('toastContainer');
-            if(!c){ c=document.createElement('div'); c.id='toastContainer'; c.className='toast-container'; document.body.appendChild(c); }
-            const t=document.createElement('div'); t.className='toast';
-            t.innerHTML=`<i class="fas fa-info-circle"></i><span>${msg}</span><button style="background:none;border:none;color:white;margin-left:10px;cursor:pointer;" onclick="this.parentElement.remove()">✖</button>`;
-            c.appendChild(t);
-            setTimeout(()=>t.remove(),4000);
-        }
-
-        window.addEventListener('beforeunload', () => {
-            if (currentRecording.active && currentRecording.chunks.length) saveCurrentRecording(true);
-        });
-
-        // Ekspose fungsi global yang diperlukan
-        window.openVideoModal = openVideoModal;
-        window.deleteVideo = deleteVideo;
-
-        // Inisialisasi
-        (async () => {
-            await initDB();
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('recordBtn').onclick = startRecording;
-            document.getElementById('stopBtn').onclick = stopRecording;
-            document.getElementById('downloadBtn').onclick = downloadLatestVideo;
-            document.getElementById('exportFullBtn').onclick = backupDatabaseToZip;
-            document.getElementById('refreshBtn').onclick = () => loadAllVideos();
-            document.getElementById('dbInfoBtn').onclick = showDbInfo;
-            document.getElementById('clearAllBtn').onclick = clearAll;
-            document.getElementById('closeModalBtn').onclick = () => document.getElementById('videoModal').style.display = 'none';
-            document.getElementById('searchInput').addEventListener('input', () => loadAllVideos());
-            document.getElementById('cancelProgressBtn').onclick = () => {
-                if (isProcessing) { isProcessing = false; document.getElementById('progressModal').style.display = 'none'; }
-            };
-            document.getElementById('backupDbBtn').onclick = backupDatabaseToZip;
-            document.getElementById('restoreDbBtn').onclick = () => document.getElementById('restoreFileInput').click();
-            document.getElementById('restoreFileInput').onchange = (e) => {
-                if (e.target.files.length) restoreDatabaseFromZip(e.target.files[0]);
-                e.target.value = '';
-            };
-            showToast('✅ Siap merekam. Timestamp (jam & durasi) akan selalu muncul di video!');
-        })();
+            if (currentRecording.timerInterval) clearInterval(currentRecording.timerInterval);
+            currentRecording.timerInterval = setInterval(() => {
+                if (currentRecording.startTime) {
+                    const sec = Math.floor((Date.now() - currentRecording.startTime) / 1000);
+                    updateDurationUI(sec);
+                }
+            }, 1000);
+            currentRecording.saveInterval = setInterval(async () => {
+                if (currentRecording.active && !currentRecording.isSaving) await saveCurrentRecording();
+            }, 10000);
+            document.getElementById('recordBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('recordingStatus').style.display = 'flex';
+            showToast('🔴 Merekam - Durasi muncul di floating clock');
+        } catch(e) { showToast('Gagal: '+e.message); }
+    }
+    
+    async function saveCurrentRecording(isFinal = false) {
+        if (currentRecording.chunks.length === 0) return;
+        const currentBlob = new Blob(currentRecording.chunks, { type: 'video/webm' });
+        if (currentBlob.size === 0) return;
+        const duration = Math.floor((Date.now() - currentRecording.startTime) / 1000);
+        await saveVideoToDB({
+            id: currentRecording.videoId, title: currentRecording.videoTitle, duration: duration,
+            date: new Date().toISOString(), quality: '1080p', size: currentBlob.size, shareLink: ''
+        }, currentBlob);
+        currentRecording.lastSavedChunkCount = currentRecording.chunks.length;
+        if (!isFinal) await loadAllVideos();
+    }
+    
+    function stopRecording() { if (currentRecording.mediaRecorder && currentRecording.active) currentRecording.mediaRecorder.stop(); }
+    
+    function cleanupRecording() {
+        currentRecording.active = false;
+        if (currentRecording.saveInterval) clearInterval(currentRecording.saveInterval);
+        if (currentRecording.timerInterval) clearInterval(currentRecording.timerInterval);
+        document.getElementById('stopBtn').disabled = true;
+        document.getElementById('recordBtn').disabled = false;
+        document.getElementById('recordingStatus').style.display = 'none';
+        updateDurationUI(0);
+        document.getElementById('fileSize').innerText = '0 MB';
+        if (currentRecording.stream) currentRecording.stream.getTracks().forEach(t => t.stop());
+        document.getElementById('preview').srcObject = null;
+        document.getElementById('preview').style.display = 'none';
+        document.getElementById('videoOverlay').style.display = 'flex';
+    }
+    
+    async function downloadLatestVideo() { const videos = await getAllVideos(); if (videos.length) downloadVideo(videos[0].blob, `${videos[0].title}.webm`); }
+    function downloadVideo(blob, filename) { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url); showToast(`Download ${filename}`); }
+    async function showDbInfo() { const videos = await getAllVideos(); const totalSize = videos.reduce((s,v)=>s+(v.size||0),0); alert(`Total Video: ${videos.length}\nTotal Storage: ${formatFileSize(totalSize)}`); }
+    async function clearAll() { if (confirm('Hapus semua video?')) { await clearAllVideos(); await loadAllVideos(); showToast('Semua video dihapus'); } }
+    
+    function formatDuration(sec) { if (!sec) return '00:00:00'; let h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60; return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`; }
+    function formatFileSize(bytes) { if (bytes<1024) return bytes+' B'; if (bytes<1048576) return (bytes/1024).toFixed(1)+' KB'; if (bytes<1073741824) return (bytes/1048576).toFixed(1)+' MB'; return (bytes/1073741824).toFixed(2)+' GB'; }
+    function formatDateTime(dateStr) { return new Date(dateStr).toLocaleString('id-ID', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
+    function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+    function showToast(msg) { let c = document.getElementById('toastContainer'); if(!c){ c=document.createElement('div'); c.id='toastContainer'; c.className='toast-container'; document.body.appendChild(c); } const t=document.createElement('div'); t.className='toast'; t.innerHTML=`<i class="fas fa-info-circle"></i><span>${msg}</span><button style="background:none;border:none;color:white;margin-left:10px;cursor:pointer;" onclick="this.parentElement.remove()">✖</button>`; c.appendChild(t); setTimeout(()=>t.remove(),4000); }
+    
+    window.addEventListener('beforeunload', () => { if (currentRecording.active && currentRecording.chunks.length) saveCurrentRecording(true); });
+    
+    (async () => {
+        await initDB();
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('recordBtn').onclick = startRecording;
+        document.getElementById('stopBtn').onclick = stopRecording;
+        document.getElementById('downloadBtn').onclick = downloadLatestVideo;
+        document.getElementById('exportFullBtn').onclick = backupDatabaseToZip;
+        document.getElementById('refreshBtn').onclick = () => loadAllVideos();
+        document.getElementById('dbInfoBtn').onclick = showDbInfo;
+        document.getElementById('clearAllBtn').onclick = clearAll;
+        document.getElementById('closeModalBtn').onclick = () => document.getElementById('videoModal').style.display = 'none';
+        document.getElementById('searchInput').addEventListener('input', () => loadAllVideos());
+        document.getElementById('cancelProgressBtn').onclick = () => { if (isProcessing) { isProcessing = false; document.getElementById('progressModal').style.display = 'none'; } };
+        document.getElementById('backupDbBtn').onclick = backupDatabaseToZip;
+        document.getElementById('restoreDbBtn').onclick = () => document.getElementById('restoreFileInput').click();
+        document.getElementById('restoreFileInput').onchange = (e) => { if (e.target.files.length) restoreDatabaseFromZip(e.target.files[0]); e.target.value = ''; };
+        showToast('✅ Siap merekam. Floating clock menampilkan jam live, durasi muncul saat rekaman dimulai.');
     })();
 </script>
 </body>
