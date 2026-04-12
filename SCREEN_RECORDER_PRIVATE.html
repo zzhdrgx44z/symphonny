@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>OBS Screen Recorder | Timestamp & Offline Database</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,7 +41,6 @@
             min-height: 100vh;
         }
 
-        /* OBS-style layout grid */
         .obs-container {
             max-width: 1600px;
             margin: 0 auto;
@@ -51,14 +50,12 @@
             align-items: start;
         }
 
-        /* Main area (preview + controls) */
         .main-area {
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
 
-        /* Preview panel seperti OBS */
         .preview-panel {
             background: var(--obs-black);
             border: 1px solid var(--obs-border);
@@ -118,7 +115,6 @@
             display: none;
         }
 
-        /* Timestamp overlay gaya OBS (tetap minimalis) */
         .timestamp-obs {
             position: absolute;
             top: 12px;
@@ -175,7 +171,6 @@
             z-index: 10;
         }
 
-        /* Control bar OBS style */
         .control-bar {
             background: var(--obs-panel);
             border: 1px solid var(--obs-border);
@@ -254,7 +249,6 @@
             font-family: monospace;
         }
 
-        /* Right panel (Library/Database) seperti OBS Sources */
         .library-panel {
             background: var(--obs-panel);
             border: 1px solid var(--obs-border);
@@ -346,7 +340,6 @@
             cursor: pointer;
         }
 
-        /* Modal OBS style */
         .modal-obs {
             display: none;
             position: fixed;
@@ -375,7 +368,6 @@
             justify-content: space-between;
         }
 
-        /* Progress */
         .progress-modal-obs {
             position: fixed;
             inset: 0;
@@ -431,7 +423,6 @@
         @media (max-width: 900px) {
             .obs-container { grid-template-columns: 1fr; }
             .library-panel { position: static; height: auto; margin-top: 20px; }
-            .stats-obs { margin-top: 8px; }
         }
         ::-webkit-scrollbar { width: 6px; background: #1e1e1e; }
         ::-webkit-scrollbar-thumb { background: #4a4a4a; border-radius: 4px; }
@@ -440,7 +431,6 @@
 <body>
 
 <div class="obs-container">
-    <!-- KOLOM UTAMA: PREVIEW + KONTROL -->
     <div class="main-area">
         <div class="preview-panel">
             <div class="preview-header">
@@ -451,7 +441,6 @@
             </div>
             <div class="video-stage" id="videoStage">
                 <video class="video-preview" id="preview" autoplay muted playsinline></video>
-                <!-- TIMESTAMP STYLE OBS -->
                 <div class="timestamp-obs" id="timestampOverlay">
                     <div class="timestamp-time" id="liveTime">--:--:--</div>
                     <div class="timestamp-date" id="liveDate">---, -- --- ----</div>
@@ -480,13 +469,11 @@
             </div>
         </div>
 
-        <!-- Info tambahan ala OBS -->
         <div style="background: #252525; border-radius:6px; padding:10px 14px; border:1px solid #3c3c3c; font-size:12px;">
             <i class="fas fa-clock" style="color:#00a3e0;"></i> <strong>Timestamp otomatis</strong> — jam & tanggal langsung terekam di video (pojok kanan). Saat merekam, durasi juga tampil.
         </div>
     </div>
 
-    <!-- PANEL KANAN: DATABASE / LIBRARY (mirip SOURCES OBS) -->
     <div class="library-panel">
         <div class="panel-header">
             <span><i class="fas fa-database"></i> VIDEO LIBRARY</span>
@@ -538,33 +525,49 @@
     (function(){
         "use strict";
 
-        // ======================== TIMESTAMP LIVE ========================
+        // ---------- TIMESTAMP LIVE (presisi, anti macet) ----------
+        const liveTimeEl = document.getElementById('liveTime');
+        const liveDateEl = document.getElementById('liveDate');
+        
         function updateLiveTimestamp() {
             const now = new Date();
             const timeStr = now.toLocaleTimeString('id-ID', { hour12: false, hour:'2-digit', minute:'2-digit', second:'2-digit' });
             const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
             const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
             const dateStr = `${days[now.getDay()].slice(0,3)}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
-            const liveTimeEl = document.getElementById('liveTime');
-            const liveDateEl = document.getElementById('liveDate');
-            if(liveTimeEl) liveTimeEl.innerText = timeStr;
-            if(liveDateEl) liveDateEl.innerText = dateStr;
+            liveTimeEl.innerText = timeStr;
+            liveDateEl.innerText = dateStr;
+            
+            // jadwalkan update berikutnya tepat di detik berikutnya
+            const msToNextSecond = 1000 - (now.getTime() % 1000);
+            setTimeout(updateLiveTimestamp, msToNextSecond);
         }
-        setInterval(updateLiveTimestamp, 1000);
-        updateLiveTimestamp();
+        // mulai scheduler presisi
+        setTimeout(updateLiveTimestamp, 1000 - (Date.now() % 1000));
 
-        // ======================== INDEXED DB ========================
+        // ---------- INDEXED DB ----------
         const DB_NAME = 'OBS_ScreenRecorder';
         const STORE = 'videos';
         let db = null;
-        let currentRecording = { 
-            active: false, mediaRecorder: null, stream: null, chunks: [], 
-            startTime: null, timerInterval: null, saveInterval: null, 
-            videoId: null, videoTitle: null, lastSavedChunkCount: 0, isSaving: false 
+        
+        // State recording
+        let currentRecording = {
+            active: false,
+            mediaRecorder: null,
+            stream: null,
+            chunks: [],
+            startTime: null,
+            timerInterval: null,
+            saveInterval: null,
+            videoId: null,
+            videoTitle: null,
+            lastSavedChunkCount: 0,
+            isSaving: false
         };
         let isProcessing = false;
+        let searchDebounceTimer = null;
 
-        // DOM elements
+        // Elemen UI
         const stageDiv = document.getElementById('videoStage');
         const onVideoTimerSpan = document.getElementById('onVideoTimer');
         const durationTimerSpan = document.getElementById('durationTimer');
@@ -572,75 +575,76 @@
         const recordBtn = document.getElementById('recordBtn');
         const stopBtn = document.getElementById('stopBtn');
         const downloadBtn = document.getElementById('downloadBtn');
-        const searchInput = document.getElementById('searchInput');
+        const videoOverlay = document.getElementById('videoOverlay');
+        const previewVideo = document.getElementById('preview');
+        const obsRecStatus = document.getElementById('obsRecStatus');
         const videoListContainer = document.getElementById('videoListContainer');
-        const videoModal = document.getElementById('videoModal');
-        const modalVideoPlayer = document.getElementById('modalVideoPlayer');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalMeta = document.getElementById('modalMeta');
-        const modalDownload = document.getElementById('modalDownload');
-        const modalDelete = document.getElementById('modalDelete');
-        const closeModalBtn = document.getElementById('closeModalBtn');
+        const searchInput = document.getElementById('searchInput');
         const progressModal = document.getElementById('progressModal');
         const progressFill = document.getElementById('progressFill');
         const progressTitle = document.getElementById('progressTitle');
         const progressDetail = document.getElementById('progressDetail');
-        const cancelProgressBtn = document.getElementById('cancelProgressBtn');
-        const toastStack = document.getElementById('toastStack');
-        const restoreFileInput = document.getElementById('restoreFileInput');
-        const obsRecStatus = document.getElementById('obsRecStatus');
-        const previewVideo = document.getElementById('preview');
-        const videoOverlay = document.getElementById('videoOverlay');
 
-        // Helper functions
-        function formatDuration(sec) { 
-            if (!sec && sec !== 0) return '00:00:00'; 
-            let h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = Math.floor(sec % 60); 
-            return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`; 
+        // ---------- Helper Functions ----------
+        function formatDuration(sec) {
+            if (!sec && sec !== 0) sec = 0;
+            let h = Math.floor(sec / 3600);
+            let m = Math.floor((sec % 3600) / 60);
+            let s = Math.floor(sec % 60);
+            return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
         }
-        function formatFileSize(bytes) { 
-            if (bytes < 1024) return bytes + ' B'; 
-            if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB'; 
-            if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB'; 
-            return (bytes / 1073741824).toFixed(2) + ' GB'; 
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB';
+            return (bytes / 1073741824).toFixed(2) + ' GB';
         }
-        function escapeHtml(str) { 
-            if (!str) return '';
-            return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); 
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
         }
-        function showToast(msg) { 
-            const t = document.createElement('div'); 
-            t.className = 'toast-obs'; 
-            t.innerHTML = `<i class="fas fa-info-circle"></i> ${msg}`; 
-            toastStack.appendChild(t); 
-            setTimeout(() => t.remove(), 3500); 
+
+        function showToast(msg) {
+            const container = document.getElementById('toastStack');
+            const t = document.createElement('div');
+            t.className = 'toast-obs';
+            t.innerHTML = `<i class="fas fa-info-circle"></i> ${msg}`;
+            container.appendChild(t);
+            setTimeout(() => t.remove(), 3500);
         }
-        function showProgress(show, title = '') { 
-            if (show) { 
-                progressTitle.innerText = title; 
-                progressModal.style.display = 'flex'; 
+
+        function showProgress(show, title = '', detail = '') {
+            if (show) {
+                progressTitle.innerText = title || 'Processing';
+                progressDetail.innerText = detail;
                 progressFill.style.width = '0%';
-            } else { 
-                progressModal.style.display = 'none'; 
-            } 
+                progressModal.style.display = 'flex';
+            } else {
+                progressModal.style.display = 'none';
+            }
         }
 
         function updateDurationUI(seconds) {
             const fmt = formatDuration(seconds);
             durationTimerSpan.innerText = fmt;
-            if (currentRecording.active) onVideoTimerSpan.innerText = fmt;
-            else onVideoTimerSpan.innerText = '00:00:00';
+            if (currentRecording.active) {
+                onVideoTimerSpan.innerText = fmt;
+            } else {
+                onVideoTimerSpan.innerText = '00:00:00';
+            }
         }
 
-        // Database operations
-        async function initDB() {
+        // ---------- Database ----------
+        function initDB() {
             return new Promise((resolve, reject) => {
                 const req = indexedDB.open(DB_NAME, 1);
                 req.onerror = () => reject(req.error);
                 req.onsuccess = (e) => { db = e.target.result; loadAllVideos(); resolve(db); };
                 req.onupgradeneeded = (e) => {
-                    if (!e.target.result.objectStoreNames.contains(STORE))
+                    if (!e.target.result.objectStoreNames.contains(STORE)) {
                         e.target.result.createObjectStore(STORE, { keyPath: 'id' });
+                    }
                 };
             });
         }
@@ -650,54 +654,58 @@
                 const tx = db.transaction([STORE], 'readwrite');
                 const store = tx.objectStore(STORE);
                 const record = { ...videoData, blob, savedAt: Date.now() };
-                store.put(record).onsuccess = () => resolve(record);
-                store.put(record).onerror = () => reject();
+                const putReq = store.put(record);
+                putReq.onsuccess = () => resolve(record);
+                putReq.onerror = () => reject(putReq.error);
             });
         }
 
-        async function getAllVideos() { 
-            if (!db) return []; 
-            return new Promise((res) => { 
-                const tx = db.transaction([STORE], 'readonly'); 
-                tx.objectStore(STORE).getAll().onsuccess = (e) => res(e.target.result || []); 
-            }); 
+        async function getAllVideos() {
+            if (!db) return [];
+            return new Promise((resolve) => {
+                const tx = db.transaction([STORE], 'readonly');
+                tx.objectStore(STORE).getAll().onsuccess = (e) => resolve(e.target.result || []);
+            });
         }
 
-        async function getVideoById(id) { 
-            return new Promise((res) => { 
-                const tx = db.transaction([STORE], 'readonly'); 
-                tx.objectStore(STORE).get(id).onsuccess = (e) => res(e.target.result); 
-            }); 
+        async function getVideoById(id) {
+            return new Promise((resolve) => {
+                const tx = db.transaction([STORE], 'readonly');
+                tx.objectStore(STORE).get(id).onsuccess = (e) => resolve(e.target.result);
+            });
         }
 
-        async function deleteVideoFromDB(id) { 
-            return new Promise((res) => { 
-                const tx = db.transaction([STORE], 'readwrite'); 
-                tx.objectStore(STORE).delete(id).onsuccess = () => res(); 
-            }); 
+        async function deleteVideoFromDB(id) {
+            return new Promise((resolve) => {
+                const tx = db.transaction([STORE], 'readwrite');
+                tx.objectStore(STORE).delete(id).onsuccess = () => resolve();
+            });
         }
 
-        async function clearAllVideos() { 
-            return new Promise((res) => { 
-                const tx = db.transaction([STORE], 'readwrite'); 
-                tx.objectStore(STORE).clear().onsuccess = () => res(); 
-            }); 
+        async function clearAllVideos() {
+            return new Promise((resolve) => {
+                const tx = db.transaction([STORE], 'readwrite');
+                tx.objectStore(STORE).clear().onsuccess = () => resolve();
+            });
         }
 
         async function loadAllVideos() {
             const videos = await getAllVideos();
-            // Update download button state
-            downloadBtn.disabled = videos.length === 0;
             renderVideoLibrary(videos);
+            // Update download button state based on whether any video exists
+            downloadBtn.disabled = (videos.length === 0);
+            return videos;
         }
 
         function renderVideoLibrary(videos) {
-            const search = searchInput.value.toLowerCase();
-            const filtered = videos.filter(v => v.title.toLowerCase().includes(search));
+            const searchTerm = searchInput.value.toLowerCase();
+            const filtered = videos.filter(v => v.title.toLowerCase().includes(searchTerm));
+            
             if (filtered.length === 0) {
                 videoListContainer.innerHTML = '<div style="text-align:center; padding:32px; color:#aaa;">📭 Tidak ada video</div>';
                 return;
             }
+            
             videoListContainer.innerHTML = filtered.map(v => `
                 <div class="video-item" data-id="${v.id}">
                     <div class="video-title"><i class="fas fa-video"></i> ${escapeHtml(v.title)}</div>
@@ -709,85 +717,90 @@
                 </div>
             `).join('');
             
-            document.querySelectorAll('.play-vid').forEach(btn => 
-                btn.addEventListener('click', (e) => { e.stopPropagation(); openVideoModal(btn.dataset.id); })
-            );
-            document.querySelectorAll('.del-vid').forEach(btn => 
-                btn.addEventListener('click', async (e) => { 
-                    e.stopPropagation(); 
-                    if (confirm('Hapus video ini?')) { 
-                        await deleteVideoFromDB(btn.dataset.id); 
-                        await loadAllVideos(); 
-                        showToast('Video dihapus'); 
-                    } 
-                })
-            );
-            document.querySelectorAll('.video-item').forEach(card => 
-                card.addEventListener('click', () => openVideoModal(card.dataset.id))
-            );
+            document.querySelectorAll('.play-vid').forEach(btn => {
+                btn.addEventListener('click', (e) => { e.stopPropagation(); openVideoModal(btn.dataset.id); });
+            });
+            document.querySelectorAll('.del-vid').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    if (confirm('Hapus video ini?')) {
+                        await deleteVideoFromDB(btn.dataset.id);
+                        await loadAllVideos();
+                        showToast('Video dihapus');
+                    }
+                });
+            });
+            document.querySelectorAll('.video-item').forEach(card => {
+                card.addEventListener('click', () => openVideoModal(card.dataset.id));
+            });
         }
 
         async function openVideoModal(id) {
             const video = await getVideoById(id);
             if (!video?.blob) return;
             const url = URL.createObjectURL(video.blob);
-            modalVideoPlayer.src = url;
-            modalTitle.innerText = video.title;
-            modalMeta.innerHTML = `<span>Durasi: ${formatDuration(video.duration)} | Ukuran: ${formatFileSize(video.size)} | ${new Date(video.date).toLocaleString()}</span>`;
-            videoModal.style.display = 'flex';
-            modalDownload.onclick = () => { 
-                const a = document.createElement('a'); 
-                a.href = url; 
-                a.download = `${video.title}.webm`; 
-                a.click(); 
-                showToast('Download mulai'); 
+            const modal = document.getElementById('videoModal');
+            document.getElementById('modalVideoPlayer').src = url;
+            document.getElementById('modalTitle').innerText = video.title;
+            document.getElementById('modalMeta').innerHTML = `<span>Durasi: ${formatDuration(video.duration)} | Ukuran: ${formatFileSize(video.size)} | ${new Date(video.date).toLocaleString()}</span>`;
+            modal.style.display = 'flex';
+            
+            document.getElementById('modalDownload').onclick = () => {
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${video.title}.webm`;
+                a.click();
+                showToast('Download dimulai');
             };
-            modalDelete.onclick = async () => { 
-                await deleteVideoFromDB(video.id); 
-                await loadAllVideos(); 
-                videoModal.style.display = 'none'; 
-                showToast('Terhapus'); 
+            document.getElementById('modalDelete').onclick = async () => {
+                await deleteVideoFromDB(video.id);
+                await loadAllVideos();
+                modal.style.display = 'none';
+                showToast('Video terhapus');
             };
         }
 
-        // Backup & Restore
+        // ---------- Backup & Restore ----------
         async function backupDatabaseToZip() {
             if (isProcessing) return;
             const videos = await getAllVideos();
-            if (videos.length === 0) return showToast('Tidak ada video untuk backup');
-            isProcessing = true; 
-            showProgress(true, 'Membuat arsip...');
+            if (videos.length === 0) {
+                showToast('Tidak ada video untuk backup');
+                return;
+            }
+            isProcessing = true;
+            showProgress(true, 'Membuat arsip...', 'Menyiapkan file...');
             try {
                 const zip = new JSZip();
                 const folder = zip.folder("videos");
-                let meta = [];
+                const meta = [];
                 for (let i = 0; i < videos.length; i++) {
                     const v = videos[i];
                     progressFill.style.width = `${(i / videos.length) * 100}%`;
                     progressDetail.innerText = `Mengemas: ${v.title.slice(0, 35)}`;
-                    if (v.blob) { 
-                        const fn = `${v.id}.webm`; 
-                        folder.file(fn, v.blob); 
-                        meta.push({ id: v.id, title: v.title, duration: v.duration, size: v.size, date: v.date, filename: fn }); 
+                    if (v.blob) {
+                        const fn = `${v.id}.webm`;
+                        folder.file(fn, v.blob);
+                        meta.push({ id: v.id, title: v.title, duration: v.duration, size: v.size, date: v.date, filename: fn });
                     }
-                    await new Promise(r => setTimeout(r, 5));
+                    await new Promise(r => setTimeout(r, 10));
                 }
                 zip.file("metadata.json", JSON.stringify({ exportDate: new Date(), total: videos.length, videos: meta }));
                 const blobZip = await zip.generateAsync({ type: "blob" });
                 saveAs(blobZip, `obs_recorder_backup_${Date.now()}.zip`);
-                showToast('Backup sukses!');
-            } catch (e) { 
-                showToast('Gagal backup'); 
-            } finally { 
-                isProcessing = false; 
-                showProgress(false); 
+                showToast('✅ Backup sukses!');
+            } catch (e) {
+                showToast('❌ Gagal backup');
+            } finally {
+                isProcessing = false;
+                showProgress(false);
             }
         }
 
         async function restoreDatabaseFromZip(file) {
             if (!file || isProcessing) return;
-            isProcessing = true; 
-            showProgress(true, 'Restore database...');
+            isProcessing = true;
+            showProgress(true, 'Restore database...', 'Membaca file zip');
             try {
                 const zip = await JSZip.loadAsync(file);
                 const metaFile = zip.file("metadata.json");
@@ -801,25 +814,22 @@
                     const videoBlobFile = zip.file(`videos/${item.filename}`);
                     if (videoBlobFile) {
                         const blob = await videoBlobFile.async("blob");
-                        await saveVideoToDB({ 
-                            id: item.id, title: item.title, duration: item.duration, 
-                            size: blob.size, date: item.date || new Date().toISOString() 
-                        }, blob);
+                        await saveVideoToDB({ id: item.id, title: item.title, duration: item.duration, size: blob.size, date: item.date || new Date().toISOString() }, blob);
                     }
                     restored++;
-                    await new Promise(r => setTimeout(r, 5));
+                    await new Promise(r => setTimeout(r, 10));
                 }
                 await loadAllVideos();
                 showToast(`✅ Restore ${restored} video`);
-            } catch (e) { 
-                showToast('Gagal restore'); 
-            } finally { 
-                isProcessing = false; 
-                showProgress(false); 
+            } catch (e) {
+                showToast('❌ Gagal restore');
+            } finally {
+                isProcessing = false;
+                showProgress(false);
             }
         }
 
-        // RECORDING ENGINE
+        // ---------- RECORDING ENGINE (dengan penyimpanan chunk yang kuat) ----------
         async function startRecording() {
             try {
                 const screenStream = await navigator.mediaDevices.getDisplayMedia({ 
@@ -828,14 +838,17 @@
                 });
                 const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null);
                 let finalStream = screenStream;
-                if (audioStream) finalStream = new MediaStream([...screenStream.getTracks(), ...audioStream.getAudioTracks()]);
+                if (audioStream) {
+                    finalStream = new MediaStream([...screenStream.getTracks(), ...audioStream.getAudioTracks()]);
+                }
                 
                 currentRecording.stream = finalStream;
                 currentRecording.chunks = [];
-                currentRecording.lastSavedChunkCount = 0;
                 currentRecording.videoId = 'obs_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
                 currentRecording.videoTitle = `Recording ${new Date().toLocaleString()}`;
                 currentRecording.startTime = Date.now();
+                currentRecording.lastSavedChunkCount = 0;
+                currentRecording.isSaving = false;
                 
                 previewVideo.srcObject = finalStream;
                 previewVideo.style.display = 'block';
@@ -849,20 +862,20 @@
                 currentRecording.mediaRecorder.ondataavailable = async (e) => {
                     if (e.data.size > 0) {
                         currentRecording.chunks.push(e.data);
-                        const total = currentRecording.chunks.reduce((s, c) => s + c.size, 0);
-                        fileSizeSpan.innerText = formatFileSize(total);
+                        const totalSize = currentRecording.chunks.reduce((s, c) => s + c.size, 0);
+                        fileSizeSpan.innerText = formatFileSize(totalSize);
+                        
+                        // Simpan otomatis setiap 5 chunk untuk keamanan
                         if (currentRecording.chunks.length - currentRecording.lastSavedChunkCount >= 5 && !currentRecording.isSaving) {
-                            currentRecording.isSaving = true;
                             await saveCurrentRecording(false);
-                            currentRecording.isSaving = false;
                         }
                     }
                 };
                 
-                currentRecording.mediaRecorder.onstop = async () => { 
-                    await saveCurrentRecording(true); 
-                    cleanupRecording(); 
-                    await loadAllVideos(); 
+                currentRecording.mediaRecorder.onstop = async () => {
+                    await saveCurrentRecording(true);
+                    cleanupRecording();
+                    await loadAllVideos();
                 };
                 
                 currentRecording.mediaRecorder.start(3000);
@@ -870,43 +883,59 @@
                 updateDurationUI(0);
                 
                 if (currentRecording.timerInterval) clearInterval(currentRecording.timerInterval);
-                currentRecording.timerInterval = setInterval(() => { 
+                currentRecording.timerInterval = setInterval(() => {
                     if (currentRecording.startTime) {
                         updateDurationUI(Math.floor((Date.now() - currentRecording.startTime) / 1000));
                     }
-                }, 1000);
+                }, 200); // lebih responsif
                 
-                currentRecording.saveInterval = setInterval(async () => { 
-                    if (currentRecording.active && !currentRecording.isSaving) await saveCurrentRecording(false); 
+                currentRecording.saveInterval = setInterval(async () => {
+                    if (currentRecording.active && !currentRecording.isSaving) {
+                        await saveCurrentRecording(false);
+                    }
                 }, 12000);
                 
                 recordBtn.disabled = true;
                 stopBtn.disabled = false;
-                showToast('🔴 Merekam — timestamp & durasi aktif di video');
-            } catch (e) { 
-                showToast('Gagal start: ' + e.message); 
+                downloadBtn.disabled = true; // akan enable setelah ada video tersimpan
+                showToast('🔴 Merekam — timestamp & durasi aktif');
+            } catch (e) {
+                showToast('Gagal start: ' + e.message);
             }
         }
 
         async function saveCurrentRecording(isFinal = false) {
             if (currentRecording.chunks.length === 0) return;
-            const fullBlob = new Blob(currentRecording.chunks, { type: 'video/webm' });
-            if (fullBlob.size === 0) return;
-            const durationSec = Math.floor((Date.now() - currentRecording.startTime) / 1000);
-            await saveVideoToDB({ 
-                id: currentRecording.videoId, 
-                title: currentRecording.videoTitle, 
-                duration: durationSec, 
-                date: new Date().toISOString(), 
-                size: fullBlob.size 
-            }, fullBlob);
-            currentRecording.lastSavedChunkCount = currentRecording.chunks.length;
-            if (!isFinal) await loadAllVideos();
+            if (currentRecording.isSaving) return;
+            
+            currentRecording.isSaving = true;
+            try {
+                const fullBlob = new Blob(currentRecording.chunks, { type: 'video/webm' });
+                if (fullBlob.size === 0) return;
+                
+                const durationSec = Math.floor((Date.now() - currentRecording.startTime) / 1000);
+                await saveVideoToDB({
+                    id: currentRecording.videoId,
+                    title: currentRecording.videoTitle,
+                    duration: durationSec,
+                    date: new Date().toISOString(),
+                    size: fullBlob.size
+                }, fullBlob);
+                
+                currentRecording.lastSavedChunkCount = currentRecording.chunks.length;
+                if (!isFinal) {
+                    await loadAllVideos(); // update daftar
+                }
+            } catch (err) {
+                console.warn('Gagal menyimpan sementara', err);
+            } finally {
+                currentRecording.isSaving = false;
+            }
         }
 
-        function stopRecording() { 
+        function stopRecording() {
             if (currentRecording.mediaRecorder && currentRecording.active) {
-                currentRecording.mediaRecorder.stop(); 
+                currentRecording.mediaRecorder.stop();
             }
         }
 
@@ -914,53 +943,62 @@
             currentRecording.active = false;
             stageDiv.classList.remove('recording-active');
             obsRecStatus.style.display = 'none';
+            
             if (currentRecording.saveInterval) clearInterval(currentRecording.saveInterval);
             if (currentRecording.timerInterval) clearInterval(currentRecording.timerInterval);
+            
             stopBtn.disabled = true;
             recordBtn.disabled = false;
+            // downloadBtn akan di-enable setelah loadAllVideos di onstop
+            
             updateDurationUI(0);
             fileSizeSpan.innerText = '0 MB';
+            
             if (currentRecording.stream) {
                 currentRecording.stream.getTracks().forEach(t => t.stop());
             }
             previewVideo.srcObject = null;
             previewVideo.style.display = 'none';
             videoOverlay.style.display = 'flex';
-            currentRecording = { 
-                active: false, mediaRecorder: null, stream: null, chunks: [], 
-                startTime: null, timerInterval: null, saveInterval: null, 
-                videoId: null, videoTitle: null, lastSavedChunkCount: 0, isSaving: false 
-            };
+            
+            currentRecording.mediaRecorder = null;
+            currentRecording.stream = null;
+            currentRecording.chunks = [];
         }
 
-        async function downloadLatestVideo() { 
-            const videos = await getAllVideos(); 
-            if (videos.length) { 
-                const url = URL.createObjectURL(videos[0].blob); 
-                const a = document.createElement('a'); 
-                a.href = url; 
-                a.download = `${videos[0].title}.webm`; 
-                a.click(); 
-                URL.revokeObjectURL(url); 
-                showToast('Download video terbaru'); 
-            } 
+        async function downloadLatestVideo() {
+            const videos = await getAllVideos();
+            if (videos.length > 0) {
+                const latest = videos.reduce((a, b) => (a.savedAt || 0) > (b.savedAt || 0) ? a : b);
+                if (latest.blob) {
+                    const url = URL.createObjectURL(latest.blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${latest.title}.webm`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showToast('Download video terbaru');
+                }
+            } else {
+                showToast('Tidak ada video');
+            }
         }
 
-        async function showDbInfo() { 
-            const videos = await getAllVideos(); 
-            const total = videos.reduce((s, v) => s + (v.size || 0), 0); 
-            alert(`📼 ${videos.length} video | Total: ${formatFileSize(total)}`); 
+        async function showDbInfo() {
+            const videos = await getAllVideos();
+            const total = videos.reduce((s, v) => s + (v.size || 0), 0);
+            alert(`📼 ${videos.length} video | Total: ${formatFileSize(total)}`);
         }
 
-        async function clearAllConfirm() { 
-            if (confirm('⚠️ Hapus SEMUA video? Tindakan permanen')) { 
-                await clearAllVideos(); 
-                await loadAllVideos(); 
-                showToast('Semua video dihapus'); 
-            } 
+        async function clearAllConfirm() {
+            if (confirm('⚠️ Hapus SEMUA video? Tindakan permanen')) {
+                await clearAllVideos();
+                await loadAllVideos();
+                showToast('Semua video dihapus');
+            }
         }
 
-        // Event listeners setup
+        // ---------- Event Listeners & Init ----------
         window.addEventListener('load', async () => {
             await initDB();
             
@@ -972,18 +1010,41 @@
             document.getElementById('dbInfoBtn').onclick = showDbInfo;
             document.getElementById('clearAllBtn').onclick = clearAllConfirm;
             document.getElementById('backupDbBtn').onclick = backupDatabaseToZip;
-            document.getElementById('restoreDbBtn').onclick = () => restoreFileInput.click();
+            document.getElementById('restoreDbBtn').onclick = () => document.getElementById('restoreFileInput').click();
             
-            restoreFileInput.onchange = (e) => { 
-                if (e.target.files.length) restoreDatabaseFromZip(e.target.files[0]); 
-                e.target.value = ''; 
+            document.getElementById('restoreFileInput').onchange = (e) => {
+                if (e.target.files.length) {
+                    restoreDatabaseFromZip(e.target.files[0]);
+                    e.target.value = '';
+                }
             };
             
-            closeModalBtn.onclick = () => videoModal.style.display = 'none';
-            cancelProgressBtn.onclick = () => { isProcessing = false; showProgress(false); };
-            searchInput.addEventListener('input', () => loadAllVideos());
+            document.getElementById('closeModalBtn').onclick = () => {
+                document.getElementById('videoModal').style.display = 'none';
+                document.getElementById('modalVideoPlayer').pause();
+                document.getElementById('modalVideoPlayer').src = '';
+            };
+            
+            document.getElementById('cancelProgressBtn').onclick = () => {
+                isProcessing = false;
+                showProgress(false);
+            };
+            
+            searchInput.addEventListener('input', () => {
+                if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+                searchDebounceTimer = setTimeout(() => loadAllVideos(), 200);
+            });
             
             showToast('✅ OBS Style Active | Timestamp otomatis di video');
+        });
+
+        // Close modal on backdrop click
+        document.getElementById('videoModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('videoModal')) {
+                document.getElementById('videoModal').style.display = 'none';
+                document.getElementById('modalVideoPlayer').pause();
+                document.getElementById('modalVideoPlayer').src = '';
+            }
         });
 
     })();
