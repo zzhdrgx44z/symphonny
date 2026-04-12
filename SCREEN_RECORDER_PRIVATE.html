@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Screen Recorder PRO - Timestamp Terekam di Video</title>
+    <title>Screen Recorder PRO - On-Video Timestamp & Recording Timer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -40,13 +40,7 @@
             overflow: hidden; 
             margin-bottom: 25px;
         }
-        .canvas-preview { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: contain; 
-            display: block;
-            background: #000;
-        }
+        .video-preview { width: 100%; height: 100%; object-fit: contain; display: none; }
         .video-overlay { 
             position: absolute; 
             inset: 0; 
@@ -57,6 +51,59 @@
             background: rgba(0,0,0,0.6); 
             gap: 15px; 
             z-index: 5;
+        }
+        
+        /* Timestamp overlay di atas video (jam & tanggal live) */
+        .video-timestamp-overlay {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(8px);
+            padding: 6px 12px;
+            border-radius: 32px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #f8fafc;
+            border-left: 3px solid var(--gold);
+            z-index: 20;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+        }
+        .video-timestamp-overlay .timestamp-time {
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #facc15;
+        }
+        .video-timestamp-overlay .timestamp-date {
+            font-size: 0.65rem;
+            color: #cbd5e1;
+        }
+        .video-timestamp-overlay .rec-badge {
+            display: none;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.7rem;
+            background: rgba(239,68,68,0.8);
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin-top: 4px;
+            color: white;
+        }
+        .video-timestamp-overlay .rec-badge i {
+            font-size: 8px;
+            animation: pulseRed 1s infinite;
+        }
+        /* Jika sedang merekam, tampilkan badge durasi di timestamp */
+        .video-container.recording-active .video-timestamp-overlay .rec-badge {
+            display: flex;
         }
         
         .recording-status { 
@@ -113,13 +160,14 @@
         }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
         @media (max-width: 700px) { 
-            .timestamp-canvas-style { font-size: 14px !important; padding: 4px 8px !important; }
+            .video-timestamp-overlay { top: 8px; right: 8px; padding: 4px 10px; }
+            .timestamp-time { font-size: 0.8rem; }
         }
     </style>
 </head>
 <body>
 
-<div class="loading" id="loading"><div style="width:50px;height:50px;border:4px solid rgba(255,255,255,0.2);border-top:4px solid #4f46e5;border-radius:50%;animation:spin 1s linear infinite;"></div><div>Memulai Mode Offline...</div><div style="font-size:12px;margin-top:10px;">✅ Timestamp akan TEREKAM ke dalam video (selalu muncul di pojok kanan atas)</div></div>
+<div class="loading" id="loading"><div style="width:50px;height:50px;border:4px solid rgba(255,255,255,0.2);border-top:4px solid #4f46e5;border-radius:50%;animation:spin 1s linear infinite;"></div><div>Memulai Mode Offline...</div><div style="font-size:12px;margin-top:10px;">✅ Timestamp live di pojok kanan atas video | Durasi rekaman muncul saat merekam</div></div>
 
 <div class="progress-modal" id="progressModal">
     <div class="progress-card">
@@ -135,20 +183,28 @@
     <div class="header">
         <div class="logo-icon"><i class="fas fa-database"></i></div>
         <div class="logo-text"><h1>SCREEN RECORDER PRO</h1></div>
-        <p class="tagline" style="color:#ccc;">Full HD 1080p | <strong style="color:#f59e0b;">TIMESTAMP TEREKAM DALAM VIDEO</strong></p>
+        <p class="tagline" style="color:#ccc;">Full HD 1080p | <strong style="color:#f59e0b;">TIMESTAMP LIVE DI ATAS VIDEO</strong></p>
         <div class="badges">
             <div class="badge"><i class="fas fa-wifi-slash"></i> Offline Mode</div>
             <div class="badge"><i class="fas fa-database"></i> Local DB</div>
             <div class="badge"><i class="fas fa-archive"></i> Backup/Restore</div>
-            <div class="badge"><i class="fas fa-clock"></i> Timestamp in Video</div>
+            <div class="badge"><i class="fas fa-clock"></i> Timestamp on Video</div>
             <div class="badge"><i class="fas fa-stopwatch"></i> Recording Timer</div>
         </div>
     </div>
 
     <div class="recorder-section">
         <div class="video-container" id="videoContainer">
-            <canvas id="previewCanvas" class="canvas-preview"></canvas>
-            <div class="video-overlay" id="videoOverlay"><i class="fas fa-desktop fa-3x"></i><h3>Screen Preview + Timestamp</h3><p>Klik Start Recording & pilih layar/jendela/tab</p></div>
+            <video class="video-preview" id="preview" autoplay muted playsinline></video>
+            <!-- TIMESTAMP OVERLAY DI ATAS VIDEO (jam & tanggal live, plus durasi rekaman) -->
+            <div class="video-timestamp-overlay" id="videoTimestampOverlay">
+                <div class="timestamp-time" id="onVideoTime">--:--:--</div>
+                <div class="timestamp-date" id="onVideoDate">---, -- --- ----</div>
+                <div class="rec-badge" id="onVideoRecBadge">
+                    <i class="fas fa-circle"></i> <span id="onVideoRecDuration">00:00:00</span>
+                </div>
+            </div>
+            <div class="video-overlay" id="videoOverlay"><i class="fas fa-desktop fa-3x"></i><h3>Screen Preview</h3><p>Klik Start Recording & pilih layar/jendela</p></div>
             <div class="recording-status" id="recordingStatus"><div style="width:10px;height:10px;background:white;border-radius:50%;animation:pulse 1s infinite;"></div> RECORDING</div>
         </div>
         <div class="controls">
@@ -164,7 +220,7 @@
             <div class="stat-card"><div class="stat-value" id="totalSizeCloud">0 GB</div><div>Total Storage</div></div>
         </div>
         <div style="background:rgba(245,158,11,0.2); border-radius:var(--radius-md); padding:12px; text-align:center;">
-            <i class="fas fa-clock"></i> <strong>INFO:</strong> Jam & tanggal live akan TEREKAM langsung ke dalam video (pojok kanan atas). Tidak peduli Anda merekam seluruh layar, jendela, atau tab, timestamp tetap terlihat di hasil rekaman.
+            <i class="fas fa-clock"></i> <strong>INFO:</strong> Jam & tanggal live selalu tampil di pojok kanan atas area video. Saat merekam, durasi rekaman juga muncul di sana.
         </div>
     </div>
 
@@ -204,299 +260,27 @@
 </div>
 
 <script>
-    // ======================== GLOBAL VARIABLES ========================
-    let screenStream = null;          // stream dari getDisplayMedia
-    let canvasStream = null;          // stream dari canvas.captureStream()
-    let mediaRecorder = null;
-    let chunks = [];
-    let recordingActive = false;
-    let startTime = null;
-    let timerInterval = null;
-    let drawInterval = null;           // interval untuk menggambar frame ke canvas
-    let currentVideoId = null;
-    let currentVideoTitle = null;
-    let lastSavedChunkCount = 0;
-    let isSaving = false;
-    let isProcessing = false;
-    
-    // DOM elements
-    const previewCanvas = document.getElementById('previewCanvas');
-    const ctx = previewCanvas.getContext('2d');
-    const videoContainer = document.getElementById('videoContainer');
-    const recordBtn = document.getElementById('recordBtn');
-    const stopBtn = document.getElementById('stopBtn');
-    const durationTimer = document.getElementById('durationTimer');
-    const fileSizeSpan = document.getElementById('fileSize');
-    const recordingStatusDiv = document.getElementById('recordingStatus');
-    
-    // ======================== TIMESTAMP DRAWING FUNCTION ========================
-    function drawTimestamp(ctx, width, height) {
+    // ======================== JAM LIVE UNTUK TIMESTAMP VIDEO OVERLAY ========================
+    function updateVideoTimestamp() {
         const now = new Date();
-        // Format waktu: HH:MM:SS
-        const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+        // Format waktu 24 jam
+        const time24 = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
         const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
         const dateStr = `${days[now.getDay()].substring(0,3)}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
-        
-        // Simpan pengaturan lama
-        ctx.save();
-        // Posisi di pojok kanan atas
-        const padding = 12;
-        const lineHeight = 24;
-        const borderRadius = 12;
-        const bgOpacity = 0.7;
-        
-        // Ukuran teks
-        const timeFontSize = Math.min(18, Math.floor(width / 30));
-        const dateFontSize = Math.min(12, Math.floor(width / 40));
-        
-        // Hitung lebar teks untuk background
-        ctx.font = `bold ${timeFontSize}px 'JetBrains Mono', monospace`;
-        const timeWidth = ctx.measureText(timeStr).width;
-        ctx.font = `${dateFontSize}px 'JetBrains Mono', monospace`;
-        const dateWidth = ctx.measureText(dateStr).width;
-        const maxWidth = Math.max(timeWidth, dateWidth) + padding * 2;
-        const boxHeight = lineHeight * 2 + padding;
-        const x = width - maxWidth - 8;
-        const y = 8;
-        
-        // Background semi-transparan
-        ctx.fillStyle = `rgba(0, 0, 0, ${bgOpacity})`;
-        ctx.shadowBlur = 0;
-        ctx.beginPath();
-        ctx.roundRect(x, y, maxWidth, boxHeight, borderRadius);
-        ctx.fill();
-        
-        // Border gold tipis
-        ctx.strokeStyle = '#d4af37';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.roundRect(x, y, maxWidth, boxHeight, borderRadius);
-        ctx.stroke();
-        
-        // Teks waktu
-        ctx.font = `bold ${timeFontSize}px 'JetBrains Mono', monospace`;
-        ctx.fillStyle = '#facc15';
-        ctx.shadowBlur = 0;
-        ctx.fillText(timeStr, x + padding, y + lineHeight);
-        
-        // Teks tanggal
-        ctx.font = `${dateFontSize}px 'JetBrains Mono', monospace`;
-        ctx.fillStyle = '#cbd5e1';
-        ctx.fillText(dateStr, x + padding, y + lineHeight + dateFontSize + 4);
-        
-        ctx.restore();
+        document.getElementById('onVideoTime').innerHTML = time24;
+        document.getElementById('onVideoDate').innerHTML = dateStr;
     }
-    
-    // Helper untuk roundRect
-    if (!CanvasRenderingContext2D.prototype.roundRect) {
-        CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-            if (w < 2 * r) r = w / 2;
-            if (h < 2 * r) r = h / 2;
-            this.moveTo(x+r, y);
-            this.lineTo(x+w-r, y);
-            this.quadraticCurveTo(x+w, y, x+w, y+r);
-            this.lineTo(x+w, y+h-r);
-            this.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
-            this.lineTo(x+r, y+h);
-            this.quadraticCurveTo(x, y+h, x, y+h-r);
-            this.lineTo(x, y+r);
-            this.quadraticCurveTo(x, y, x+r, y);
-            return this;
-        };
-    }
-    
-    // ======================== DRAW LOOP (menggambar stream + timestamp ke canvas) ========================
-    let videoElement = null; // hidden video element untuk memainkan stream dari screen
-    
-    function startDrawingLoop(stream) {
-        // Buat elemen video tersembunyi untuk memutar stream asli
-        if (!videoElement) {
-            videoElement = document.createElement('video');
-            videoElement.autoplay = true;
-            videoElement.playsInline = true;
-            videoElement.muted = true;
-            videoElement.style.position = 'fixed';
-            videoElement.style.top = '-1000px';
-            videoElement.style.left = '-1000px';
-            videoElement.style.width = '1px';
-            videoElement.style.height = '1px';
-            document.body.appendChild(videoElement);
-        }
-        videoElement.srcObject = stream;
-        videoElement.play().catch(e => console.warn);
-        
-        // Atur ukuran canvas sesuai resolusi stream
-        const track = stream.getVideoTracks()[0];
-        const settings = track.getSettings();
-        const width = settings.width || 1280;
-        const height = settings.height || 720;
-        previewCanvas.width = width;
-        previewCanvas.height = height;
-        previewCanvas.style.width = '100%';
-        previewCanvas.style.height = '100%';
-        
-        // Fungsi menggambar frame
-        function drawFrame() {
-            if (!recordingActive && !videoElement?.srcObject) return;
-            if (videoElement && videoElement.readyState >= 2) {
-                // Gambar video dari stream ke canvas
-                ctx.drawImage(videoElement, 0, 0, previewCanvas.width, previewCanvas.height);
-                // Gambar timestamp di atasnya
-                drawTimestamp(ctx, previewCanvas.width, previewCanvas.height);
-            }
-            if (recordingActive) {
-                requestAnimationFrame(drawFrame);
-            }
-        }
-        if (drawInterval) cancelAnimationFrame(drawInterval);
-        drawInterval = requestAnimationFrame(function animate() {
-            drawFrame();
-            if (recordingActive) drawInterval = requestAnimationFrame(animate);
-        });
-    }
-    
-    function stopDrawingLoop() {
-        if (drawInterval) {
-            cancelAnimationFrame(drawInterval);
-            drawInterval = null;
-        }
-        if (videoElement) {
-            videoElement.pause();
-            videoElement.srcObject = null;
-        }
-    }
-    
-    // ======================== RECORDING LOGIC (Canvas Capture) ========================
-    async function startRecording() {
-        try {
-            // Minta screen capture
-            const stream = await navigator.mediaDevices.getDisplayMedia({
-                video: { width: { ideal: 1920 }, height: { ideal: 1080 } },
-                audio: true
-            });
-            // Tambahkan audio dari microphone jika diizinkan
-            let audioStream = null;
-            try {
-                audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            } catch(e) { console.warn('Microphone tidak diizinkan, hanya audio sistem'); }
-            
-            // Gabungkan audio tracks jika ada
-            let finalAudioTracks = [];
-            if (stream.getAudioTracks().length > 0) finalAudioTracks.push(...stream.getAudioTracks());
-            if (audioStream && audioStream.getAudioTracks().length > 0) finalAudioTracks.push(...audioStream.getAudioTracks());
-            
-            // Mulai draw loop dengan stream video asli (tanpa audio dulu)
-            screenStream = stream;
-            startDrawingLoop(stream);
-            
-            // Siapkan canvas stream untuk rekaman (dengan timestamp sudah tergambar)
-            const canvasStream = previewCanvas.captureStream(30); // 30 fps
-            // Tambahkan audio tracks ke canvasStream
-            if (finalAudioTracks.length > 0) {
-                finalAudioTracks.forEach(track => canvasStream.addTrack(track));
-            }
-            
-            // Siapkan MediaRecorder
-            const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 'video/webm;codecs=vp8' : 'video/webm';
-            mediaRecorder = new MediaRecorder(canvasStream, { mimeType, videoBitsPerSecond: 2500000 });
-            chunks = [];
-            mediaRecorder.ondataavailable = async (e) => {
-                if (e.data.size > 0) {
-                    chunks.push(e.data);
-                    const totalSize = chunks.reduce((s,chunk) => s+chunk.size, 0);
-                    fileSizeSpan.innerText = formatFileSize(totalSize);
-                    // Auto save setiap 5 chunk atau setiap 10 detik
-                    if (chunks.length - lastSavedChunkCount >= 5 && !isSaving) {
-                        isSaving = true;
-                        await saveCurrentRecording();
-                        isSaving = false;
-                    }
-                }
-            };
-            mediaRecorder.onstop = async () => {
-                if (chunks.length > 0) await saveCurrentRecording(true);
-                cleanupRecording();
-                await loadAllVideos();
-            };
-            
-            mediaRecorder.start(3000); // kumpulkan chunk setiap 3 detik
-            recordingActive = true;
-            startTime = Date.now();
-            currentVideoId = 'rec_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
-            currentVideoTitle = `Recording ${new Date().toLocaleString()}`;
-            
-            // Update UI durasi
-            if (timerInterval) clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                if (startTime) {
-                    const sec = Math.floor((Date.now() - startTime) / 1000);
-                    durationTimer.innerText = formatDuration(sec);
-                }
-            }, 1000);
-            
-            recordBtn.disabled = true;
-            stopBtn.disabled = false;
-            recordingStatusDiv.style.display = 'flex';
-            document.getElementById('videoOverlay').style.display = 'none';
-            showToast('🔴 Merekam - Timestamp akan terekam dalam video');
-        } catch(err) {
-            showToast('Gagal memulai rekaman: ' + err.message);
-            console.error(err);
-        }
-    }
-    
-    async function saveCurrentRecording(isFinal = false) {
-        if (chunks.length === 0) return;
-        const blob = new Blob(chunks, { type: 'video/webm' });
-        if (blob.size === 0) return;
-        const duration = Math.floor((Date.now() - startTime) / 1000);
-        const videoData = {
-            id: currentVideoId,
-            title: currentVideoTitle,
-            duration: duration,
-            date: new Date().toISOString(),
-            quality: '1080p',
-            size: blob.size,
-            shareLink: ''
-        };
-        await saveVideoToDB(videoData, blob);
-        lastSavedChunkCount = chunks.length;
-        if (!isFinal) await loadAllVideos();
-    }
-    
-    function stopRecording() {
-        if (mediaRecorder && recordingActive) {
-            mediaRecorder.stop();
-        }
-    }
-    
-    function cleanupRecording() {
-        recordingActive = false;
-        if (timerInterval) clearInterval(timerInterval);
-        stopDrawingLoop();
-        if (screenStream) {
-            screenStream.getTracks().forEach(track => track.stop());
-            screenStream = null;
-        }
-        recordBtn.disabled = false;
-        stopBtn.disabled = true;
-        recordingStatusDiv.style.display = 'none';
-        durationTimer.innerText = '00:00:00';
-        fileSizeSpan.innerText = '0 MB';
-        // Tampilkan overlay lagi
-        document.getElementById('videoOverlay').style.display = 'flex';
-        // Bersihkan canvas
-        ctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
-        previewCanvas.width = 0;
-        previewCanvas.height = 0;
-    }
-    
+    setInterval(updateVideoTimestamp, 1000);
+    updateVideoTimestamp();
+
     // ======================== OFFLINE DATABASE ========================
     const DB_NAME = 'ScreenRecorder_Offline';
     const DB_VERSION = 1;
     const STORE = 'videos';
     let db = null;
+    let currentRecording = { active: false, mediaRecorder: null, stream: null, chunks: [], startTime: null, timerInterval: null, saveInterval: null, videoId: null, videoTitle: null, lastSavedChunkCount: 0, isSaving: false };
+    let isProcessing = false;
     
     function initDB() {
         return new Promise((resolve, reject) => {
@@ -598,12 +382,7 @@
     
     async function deleteVideo(id) { if (confirm('Hapus video?')) { await deleteVideoFromDB(id); await loadAllVideos(); showToast('Video dihapus'); } }
     
-    async function downloadLatestVideo() { const videos = await getAllVideos(); if (videos.length) downloadVideo(videos[0].blob, `${videos[0].title}.webm`); }
-    function downloadVideo(blob, filename) { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url); showToast(`Download ${filename}`); }
-    async function showDbInfo() { const videos = await getAllVideos(); const totalSize = videos.reduce((s,v)=>s+(v.size||0),0); alert(`Total Video: ${videos.length}\nTotal Storage: ${formatFileSize(totalSize)}`); }
-    async function clearAll() { if (confirm('Hapus semua video?')) { await clearAllVideos(); await loadAllVideos(); showToast('Semua video dihapus'); } }
-    
-    // ======================== BACKUP & RESTORE (sama seperti sebelumnya) ========================
+    // ======================== BACKUP & RESTORE ========================
     async function backupDatabaseToZip() {
         if (isProcessing) return;
         const videos = await getAllVideos();
@@ -670,21 +449,128 @@
         finally { isProcessing = false; modal.style.display = 'none'; progressFill.style.width = '0%'; }
     }
     
-    // ======================== UTILITIES ========================
+    // ======================== RECORDING & UI DURASI (dengan update durasi di overlay video) ========================
+    const durationElement = document.getElementById('durationTimer');
+    const onVideoRecDurationSpan = document.getElementById('onVideoRecDuration');
+    const videoContainerDiv = document.getElementById('videoContainer');
+    
+    function updateDurationUI(seconds) {
+        const formatted = formatDuration(seconds);
+        durationElement.innerText = formatted;
+        if (currentRecording.active) {
+            onVideoRecDurationSpan.innerText = formatted;
+        } else {
+            onVideoRecDurationSpan.innerText = '00:00:00';
+        }
+    }
+    
+    async function startRecording() {
+        try {
+            if (!navigator.mediaDevices?.getDisplayMedia) throw new Error('Screen capture tidak didukung');
+            const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: { width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: true });
+            const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null);
+            let finalStream = screenStream;
+            if (audioStream) finalStream = new MediaStream([...screenStream.getTracks(), ...audioStream.getAudioTracks()]);
+            currentRecording.stream = finalStream;
+            currentRecording.chunks = [];
+            currentRecording.lastSavedChunkCount = 0;
+            currentRecording.videoId = 'rec_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+            currentRecording.videoTitle = `Recording ${new Date().toLocaleString()}`;
+            currentRecording.startTime = Date.now();
+            document.getElementById('preview').srcObject = finalStream;
+            document.getElementById('preview').style.display = 'block';
+            document.getElementById('videoOverlay').style.display = 'none';
+            // tambahkan class recording-active ke container untuk menampilkan badge durasi di overlay
+            videoContainerDiv.classList.add('recording-active');
+            
+            const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 'video/webm;codecs=vp8' : 'video/webm';
+            currentRecording.mediaRecorder = new MediaRecorder(finalStream, { mimeType, videoBitsPerSecond: 2500000 });
+            currentRecording.mediaRecorder.ondataavailable = async (e) => {
+                if (e.data.size > 0) {
+                    currentRecording.chunks.push(e.data);
+                    const totalSize = currentRecording.chunks.reduce((s,chunk) => s+chunk.size, 0);
+                    document.getElementById('fileSize').innerText = formatFileSize(totalSize);
+                    if (currentRecording.chunks.length - currentRecording.lastSavedChunkCount >= 5 && !currentRecording.isSaving) {
+                        currentRecording.isSaving = true;
+                        await saveCurrentRecording();
+                        currentRecording.isSaving = false;
+                    }
+                }
+            };
+            currentRecording.mediaRecorder.onstop = async () => {
+                if (currentRecording.chunks.length > 0) await saveCurrentRecording(true);
+                cleanupRecording();
+                await loadAllVideos();
+            };
+            currentRecording.mediaRecorder.start(3000);
+            currentRecording.active = true;
+            updateDurationUI(0);
+            if (currentRecording.timerInterval) clearInterval(currentRecording.timerInterval);
+            currentRecording.timerInterval = setInterval(() => {
+                if (currentRecording.startTime) {
+                    const sec = Math.floor((Date.now() - currentRecording.startTime) / 1000);
+                    updateDurationUI(sec);
+                }
+            }, 1000);
+            currentRecording.saveInterval = setInterval(async () => {
+                if (currentRecording.active && !currentRecording.isSaving) await saveCurrentRecording();
+            }, 10000);
+            document.getElementById('recordBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('recordingStatus').style.display = 'flex';
+            showToast('🔴 Merekam - Durasi muncul di pojok kanan atas video');
+        } catch(e) { showToast('Gagal: '+e.message); }
+    }
+    
+    async function saveCurrentRecording(isFinal = false) {
+        if (currentRecording.chunks.length === 0) return;
+        const currentBlob = new Blob(currentRecording.chunks, { type: 'video/webm' });
+        if (currentBlob.size === 0) return;
+        const duration = Math.floor((Date.now() - currentRecording.startTime) / 1000);
+        await saveVideoToDB({
+            id: currentRecording.videoId, title: currentRecording.videoTitle, duration: duration,
+            date: new Date().toISOString(), quality: '1080p', size: currentBlob.size, shareLink: ''
+        }, currentBlob);
+        currentRecording.lastSavedChunkCount = currentRecording.chunks.length;
+        if (!isFinal) await loadAllVideos();
+    }
+    
+    function stopRecording() { if (currentRecording.mediaRecorder && currentRecording.active) currentRecording.mediaRecorder.stop(); }
+    
+    function cleanupRecording() {
+        currentRecording.active = false;
+        videoContainerDiv.classList.remove('recording-active');
+        if (currentRecording.saveInterval) clearInterval(currentRecording.saveInterval);
+        if (currentRecording.timerInterval) clearInterval(currentRecording.timerInterval);
+        document.getElementById('stopBtn').disabled = true;
+        document.getElementById('recordBtn').disabled = false;
+        document.getElementById('recordingStatus').style.display = 'none';
+        updateDurationUI(0);
+        document.getElementById('fileSize').innerText = '0 MB';
+        if (currentRecording.stream) currentRecording.stream.getTracks().forEach(t => t.stop());
+        document.getElementById('preview').srcObject = null;
+        document.getElementById('preview').style.display = 'none';
+        document.getElementById('videoOverlay').style.display = 'flex';
+    }
+    
+    async function downloadLatestVideo() { const videos = await getAllVideos(); if (videos.length) downloadVideo(videos[0].blob, `${videos[0].title}.webm`); }
+    function downloadVideo(blob, filename) { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url); showToast(`Download ${filename}`); }
+    async function showDbInfo() { const videos = await getAllVideos(); const totalSize = videos.reduce((s,v)=>s+(v.size||0),0); alert(`Total Video: ${videos.length}\nTotal Storage: ${formatFileSize(totalSize)}`); }
+    async function clearAll() { if (confirm('Hapus semua video?')) { await clearAllVideos(); await loadAllVideos(); showToast('Semua video dihapus'); } }
+    
     function formatDuration(sec) { if (!sec) return '00:00:00'; let h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60; return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`; }
     function formatFileSize(bytes) { if (bytes<1024) return bytes+' B'; if (bytes<1048576) return (bytes/1024).toFixed(1)+' KB'; if (bytes<1073741824) return (bytes/1048576).toFixed(1)+' MB'; return (bytes/1073741824).toFixed(2)+' GB'; }
     function formatDateTime(dateStr) { return new Date(dateStr).toLocaleString('id-ID', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
     function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
     function showToast(msg) { let c = document.getElementById('toastContainer'); if(!c){ c=document.createElement('div'); c.id='toastContainer'; c.className='toast-container'; document.body.appendChild(c); } const t=document.createElement('div'); t.className='toast'; t.innerHTML=`<i class="fas fa-info-circle"></i><span>${msg}</span><button style="background:none;border:none;color:white;margin-left:10px;cursor:pointer;" onclick="this.parentElement.remove()">✖</button>`; c.appendChild(t); setTimeout(()=>t.remove(),4000); }
     
-    window.addEventListener('beforeunload', () => { if (recordingActive && chunks.length) saveCurrentRecording(true); });
+    window.addEventListener('beforeunload', () => { if (currentRecording.active && currentRecording.chunks.length) saveCurrentRecording(true); });
     
-    // ======================== INIT ========================
     (async () => {
         await initDB();
         document.getElementById('loading').style.display = 'none';
-        recordBtn.onclick = startRecording;
-        stopBtn.onclick = stopRecording;
+        document.getElementById('recordBtn').onclick = startRecording;
+        document.getElementById('stopBtn').onclick = stopRecording;
         document.getElementById('downloadBtn').onclick = downloadLatestVideo;
         document.getElementById('exportFullBtn').onclick = backupDatabaseToZip;
         document.getElementById('refreshBtn').onclick = () => loadAllVideos();
@@ -696,7 +582,7 @@
         document.getElementById('backupDbBtn').onclick = backupDatabaseToZip;
         document.getElementById('restoreDbBtn').onclick = () => document.getElementById('restoreFileInput').click();
         document.getElementById('restoreFileInput').onchange = (e) => { if (e.target.files.length) restoreDatabaseFromZip(e.target.files[0]); e.target.value = ''; };
-        showToast('✅ Siap merekam. Timestamp jam & tanggal akan TEREKAM dalam video (pojok kanan atas).');
+        showToast('✅ Siap merekam. Jam & tanggal live selalu tampil di pojok kanan atas video. Saat rekaman, durasi juga muncul.');
     })();
 </script>
 </body>
