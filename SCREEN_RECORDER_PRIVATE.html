@@ -105,6 +105,23 @@
             animation: pulseRed 1.2s infinite;
         }
 
+        /* --- Indikator Jaringan (Offline Mode) --- */
+        .network-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            background: #2c2c2c;
+            padding: 4px 10px;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .network-status i {
+            font-size: 12px;
+        }
+        .network-status.online i { color: #4caf50; }
+        .network-status.offline i { color: #ff9800; }
+
         .video-stage {
             position: relative;
             background: #000000;
@@ -445,8 +462,14 @@
         <div class="preview-panel">
             <div class="preview-header">
                 <span><i class="fas fa-tv"></i> PREVIEW</span>
-                <div class="rec-status-badge" id="obsRecStatus" style="display: none;">
-                    <span class="rec-led"></span> RECORDING
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <!-- Indikator Online/Offline -->
+                    <div id="networkStatus" class="network-status online">
+                        <i class="fas fa-wifi"></i> <span>Online</span>
+                    </div>
+                    <div class="rec-status-badge" id="obsRecStatus" style="display: none;">
+                        <span class="rec-led"></span> RECORDING
+                    </div>
                 </div>
             </div>
             <div class="video-stage" id="videoStage">
@@ -538,6 +561,115 @@
     (function(){
         "use strict";
 
+        // ================ MODE OFFLINE: SERVICE WORKER + NETWORK STATUS ================
+        function updateNetworkStatus() {
+            const statusEl = document.getElementById('networkStatus');
+            const icon = statusEl.querySelector('i');
+            const span = statusEl.querySelector('span');
+            if (navigator.onLine) {
+                statusEl.className = 'network-status online';
+                icon.className = 'fas fa-wifi';
+                span.textContent = 'Online';
+                showToast('🌐 Koneksi internet kembali', 'info');
+            } else {
+                statusEl.className = 'network-status offline';
+                icon.className = 'fas fa-exclamation-triangle';
+                span.textContent = 'Offline';
+                showToast('⚠️ Anda offline – aplikasi tetap berfungsi penuh', 'warning');
+            }
+        }
+
+        window.addEventListener('online', updateNetworkStatus);
+        window.addEventListener('offline', updateNetworkStatus);
+
+        // Registrasi Service Worker untuk caching offline
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // Service worker code sebagai string (akan dijalankan di worker context)
+                const swCode = `
+                    const CACHE_NAME = 'obs-recorder-v1';
+                    const urlsToCache = [
+                        './',  // root / halaman utama
+                        'https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap',
+                        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+                        'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
+                        'https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js'
+                    ];
+
+                    self.addEventListener('install', event => {
+                        event.waitUntil(
+                            caches.open(CACHE_NAME)
+                                .then(cache => cache.addAll(urlsToCache))
+                                .then(() => self.skipWaiting())
+                        );
+                    });
+
+                    self.addEventListener('activate', event => {
+                        event.waitUntil(
+                            caches.keys().then(cacheNames => {
+                                return Promise.all(
+                                    cacheNames.map(cache => {
+                                        if (cache !== CACHE_NAME) {
+                                            return caches.delete(cache);
+                                        }
+                                    })
+                                );
+                            }).then(() => self.clients.claim())
+                        );
+                    });
+
+                    self.addEventListener('fetch', event => {
+                        // Jangan cache request untuk mediaDevices / screen capture (tidak relevan)
+                        if (event.request.url.includes('chrome-extension') || event.request.method !== 'GET') return;
+                        
+                        event.respondWith(
+                            caches.match(event.request)
+                                .then(response => {
+                                    if (response) {
+                                        // Kembalikan dari cache, sambil update cache di background
+                                        fetch(event.request).then(fetchRes => {
+                                            if (fetchRes && fetchRes.status === 200) {
+                                                caches.open(CACHE_NAME).then(cache => cache.put(event.request, fetchRes));
+                                            }
+                                        }).catch(() => {});
+                                        return response;
+                                    }
+                                    return fetch(event.request).then(fetchResponse => {
+                                        if (!fetchResponse || fetchResponse.status !== 200) return fetchResponse;
+                                        const responseToCache = fetchResponse.clone();
+                                        caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
+                                        return fetchResponse;
+                                    }).catch(() => {
+                                        // Jika fetch gagal (offline) dan tidak ada di cache, untuk HTML bisa fallback ke halaman utama
+                                        if (event.request.mode === 'navigate') {
+                                            return caches.match('./');
+                                        }
+                                        return new Response('Offline', { status: 503 });
+                                    });
+                                })
+                        );
+                    });
+                `;
+
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(blob);
+                
+                navigator.serviceWorker.register(swUrl)
+                    .then(reg => {
+                        console.log('✅ Service Worker terdaftar, mode offline siap');
+                        showToast('📦 Mode offline aktif – semua aset tersimpan');
+                    })
+                    .catch(err => {
+                        console.warn('Service Worker gagal:', err);
+                    });
+            });
+        } else {
+            showToast('⚠️ Browser tidak mendukung mode offline penuh');
+        }
+
+        // Perbarui status jaringan saat load
+        window.addEventListener('DOMContentLoaded', updateNetworkStatus);
+
         // ======================== TIMESTAMP LIVE ========================
         function updateLiveTimestamp() {
             const now = new Date();
@@ -608,10 +740,12 @@
             if (!str) return '';
             return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); 
         }
-        function showToast(msg) { 
+        function showToast(msg, type = 'info') { 
             const t = document.createElement('div'); 
             t.className = 'toast-obs'; 
-            t.innerHTML = `<i class="fas fa-info-circle"></i> ${msg}`; 
+            let icon = 'info-circle';
+            if (type === 'warning') icon = 'exclamation-triangle';
+            t.innerHTML = `<i class="fas fa-${icon}"></i> ${msg}`; 
             toastStack.appendChild(t); 
             setTimeout(() => t.remove(), 3500); 
         }
@@ -686,7 +820,6 @@
 
         async function loadAllVideos() {
             const videos = await getAllVideos();
-            // Update download button state
             downloadBtn.disabled = videos.length === 0;
             renderVideoLibrary(videos);
         }
