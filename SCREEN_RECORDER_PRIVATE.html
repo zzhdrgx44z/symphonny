@@ -3,297 +3,570 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Screen Recorder PRO - On-Video Timestamp & Recording Timer</title>
+    <title>OBS Screen Recorder | Timestamp & Offline Database</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
-            --primary: #4f46e5;
-            --danger: #ef4444;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --gold: #d4af37;
-            --gradient-dark: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
-            --radius-lg: 20px;
-            --radius-md: 12px;
+            --obs-bg: #1e1e1e;
+            --obs-panel: #2d2d2d;
+            --obs-border: #3c3c3c;
+            --obs-border-light: #4a4a4a;
+            --obs-accent: #00a3e0;
+            --obs-accent-hover: #0086b3;
+            --obs-red: #e53935;
+            --obs-red-dark: #b71c1c;
+            --obs-green: #2e7d32;
+            --obs-text: #e0e0e0;
+            --obs-text-dim: #9e9e9e;
+            --obs-black: #121212;
         }
-        body { font-family: 'Inter', sans-serif; background: var(--gradient-dark); color: #f8fafc; min-height: 100vh; }
-        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
-        .header { text-align: center; padding: 30px 0; }
-        .logo-icon { width: 60px; height: 60px; background: linear-gradient(135deg, #4f46e5, #7c3aed); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 15px; }
-        .logo-text h1 { font-size: 2.2rem; background: linear-gradient(135deg, #4f46e5, #7c3aed); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .badges { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin: 20px 0; }
-        .badge { padding: 8px 18px; background: rgba(255,255,255,0.1); border-radius: 50px; backdrop-filter: blur(10px); font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
-        
-        /* Komponen utama recorder */
-        .recorder-section, .settings, .library { background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); border-radius: var(--radius-lg); padding: 25px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.1); }
-        .video-container { 
-            background: #000; 
-            border-radius: var(--radius-md); 
-            aspect-ratio: 16/9; 
-            position: relative; 
-            overflow: hidden; 
-            margin-bottom: 25px;
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: var(--obs-black);
+            color: var(--obs-text);
+            line-height: 1.4;
+            padding: 20px;
+            min-height: 100vh;
         }
-        .video-preview { width: 100%; height: 100%; object-fit: contain; display: none; }
-        .video-overlay { 
-            position: absolute; 
-            inset: 0; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            background: rgba(0,0,0,0.6); 
-            gap: 15px; 
-            z-index: 5;
+
+        /* OBS-style layout grid */
+        .obs-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 20px;
+            align-items: start;
         }
-        
-        /* Timestamp overlay di atas video (jam & tanggal live) */
-        .video-timestamp-overlay {
+
+        /* Main area (preview + controls) */
+        .main-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Preview panel seperti OBS */
+        .preview-panel {
+            background: var(--obs-black);
+            border: 1px solid var(--obs-border);
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .preview-header {
+            background: var(--obs-panel);
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--obs-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-header span i {
+            color: var(--obs-accent);
+            margin-right: 6px;
+        }
+
+        .rec-status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            background: #2c2c2c;
+            padding: 4px 10px;
+            border-radius: 4px;
+        }
+
+        .rec-led {
+            width: 10px;
+            height: 10px;
+            background: #e53935;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 6px #e53935;
+            animation: pulseRed 1.2s infinite;
+        }
+
+        .video-stage {
+            position: relative;
+            background: #000000;
+            aspect-ratio: 16/9;
+        }
+
+        .video-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: none;
+        }
+
+        /* Timestamp overlay gaya OBS (tetap minimalis) */
+        .timestamp-obs {
             position: absolute;
             top: 12px;
             right: 12px;
-            background: rgba(0, 0, 0, 0.65);
-            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
             padding: 6px 12px;
-            border-radius: 32px;
+            border-radius: 4px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 500;
-            color: #f8fafc;
-            border-left: 3px solid var(--gold);
+            border-left: 3px solid var(--obs-accent);
             z-index: 20;
             pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 2px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            transition: all 0.2s;
+            text-align: right;
+            line-height: 1.3;
         }
-        .video-timestamp-overlay .timestamp-time {
+
+        .timestamp-time {
             font-size: 1rem;
             font-weight: 700;
-            letter-spacing: 0.5px;
-            color: #facc15;
+            color: #ffb74d;
         }
-        .video-timestamp-overlay .timestamp-date {
+
+        .timestamp-date {
             font-size: 0.65rem;
-            color: #cbd5e1;
+            color: #aaa;
         }
-        .video-timestamp-overlay .rec-badge {
+
+        .rec-duration-obs {
             display: none;
             align-items: center;
             gap: 5px;
             font-size: 0.7rem;
-            background: rgba(239,68,68,0.8);
+            background: rgba(229, 57, 53, 0.9);
+            margin-top: 6px;
             padding: 2px 8px;
             border-radius: 20px;
-            margin-top: 4px;
-            color: white;
         }
-        .video-timestamp-overlay .rec-badge i {
-            font-size: 8px;
-            animation: pulseRed 1s infinite;
-        }
-        /* Jika sedang merekam, tampilkan badge durasi di timestamp */
-        .video-container.recording-active .video-timestamp-overlay .rec-badge {
+
+        .video-stage.recording-active .rec-duration-obs {
             display: flex;
         }
-        
-        .recording-status { 
-            position: absolute; 
-            top: 15px; 
-            left: 15px; 
-            background: var(--danger); 
-            padding: 8px 16px; 
-            border-radius: 50px; 
-            display: none; 
-            align-items: center; 
-            gap: 8px; 
-            font-weight: bold; 
-            z-index: 15; 
-            font-size: 12px; 
+
+        .preview-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            z-index: 10;
         }
-        .controls { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; }
-        .btn { padding: 14px 25px; border: none; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 10px; justify-content: center; flex: 1; }
-        .btn.record { background: var(--danger); color: white; }
-        .btn.stop { background: #475569; color: white; }
-        .btn.download { background: var(--success); color: white; }
-        .btn.export { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: rgba(255,255,255,0.05); border-radius: var(--radius-md); padding: 18px; text-align: center; }
-        .stat-value { font-size: 1.8rem; font-weight: 700; background: linear-gradient(135deg, #4f46e5, #7c3aed); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .section-title { font-size: 1.4rem; margin-bottom: 20px; border-left: 4px solid var(--primary); padding-left: 15px; }
-        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; max-height: 600px; overflow-y: auto; }
-        .video-card { background: rgba(0,0,0,0.4); border-radius: var(--radius-md); overflow: hidden; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); transition: 0.2s; }
-        .video-card:hover { transform: translateY(-4px); border-color: var(--primary); }
-        .video-thumbnail { height: 170px; background: linear-gradient(135deg, #2d2b55, #1e1a3a); display: flex; align-items: center; justify-content: center; position: relative; }
-        .video-thumbnail i { font-size: 3rem; color: rgba(255,255,255,0.7); }
-        .video-info { padding: 16px; }
-        .video-title { font-weight: 600; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .video-meta { font-size: 0.8rem; color: rgba(255,255,255,0.7); display: flex; gap: 10px; flex-wrap: wrap; }
-        .action-btn { background: rgba(255,255,255,0.1); border: none; padding: 8px 12px; border-radius: 8px; color: white; cursor: pointer; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; }
-        .action-btn:hover { background: rgba(255,255,255,0.25); }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(12px); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
-        .modal-content { background: rgba(20,20,40,0.95); border-radius: var(--radius-lg); max-width: 900px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 25px; }
-        .modal-video { width: 100%; border-radius: var(--radius-md); background: black; margin-bottom: 15px; }
-        .toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
-        .toast { background: rgba(0,0,0,0.9); backdrop-filter: blur(12px); border-radius: var(--radius-md); padding: 12px 18px; border-left: 4px solid var(--primary); display: flex; gap: 12px; align-items: center; pointer-events: auto; animation: slideIn 0.3s ease; }
-        .loading { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; flex-direction: column; z-index: 1100; gap: 20px; }
-        .progress-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 1200; }
-        .progress-card { background: #1e1b3b; padding: 30px; border-radius: var(--radius-lg); width: 90%; max-width: 500px; text-align: center; }
-        .progress-bar-container { width: 100%; height: 30px; background: #333; border-radius: 15px; overflow: hidden; margin: 20px 0; }
-        .progress-bar-fill { height: 100%; width: 0%; background: linear-gradient(135deg, #4f46e5, #7c3aed); transition: width 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; }
-        .db-status { position: fixed; bottom: 10px; left: 10px; font-size: 10px; background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 10px; z-index: 999; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes slideIn { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* Control bar OBS style */
+        .control-bar {
+            background: var(--obs-panel);
+            border: 1px solid var(--obs-border);
+            border-radius: 6px;
+            padding: 12px 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn-group-obs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-obs {
+            background: #3c3c3c;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;
+        }
+
+        .btn-obs i {
+            font-size: 0.9rem;
+        }
+
+        .btn-obs:hover {
+            background: #4f4f4f;
+        }
+
+        .btn-record {
+            background: var(--obs-red);
+            color: white;
+        }
+        .btn-record:hover {
+            background: var(--obs-red-dark);
+        }
+        .btn-stop {
+            background: #555;
+        }
+        .btn-success-obs {
+            background: #2e7d32;
+        }
+        .btn-success-obs:hover {
+            background: #1b5e20;
+        }
+        .btn-warning-obs {
+            background: #b85c00;
+        }
+
+        .stats-obs {
+            display: flex;
+            gap: 20px;
+            background: #252525;
+            padding: 6px 16px;
+            border-radius: 32px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .stats-obs span {
+            color: var(--obs-accent);
+            font-weight: 700;
+            font-family: monospace;
+        }
+
+        /* Right panel (Library/Database) seperti OBS Sources */
+        .library-panel {
+            background: var(--obs-panel);
+            border: 1px solid var(--obs-border);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 100px);
+            position: sticky;
+            top: 20px;
+        }
+
+        .panel-header {
+            padding: 12px 16px;
+            background: #252525;
+            border-bottom: 1px solid var(--obs-border);
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .search-obs {
+            background: #1e1e1e;
+            border: 1px solid var(--obs-border);
+            padding: 6px 10px;
+            border-radius: 4px;
+            color: white;
+            width: 140px;
+            font-size: 0.75rem;
+        }
+
+        .video-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .video-item {
+            background: #252525;
+            border-radius: 4px;
+            padding: 10px;
+            border-left: 3px solid transparent;
+            transition: 0.1s;
+            cursor: pointer;
+        }
+
+        .video-item:hover {
+            background: #353535;
+            border-left-color: var(--obs-accent);
+        }
+
+        .video-title {
+            font-weight: 600;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .video-meta {
+            font-size: 0.7rem;
+            color: #aaa;
+            margin-top: 5px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .video-actions {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-icon-obs {
+            background: #3c3c3c;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            color: white;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+
+        /* Modal OBS style */
+        .modal-obs {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content-obs {
+            background: #2d2d2d;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow: auto;
+            border: 1px solid #4a4a4a;
+        }
+
+        .modal-header {
+            padding: 14px 18px;
+            background: #252525;
+            border-bottom: 1px solid #3c3c3c;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Progress */
+        .progress-modal-obs {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1200;
+        }
+        .progress-card-obs {
+            background: #2d2d2d;
+            padding: 28px;
+            border-radius: 8px;
+            width: 320px;
+            text-align: center;
+        }
+        .progress-bar-obs {
+            background: #1e1e1e;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .progress-fill-obs {
+            width: 0%;
+            height: 100%;
+            background: var(--obs-accent);
+        }
+
+        .toast-stack {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .toast-obs {
+            background: #323232;
+            border-left: 3px solid var(--obs-accent);
+            padding: 10px 18px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 8px black;
+        }
+
         @keyframes pulseRed {
-            0% { opacity: 0.4; transform: scale(0.9);}
+            0% { opacity: 0.4; transform: scale(0.8);}
             100% { opacity: 1; transform: scale(1.2);}
         }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        @media (max-width: 700px) { 
-            .video-timestamp-overlay { top: 8px; right: 8px; padding: 4px 10px; }
-            .timestamp-time { font-size: 0.8rem; }
+
+        @media (max-width: 900px) {
+            .obs-container { grid-template-columns: 1fr; }
+            .library-panel { position: static; height: auto; margin-top: 20px; }
+            .stats-obs { margin-top: 8px; }
         }
+        ::-webkit-scrollbar { width: 6px; background: #1e1e1e; }
+        ::-webkit-scrollbar-thumb { background: #4a4a4a; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-<div class="loading" id="loading"><div style="width:50px;height:50px;border:4px solid rgba(255,255,255,0.2);border-top:4px solid #4f46e5;border-radius:50%;animation:spin 1s linear infinite;"></div><div>Memulai Mode Offline...</div><div style="font-size:12px;margin-top:10px;">✅ Timestamp live di pojok kanan atas video | Durasi rekaman muncul saat merekam</div></div>
-
-<div class="progress-modal" id="progressModal">
-    <div class="progress-card">
-        <i class="fas fa-spinner fa-pulse fa-2x"></i>
-        <h3 id="progressTitle" style="margin: 15px 0;">Memproses...</h3>
-        <div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill">0%</div></div>
-        <p id="progressDetail" style="font-size: 0.9rem;">Mempersiapkan...</p>
-        <button id="cancelProgressBtn" class="action-btn" style="margin-top: 15px; background: #ef4444;"><i class="fas fa-times"></i> Batal</button>
-    </div>
-</div>
-
-<div class="container">
-    <div class="header">
-        <div class="logo-icon"><i class="fas fa-database"></i></div>
-        <div class="logo-text"><h1>SCREEN RECORDER PRO</h1></div>
-        <p class="tagline" style="color:#ccc;">Full HD 1080p | <strong style="color:#f59e0b;">TIMESTAMP LIVE DI ATAS VIDEO</strong></p>
-        <div class="badges">
-            <div class="badge"><i class="fas fa-wifi-slash"></i> Offline Mode</div>
-            <div class="badge"><i class="fas fa-database"></i> Local DB</div>
-            <div class="badge"><i class="fas fa-archive"></i> Backup/Restore</div>
-            <div class="badge"><i class="fas fa-clock"></i> Timestamp on Video</div>
-            <div class="badge"><i class="fas fa-stopwatch"></i> Recording Timer</div>
-        </div>
-    </div>
-
-    <div class="recorder-section">
-        <div class="video-container" id="videoContainer">
-            <video class="video-preview" id="preview" autoplay muted playsinline></video>
-            <!-- TIMESTAMP OVERLAY DI ATAS VIDEO (jam & tanggal live, plus durasi rekaman) -->
-            <div class="video-timestamp-overlay" id="videoTimestampOverlay">
-                <div class="timestamp-time" id="onVideoTime">--:--:--</div>
-                <div class="timestamp-date" id="onVideoDate">---, -- --- ----</div>
-                <div class="rec-badge" id="onVideoRecBadge">
-                    <i class="fas fa-circle"></i> <span id="onVideoRecDuration">00:00:00</span>
+<div class="obs-container">
+    <!-- KOLOM UTAMA: PREVIEW + KONTROL -->
+    <div class="main-area">
+        <div class="preview-panel">
+            <div class="preview-header">
+                <span><i class="fas fa-tv"></i> PREVIEW</span>
+                <div class="rec-status-badge" id="obsRecStatus" style="display: none;">
+                    <span class="rec-led"></span> RECORDING
                 </div>
             </div>
-            <div class="video-overlay" id="videoOverlay"><i class="fas fa-desktop fa-3x"></i><h3>Screen Preview</h3><p>Klik Start Recording & pilih layar/jendela</p></div>
-            <div class="recording-status" id="recordingStatus"><div style="width:10px;height:10px;background:white;border-radius:50%;animation:pulse 1s infinite;"></div> RECORDING</div>
+            <div class="video-stage" id="videoStage">
+                <video class="video-preview" id="preview" autoplay muted playsinline></video>
+                <!-- TIMESTAMP STYLE OBS -->
+                <div class="timestamp-obs" id="timestampOverlay">
+                    <div class="timestamp-time" id="liveTime">--:--:--</div>
+                    <div class="timestamp-date" id="liveDate">---, -- --- ----</div>
+                    <div class="rec-duration-obs" id="recDurationBadge">
+                        <i class="fas fa-circle"></i> <span id="onVideoTimer">00:00:00</span>
+                    </div>
+                </div>
+                <div class="preview-overlay" id="videoOverlay">
+                    <i class="fas fa-desktop fa-3x" style="opacity:0.6;"></i>
+                    <h3 style="font-weight:500;">Tampilan layar</h3>
+                    <p style="font-size:12px;">Klik START RECORD & pilih jendela/layar</p>
+                </div>
+            </div>
         </div>
-        <div class="controls">
-            <button class="btn record" id="recordBtn"><i class="fas fa-circle"></i> START RECORD</button>
-            <button class="btn stop" id="stopBtn" disabled><i class="fas fa-stop"></i> STOP</button>
-            <button class="btn download" id="downloadBtn" disabled><i class="fas fa-download"></i> DOWNLOAD</button>
-            <button class="btn export" id="exportFullBtn"><i class="fas fa-file-export"></i> EXPORT ALL (ZIP)</button>
+
+        <div class="control-bar">
+            <div class="btn-group-obs">
+                <button class="btn-obs btn-record" id="recordBtn"><i class="fas fa-circle"></i> START RECORD</button>
+                <button class="btn-obs btn-stop" id="stopBtn" disabled><i class="fas fa-stop"></i> STOP</button>
+                <button class="btn-obs btn-success-obs" id="downloadBtn" disabled><i class="fas fa-download"></i> LAST VIDEO</button>
+                <button class="btn-obs btn-warning-obs" id="exportFullBtn"><i class="fas fa-file-export"></i> EXPORT ZIP</button>
+            </div>
+            <div class="stats-obs">
+                <span><i class="fas fa-stopwatch"></i> <span id="durationTimer">00:00:00</span></span>
+                <span><i class="fas fa-hdd"></i> <span id="fileSize">0 MB</span></span>
+            </div>
         </div>
-        <div class="stats">
-            <div class="stat-card"><div class="stat-value" id="durationTimer">00:00:00</div><div>⏱️ DURASI REKAMAN</div></div>
-            <div class="stat-card"><div class="stat-value" id="fileSize">0 MB</div><div>Current Size</div></div>
-            <div class="stat-card"><div class="stat-value" id="videoCount">0</div><div>Total Videos</div></div>
-            <div class="stat-card"><div class="stat-value" id="totalSizeCloud">0 GB</div><div>Total Storage</div></div>
-        </div>
-        <div style="background:rgba(245,158,11,0.2); border-radius:var(--radius-md); padding:12px; text-align:center;">
-            <i class="fas fa-clock"></i> <strong>INFO:</strong> Jam & tanggal live selalu tampil di pojok kanan atas area video. Saat merekam, durasi rekaman juga muncul di sana.
+
+        <!-- Info tambahan ala OBS -->
+        <div style="background: #252525; border-radius:6px; padding:10px 14px; border:1px solid #3c3c3c; font-size:12px;">
+            <i class="fas fa-clock" style="color:#00a3e0;"></i> <strong>Timestamp otomatis</strong> — jam & tanggal langsung terekam di video (pojok kanan). Saat merekam, durasi juga tampil.
         </div>
     </div>
 
-    <div class="settings">
-        <h2 class="section-title"><i class="fas fa-server"></i> Manajemen Database Offline</h2>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
-            <button class="action-btn" id="refreshBtn"><i class="fas fa-sync-alt"></i> Refresh Library</button>
-            <button class="action-btn" id="dbInfoBtn"><i class="fas fa-info-circle"></i> Info Storage</button>
-            <button class="action-btn" id="clearAllBtn" style="background: rgba(239,68,68,0.3);"><i class="fas fa-trash-alt"></i> Hapus Semua</button>
-            <button class="action-btn" id="backupDbBtn" style="background: #2c3e66;"><i class="fas fa-database"></i> Backup Database (ZIP)</button>
-            <button class="action-btn" id="restoreDbBtn" style="background: #2c3e66;"><i class="fas fa-upload"></i> Restore Database</button>
-            <input type="file" id="restoreFileInput" accept=".zip" style="display:none;">
+    <!-- PANEL KANAN: DATABASE / LIBRARY (mirip SOURCES OBS) -->
+    <div class="library-panel">
+        <div class="panel-header">
+            <span><i class="fas fa-database"></i> VIDEO LIBRARY</span>
+            <input type="text" id="searchInput" class="search-obs" placeholder="Cari...">
+        </div>
+        <div class="video-list" id="videoListContainer">
+            <div style="text-align:center; padding:24px; color:#aaa;">Memuat video...</div>
+        </div>
+        <div style="padding:12px; border-top:1px solid #3c3c3c; display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="action-icon-obs" id="refreshBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
+            <button class="action-icon-obs" id="dbInfoBtn"><i class="fas fa-info-circle"></i> Info</button>
+            <button class="action-icon-obs" id="clearAllBtn" style="background:#8b2c2c;"><i class="fas fa-trash"></i> Hapus Semua</button>
+            <button class="action-icon-obs" id="backupDbBtn"><i class="fas fa-archive"></i> Backup</button>
+            <button class="action-icon-obs" id="restoreDbBtn"><i class="fas fa-upload"></i> Restore</button>
         </div>
     </div>
-
-    <div class="library">
-        <div class="library-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:20px;">
-            <h2 class="section-title" style="margin-bottom:0;"><i class="fas fa-film"></i> Video Library (Offline)</h2>
-            <input type="text" id="searchInput" placeholder="Cari video..." style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:50px;padding:8px 16px;color:white;width:200px;">
-        </div>
-        <div class="video-grid" id="videoGrid"></div>
-        <div id="emptyLibrary" style="text-align:center;padding:40px;display:none;">Belum ada rekaman.</div>
-    </div>
-    <div class="db-status" id="dbStatus">💾 Offline Mode | IndexedDB</div>
 </div>
 
-<div class="modal" id="videoModal">
-    <div class="modal-content">
-        <div style="display:flex;justify-content:space-between;"><h3 id="modalTitle">Video Player</h3><button id="closeModalBtn" style="background:none;border:none;color:white;font-size:24px;">&times;</button></div>
-        <video class="modal-video" id="modalVideoPlayer" controls></video>
-        <div id="modalMeta" style="margin:15px 0;"></div>
-        <div style="display:flex;gap:10px;">
-            <button id="modalDownload" class="btn download" style="flex:1;"><i class="fas fa-download"></i> Download</button>
-            <button id="modalDelete" class="btn stop" style="flex:1;"><i class="fas fa-trash"></i> Hapus</button>
+<!-- MODAL VIDEO -->
+<div class="modal-obs" id="videoModal">
+    <div class="modal-content-obs">
+        <div class="modal-header">
+            <h3 id="modalTitle" style="font-size:1rem;">Video Player</h3>
+            <button id="closeModalBtn" style="background:none; border:none; color:white; font-size:22px;">&times;</button>
+        </div>
+        <video id="modalVideoPlayer" controls style="width:100%; background:black;"></video>
+        <div style="padding:16px;" id="modalMeta"></div>
+        <div style="padding:0 16px 16px; display:flex; gap:8px;">
+            <button id="modalDownload" class="btn-obs btn-success-obs" style="flex:1;"><i class="fas fa-download"></i> Download</button>
+            <button id="modalDelete" class="btn-obs" style="background:#b71c1c; flex:1;"><i class="fas fa-trash"></i> Hapus</button>
         </div>
     </div>
 </div>
+
+<div class="progress-modal-obs" id="progressModal">
+    <div class="progress-card-obs">
+        <i class="fas fa-cog fa-spin fa-2x"></i>
+        <h3 id="progressTitle" style="margin:15px 0;">Processing</h3>
+        <div class="progress-bar-obs"><div class="progress-fill-obs" id="progressFill"></div></div>
+        <p id="progressDetail" style="font-size:0.8rem;"></p>
+        <button id="cancelProgressBtn" class="action-icon-obs" style="margin-top:12px;">Batal</button>
+    </div>
+</div>
+
+<input type="file" id="restoreFileInput" accept=".zip" style="display:none;">
+<div class="toast-stack" id="toastStack"></div>
 
 <script>
-    // ======================== JAM LIVE UNTUK TIMESTAMP VIDEO OVERLAY ========================
-    function updateVideoTimestamp() {
+    // ======================== TIMESTAMP LIVE ========================
+    function updateLiveTimestamp() {
         const now = new Date();
-        // Format waktu 24 jam
-        const time24 = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-        const dateStr = `${days[now.getDay()].substring(0,3)}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
-        document.getElementById('onVideoTime').innerHTML = time24;
-        document.getElementById('onVideoDate').innerHTML = dateStr;
+        const timeStr = now.toLocaleTimeString('id-ID', { hour12: false, hour:'2-digit', minute:'2-digit', second:'2-digit' });
+        const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+        const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+        const dateStr = `${days[now.getDay()].slice(0,3)}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+        document.getElementById('liveTime').innerText = timeStr;
+        document.getElementById('liveDate').innerText = dateStr;
     }
-    setInterval(updateVideoTimestamp, 1000);
-    updateVideoTimestamp();
+    setInterval(updateLiveTimestamp, 1000);
+    updateLiveTimestamp();
 
-    // ======================== OFFLINE DATABASE ========================
-    const DB_NAME = 'ScreenRecorder_Offline';
-    const DB_VERSION = 1;
+    // ======================== INDEXED DB ========================
+    const DB_NAME = 'OBS_ScreenRecorder';
     const STORE = 'videos';
     let db = null;
     let currentRecording = { active: false, mediaRecorder: null, stream: null, chunks: [], startTime: null, timerInterval: null, saveInterval: null, videoId: null, videoTitle: null, lastSavedChunkCount: 0, isSaving: false };
     let isProcessing = false;
-    
+
     function initDB() {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open(DB_NAME, DB_VERSION);
-            request.onerror = () => reject(request.error);
-            request.onsuccess = (e) => { db = e.target.result; loadAllVideos(); resolve(db); };
-            request.onupgradeneeded = (e) => {
+            const req = indexedDB.open(DB_NAME, 1);
+            req.onerror = () => reject(req.error);
+            req.onsuccess = (e) => { db = e.target.result; loadAllVideos(); resolve(db); };
+            req.onupgradeneeded = (e) => {
                 if (!e.target.result.objectStoreNames.contains(STORE))
                     e.target.result.createObjectStore(STORE, { keyPath: 'id' });
             };
         });
     }
-    
+
     async function saveVideoToDB(videoData, blob) {
         return new Promise((resolve, reject) => {
             const tx = db.transaction([STORE], 'readwrite');
@@ -303,287 +576,216 @@
             store.put(record).onerror = () => reject();
         });
     }
-    
-    async function getAllVideos() {
-        if (!db) return [];
-        return new Promise((resolve) => {
-            const tx = db.transaction([STORE], 'readonly');
-            tx.objectStore(STORE).getAll().onsuccess = (e) => resolve(e.target.result || []);
-        });
-    }
-    
-    async function getVideoById(id) {
-        return new Promise((resolve) => {
-            const tx = db.transaction([STORE], 'readonly');
-            tx.objectStore(STORE).get(id).onsuccess = (e) => resolve(e.target.result);
-        });
-    }
-    
-    async function deleteVideoFromDB(id) {
-        return new Promise((resolve) => {
-            const tx = db.transaction([STORE], 'readwrite');
-            tx.objectStore(STORE).delete(id).onsuccess = () => resolve();
-        });
-    }
-    
-    async function clearAllVideos() {
-        return new Promise((resolve) => {
-            const tx = db.transaction([STORE], 'readwrite');
-            tx.objectStore(STORE).clear().onsuccess = () => resolve();
-        });
-    }
-    
+
+    async function getAllVideos() { if(!db) return []; return new Promise((res)=> { const tx = db.transaction([STORE],'readonly'); tx.objectStore(STORE).getAll().onsuccess = (e)=> res(e.target.result||[]); }); }
+    async function getVideoById(id) { return new Promise((res)=> { const tx = db.transaction([STORE],'readonly'); tx.objectStore(STORE).get(id).onsuccess = (e)=> res(e.target.result); }); }
+    async function deleteVideoFromDB(id) { return new Promise((res)=> { const tx = db.transaction([STORE],'readwrite'); tx.objectStore(STORE).delete(id).onsuccess = ()=> res(); }); }
+    async function clearAllVideos() { return new Promise((res)=> { const tx = db.transaction([STORE],'readwrite'); tx.objectStore(STORE).clear().onsuccess = ()=> res(); }); }
+
     async function loadAllVideos() {
         const videos = await getAllVideos();
-        const totalVideos = videos.length;
-        const totalSize = videos.reduce((s,v) => s + (v.size||0), 0);
-        document.getElementById('videoCount').innerText = totalVideos;
-        document.getElementById('totalSizeCloud').innerText = formatFileSize(totalSize);
-        document.getElementById('downloadBtn').disabled = totalVideos === 0;
-        renderVideoGrid(videos);
+        const totalSize = videos.reduce((s,v)=> s + (v.size||0), 0);
+        document.getElementById('videoCount') && (document.getElementById('videoCount').innerText = videos.length);
+        document.getElementById('totalSizeCloud') && (document.getElementById('totalSizeCloud').innerText = formatFileSize(totalSize));
+        renderVideoLibrary(videos);
     }
-    
-    async function renderVideoGrid(videos) {
-        const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
-        const filtered = videos.filter(v => v.title.toLowerCase().includes(searchTerm));
-        const grid = document.getElementById('videoGrid');
-        const emptyLib = document.getElementById('emptyLibrary');
-        if (filtered.length === 0) { emptyLib.style.display = 'block'; grid.innerHTML = ''; return; }
-        emptyLib.style.display = 'none';
-        grid.innerHTML = filtered.map(v => `
-            <div class="video-card" onclick="openVideoModal('${v.id}')">
-                <div class="video-thumbnail"><i class="fas fa-video"></i><span style="position:absolute;bottom:8px;right:12px;background:black;padding:2px 8px;border-radius:20px;">${formatDuration(v.duration)}</span></div>
-                <div class="video-info">
-                    <div class="video-title">${escapeHtml(v.title)}</div>
-                    <div class="video-meta">${formatDateTime(v.date)} • ${formatFileSize(v.size)}</div>
-                    <div class="video-actions" onclick="event.stopPropagation()">
-                        <button class="action-btn play-vid" data-id="${v.id}"><i class="fas fa-play"></i> Play</button>
-                        <button class="action-btn del-vid" data-id="${v.id}"><i class="fas fa-trash"></i></button>
-                    </div>
+
+    function renderVideoLibrary(videos) {
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const filtered = videos.filter(v => v.title.toLowerCase().includes(search));
+        const container = document.getElementById('videoListContainer');
+        if(filtered.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:32px; color:#aaa;">📭 Tidak ada video</div>';
+            return;
+        }
+        container.innerHTML = filtered.map(v => `
+            <div class="video-item" data-id="${v.id}">
+                <div class="video-title"><i class="fas fa-video"></i> ${escapeHtml(v.title)}</div>
+                <div class="video-meta">${formatDuration(v.duration)} • ${formatFileSize(v.size)}</div>
+                <div class="video-actions">
+                    <button class="action-icon-obs play-vid" data-id="${v.id}"><i class="fas fa-play"></i> Play</button>
+                    <button class="action-icon-obs del-vid" data-id="${v.id}"><i class="fas fa-trash"></i> Hapus</button>
                 </div>
             </div>
         `).join('');
         document.querySelectorAll('.play-vid').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); openVideoModal(btn.dataset.id); }));
-        document.querySelectorAll('.del-vid').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); deleteVideo(btn.dataset.id); }));
+        document.querySelectorAll('.del-vid').forEach(btn => btn.addEventListener('click', async (e) => { e.stopPropagation(); if(confirm('Hapus video ini?')){ await deleteVideoFromDB(btn.dataset.id); await loadAllVideos(); showToast('Video dihapus'); } }));
+        document.querySelectorAll('.video-item').forEach(card => card.addEventListener('click', () => openVideoModal(card.dataset.id)));
     }
-    
+
     async function openVideoModal(id) {
         const video = await getVideoById(id);
-        if (!video?.blob) return;
+        if(!video?.blob) return;
         const url = URL.createObjectURL(video.blob);
         const modal = document.getElementById('videoModal');
         document.getElementById('modalVideoPlayer').src = url;
         document.getElementById('modalTitle').innerText = video.title;
-        document.getElementById('modalMeta').innerHTML = `<div>Durasi: ${formatDuration(video.duration)} | Ukuran: ${formatFileSize(video.size)} | ${formatDateTime(video.date)}</div>`;
+        document.getElementById('modalMeta').innerHTML = `<span>Durasi: ${formatDuration(video.duration)} | Ukuran: ${formatFileSize(video.size)} | ${new Date(video.date).toLocaleString()}</span>`;
         modal.style.display = 'flex';
-        document.getElementById('modalDownload').onclick = () => downloadVideo(video.blob, `${video.title}.webm`);
-        document.getElementById('modalDelete').onclick = async () => { await deleteVideo(video.id); modal.style.display = 'none'; await loadAllVideos(); };
+        document.getElementById('modalDownload').onclick = () => { const a=document.createElement('a'); a.href=url; a.download=`${video.title}.webm`; a.click(); showToast('Download mulai'); };
+        document.getElementById('modalDelete').onclick = async () => { await deleteVideoFromDB(video.id); await loadAllVideos(); modal.style.display='none'; showToast('Terhapus'); };
     }
-    
-    async function deleteVideo(id) { if (confirm('Hapus video?')) { await deleteVideoFromDB(id); await loadAllVideos(); showToast('Video dihapus'); } }
-    
-    // ======================== BACKUP & RESTORE ========================
+
+    // Backup & Restore
     async function backupDatabaseToZip() {
-        if (isProcessing) return;
+        if(isProcessing) return;
         const videos = await getAllVideos();
-        if (videos.length === 0) { showToast('Tidak ada video'); return; }
-        isProcessing = true;
-        const modal = document.getElementById('progressModal');
-        const progressFill = document.getElementById('progressFill');
-        const progressDetail = document.getElementById('progressDetail');
-        modal.style.display = 'flex';
+        if(videos.length===0) return showToast('Tidak ada video untuk backup');
+        isProcessing = true; showProgress(true, 'Membuat arsip...');
         try {
             const zip = new JSZip();
-            const videosFolder = zip.folder("videos");
-            const metadata = [];
-            let completed = 0;
-            for (const video of videos) {
-                progressDetail.innerText = `${completed+1}/${videos.length}: ${video.title.substring(0,30)}`;
-                progressFill.style.width = `${(completed/videos.length)*100}%`;
-                progressFill.innerText = `${Math.round((completed/videos.length)*100)}%`;
-                if (video.blob) {
-                    const filename = `${video.id}.webm`;
-                    videosFolder.file(filename, video.blob);
-                    metadata.push({ id: video.id, title: video.title, duration: video.duration, size: video.size, date: video.date, filename });
-                }
-                completed++;
-                await new Promise(r => setTimeout(r, 5));
+            const folder = zip.folder("videos");
+            let meta = [];
+            for(let i=0; i<videos.length; i++) {
+                const v = videos[i];
+                document.getElementById('progressFill').style.width = `${(i/videos.length)*100}%`;
+                document.getElementById('progressDetail').innerText = `Mengemas: ${v.title.slice(0,35)}`;
+                if(v.blob) { const fn = `${v.id}.webm`; folder.file(fn, v.blob); meta.push({ id:v.id, title:v.title, duration:v.duration, size:v.size, date:v.date, filename:fn }); }
+                await new Promise(r=>setTimeout(r,5));
             }
-            zip.file("metadata.json", JSON.stringify({ exportDate: new Date().toISOString(), total: videos.length, videos: metadata }));
-            const zipBlob = await zip.generateAsync({ type: "blob" });
-            saveAs(zipBlob, `screenrecorder_backup_${Date.now()}.zip`);
-            showToast('Backup berhasil');
-        } catch(e) { showToast('Gagal backup'); }
-        finally { isProcessing = false; modal.style.display = 'none'; progressFill.style.width = '0%'; }
+            zip.file("metadata.json", JSON.stringify({ exportDate: new Date(), total:videos.length, videos:meta }));
+            const blobZip = await zip.generateAsync({ type:"blob" });
+            saveAs(blobZip, `obs_recorder_backup_${Date.now()}.zip`);
+            showToast('Backup sukses!');
+        } catch(e) { showToast('Gagal backup'); } finally { isProcessing=false; showProgress(false); }
     }
-    
+
     async function restoreDatabaseFromZip(file) {
-        if (isProcessing) return;
-        if (!file) return;
-        isProcessing = true;
-        const modal = document.getElementById('progressModal');
-        const progressFill = document.getElementById('progressFill');
-        const progressDetail = document.getElementById('progressDetail');
-        modal.style.display = 'flex';
+        if(!file || isProcessing) return;
+        isProcessing = true; showProgress(true, 'Restore database...');
         try {
             const zip = await JSZip.loadAsync(file);
             const metaFile = zip.file("metadata.json");
-            if (!metaFile) throw new Error('Invalid backup');
+            if(!metaFile) throw new Error("File backup tidak valid");
             const meta = JSON.parse(await metaFile.async("string"));
-            const videosList = meta.videos || [];
-            let restored = 0;
-            for (const item of videosList) {
-                progressDetail.innerText = `Restore: ${item.title.substring(0,30)} (${restored+1}/${videosList.length})`;
-                progressFill.style.width = `${(restored/videosList.length)*100}%`;
-                const videoFile = zip.file(`videos/${item.filename}`);
-                if (videoFile) {
-                    const blob = await videoFile.async("blob");
-                    await saveVideoToDB({ id: item.id, title: item.title, duration: item.duration, size: blob.size, date: item.date || new Date().toISOString(), quality: '1080p', shareLink: '' }, blob);
+            const videosMeta = meta.videos || [];
+            let restored=0;
+            for(const item of videosMeta) {
+                document.getElementById('progressFill').style.width = `${(restored/videosMeta.length)*100}%`;
+                document.getElementById('progressDetail').innerText = `Restore: ${item.title}`;
+                const videoBlobFile = zip.file(`videos/${item.filename}`);
+                if(videoBlobFile) {
+                    const blob = await videoBlobFile.async("blob");
+                    await saveVideoToDB({ id: item.id, title: item.title, duration: item.duration, size: blob.size, date: item.date || new Date().toISOString() }, blob);
                 }
                 restored++;
-                await new Promise(r => setTimeout(r, 10));
+                await new Promise(r=>setTimeout(r,5));
             }
             await loadAllVideos();
-            showToast(`Restore selesai: ${restored} video`);
-        } catch(e) { showToast('Gagal restore'); }
-        finally { isProcessing = false; modal.style.display = 'none'; progressFill.style.width = '0%'; }
+            showToast(`✅ Restore ${restored} video`);
+        } catch(e) { showToast('Gagal restore'); } finally { isProcessing=false; showProgress(false); }
     }
-    
-    // ======================== RECORDING & UI DURASI (dengan update durasi di overlay video) ========================
-    const durationElement = document.getElementById('durationTimer');
-    const onVideoRecDurationSpan = document.getElementById('onVideoRecDuration');
-    const videoContainerDiv = document.getElementById('videoContainer');
-    
+
+    // RECORDING ENGINE
+    const stageDiv = document.getElementById('videoStage');
+    const onVideoTimerSpan = document.getElementById('onVideoTimer');
+    const durationTimerSpan = document.getElementById('durationTimer');
+    const fileSizeSpan = document.getElementById('fileSize');
     function updateDurationUI(seconds) {
-        const formatted = formatDuration(seconds);
-        durationElement.innerText = formatted;
-        if (currentRecording.active) {
-            onVideoRecDurationSpan.innerText = formatted;
-        } else {
-            onVideoRecDurationSpan.innerText = '00:00:00';
-        }
+        const fmt = formatDuration(seconds);
+        durationTimerSpan.innerText = fmt;
+        if(currentRecording.active) onVideoTimerSpan.innerText = fmt;
+        else onVideoTimerSpan.innerText = '00:00:00';
     }
-    
+
     async function startRecording() {
         try {
-            if (!navigator.mediaDevices?.getDisplayMedia) throw new Error('Screen capture tidak didukung');
-            const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: { width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: true });
-            const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null);
+            const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: { width:{ideal:1920}, height:{ideal:1080} }, audio: true });
+            const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(()=>null);
             let finalStream = screenStream;
-            if (audioStream) finalStream = new MediaStream([...screenStream.getTracks(), ...audioStream.getAudioTracks()]);
+            if(audioStream) finalStream = new MediaStream([...screenStream.getTracks(), ...audioStream.getAudioTracks()]);
             currentRecording.stream = finalStream;
             currentRecording.chunks = [];
-            currentRecording.lastSavedChunkCount = 0;
-            currentRecording.videoId = 'rec_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+            currentRecording.videoId = 'obs_' + Date.now() + '_' + Math.random().toString(36).substr(2,6);
             currentRecording.videoTitle = `Recording ${new Date().toLocaleString()}`;
             currentRecording.startTime = Date.now();
             document.getElementById('preview').srcObject = finalStream;
             document.getElementById('preview').style.display = 'block';
             document.getElementById('videoOverlay').style.display = 'none';
-            // tambahkan class recording-active ke container untuk menampilkan badge durasi di overlay
-            videoContainerDiv.classList.add('recording-active');
-            
-            const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 'video/webm;codecs=vp8' : 'video/webm';
-            currentRecording.mediaRecorder = new MediaRecorder(finalStream, { mimeType, videoBitsPerSecond: 2500000 });
+            stageDiv.classList.add('recording-active');
+            document.getElementById('obsRecStatus').style.display = 'flex';
+
+            const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 'video/webm;codecs=vp8' : 'video/webm';
+            currentRecording.mediaRecorder = new MediaRecorder(finalStream, { mimeType:mime, videoBitsPerSecond:2500000 });
             currentRecording.mediaRecorder.ondataavailable = async (e) => {
-                if (e.data.size > 0) {
+                if(e.data.size>0) {
                     currentRecording.chunks.push(e.data);
-                    const totalSize = currentRecording.chunks.reduce((s,chunk) => s+chunk.size, 0);
-                    document.getElementById('fileSize').innerText = formatFileSize(totalSize);
-                    if (currentRecording.chunks.length - currentRecording.lastSavedChunkCount >= 5 && !currentRecording.isSaving) {
+                    const total = currentRecording.chunks.reduce((s,c)=>s+c.size,0);
+                    fileSizeSpan.innerText = formatFileSize(total);
+                    if(currentRecording.chunks.length - currentRecording.lastSavedChunkCount >= 5 && !currentRecording.isSaving) {
                         currentRecording.isSaving = true;
-                        await saveCurrentRecording();
+                        await saveCurrentRecording(false);
                         currentRecording.isSaving = false;
                     }
                 }
             };
-            currentRecording.mediaRecorder.onstop = async () => {
-                if (currentRecording.chunks.length > 0) await saveCurrentRecording(true);
-                cleanupRecording();
-                await loadAllVideos();
-            };
+            currentRecording.mediaRecorder.onstop = async () => { await saveCurrentRecording(true); cleanupRecording(); await loadAllVideos(); };
             currentRecording.mediaRecorder.start(3000);
             currentRecording.active = true;
             updateDurationUI(0);
-            if (currentRecording.timerInterval) clearInterval(currentRecording.timerInterval);
-            currentRecording.timerInterval = setInterval(() => {
-                if (currentRecording.startTime) {
-                    const sec = Math.floor((Date.now() - currentRecording.startTime) / 1000);
-                    updateDurationUI(sec);
-                }
-            }, 1000);
-            currentRecording.saveInterval = setInterval(async () => {
-                if (currentRecording.active && !currentRecording.isSaving) await saveCurrentRecording();
-            }, 10000);
+            if(currentRecording.timerInterval) clearInterval(currentRecording.timerInterval);
+            currentRecording.timerInterval = setInterval(() => { if(currentRecording.startTime) updateDurationUI(Math.floor((Date.now()-currentRecording.startTime)/1000)); }, 1000);
+            currentRecording.saveInterval = setInterval(async () => { if(currentRecording.active && !currentRecording.isSaving) await saveCurrentRecording(false); }, 12000);
             document.getElementById('recordBtn').disabled = true;
             document.getElementById('stopBtn').disabled = false;
-            document.getElementById('recordingStatus').style.display = 'flex';
-            showToast('🔴 Merekam - Durasi muncul di pojok kanan atas video');
-        } catch(e) { showToast('Gagal: '+e.message); }
+            showToast('🔴 Merekam — timestamp & durasi aktif di video');
+        } catch(e) { showToast('Gagal start: '+e.message); }
     }
-    
-    async function saveCurrentRecording(isFinal = false) {
-        if (currentRecording.chunks.length === 0) return;
-        const currentBlob = new Blob(currentRecording.chunks, { type: 'video/webm' });
-        if (currentBlob.size === 0) return;
-        const duration = Math.floor((Date.now() - currentRecording.startTime) / 1000);
-        await saveVideoToDB({
-            id: currentRecording.videoId, title: currentRecording.videoTitle, duration: duration,
-            date: new Date().toISOString(), quality: '1080p', size: currentBlob.size, shareLink: ''
-        }, currentBlob);
+
+    async function saveCurrentRecording(isFinal=false) {
+        if(currentRecording.chunks.length===0) return;
+        const fullBlob = new Blob(currentRecording.chunks, { type: 'video/webm' });
+        if(fullBlob.size===0) return;
+        const durationSec = Math.floor((Date.now()-currentRecording.startTime)/1000);
+        await saveVideoToDB({ id: currentRecording.videoId, title: currentRecording.videoTitle, duration: durationSec, date: new Date().toISOString(), size: fullBlob.size }, fullBlob);
         currentRecording.lastSavedChunkCount = currentRecording.chunks.length;
-        if (!isFinal) await loadAllVideos();
+        if(!isFinal) await loadAllVideos();
     }
-    
-    function stopRecording() { if (currentRecording.mediaRecorder && currentRecording.active) currentRecording.mediaRecorder.stop(); }
-    
+
+    function stopRecording() { if(currentRecording.mediaRecorder && currentRecording.active) currentRecording.mediaRecorder.stop(); }
     function cleanupRecording() {
         currentRecording.active = false;
-        videoContainerDiv.classList.remove('recording-active');
-        if (currentRecording.saveInterval) clearInterval(currentRecording.saveInterval);
-        if (currentRecording.timerInterval) clearInterval(currentRecording.timerInterval);
+        stageDiv.classList.remove('recording-active');
+        document.getElementById('obsRecStatus').style.display = 'none';
+        if(currentRecording.saveInterval) clearInterval(currentRecording.saveInterval);
+        if(currentRecording.timerInterval) clearInterval(currentRecording.timerInterval);
         document.getElementById('stopBtn').disabled = true;
         document.getElementById('recordBtn').disabled = false;
-        document.getElementById('recordingStatus').style.display = 'none';
         updateDurationUI(0);
-        document.getElementById('fileSize').innerText = '0 MB';
-        if (currentRecording.stream) currentRecording.stream.getTracks().forEach(t => t.stop());
+        fileSizeSpan.innerText = '0 MB';
+        if(currentRecording.stream) currentRecording.stream.getTracks().forEach(t=>t.stop());
         document.getElementById('preview').srcObject = null;
         document.getElementById('preview').style.display = 'none';
         document.getElementById('videoOverlay').style.display = 'flex';
     }
-    
-    async function downloadLatestVideo() { const videos = await getAllVideos(); if (videos.length) downloadVideo(videos[0].blob, `${videos[0].title}.webm`); }
-    function downloadVideo(blob, filename) { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url); showToast(`Download ${filename}`); }
-    async function showDbInfo() { const videos = await getAllVideos(); const totalSize = videos.reduce((s,v)=>s+(v.size||0),0); alert(`Total Video: ${videos.length}\nTotal Storage: ${formatFileSize(totalSize)}`); }
-    async function clearAll() { if (confirm('Hapus semua video?')) { await clearAllVideos(); await loadAllVideos(); showToast('Semua video dihapus'); } }
-    
-    function formatDuration(sec) { if (!sec) return '00:00:00'; let h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60; return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`; }
-    function formatFileSize(bytes) { if (bytes<1024) return bytes+' B'; if (bytes<1048576) return (bytes/1024).toFixed(1)+' KB'; if (bytes<1073741824) return (bytes/1048576).toFixed(1)+' MB'; return (bytes/1073741824).toFixed(2)+' GB'; }
-    function formatDateTime(dateStr) { return new Date(dateStr).toLocaleString('id-ID', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
-    function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
-    function showToast(msg) { let c = document.getElementById('toastContainer'); if(!c){ c=document.createElement('div'); c.id='toastContainer'; c.className='toast-container'; document.body.appendChild(c); } const t=document.createElement('div'); t.className='toast'; t.innerHTML=`<i class="fas fa-info-circle"></i><span>${msg}</span><button style="background:none;border:none;color:white;margin-left:10px;cursor:pointer;" onclick="this.parentElement.remove()">✖</button>`; c.appendChild(t); setTimeout(()=>t.remove(),4000); }
-    
-    window.addEventListener('beforeunload', () => { if (currentRecording.active && currentRecording.chunks.length) saveCurrentRecording(true); });
-    
-    (async () => {
+
+    async function downloadLatestVideo() { const videos=await getAllVideos(); if(videos.length) { const url=URL.createObjectURL(videos[0].blob); const a=document.createElement('a'); a.href=url; a.download=`${videos[0].title}.webm`; a.click(); URL.revokeObjectURL(url); showToast('Download video terbaru'); } }
+    async function showDbInfo() { const videos=await getAllVideos(); const total=videos.reduce((s,v)=>s+(v.size||0),0); alert(`📼 ${videos.length} video | Total: ${formatFileSize(total)}`); }
+    async function clearAllConfirm() { if(confirm('⚠️ Hapus SEMUA video? Tindakan permanen')){ await clearAllVideos(); await loadAllVideos(); showToast('Semua video dihapus'); } }
+
+    function showToast(msg) { const container = document.getElementById('toastStack'); const t = document.createElement('div'); t.className='toast-obs'; t.innerHTML=`<i class="fas fa-info-circle"></i> ${msg}`; container.appendChild(t); setTimeout(()=>t.remove(), 3500); }
+    function showProgress(show, title='') { const modal=document.getElementById('progressModal'); if(show) { document.getElementById('progressTitle').innerText=title; modal.style.display='flex'; } else modal.style.display='none'; }
+    function formatDuration(sec) { if(!sec) return '00:00:00'; let h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=sec%60; return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`; }
+    function formatFileSize(bytes) { if(bytes<1024) return bytes+' B'; if(bytes<1048576) return (bytes/1024).toFixed(1)+' KB'; if(bytes<1073741824) return (bytes/1048576).toFixed(1)+' MB'; return (bytes/1073741824).toFixed(2)+' GB'; }
+    function escapeHtml(str) { return str.replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+
+    window.addEventListener('load', async () => {
         await initDB();
-        document.getElementById('loading').style.display = 'none';
         document.getElementById('recordBtn').onclick = startRecording;
         document.getElementById('stopBtn').onclick = stopRecording;
         document.getElementById('downloadBtn').onclick = downloadLatestVideo;
         document.getElementById('exportFullBtn').onclick = backupDatabaseToZip;
-        document.getElementById('refreshBtn').onclick = () => loadAllVideos();
+        document.getElementById('refreshBtn').onclick = loadAllVideos;
         document.getElementById('dbInfoBtn').onclick = showDbInfo;
-        document.getElementById('clearAllBtn').onclick = clearAll;
-        document.getElementById('closeModalBtn').onclick = () => document.getElementById('videoModal').style.display = 'none';
-        document.getElementById('searchInput').addEventListener('input', () => loadAllVideos());
-        document.getElementById('cancelProgressBtn').onclick = () => { if (isProcessing) { isProcessing = false; document.getElementById('progressModal').style.display = 'none'; } };
+        document.getElementById('clearAllBtn').onclick = clearAllConfirm;
         document.getElementById('backupDbBtn').onclick = backupDatabaseToZip;
         document.getElementById('restoreDbBtn').onclick = () => document.getElementById('restoreFileInput').click();
-        document.getElementById('restoreFileInput').onchange = (e) => { if (e.target.files.length) restoreDatabaseFromZip(e.target.files[0]); e.target.value = ''; };
-        showToast('✅ Siap merekam. Jam & tanggal live selalu tampil di pojok kanan atas video. Saat rekaman, durasi juga muncul.');
-    })();
+        document.getElementById('restoreFileInput').onchange = (e) => { if(e.target.files.length) restoreDatabaseFromZip(e.target.files[0]); e.target.value=''; };
+        document.getElementById('closeModalBtn').onclick = () => document.getElementById('videoModal').style.display = 'none';
+        document.getElementById('cancelProgressBtn').onclick = () => { isProcessing=false; showProgress(false); };
+        document.getElementById('searchInput').addEventListener('input', () => loadAllVideos());
+        showToast('✅ OBS Style Active | Timestamp otomatis di video');
+    });
 </script>
 </body>
 </html>
