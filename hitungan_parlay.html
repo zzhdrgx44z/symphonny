@@ -1,595 +1,489 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Kalkulator Parlay & Single Bet | Premium Edition</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalkulator Taruhan</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0c0c18;--card:#16162a;--border:rgba(255,215,0,.12);--gold:#ffd700;--green:#34d399;--red:#f87171;--blue:#60a5fa;--yellow:#fbbf24;--purple:#a78bfa;--muted:#6b6b8a;--text:#d4d4e8;--dim:#3a3a56}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:12px}
+.wrap{max-width:1400px;margin:0 auto}
 
-        body {
-            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-            background: radial-gradient(circle at 20% 30%, #0a0a1a 0%, #02020a 100%);
-            min-height: 100vh;
-            color: #edf2fb;
-            line-height: 1.5;
-            padding: 24px 20px;
-        }
+.hdr{text-align:center;padding:20px 16px;margin-bottom:16px;background:var(--card);border:1px solid var(--border);border-radius:14px}
+.hdr h1{font-size:clamp(1.15rem,4vw,1.5rem);background:linear-gradient(135deg,var(--gold),#ff9500);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800}
+.hdr p{color:var(--muted);font-size:clamp(.72rem,2vw,.82rem);margin-top:4px}
 
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-        }
+.tabs{display:flex;gap:4px;justify-content:center;margin-bottom:16px;background:var(--card);padding:4px;border-radius:12px;border:1px solid var(--border);width:fit-content;margin-left:auto;margin-right:auto}
+.tab{padding:9px 20px;border:none;border-radius:9px;background:0 0;color:var(--muted);font-weight:600;cursor:pointer;font-size:clamp(.78rem,2.5vw,.88rem);transition:.2s;white-space:nowrap}
+.tab:hover{color:#fff}.tab.on{background:linear-gradient(135deg,#f57c00,#ff9500);color:#fff;box-shadow:0 3px 12px rgba(245,124,0,.3)}
+.panel{display:none;animation:fade .2s ease}.panel.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 
-        /* ========== HEADER PREMIUM ========== */
-        .header {
-            text-align: center;
-            margin-bottom: 32px;
-            padding: 36px 24px;
-            background: rgba(12, 12, 28, 0.65);
-            backdrop-filter: blur(16px);
-            border-radius: 40px;
-            border: 1px solid rgba(255, 200, 80, 0.25);
-            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-        }
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:clamp(12px,3vw,20px);margin-bottom:16px}
 
-        .header h1 {
-            font-size: clamp(1.6rem, 4vw, 2.4rem);
-            font-weight: 800;
-            background: linear-gradient(135deg, #FFE6B0, #FFB347, #FF8C00);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -0.02em;
-            margin-bottom: 8px;
-        }
+/* Form */
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:12px;margin-bottom:12px}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg label{font-size:clamp(.7rem,2vw,.78rem);font-weight:600;color:var(--gold)}
+.fg input,.fg select{width:100%;padding:9px 10px;background:#0e0e1e;border:1px solid rgba(255,255,255,.1);border-radius:9px;color:#fff;font-size:clamp(.82rem,2.5vw,.9rem);transition:.2s}
+.fg input:focus,.fg select:focus{outline:0;border-color:var(--gold);box-shadow:0 0 0 2px rgba(255,215,0,.15)}
 
-        .header p {
-            font-size: 0.9rem;
-            color: #b9c3e0;
-            background: rgba(255, 255, 255, 0.04);
-            display: inline-block;
-            padding: 6px 20px;
-            border-radius: 40px;
-            backdrop-filter: blur(4px);
-        }
+/* Buttons */
+.btns{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.btn{padding:9px 16px;border:none;border-radius:9px;font-weight:600;cursor:pointer;font-size:clamp(.78rem,2.5vw,.85rem);transition:.2s;flex:1;min-width:0;text-align:center}
+.btn:hover{transform:translateY(-1px);filter:brightness(1.1)}.btn:active{transform:translateY(0)}
+.bg{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff}
+.bo{background:linear-gradient(135deg,#f57c00,#ff9500);color:#fff}
+.br{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff}
 
-        /* ========== TABS MODERN ========== */
-        .tabs {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            margin-bottom: 32px;
-            background: rgba(6, 6, 18, 0.6);
-            padding: 6px;
-            border-radius: 60px;
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 195, 80, 0.25);
-        }
+/* Bar atas parlay */
+.bar{display:flex;align-items:center;gap:8px;background:#1e1e36;padding:8px 12px;border-radius:11px;margin-bottom:12px;flex-wrap:wrap}
+.bar label{color:var(--gold);font-size:clamp(.72rem,2vw,.82rem);font-weight:600;white-space:nowrap}
+.bar input{background:#0a0a16;border:none;padding:5px 8px;border-radius:7px;color:#fff;width:clamp(90px,20vw,130px);text-align:right;font-size:clamp(.8rem,2.5vw,.88rem)}
+.bar .spacer{flex:1;min-width:4px}
+.bar .btns{margin:0;gap:5px}
+.bar .btn{padding:7px 12px;flex:0 0 auto;min-width:auto;font-size:clamp(.72rem,2.2vw,.82rem)}
 
-        .tab-btn {
-            padding: 12px 36px;
-            border: none;
-            border-radius: 50px;
-            background: transparent;
-            color: #b7c0e0;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            letter-spacing: -0.2px;
-        }
+/* Warning */
+.warn{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);border-left:3px solid var(--yellow);border-radius:9px;padding:8px 12px;margin-bottom:12px;color:var(--yellow);font-size:clamp(.72rem,2vw,.82rem)}
+.warn.err{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.25);border-left-color:var(--red);color:var(--red)}
 
-        .tab-btn:hover {
-            color: white;
-            background: rgba(255, 255, 255, 0.08);
-            transform: translateY(-1px);
-        }
+/* ===== TABEL: DESKTOP VS MOBILE ===== */
+/* Container scroll horizontal hanya muncul di layar cukup lebar */
+.tw{overflow-x:auto;margin:0 -12px 12px;padding:0 12px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.12) transparent}
+.tw::-webkit-scrollbar{height:5px}.tw::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}
 
-        .tab-btn.active {
-            background: linear-gradient(105deg, #FF9A2E, #FF6A00);
-            color: white;
-            box-shadow: 0 6px 20px rgba(255, 106, 0, 0.4);
-        }
+/* Tabel desktop (default) */
+.dt{width:100%;border-collapse:separate;border-spacing:0;font-size:clamp(.72rem,2vw,.8rem);min-width:900px}
+.dt th{position:sticky;top:0;background:#1a1a30;color:var(--gold);font-weight:700;font-size:clamp(.62rem,1.8vw,.7rem);text-transform:uppercase;letter-spacing:.03em;padding:10px 6px;text-align:center;border-bottom:1px solid rgba(255,255,255,.08);white-space:nowrap}
+.dt td{background:rgba(28,28,48,.5);padding:8px 5px;text-align:center;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;transition:.15s}
+.dt tr:hover td{background:rgba(255,215,0,.04)}.dt tr:nth-child(even) td{background:rgba(34,34,52,.3)}
+.dt input,.dt select{background:#0c0c1a;border:1px solid rgba(255,255,255,.12);color:#fff;padding:5px 6px;border-radius:6px;font-size:clamp(.68rem,2vw,.78rem);width:100%;transition:.15s}
+.dt input:focus,.dt select:focus{border-color:var(--gold);outline:0;box-shadow:0 0 0 2px rgba(255,215,0,.15)}
+.dt .ti{width:clamp(70px,10vw,95px)}.dt .si{width:clamp(36px,5vw,44px);text-align:center}.dt .vi{width:clamp(46px,7vw,58px);text-align:center}.dt .oi{width:clamp(50px,8vw,64px);text-align:center}
+.dt .expl{max-width:clamp(200px,40vw,520px);text-align:left;font-size:clamp(.62rem,1.8vw,.72rem);color:#a0a0b8;line-height:1.45;background:#0e0e1e;border-radius:7px;padding:7px;white-space:pre-line;border:1px solid rgba(255,255,255,.06);transition:.2s}
+.dt .expl:hover{border-color:rgba(255,215,0,.25)}
+.dt .del{background:linear-gradient(135deg,#ef4444,#b91c1c);border:none;padding:4px 10px;border-radius:6px;color:#fff;cursor:pointer;font-size:clamp(.64rem,1.8vw,.72rem);font-weight:600;transition:.15s}
+.dt .del:hover{transform:scale(1.05);box-shadow:0 3px 10px rgba(239,68,68,.35)}
+.dt .badge{display:inline-block;padding:3px 8px;border-radius:14px;font-size:clamp(.6rem,1.6vw,.68rem);font-weight:700;text-transform:uppercase;letter-spacing:.02em}
+.b-mf{background:rgba(52,211,153,.12);color:var(--green);border:1px solid rgba(52,211,153,.3)}
+.b-ms{background:rgba(96,165,250,.12);color:var(--blue);border:1px solid rgba(96,165,250,.3)}
+.b-ks{background:rgba(251,191,36,.12);color:var(--yellow);border:1px solid rgba(251,191,36,.3)}
+.b-sr{background:rgba(167,139,250,.12);color:var(--purple);border:1px solid rgba(167,139,250,.3)}
+.b-kf{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.3)}
 
-        .tab-content {
-            display: none;
-            animation: fadeInUp 0.35s ease-out;
-        }
+/* Kartu mobile — tersembunyi di desktop */
+.mc{display:none}
+@media(max-width:640px){
+.tw{display:none}.mc{display:block}
+}
 
-        .tab-content.active {
-            display: block;
-        }
+.mk{background:rgba(28,28,48,.6);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px;margin-bottom:10px;position:relative;transition:.2s}
+.mk:hover{border-color:rgba(255,215,0,.15)}
+.mk-num{position:absolute;top:-8px;left:14px;background:linear-gradient(135deg,#f57c00,#ff9500);color:#fff;font-size:.65rem;font-weight:700;padding:2px 10px;border-radius:10px}
+.mk-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.mk-fg{display:flex;flex-direction:column;gap:3px}
+.mk-fg label{font-size:.65rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.mk-fg input,.mk-fg select{padding:7px 8px;background:#0c0c1a;border:1px solid rgba(255,255,255,.1);border-radius:7px;color:#fff;font-size:.8rem;transition:.15s}
+.mk-fg input:focus,.mk-fg select:focus{border-color:var(--gold);outline:0}
+.mk-skor{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.mk-skor input{width:48px;text-align:center;padding:6px;background:#0c0c1a;border:1px solid rgba(255,255,255,.1);border-radius:7px;color:#fff;font-size:.82rem}
+.mk-skor input:focus{border-color:var(--gold);outline:0}
+.mk-skor span{color:var(--muted);font-weight:700}
+.mk-meta{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.mk-status{flex:1}
+.mk-odds{display:flex;gap:6px;align-items:center}
+.mk-odds input{width:64px;text-align:center;padding:6px;background:#0c0c1a;border:1px solid rgba(255,255,255,.1);border-radius:7px;color:#fff;font-size:.8rem}
+.mk-odds input:focus{border-color:var(--gold);outline:0}
+.mk-odds span{font-size:.7rem;color:var(--muted);font-weight:600}
+.mk-expl{background:#0a0a16;border-radius:8px;padding:10px;font-size:.7rem;color:#9898b0;line-height:1.5;white-space:pre-line;border:1px solid rgba(255,255,255,.05);margin-bottom:8px}
+.mk-del{width:100%;padding:7px;border:none;border-radius:7px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);font-weight:600;font-size:.72rem;cursor:pointer;transition:.15s}
+.mk-del:hover{background:rgba(239,68,68,.2)}
+.mk-eff{font-weight:700;color:var(--gold);font-size:.78rem}
 
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(12px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+/* Chips */
+.chips{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin:12px 0;padding:10px;background:rgba(255,255,255,.02);border-radius:10px;border:1px solid rgba(255,255,255,.05)}
+.chip{padding:4px 10px;background:rgba(40,40,60,.7);border-radius:14px;font-size:clamp(.62rem,1.8vw,.72rem);font-weight:500;border:1px solid rgba(255,255,255,.06);white-space:nowrap}
 
-        /* ========== CARD UTAMA ========== */
-        .card {
-            background: rgba(12, 12, 26, 0.75);
-            backdrop-filter: blur(18px);
-            border-radius: 32px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 28px 30px;
-            margin-bottom: 28px;
-            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.5);
-            transition: all 0.2s;
-        }
+/* Result */
+.result{background:linear-gradient(135deg,rgba(22,22,42,.95),rgba(12,12,24,.98));border:1px solid var(--border);border-radius:12px;padding:clamp(12px,3vw,18px);margin-top:14px;border-left:3px solid var(--gold)}
+.result h3{color:var(--gold);margin-bottom:10px;font-size:clamp(.85rem,2.5vw,.95rem)}
+.ri{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed rgba(255,255,255,.05);gap:8px;flex-wrap:wrap}
+.ri:last-child{border-bottom:0}.rl{color:var(--muted);font-size:clamp(.72rem,2vw,.82rem)}.rv{font-weight:700;color:var(--gold);font-size:clamp(.78rem,2.2vw,.9rem)}.rp{color:var(--green)}.rr{color:var(--red)}
+.hbox{background:rgba(255,215,0,.04);border:1px solid rgba(255,215,0,.15);border-radius:10px;padding:clamp(10px,2.5vw,14px);margin-top:12px}
+.hbox h4{color:var(--gold);font-size:clamp(.78rem,2.2vw,.88rem);margin-bottom:8px}
+.rlist{background:#0e0e1e;padding:6px;border-radius:7px;margin-bottom:8px;max-height:110px;overflow-y:auto;font-size:clamp(.68rem,2vw,.78rem)}
+.rlist div{padding:2px 0}
+.rh{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}
 
-        /* ========== FORM STYLES ========== */
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 22px;
-            margin-bottom: 24px;
-        }
+/* Single */
+.sbc{background:rgba(28,28,48,.5);border-radius:10px;padding:10px;margin-bottom:12px;border:1px solid rgba(255,255,255,.05)}
+.sbi{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.05);gap:6px}.sbi:last-child{border-bottom:0}
+.sbl{color:var(--muted);font-size:clamp(.72rem,2vw,.82rem)}.sbv{font-weight:500;color:#fff;font-size:clamp(.72rem,2vw,.82rem)}
+.pbox{background:#0e0e1e;border-radius:9px;padding:clamp(10px,2.5vw,14px);margin-top:12px;border-left:3px solid var(--gold);font-size:clamp(.72rem,2vw,.82rem);line-height:1.55;color:#a0a0b0}
+.pbox strong{color:var(--gold)}
+.note{font-size:clamp(.68rem,1.8vw,.78rem);color:var(--muted);margin-top:12px;padding-top:10px;border-top:1px dashed rgba(255,255,255,.07);line-height:1.55}.note strong{color:var(--gold)}
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+/* Menu Salin */
+.cm-wrap{position:relative;display:inline-block}
+.cm-btn{padding:7px 14px;border:1px solid rgba(255,215,0,.3);border-radius:9px;background:linear-gradient(135deg,rgba(255,215,0,.08),rgba(255,149,0,.04));color:var(--gold);font-weight:600;cursor:pointer;font-size:clamp(.72rem,2.2vw,.82rem);transition:.2s;display:flex;align-items:center;gap:6px}
+.cm-btn:hover{background:linear-gradient(135deg,rgba(255,215,0,.15),rgba(255,149,0,.08));border-color:var(--gold);transform:translateY(-1px);box-shadow:0 4px 12px rgba(255,215,0,.12)}
+.cm-btn:active{transform:translateY(0)}
+.cm-btn .arrow{font-size:.55rem;transition:transform .2s}
+.cm-btn.open .arrow{transform:rotate(180deg)}
+.cm-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:240px;background:#1a1a34;border:1px solid rgba(255,215,0,.2);border-radius:12px;padding:5px;opacity:0;visibility:hidden;transform:translateY(-6px) scale(.96);transition:all .2s cubic-bezier(.22,1,.36,1);z-index:100;box-shadow:0 14px 40px rgba(0,0,0,.6)}
+.cm-menu.show{opacity:1;visibility:visible;transform:translateY(0) scale(1)}
+.cm-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:8px;cursor:pointer;transition:.12s;border:none;background:none;width:100%;text-align:left;color:var(--text);font-size:clamp(.72rem,2vw,.82rem);font-family:inherit}
+.cm-item:hover{background:rgba(255,215,0,.08)}
+.cm-item .cm-ico{font-size:.95rem;width:22px;text-align:center;flex-shrink:0}
+.cm-item .cm-txt{display:flex;flex-direction:column;gap:1px}
+.cm-item .cm-title{font-weight:600;color:#fff}.cm-item .cm-desc{color:var(--muted);font-size:clamp(.6rem,1.6vw,.68rem)}
+.cm-sep{height:1px;background:rgba(255,255,255,.05);margin:3px 7px}
+.cm-item.ok{background:rgba(34,197,94,.1);pointer-events:none}
+.cm-item.ok .cm-title{color:var(--green)}
+.cm-ov{display:none;position:fixed;inset:0;z-index:99}.cm-ov.show{display:block}
 
-        .form-group label {
-            font-size: 0.73rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #FFC65A;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
+/* Toast */
+.toast-c{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none}
+.toast{padding:10px 18px;border-radius:10px;font-weight:600;font-size:clamp(.78rem,2.5vw,.85rem);display:flex;align-items:center;gap:7px;backdrop-filter:blur(12px);pointer-events:auto;animation:tin .25s ease;box-shadow:0 8px 24px rgba(0,0,0,.5);white-space:nowrap}
+.t-ok{background:linear-gradient(135deg,rgba(34,197,94,.9),rgba(22,163,74,.9));color:#fff}
+.t-err{background:linear-gradient(135deg,rgba(239,68,68,.9),rgba(220,38,38,.9));color:#fff}
+.toast.out{animation:tout .2s ease forwards}
+@keyframes tin{from{opacity:0;transform:translateY(12px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes tout{to{opacity:0;transform:translateY(6px) scale(.94)}}
 
-        .form-group input,
-        .form-group select {
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 12px 18px;
-            color: #ffffff;
-            font-size: 0.95rem;
-            transition: 0.2s;
-            outline: none;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            border-color: #FFA033;
-            box-shadow: 0 0 0 3px rgba(255, 160, 51, 0.25);
-            background: rgba(0, 0, 0, 0.7);
-        }
-
-        /* ========== BUTTONS ========== */
-        .btn-group {
-            display: flex;
-            gap: 14px;
-            flex-wrap: wrap;
-            margin: 20px 0 8px;
-        }
-
-        .btn {
-            padding: 12px 28px;
-            border-radius: 40px;
-            font-weight: 700;
-            border: none;
-            cursor: pointer;
-            transition: 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(30, 30, 50, 0.9);
-            color: white;
-        }
-
-        .btn-green {
-            background: linear-gradient(95deg, #1E9B4A, #0F6733);
-            box-shadow: 0 4px 12px rgba(30, 155, 74, 0.3);
-        }
-
-        .btn-orange {
-            background: linear-gradient(95deg, #F97316, #EA580C);
-            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
-        }
-
-        .btn-red {
-            background: linear-gradient(95deg, #DC2626, #B91C1C);
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            filter: brightness(1.06);
-            box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.6);
-        }
-
-        .btn-salin {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 195, 80, 0.4);
-            padding: 8px 22px;
-            border-radius: 36px;
-            font-weight: 600;
-            backdrop-filter: blur(4px);
-            transition: 0.15s;
-        }
-
-        .btn-salin:hover {
-            background: rgba(255, 195, 80, 0.15);
-            border-color: #FFC35A;
-            color: #FFC35A;
-        }
-
-        /* ========== TABLE MODERN ========== */
-        .table-wrapper {
-            overflow-x: auto;
-            margin: 20px -8px 20px -8px;
-            padding: 0 8px;
-            border-radius: 24px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0 10px;
-            min-width: 1380px;
-        }
-
-        thead th {
-            background: rgba(22, 22, 48, 0.95);
-            backdrop-filter: blur(8px);
-            color: #FFCF7A;
-            font-weight: 700;
-            font-size: 0.72rem;
-            letter-spacing: 0.06em;
-            padding: 16px 12px;
-            text-align: center;
-            border-bottom: 1px solid rgba(255, 195, 80, 0.35);
-            border-radius: 20px 20px 0 0;
-        }
-
-        tbody td {
-            background: rgba(18, 18, 40, 0.7);
-            padding: 14px 8px;
-            text-align: center;
-            border-radius: 20px;
-            transition: all 0.2s;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-        }
-
-        tbody tr:hover td {
-            background: rgba(45, 45, 80, 0.85);
-            transform: scale(1.01);
-        }
-
-        .tim-input, .score-input, .voor-input, .odds-input {
-            background: #0c0c20 !important;
-            border: 1px solid #2d2d55 !important;
-            border-radius: 14px !important;
-            padding: 8px 6px !important;
-            font-weight: 500;
-            text-align: center;
-            color: white;
-        }
-
-        .btn-hapus {
-            background: rgba(220, 38, 38, 0.9);
-            border: none;
-            padding: 6px 18px;
-            border-radius: 30px;
-            color: white;
-            font-weight: bold;
-            transition: 0.15s;
-            cursor: pointer;
-        }
-
-        .btn-hapus:hover {
-            background: #dc2626;
-            transform: scale(1.02);
-        }
-
-        /* ========== STATUS BADGES ========== */
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 5px 14px;
-            border-radius: 40px;
-            font-size: 0.7rem;
-            font-weight: 800;
-            letter-spacing: 0.03em;
-        }
-        .status-mf { background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid #2ecc7155; }
-        .status-ms { background: rgba(52, 152, 219, 0.2); color: #5dade2; border: 1px solid #3498db66; }
-        .status-ks { background: rgba(241, 196, 15, 0.2); color: #f1c40f; border: 1px solid #f1c40f66; }
-        .status-sr { background: rgba(155, 89, 182, 0.2); color: #b07cd6; border: 1px solid #9b59b666; }
-        .status-kf { background: rgba(231, 76, 60, 0.2); color: #e67e6a; border: 1px solid #e74c3c66; }
-
-        /* ========== PENJELASAN CELL ========== */
-        .penjelasan-cell {
-            background: #0a0a1a;
-            border-radius: 18px;
-            padding: 12px;
-            font-size: 0.75rem;
-            line-height: 1.55;
-            color: #cfddff;
-            max-width: 520px;
-            text-align: left;
-            transition: all 0.2s;
-        }
-
-        /* ========== HASIL AREA PREMIUM ========== */
-        .hasil-area {
-            background: radial-gradient(ellipse at 30% 20%, rgba(28, 28, 55, 0.92), rgba(10, 10, 25, 0.98));
-            border-radius: 28px;
-            padding: 24px;
-            margin-top: 20px;
-            border: 1px solid rgba(255, 185, 70, 0.35);
-            box-shadow: 0 12px 28px -8px black;
-        }
-
-        .hadiah-box {
-            background: rgba(255, 180, 70, 0.06);
-            border: 1px solid #FFB34755;
-            border-radius: 24px;
-            padding: 18px;
-        }
-
-        .ringkasan {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            justify-content: center;
-            margin: 20px 0 12px;
-        }
-        .ringkasan-item {
-            background: #101028;
-            padding: 7px 20px;
-            border-radius: 40px;
-            font-size: 0.74rem;
-            font-weight: 600;
-            border: 1px solid #2c2c55;
-            transition: 0.1s;
-        }
-
-        .single-bet-card {
-            background: rgba(30, 30, 55, 0.7);
-            border-radius: 24px;
-            padding: 18px;
-            margin-bottom: 20px;
-        }
-
-        .single-bet-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
-        }
-
-        .penjelasan-single {
-            background: #0a0a1c;
-            border-radius: 20px;
-            padding: 18px;
-            margin-top: 18px;
-            border-left: 5px solid #FFA033;
-        }
-
-        .note {
-            background: #0c0c1e;
-            border-radius: 20px;
-            padding: 16px;
-            font-size: 0.8rem;
-            color: #bbccff;
-        }
-
-        .toast-container {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 9999;
-            display: flex;
-            gap: 10px;
-            flex-direction: column;
-            align-items: center;
-            pointer-events: none;
-        }
-        .toast {
-            background: #1a1a30ee;
-            backdrop-filter: blur(30px);
-            padding: 12px 28px;
-            border-radius: 60px;
-            font-weight: 600;
-            color: white;
-            border-left: 5px solid #FFB347;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            pointer-events: auto;
-        }
-
-        /* ========== RESPONSIVE ========== */
-        @media (max-width: 860px) {
-            body { padding: 16px; }
-            .card { padding: 20px; }
-            .btn-group .btn { flex: 1; justify-content: center; }
-            .tab-btn { padding: 8px 22px; }
-        }
-        @media (max-width: 550px) {
-            .penjelasan-cell { font-size: 0.7rem; }
-            table { min-width: 1200px; }
-        }
-    </style>
+/* Responsif halus */
+@media(max-width:900px){
+.dt{min-width:780px}
+.dt .expl{min-width:180px}
+}
+@media(max-width:640px){
+body{padding:8px}
+.hdr{padding:16px 12px;margin-bottom:12px;border-radius:12px}
+.card{padding:12px 10px;border-radius:12px;margin-bottom:12px}
+.tabs{margin-bottom:12px;padding:3px;border-radius:10px}
+.tab{padding:8px 16px;border-radius:8px}
+.chips{gap:4px;padding:8px}
+.mc .mk{padding:12px}
+}
+@media(max-width:380px){
+.mk-row{grid-template-columns:1fr}
+.mk-odds{flex-wrap:wrap}
+}
+</style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1>✨ Kalkulator Taruhan Premium ✨</h1>
-        <p>Mix Parlay (Minimal 3 Tim) | Single Bet Odds Indonesia + Analisis Lengkap</p>
-    </div>
-
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('parlay')">📊 Mix Parlay</button>
-        <button class="tab-btn" onclick="switchTab('single')">🎯 Single Bet</button>
-    </div>
-
-    <!-- TAB MIX PARLAY -->
-    <div id="tab-parlay" class="tab-content active">
-        <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 20px;">
-                <div style="display: flex; align-items: center; gap: 12px; background: #0a0a18; padding: 5px 20px; border-radius: 60px;">
-                    <label style="color:#FFD966; font-weight:600;">💰 Modal (Rp)</label>
-                    <input type="text" id="parlay-modal" value="100.000" style="background:#050510; border:1px solid #FFB347; border-radius:30px; padding:8px 16px; color:white; width:160px; text-align:right;">
-                </div>
-                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                    <button class="btn btn-green" onclick="tambahPilihan()">+ Tambah Pilihan</button>
-                    <button class="btn btn-orange" onclick="hitungParlay()">📊 Hitung Parlay</button>
-                    <button class="btn btn-red" onclick="resetParlay()">Reset</button>
-                </div>
-            </div>
-            <div id="warningMinimal" style="display: none; background:#fbbf2422; border-left: 4px solid #fbbf24; border-radius: 18px; padding: 10px 20px; margin-bottom: 16px;">
-                ⚠️ PERHATIAN: Mix Parlay minimal 3 pilihan! Saat ini <span id="jumlahTim">0</span> pilihan.
-            </div>
-            <div class="table-wrapper">
-                <table id="tabelParlay">
-                    <thead><tr><th>No</th><th>Tim Pasang</th><th>Lawan</th><th>Pasaran</th><th>Voor/Batas</th><th>Skor</th><th>Status</th><th>Odds</th><th>Odds Efektif</th><th style="min-width:500px;">📝 Penjelasan Detail</th><th>Aksi</th></tr></thead>
-                    <tbody id="tbodyParlay"></tbody>
-                </table>
-            </div>
-            <div class="ringkasan">
-                <div class="ringkasan-item">🟢 Menang Full → Odds tetap</div>
-                <div class="ringkasan-item">🔵 Menang Setengah → (Odds-1)/2+1</div>
-                <div class="ringkasan-item">🟠 Kalah Setengah → 0.5</div>
-                <div class="ringkasan-item">🟣 Seri → 1</div>
-                <div class="ringkasan-item">🔴 Kalah Full → 0</div>
-            </div>
-            <div class="hasil-area">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 16px;">
-                    <h3 style="color:#FFD966;">📈 Hasil Mix Parlay</h3>
-                    <button class="btn-salin" onclick="salinHasilParlay()">📋 Salin Hasil</button>
-                </div>
-                <div id="hasilParlayText">🏆 Belum ada perhitungan. Isi data & klik Hitung.</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- TAB SINGLE BET -->
-    <div id="tab-single" class="tab-content">
-        <div class="card">
-            <div class="form-row">
-                <div class="form-group"><label>💰 Stake / Target</label><input type="text" id="singleInput" value="100.000"></div>
-                <div class="form-group"><label>📊 Odds Indonesian</label><div style="display:flex; gap:10px;"><select id="singleOddsTanda" style="width:90px;"><option value="minus">- (Minus)</option><option value="plus">+ (Plus)</option></select><input type="number" id="singleOddsNilai" value="1.00" step="0.01"></div></div>
-            </div>
-            <div class="form-row">
-                <div class="form-group"><label>⚽ Tim</label><input type="text" id="singleTim" value="E-PSV"></div>
-                <div class="form-group"><label>🆚 Lawan</label><input type="text" id="singleLawan" value="MU"></div>
-            </div>
-            <div class="form-row">
-                <div class="form-group"><label>📋 Pasaran</label><select id="singlePasaran"><option value="HDP">Handicap (HDP)</option><option value="OU">Over/Under</option><option value="1x2">1×2</option><option value="OE">Odd/Even</option></select></div>
-                <div class="form-group" id="singleVoorContainer"><label>Voor / Batas</label><input type="number" id="singleVoor" step="0.25" value="-0.75"></div>
-            </div>
-            <div class="form-group" id="singlePilihanContainer" style="display: none;"><label>🎯 Pilihan</label><select id="singlePilihan"><option value="over">Over</option><option value="under">Under</option></select></div>
-            <div class="form-row"><div class="form-group"><label>📝 Skor</label><div style="display:flex; gap: 10px;"><input type="number" id="singleSkorHome" value="3"><span>:</span><input type="number" id="singleSkorAway" value="2"></div></div></div>
-            <div class="btn-group"><button class="btn btn-orange" onclick="hitungSingle()">📊 Hitung Single</button><button class="btn btn-red" onclick="resetSingle()">Reset</button></div>
-            <div class="hasil-area">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 16px;">
-                    <h3 style="color:#FFD966;">📈 Hasil Single Bet</h3>
-                    <button class="btn-salin" onclick="salinHasilSingle()">📋 Salin Hasil</button>
-                </div>
-                <div id="hasilSingleText">✨ Hasil kalkulasi akan tampil di sini</div>
-            </div>
-            <div class="note"><strong>💡 Rumus Odds:</strong> Minus = Target Profit × |Odds| → Stake, Plus = Stake × Odds → Profit</div>
-        </div>
-    </div>
+<div class="wrap">
+<div class="hdr">
+<h1>Kalkulator Taruhan</h1>
+<p>Mix Parlay (Min. 3 Tim) & Single Bet — Indonesian Odds</p>
+</div>
+<div class="tabs">
+<button class="tab on" onclick="go('p')">Mix Parlay</button>
+<button class="tab" onclick="go('s')">Single Bet</button>
 </div>
 
-<div class="toast-container" id="toastContainer"></div>
+<!-- ===== PARLAY ===== -->
+<div id="tp" class="panel on">
+<div class="card">
+<div class="bar">
+<label>Modal (Rp)</label>
+<input type="text" id="pm" value="100.000">
+<div class="spacer"></div>
+<div class="btns">
+<button class="btn bg" onclick="add()">+ Tambah</button>
+<button class="btn bo" onclick="calcP()">Hitung</button>
+<button class="btn br" onclick="resetP()">Reset</button>
+</div>
+</div>
+<div id="pwarn" class="warn" style="display:none">Mix Parlay WAJIB minimal 3 tim! Saat ini: <b id="pcount">0</b></div>
+
+<!-- Tabel Desktop -->
+<div class="tw">
+<table class="dt" id="dtbl"><thead><tr>
+<th>No</th><th>Tim</th><th>Lawan</th><th>Pasaran</th><th>Voor</th><th>Skor</th><th>Status</th><th>Odds</th><th>Eff</th><th>Penjelasan</th><th></th>
+</tr></thead><tbody id="dtbody"></tbody></table>
+</div>
+
+<!-- Kartu Mobile -->
+<div class="mc" id="mcards"></div>
+
+<div class="chips">
+<span class="chip">Menang Full → Odds tetap</span>
+<span class="chip">Menang Setengah → (Odds-1)/2+1</span>
+<span class="chip">Kalah Setengah → 0.5</span>
+<span class="chip">Seri → 1</span>
+<span class="chip">Kalah Full → 0</span>
+</div>
+
+<div class="result" id="pr">
+<div class="rh">
+<h3>Hasil Mix Parlay</h3>
+<div class="cm-wrap" id="cmp-wrap">
+<button class="cm-btn" onclick="toggleMenu('cmp')">📋 Salin <span class="arrow">▼</span></button>
+<div class="cm-ov" id="cmp-ov" onclick="closeMenu('cmp')"></div>
+<div class="cm-menu" id="cmp-m">
+<button class="cm-item" onclick="clipP('ringkas')"><span class="cm-ico">📊</span><span class="cm-txt"><span class="cm-title">Salin Ringkas</span><span class="cm-desc">Hanya hasil akhir</span></span></button>
+<button class="cm-item" onclick="clipP('lengkap')"><span class="cm-ico">📝</span><span class="cm-txt"><span class="cm-title">Salin Lengkap</span><span class="cm-desc">Semua rincian per tim</span></span></button>
+<button class="cm-item" onclick="clipP('penjelasan')"><span class="cm-ico">💬</span><span class="cm-txt"><span class="cm-title">Salin Penjelasan</span><span class="cm-desc">Detail setiap tim</span></span></button>
+<div class="cm-sep"></div>
+<button class="cm-item" onclick="clipP('semua')"><span class="cm-ico">📋</span><span class="cm-txt"><span class="cm-title">Salin Semua</span><span class="cm-desc">Lengkap + penjelasan</span></span></button>
+</div>
+</div>
+</div>
+<div id="prt">Belum ada perhitungan</div>
+</div>
+</div>
+</div>
+
+<!-- ===== SINGLE ===== -->
+<div id="ts" class="panel">
+<div class="card">
+<div class="row">
+<div class="fg"><label id="slbl">Target Profit (Rp)</label><input type="text" id="si" value="100.000" style="text-align:right"></div>
+<div class="fg"><label>Odds Indonesian</label><div style="display:flex;gap:6px"><select id="st" style="width:72px"><option value="-">- Minus</option><option value="+">+ Plus</option></select><input type="number" id="sn" value="1.00" step="0.01" style="flex:1"></div></div>
+</div>
+<div class="row">
+<div class="fg"><label>Tim Dipasang</label><input type="text" id="stm" value="E-PSV"></div>
+<div class="fg"><label>Lawan</label><input type="text" id="slw" value="MU"></div>
+</div>
+<div class="row">
+<div class="fg"><label>Pasaran</label><select id="sp"><option value="HDP">Handicap (HDP)</option><option value="OU">Over/Under (OU)</option><option value="1x2">1x2</option><option value="OE">Odd/Even</option></select></div>
+<div class="fg" id="svc"><label>Voor / Batas</label><input type="number" id="sv" step="0.25" value="-0.75"></div>
+</div>
+<div class="fg" id="spc" style="display:none;margin-bottom:12px"><label>Pilihan</label><select id="spp"></select></div>
+<div class="row">
+<div class="fg"><label>Skor</label><div style="display:flex;gap:6px;align-items:center"><input type="number" id="sh" value="3" style="width:68px"><span>:</span><input type="number" id="sa" value="2" style="width:68px"></div></div>
+</div>
+<div class="btns"><button class="btn bo" onclick="calcS()">Hitung</button><button class="btn br" onclick="resetS()">Reset</button></div>
+<div class="result" id="sr">
+<div class="rh">
+<h3>Hasil Single Bet</h3>
+<div class="cm-wrap" id="cms-wrap">
+<button class="cm-btn" onclick="toggleMenu('cms')">📋 Salin <span class="arrow">▼</span></button>
+<div class="cm-ov" id="cms-ov" onclick="closeMenu('cms')"></div>
+<div class="cm-menu" id="cms-m">
+<button class="cm-item" onclick="clipS('ringkas')"><span class="cm-ico">📊</span><span class="cm-txt"><span class="cm-title">Salin Ringkas</span><span class="cm-desc">Hanya hasil akhir</span></span></button>
+<button class="cm-item" onclick="clipS('lengkap')"><span class="cm-ico">📝</span><span class="cm-txt"><span class="cm-title">Salin Lengkap</span><span class="cm-desc">Semua detail taruhan</span></span></button>
+<button class="cm-item" onclick="clipS('penjelasan')"><span class="cm-ico">💬</span><span class="cm-txt"><span class="cm-title">Salin Penjelasan</span><span class="cm-desc">Detail status</span></span></button>
+<div class="cm-sep"></div>
+<button class="cm-item" onclick="clipS('semua')"><span class="cm-ico">📋</span><span class="cm-txt"><span class="cm-title">Salin Semua</span><span class="cm-desc">Lengkap + penjelasan</span></span></button>
+</div>
+</div>
+</div>
+<div id="srt">Belum ada perhitungan</div>
+</div>
+<div class="note"><strong>Rumus:</strong> Odds Minus → Input = Target Profit, Stake = Profit × |Odds|. Odds Plus → Input = Stake, Profit = Stake × Odds.</div>
+</div>
+</div>
+</div>
+
+<div class="toast-c" id="tc"></div>
 
 <script>
-    // ========== UTILITIES ==========
-    function formatRupiah(angka) { if (isNaN(angka) || angka === null) return '0'; let num = Math.round(angka); return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
-    function parseRupiah(str) { if (!str) return 0; return parseInt(str.replace(/\./g, '')) || 0; }
-    function tampilkanToast(pesan, tipe) { let c = document.getElementById('toastContainer'); let t = document.createElement('div'); t.className = 'toast'; t.innerHTML = `<span>${tipe === 'sukses' ? '✅' : '⚠️'}</span> ${pesan}`; c.appendChild(t); setTimeout(() => t.remove(), 2200); }
-    function salinKeClipboard(teks, btnId) { if (!teks || teks.includes('Belum ada')) { tampilkanToast('Tidak ada hasil', 'gagal'); return; } navigator.clipboard.writeText(teks).then(() => { tampilkanToast('✅ Tersalin!', 'sukses'); }).catch(() => { tampilkanToast('Gagal menyalin', 'gagal'); }); }
-    
-    function getStatusLabel(status) { return { mf:'Menang Full', ms:'Menang Setengah', ks:'Kalah Setengah', sr:'Seri', kf:'Kalah Full' }[status]; }
-    function hitungStatus(market, sh, sa, voor, pilihan) {
-        let selisih = sh - sa, total = sh + sa;
-        if (market === 'HDP') { let res = selisih + voor; if (res > 0.25) return 'mf'; if (res === 0.25) return 'ms'; if (res === 0) return 'sr'; if (res === -0.25) return 'ks'; return 'kf'; }
-        if (market === 'OU') { if (pilihan === 'over') { if (total > voor+0.25) return 'mf'; if (total === voor+0.25) return 'ms'; if (total === voor) return 'sr'; if (total === voor-0.25) return 'ks'; return 'kf'; } else { if (total < voor-0.25) return 'mf'; if (total === voor-0.25) return 'ms'; if (total === voor) return 'sr'; if (total === voor+0.25) return 'ks'; return 'kf'; } }
-        if (market === '1x2') { if ((pilihan==='home' && selisih>0) || (pilihan==='away' && selisih<0) || (pilihan==='draw' && selisih===0)) return 'mf'; return 'kf'; }
-        if (market === 'OE') { if ((pilihan==='even' && total%2===0) || (pilihan==='odd' && total%2===1)) return 'mf'; return 'kf'; }
-        return 'mf';
-    }
+const fmt=n=>Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+const prs=s=>parseInt((s||'').replace(/\./g,''))||0;
+const eq=(a,b)=>Math.abs(a-b)<.001;
+const $=id=>document.getElementById(id);
+const SL={mf:'Menang Full',ms:'Menang Setengah',ks:'Kalah Setengah',sr:'Seri',kf:'Kalah Full'};
+const EM={mf:'✅',ms:'🔵',ks:'🟠',sr:'🟣',kf:'❌'};
+const MN={HDP:'HDP',OU:'OU','1x2':'1x2',OE:'OE'};
 
-    function getPenjelasanHandicap(tim, lawan, voor, selisih, status) { return `✅ ${tim} vs ${lawan} | Voor ${voor} | Skor selisih ${selisih} → Status: ${getStatusLabel(status)}. Detail: sesuai perhitungan voor ${voor}.`; }
-    function getPenjelasanOU(pilihan, voor, total, status) { return `⚽ Pilihan ${pilihan.toUpperCase()} batas ${voor}, total gol ${total} → ${getStatusLabel(status)}.`; }
-    function getPenjelasan1x2(tim, lawan, pilihan, sh, sa, status) { return `🏆 1x2: pilih ${pilihan}, skor ${sh}-${sa} → ${getStatusLabel(status)}`; }
-    function getPenjelasanOE(pilihan, total, status) { return `🎲 Odd/Even: ${pilihan}, total ${total} → ${getStatusLabel(status)}`; }
-    function buatPenjelasanParlay(bet, status, sh, sa) { if (bet.market==='HDP') return getPenjelasanHandicap(bet.timNama||'Tim', bet.lawan||'-', bet.voor||0, sh-sa, status); if (bet.market==='OU') return getPenjelasanOU(bet.pilihan||'over', bet.voor||0, sh+sa, status); if (bet.market==='1x2') return getPenjelasan1x2(bet.timNama||'Home', bet.lawan||'Away', bet.pilihan, sh, sa, status); if (bet.market==='OE') return getPenjelasanOE(bet.pilihan||'even', sh+sa, status); return 'Lengkapi data'; }
+function toast(m,t){const c=$('tc'),d=document.createElement('div');d.className=`toast t-${t}`;d.innerHTML=`${t==='ok'?'✅':'❌'} ${m}`;c.appendChild(d);setTimeout(()=>{d.classList.add('out');setTimeout(()=>d.remove(),200)},1800)}
 
-    let bets = [];
-    function cekMinimal() { let w=document.getElementById('warningMinimal'); let j=document.getElementById('jumlahTim'); if(w&&j) { j.textContent=bets.length; w.style.display=(bets.length<3 && bets.length>0)?'flex':'none'; } }
-    function renderParlay() {
-        let tbody = document.getElementById('tbodyParlay'); if (!tbody) return;
-        if (bets.length===0) { tbody.innerHTML='<tr><td colspan="11" style="text-align:center;">✨ Klik "Tambah Pilihan" ✨</td></tr>'; cekMinimal(); return; }
-        tbody.innerHTML = '';
-        bets.forEach((bet, idx) => {
-            let row = tbody.insertRow();
-            row.insertCell(0).textContent = idx+1;
-            let cTim = row.insertCell(1); let inpTim = document.createElement('input'); inpTim.value=bet.timNama||''; inpTim.className='tim-input'; inpTim.onchange=e=>{ bets[idx].timNama=e.target.value; renderParlay(); }; cTim.appendChild(inpTim);
-            let cLawan = row.insertCell(2); let inpLawan = document.createElement('input'); inpLawan.value=bet.lawan||''; inpLawan.className='tim-input'; inpLawan.onchange=e=>{ bets[idx].lawan=e.target.value; renderParlay(); }; cLawan.appendChild(inpLawan);
-            let cMarket = row.insertCell(3); let selM = document.createElement('select'); ['HDP','OU','1x2','OE'].forEach(m=>{let opt=document.createElement('option'); opt.value=m; opt.text=m; if(bet.market===m) opt.selected=true; selM.appendChild(opt);}); selM.onchange=e=>{ bets[idx].market=e.target.value; renderParlay(); }; cMarket.appendChild(selM);
-            let cVoor = row.insertCell(4); cVoor.innerHTML='';
-            if (bet.market==='HDP') { let inp = document.createElement('input'); inp.type='number'; inp.step='0.25'; inp.value=bet.voor||0; inp.className='voor-input'; inp.onchange=e=>{ bets[idx].voor=parseFloat(e.target.value)||0; renderParlay(); }; cVoor.appendChild(inp); }
-            else if (bet.market==='OU') { let inp = document.createElement('input'); inp.type='number'; inp.step='0.25'; inp.value=bet.voor||2.5; inp.className='voor-input'; inp.onchange=e=>{ bets[idx].voor=parseFloat(e.target.value)||2.5; renderParlay(); }; let sel=document.createElement('select'); ['over','under'].forEach(o=>{let op=document.createElement('option'); op.value=o; op.text=o.toUpperCase(); if(bet.pilihan===o) op.selected=true; sel.appendChild(op);}); sel.onchange=e=>{ bets[idx].pilihan=e.target.value; renderParlay(); }; cVoor.appendChild(inp); cVoor.appendChild(sel); }
-            else if (bet.market==='1x2') { let sel=document.createElement('select'); ['home','draw','away'].forEach(o=>{let op=document.createElement('option'); op.value=o; op.text=o; if(bet.pilihan===o) op.selected=true; sel.appendChild(op);}); sel.onchange=e=>{ bets[idx].pilihan=e.target.value; renderParlay(); }; cVoor.appendChild(sel); }
-            else if (bet.market==='OE') { let sel=document.createElement('select'); ['even','odd'].forEach(o=>{let op=document.createElement('option'); op.value=o; op.text=o.toUpperCase(); if(bet.pilihan===o) op.selected=true; sel.appendChild(op);}); sel.onchange=e=>{ bets[idx].pilihan=e.target.value; renderParlay(); }; cVoor.appendChild(sel); }
-            let cSkor = row.insertCell(5); let inpH=document.createElement('input'); inpH.type='number'; inpH.value=bet.skorHome||0; inpH.className='score-input'; inpH.onchange=e=>{ bets[idx].skorHome=parseInt(e.target.value)||0; renderParlay(); }; let inpA=document.createElement('input'); inpA.type='number'; inpA.value=bet.skorAway||0; inpA.className='score-input'; inpA.onchange=e=>{ bets[idx].skorAway=parseInt(e.target.value)||0; renderParlay(); }; cSkor.appendChild(inpH); cSkor.appendChild(document.createTextNode(' - ')); cSkor.appendChild(inpA);
-            let status = hitungStatus(bet.market, bet.skorHome, bet.skorAway, bet.voor||0, bet.pilihan||'');
-            let cSt = row.insertCell(6); let span=document.createElement('span'); span.className=`status-badge status-${status}`; span.textContent=getStatusLabel(status); cSt.appendChild(span);
-            let cOdds = row.insertCell(7); let inpO=document.createElement('input'); inpO.type='number'; inpO.step='0.01'; inpO.value=bet.odds||2; inpO.className='odds-input'; inpO.onchange=e=>{ bets[idx].odds=parseFloat(e.target.value)||1; renderParlay(); }; cOdds.appendChild(inpO);
-            let eff=0; if(status==='mf') eff=bet.odds; else if(status==='ms') eff=((bet.odds-1)/2+1); else if(status==='ks') eff=0.5; else if(status==='sr') eff=1;
-            let cEff = row.insertCell(8); cEff.textContent=eff.toFixed(3); cEff.style.fontWeight='bold'; cEff.style.color='#FFD966';
-            let cPen = row.insertCell(9); cPen.className='penjelasan-cell'; cPen.innerHTML = buatPenjelasanParlay(bet, status, bet.skorHome||0, bet.skorAway||0);
-            let cAct = row.insertCell(10); let btnHapus=document.createElement('button'); btnHapus.textContent='Hapus'; btnHapus.className='btn-hapus'; btnHapus.onclick=()=>{ bets.splice(idx,1); renderParlay(); cekMinimal(); hitungParlay(); }; cAct.appendChild(btnHapus);
-        }); cekMinimal();
-    }
-    function tambahPilihan() { bets.push({ timNama:'', lawan:'', market:'HDP', voor:0.25, pilihan:'', skorHome:0, skorAway:0, odds:2.00 }); renderParlay(); }
-    function hitungParlay() { if(bets.length<3){ document.getElementById('hasilParlayText').innerHTML='<div class="hadiah-box" style="color:#FFA07A;">⚠️ Minimal 3 tim untuk Mix Parlay.</div>'; return; }
-        let modal = parseRupiah(document.getElementById('parlay-modal').value); if(isNaN(modal)||modal<=0) modal=0;
-        let totalOdds=1, adaKalahFull=false, rincian=[];
-        for(let i=0;i<bets.length;i++){ let b=bets[i]; let st=hitungStatus(b.market,b.skorHome,b.skorAway,b.voor||0,b.pilihan||''); let eff=0; if(st==='mf') eff=b.odds; else if(st==='ms') eff=((b.odds-1)/2+1); else if(st==='ks') eff=0.5; else if(st==='sr') eff=1; else eff=0; if(st==='kf') adaKalahFull=true; totalOdds*=eff; rincian.push(`${i+1}. ${b.timNama||'Pilihan'} → ${getStatusLabel(st)} (eff ${eff.toFixed(3)})`); }
-        totalOdds=Math.round(totalOdds*1000)/1000; let hasil=Math.round((totalOdds*modal)-modal); let isMenang=hasil>0;
-        let html = `<div style="background:#0f0f25; border-radius:20px; padding:14px; margin-bottom:18px;">${rincian.map(r=>`📌 ${r}`).join('<br>')}</div><div class="hadiah-box"><div>💰 Modal: Rp ${formatRupiah(modal)}</div><div>🔢 Total Odds Efektif: ${totalOdds.toFixed(3)}</div><div>📊 Perhitungan: (${totalOdds.toFixed(3)} × ${formatRupiah(modal)}) - ${formatRupiah(modal)} = Rp ${formatRupiah(hasil)}</div><div style="margin-top:12px;">🎯 ${adaKalahFull?'KALAH FULL total modal habis':(isMenang?'✅ MENANG +'+formatRupiah(hasil):'❌ KALAH -'+formatRupiah(Math.abs(hasil)))}</div></div>`;
-        document.getElementById('hasilParlayText').innerHTML = html;
-    }
-    function resetParlay() { bets=[]; renderParlay(); document.getElementById('hasilParlayText').innerHTML='🏆 Belum ada perhitungan.'; document.getElementById('parlay-modal').value='100.000'; cekMinimal(); }
-    function salinHasilParlay() { let modal = parseRupiah(document.getElementById('parlay-modal').value); salinKeClipboard(`Hasil Parlay - Modal: ${formatRupiah(modal)}`, 'btnSalinParlay'); }
+/* Menu Salin */
+let openM=null;
+function toggleMenu(id){const m=$(id+'-m'),ov=$(id+'-ov'),btn=$(id+'-wrap').querySelector('.cm-btn');if(openM&&openM!==id)closeMenu(openM);if(m.classList.contains('show')){closeMenu(id);return}m.classList.add('show');ov.classList.add('show');btn.classList.add('open');openM=id;m.querySelectorAll('.cm-item').forEach(i=>{i.classList.remove('ok');const t=i.querySelector('.cm-title');t.textContent=t.textContent.replace(' ✅','')})}
+function closeMenu(id){if(!id&&openM)id=openM;if(!id)return;const m=$(id+'-m'),ov=$(id+'-ov'),btn=$(id+'-wrap').querySelector('.cm-btn');if(m)m.classList.remove('show');if(ov)ov.classList.remove('show');if(btn)btn.classList.remove('open');openM=null}
+function markOk(id){const m=$(id+'-m');if(!m)return;const tgt=event.currentTarget;m.querySelectorAll('.cm-item').forEach(i=>i.classList.remove('ok'));tgt.classList.add('ok');tgt.querySelector('.cm-title').textContent+=' ✅';setTimeout(()=>closeMenu(id),700)}
+function doClip(txt,id){if(!txt){toast('Hitung dulu!','err');return}navigator.clipboard?navigator.clipboard.writeText(txt).then(()=>{toast('Tersalin!','ok');markOk(id)}).catch(()=>fb(txt,id)):fb(txt,id)}
+function fb(t,id){const a=document.createElement('textarea');a.value=t;a.style.cssText='position:fixed;left:-9999px';document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('Tersalin!','ok');markOk(id)}catch(e){toast('Gagal','err')}document.body.removeChild(a)}
 
-    // Single
-    function updateSingleForm() { let p=document.getElementById('singlePasaran').value; let vc=document.getElementById('singleVoorContainer'); let pc=document.getElementById('singlePilihanContainer'); if(p==='HDP'){ vc.style.display='block'; pc.style.display='none'; } else if(p==='OU'){ vc.style.display='block'; pc.style.display='block'; } else { vc.style.display='none'; pc.style.display='block'; } }
-    function hitungSingle() { 
-        let oddsTanda=document.getElementById('singleOddsTanda').value; let oddsNilai=parseFloat(document.getElementById('singleOddsNilai').value); let inputNilai=parseRupiah(document.getElementById('singleInput').value); let tim=document.getElementById('singleTim').value||'Tim'; let lawan=document.getElementById('singleLawan').value||'Lawan'; let pasaran=document.getElementById('singlePasaran').value; let voor=parseFloat(document.getElementById('singleVoor').value)||0; let pilihan=document.getElementById('singlePilihan').value; let skorHome=parseInt(document.getElementById('singleSkorHome').value)||0; let skorAway=parseInt(document.getElementById('singleSkorAway').value)||0; if(isNaN(oddsNilai)||oddsNilai<=0) oddsNilai=1; if(isNaN(inputNilai)||inputNilai<=0) inputNilai=0; let status=hitungStatus(pasaran,skorHome,skorAway, voor, pilihan); let stake=0,profit=0; if(oddsTanda==='minus'){ profit=inputNilai; stake=profit*oddsNilai; } else { stake=inputNilai; profit=stake*oddsNilai; } let totalKembali=stake; if(status==='mf') totalKembali=stake+profit; else if(status==='ms') totalKembali=stake+(profit/2); else if(status==='ks') totalKembali=stake/2; else if(status==='sr') totalKembali=stake; else totalKembali=0; let hasilHtml = `<div class="single-bet-card"><div class="single-bet-item"><span>Status:</span><span class="status-badge status-${status}">${getStatusLabel(status)}</span></div><div class="single-bet-item"><span>💰 Stake:</span><span>Rp ${formatRupiah(stake)}</span></div><div class="single-bet-item"><span>🏆 Profit/Target:</span><span>Rp ${formatRupiah(profit)}</span></div><div class="single-bet-item"><span>💵 Total Kembali:</span><span>Rp ${formatRupiah(totalKembali)}</span></div></div><div class="hadiah-box" style="margin-top:12px;"><strong>✨ Hasil:</strong> ${status==='mf'?'MENANG FULL':status==='ms'?'MENANG SETENGAH':status==='ks'?'KALAH SETENGAH':status==='sr'?'PUSH / SERI':'KALAH FULL'}</div>`; document.getElementById('hasilSingleText').innerHTML = hasilHtml; }
-    function resetSingle(){ document.getElementById('singleInput').value='100.000'; document.getElementById('singleOddsTanda').value='minus'; document.getElementById('singleOddsNilai').value='1.00'; document.getElementById('singleTim').value='E-PSV'; document.getElementById('singleLawan').value='MU'; document.getElementById('singlePasaran').value='HDP'; document.getElementById('singleVoor').value='-0.75'; document.getElementById('singleSkorHome').value='3'; document.getElementById('singleSkorAway').value='2'; updateSingleForm(); hitungSingle(); }
-    function salinHasilSingle() { salinKeClipboard('Hasil Single Bet', 'btnSalinSingle'); }
-    function switchTab(tab) { document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active')); document.getElementById(`tab-${tab}`).classList.add('active'); if(tab==='parlay') document.querySelector('.tab-btn:first-child').classList.add('active'); else document.querySelector('.tab-btn:last-child').classList.add('active'); }
-    function init(){ bets=[{ timNama:'E-PSV', lawan:'MU', market:'HDP', voor:-0.75, pilihan:'', skorHome:3, skorAway:2, odds:2.00 },{ timNama:'Japan', lawan:'Uruguay', market:'HDP', voor:0.25, pilihan:'', skorHome:0, skorAway:0, odds:2.00 },{ timNama:'Over 2.5', lawan:'', market:'OU', voor:2.5, pilihan:'over', skorHome:4, skorAway:0, odds:1.90 }]; renderParlay(); document.getElementById('singlePasaran').addEventListener('change',updateSingleForm); updateSingleForm(); hitungSingle(); }
-    init();
+/* Status */
+function stat(mk,sh,sa,v,p){const d=sh-sa,t=sh+sa;
+if(mk==='HDP'){const r=d+v;if(r>.25)return'mf';if(eq(r,.25))return'ms';if(eq(r,0))return'sr';if(eq(r,-.25))return'ks';return'kf'}
+if(mk==='OU'){if(p==='over'){if(t>v+.25)return'mf';if(eq(t,v+.25))return'ms';if(eq(t,v))return'sr';if(eq(t,v-.25))return'ks';return'kf'}else{if(t<v-.25)return'mf';if(eq(t,v-.25))return'ms';if(eq(t,v))return'sr';if(eq(t,v+.25))return'ks';return'kf'}}
+if(mk==='1x2'){if(p==='home'&&d>0)return'mf';if(p==='away'&&d<0)return'mf';if(p==='draw'&&d===0)return'mf';return'kf'}
+if(mk==='OE'){if(p==='even'&&t%2===0)return'mf';if(p==='odd'&&t%2===1)return'mf';return'kf'}return'mf'}
+
+/* Split helper */
+function splitV(v){const a=Math.abs(v),lo=Math.floor(a*2)/2,s=v>=0?1:-1;return{lo:s*lo,hi:s*(lo+.5)}}
+function evalHP(vp,d){const r=d+vp;if(r>.001)return'W';if(eq(r,0))return'V';return'L'}
+function sym(r){return r==='W'?'✓':r==='V'?'○':'✗'}
+function lbl(r){return r==='W'?'MENANG':r==='V'?'VOID':'KALAH'}
+
+/* Penjelasan */
+function exHDP(t,lw,v,d,st){const sg=v>=0?'+':'',ds=d>0?`menang ${d} gol`:d<0?`kalah ${Math.abs(d)} gol`:'seri';
+if(eq(Math.abs(v)%1,0)||(eq(Math.abs(v),.5)&&!eq(Math.abs(v)%.5,.25))){if(eq(Math.abs(v),0)){if(st==='mf')return`✅ MENANG FULL\nPasang ${t} voor 0 (lek).\nSkor: ${ds}.\n${t} menang → MENANG FULL.`;if(st==='sr')return`🟣 PUSH\nPasang ${t} voor 0.\nSeri → modal kembali.`;return`❌ KALAH FULL\nPasang ${t} voor 0.\nSkor: ${ds}. → KALAH FULL.`}if(st==='mf')return`✅ MENANG FULL\nPasang ${t} HDP ${sg}${v}.\nSkor: ${ds}.\nMenutupi voor → MENANG FULL.`;if(st==='sr')return`🟣 PUSH\nPasang ${t} HDP ${sg}${v}.\nSetelah voor tepat void → modal kembali.`;return`❌ KALAH FULL\nPasang ${t} HDP ${sg}${v}.\nSkor: ${ds}. Tidak menutupi → KALAH FULL.`}
+const sp=splitV(v),r1=evalHP(sp.lo,d),r2=evalHP(sp.hi,d);return`${EM[st]} ${SL[st]}\nPasang ${t} HDP ${sg}${v} (split: ${sg}${Math.abs(sp.lo)} & ${sg}${Math.abs(sp.hi)}).\nSkor: ${ds}.\n\n${sym(r1)} ${sg}${Math.abs(sp.lo)} → ${lbl(r1)}\n${sym(r2)} ${sg}${Math.abs(sp.hi)} → ${lbl(r2)}\n\nHasil: ${SL[st]}.`}
+function exOU(p,v,tot,st){const lb=p==='over'?'OVER':'UNDER';if(eq(v%1,0)||(eq(v,.5)&&!eq(v%.5,.25))){if(st==='mf')return`✅ MENANG FULL\n${lb} ${v}. Total: ${tot}. ${tot}${p==='over'?' >':' <'}${v} → MENANG.`;if(st==='sr')return`🟣 PUSH\n${lb} ${v}. Total: ${tot} = batas → modal kembali.`;return`❌ KALAH FULL\n${lb} ${v}. Total: ${tot}. Tidak memenuhi → KALAH.`}const lo=p==='over'?Math.floor(v*2)/2:Math.ceil(v*2)/2,hi=p==='over'?lo+.5:lo-.5;const eu=b=>{if(p==='over'){if(tot>b+.001)return'W';if(eq(tot,b))return'V';return'L'}else{if(tot<b-.001)return'W';if(eq(tot,b))return'V';return'L'}};const r1=eu(lo),r2=eu(hi);return`${EM[st]} ${SL[st]}\n${lb} ${v} (split: ${lb} ${lo} & ${lb} ${hi}).\nTotal: ${tot}.\n\n${sym(r1)} ${lb} ${lo} → ${lbl(r1)}\n${sym(r2)} ${lb} ${hi} → ${lbl(r2)}\n\nHasil: ${SL[st]}.`}
+function ex12(t,lw,p,sh,sa,st){const pm={home:`HOME (${t})`,away:`AWAY (${lw})`,draw:'DRAW'}[p];if(st==='mf')return`✅ MENANG FULL\nPasang ${pm}.\nSkor: ${sh}:${sa}. Sesuai → MENANG.`;return`❌ KALAH FULL\nPasang ${pm}.\nSkor: ${sh}:${sa}. Tidak sesuai → KALAH.`}
+function exOE(p,tot,st){const lb=p==='even'?'EVEN':'ODD',jn=p==='even'?'genap':'ganjil';if(st==='mf')return`✅ MENANG FULL\nPasang ${lb}.\nTotal: ${tot} (${jn}) → sesuai → MENANG.`;return`❌ KALAH FULL\nPasang ${lb}.\nTotal: ${tot} (${p==='even'?'ganjil':'genap'}) → tidak sesuai → KALAH.`}
+function getExpl(b,st){const t=b.t||'Tim',l=b.l||'Lawan';if(b.m==='HDP')return exHDP(t,l,b.v||0,(b.sh||0)-(b.sa||0),st);if(b.m==='OU')return exOU(b.p||'',b.v||0,(b.sh||0)+(b.sa||0),st);if(b.m==='1x2')return ex12(t,l,b.p||'',b.sh||0,b.sa||0,st);if(b.m==='OE')return exOE(b.p||'',(b.sh||0)+(b.sa||0),st);return''}
+
+/* ===== PARLAY ===== */
+let B=[];
+function chkW(){const w=$('pwarn'),j=$('pcount');if(w&&j){j.textContent=B.length;w.style.display=(B.length>0&&B.length<3)?'flex':'none'}}
+
+/* Buat elemen input/select yang sama untuk desktop & mobile */
+function mkInput(type,val,cls,ph){const e=document.createElement('input');e.type=type;e.value=val||'';if(ph)e.placeholder=ph;if(cls)e.className=cls;return e}
+function mkSelect(opts,cur){const s=document.createElement('select');opts.forEach(([v,l])=>{const o=document.createElement('option');o.value=v;o.textContent=l;if(cur===v)o.selected=true;s.appendChild(o)});return s}
+
+function getEff(st,od){if(st==='mf')return od;if(st==='ms')return(od-1)/2+1;if(st==='ks')return.5;if(st==='sr')return 1;return 0}
+
+/* Render tabel DESKTOP */
+function renderDT(){
+const tb=$('dtbody');tb.innerHTML='';
+if(!B.length){tb.innerHTML='<tr><td colspan="11" style="text-align:center;padding:24px;color:var(--muted)">Klik "+ Tambah" (min. 3 tim)</td></tr>';return}
+B.forEach((b,i)=>{const r=tb.insertRow();r.insertCell(0).textContent=i+1;
+let c=r.insertCell(1),inp=mkInput('text',b.t,'ti','Tim');inp.onchange=e=>{B[i].t=e.target.value;renderAll()};c.appendChild(inp);
+c=r.insertCell(2);inp=mkInput('text',b.l,'ti','Lawan');inp.onchange=e=>{B[i].l=e.target.value;renderAll()};c.appendChild(inp);
+c=r.insertCell(3);const sel=mkSelect([['HDP','HDP'],['OU','OU'],['1x2','1x2'],['OE','OE']],b.m);sel.onchange=e=>{B[i].m=e.target.value;renderAll()};c.appendChild(sel);
+c=r.insertCell(4);renderVoorCell(c,b,i);
+c=r.insertCell(5);const ih=mkInput('number',b.sh,'si');ih.onchange=e=>{B[i].sh=parseInt(e.target.value)||0;renderAll()};const ia=mkInput('number',b.sa,'si');ia.onchange=e=>{B[i].sa=parseInt(e.target.value)||0;renderAll()};c.appendChild(ih);c.appendChild(document.createTextNode('-'));c.appendChild(ia);
+const st=stat(b.m,b.sh||0,b.sa||0,b.v||0,b.p||'');c=r.insertCell(6);const sp=document.createElement('span');sp.className=`badge b-${st}`;sp.textContent=SL[st];c.appendChild(sp);
+c=r.insertCell(7);inp=mkInput('number',b.od,'oi');inp.step='.01';inp.onchange=e=>{B[i].od=parseFloat(e.target.value)||1;renderAll()};c.appendChild(inp);
+const ef=getEff(st,b.od);c=r.insertCell(8);c.textContent=ef.toFixed(3);c.style.cssText='font-weight:700;color:var(--gold)';
+c=r.insertCell(9);c.className='expl';c.innerHTML=getExpl(b,st);
+c=r.insertCell(10);const db=document.createElement('button');db.textContent='Hapus';db.className='del';db.onclick=()=>{B.splice(i,1);renderAll();calcP()};c.appendChild(db)
+})}
+
+/* Render kartu MOBILE */
+function renderMC(){
+const wrap=$('mcards');wrap.innerHTML='';
+if(!B.length){wrap.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted)">Klik "+ Tambah" (min. 3 tim)</div>';return}
+B.forEach((b,i)=>{
+const st=stat(b.m,b.sh||0,b.sa||0,b.v||0,b.p||'');
+const ef=getEff(st,b.od);
+const k=document.createElement('div');k.className='mk';
+
+let h=`<div class="mk-num">#${i+1}</div>`;
+// Baris 1: Tim & Lawan
+h+=`<div class="mk-row"><div class="mk-fg"><label>Tim</label><input type="text" value="${b.t||''}" placeholder="Tim" data-i="${i}" data-f="t"></div><div class="mk-fg"><label>Lawan</label><input type="text" value="${b.l||''}" placeholder="Lawan" data-i="${i}" data-f="l"></div></div>`;
+// Baris 2: Pasaran & Voor
+h+=`<div class="mk-row"><div class="mk-fg"><label>Pasaran</label><select data-i="${i}" data-f="m">`;
+[['HDP','HDP'],['OU','OU'],['1x2','1x2'],['OE','OE']].forEach(([v,l])=>{h+=`<option value="${v}"${b.m===v?' selected':''}>${l}</option>`});
+h+=`</select></div><div class="mk-fg" data-voor="${i}"><label>Voor/Batas</label>`;
+h+=renderVoorHTML(b,i);
+h+=`</div></div>`;
+// Baris 3: Skor
+h+=`<div class="mk-row"><div class="mk-fg"><label>Skor</label><div class="mk-skor"><input type="number" value="${b.sh||0}" data-i="${i}" data-f="sh"><span>:</span><input type="number" value="${b.sa||0}" data-i="${i}" data-f="sa"></div></div><div class="mk-fg"><label>&nbsp;</label><div class="mk-meta"><span class="badge b-${st}">${SL[st]}</span><span class="mk-eff">Eff: ${ef.toFixed(3)}</span></div></div></div>`;
+// Baris 4: Odds
+h+=`<div class="mk-odds"><label style="font-size:.65rem;color:var(--muted);font-weight:600">ODDS</label><input type="number" value="${b.od}" step="0.01" data-i="${i}" data-f="od"></div>`;
+// Penjelasan
+h+=`<div class="mk-expl">${getExpl(b,st)}</div>`;
+// Hapus
+h+=`<button class="mk-del" data-del="${i}">Hapus Pilihan #${i+1}</button>`;
+k.innerHTML=h;
+wrap.appendChild(k)
+});
+// Pasang event delegation
+wrap.querySelectorAll('input,select').forEach(el=>{el.addEventListener('change',e=>{const idx=parseInt(e.target.dataset.i),f=e.target.dataset.f;if(isNaN(idx))return;if(f==='t')B[idx].t=e.target.value;else if(f==='l')B[idx].l=e.target.value;else if(f==='m'){B[idx].m=e.target.value;renderAll()}else if(f==='v')B[idx].v=parseFloat(e.target.value)||0;else if(f==='p')B[idx].p=e.target.value;else if(f==='sh')B[idx].sh=parseInt(e.target.value)||0;else if(f==='sa')B[idx].sa=parseInt(e.target.value)||0;else if(f==='od')B[idx].od=parseFloat(e.target.value)||1;renderAll()})});
+wrap.querySelectorAll('[data-del]').forEach(el=>{el.addEventListener('click',e=>{const idx=parseInt(e.target.dataset.del);B.splice(idx,1);renderAll();calcP()})})
+}
+
+/* Render voor cell (desktop) */
+function renderVoorCell(c,b,i){
+if(b.m==='HDP'){const inp=mkInput('number',b.v,'vi');inp.step='.25';inp.onchange=e=>{B[i].v=parseFloat(e.target.value)||0;renderAll()};c.appendChild(inp)}
+else if(b.m==='OU'){const inp=mkInput('number',b.v,'vi');inp.step='.25';inp.onchange=e=>{B[i].v=parseFloat(e.target.value)||2.5;renderAll()};c.appendChild(inp);const sel=mkSelect([['over','OVER'],['under','UNDER']],b.p);sel.onchange=e=>{B[i].p=e.target.value;renderAll()};c.appendChild(sel)}
+else if(b.m==='1x2'){const sel=mkSelect([['home','Home'],['draw','Draw'],['away','Away']],b.p);sel.onchange=e=>{B[i].p=e.target.value;renderAll()};c.appendChild(sel)}
+else if(b.m==='OE'){const sel=mkSelect([['even','EVEN'],['odd','ODD']],b.p);sel.onchange=e=>{B[i].p=e.target.value;renderAll()};c.appendChild(sel)}
+}
+
+/* Render voor HTML (mobile) */
+function renderVoorHTML(b,i){
+if(b.m==='HDP')return`<input type="number" value="${b.v||0}" step="0.25" data-i="${i}" data-f="v">`;
+if(b.m==='OU')return`<div style="display:flex;gap:4px"><input type="number" value="${b.v||2.5}" step="0.25" data-i="${i}" data-f="v" style="flex:1"><select data-i="${i}" data-f="p"><option value="over"${b.p==='over'?' selected':''}>OV</option><option value="under"${b.p==='under'?' selected':''}>UN</option></select></div>`;
+if(b.m==='1x2')return`<select data-i="${i}" data-f="p"><option value="home"${b.p==='home'?' selected':''}>Home</option><option value="draw"${b.p==='draw'?' selected':''}>Draw</option><option value="away"${b.p==='away'?' selected':''}>Away</option></select>`;
+if(b.m==='OE')return`<select data-i="${i}" data-f="p"><option value="even"${b.p==='even'?' selected':''}>EVEN</option><option value="odd"${b.p==='odd'?' selected':''}>ODD</option></select>`;
+return''
+}
+
+function renderAll(){renderDT();renderMC();chkW()}
+
+function add(){B.push({t:'',l:'',m:'HDP',v:.25,p:'',sh:0,sa:0,od:2});renderAll()}
+
+let lastP=null;
+function calcP(){
+if(B.length<3){$('prt').innerHTML='<div class="warn err">MIX PARLAY WAJIB MINIMAL 3 TIM!</div>';lastP=null;return}
+let mod=prs($('pm').value);if(mod<=0)mod=0;let to=1,kf=false,ri=[],details=[];
+for(let i=0;i<B.length;i++){const b=B[i],st=stat(b.m,b.sh||0,b.sa||0,b.v||0,b.p||'');let ef=getEff(st,b.od);const nm=b.t||'Pilihan '+(i+1);
+ri.push(`${i+1}. ${nm} → ${SL[st]} (${ef.toFixed(3)})`);details.push({nama:nm,lawan:b.l,status:st,eff:ef,odds:b.od,expl:getExpl(b,st)});if(st==='kf')kf=true;to*=ef}
+to=Math.round(to*1e3)/1e3;let h=Math.round(to*mod-mod),win=h>0;lastP={mod,to,h,win,kf,ri,details};
+let note=kf?`KALAH FULL — modal Rp ${fmt(mod)} hangus.`:to===1&&!win?`PUSH/SERI — modal kembali.`:win?`MENANG — profit Rp ${fmt(h)}.`:`KALAH — rugi Rp ${fmt(Math.abs(h))}.`;
+let html=`<div class="rlist">${ri.map(r=>'<div>'+r+'</div>').join('')}</div><div class="hbox"><h4>Ringkasan</h4>`;
+html+=`<div class="ri"><span class="rl">Modal</span><span class="rv">Rp ${fmt(mod)}</span></div>`;
+html+=`<div class="ri"><span class="rl">Odds Efektif</span><span class="rv">${to.toFixed(3)}</span></div>`;
+html+=`<div class="ri"><span class="rl">Rumus</span><span class="rv">(${to.toFixed(3)} × ${fmt(mod)}) - ${fmt(mod)}</span></div>`;
+html+=`<div class="ri"><span class="rl">Hasil</span><span class="${win?'rp':'rr'}">${win?'MENANG':'KALAH'} Rp ${fmt(Math.abs(h))}</span></div>`;
+html+=`<div style="margin-top:8px;padding-top:6px;border-top:1px solid #222;font-size:clamp(.68rem,1.8vw,.78rem);color:#888">${note}</div></div>`;
+ $('prt').innerHTML=html}
+
+function resetP(){B=[];renderAll();$('prt').innerHTML='Belum ada perhitungan';$('pm').value='100.000';lastP=null}
+
+/* Generate teks salin parlay */
+function genP(mode){if(!lastP)return'';const{mod,to,h,win,kf,ri,details}=lastP;let L=[];
+if(mode==='ringkas'){return['MIX PARLAY',`Modal: Rp ${fmt(mod)}`,`Odds: ${to.toFixed(3)}`,`Hasil: ${win?'MENANG':'KALAH'} Rp ${fmt(Math.abs(h))}`,!kf?`Total: Rp ${fmt(mod+h)}`:''].filter(Boolean).join('\n')}
+if(mode==='lengkap'){L=['════════════════════','   MIX PARLAY','════════════════════',`Modal: Rp ${fmt(mod)}`,'──────────────────'];details.forEach((d,i)=>{L.push(`${i+1}. ${d.nama}${d.lawan?' vs '+d.lawan:''} → ${d.status} (${d.odds.toFixed(2)} → ${d.eff.toFixed(3)})`)});L.push('──────────────────',`Odds: ${to.toFixed(3)}`,`Hasil: Rp ${fmt(h)}`);if(kf)L.push('════════════════════','KALAH FULL','════════════════════');else if(win)L.push('════════════════════','MENANG',`Profit: Rp ${fmt(h)}`,`Total: Rp ${fmt(mod+h)}`,'════════════════════');else if(h===0)L.push('════════════════════','PUSH/SERI','════════════════════');else L.push('════════════════════','KALAH',`Rugi: Rp ${fmt(Math.abs(h))}`,'════════════════════');return L.join('\n')}
+if(mode==='penjelasan'){L=['PENJELASAN MIX PARLAY','════════════════════'];details.forEach((d,i)=>{L.push(`\n[${i+1}] ${d.nama}${d.lawan?' vs '+d.lawan:''}`,d.expl,'──────────────────')});return L.join('\n')}
+L=genP('lengkap').split('\n');L.push('','PENJELASAN:');details.forEach((d,i)=>{L.push(`\n[${i+1}] ${d.nama}${d.lawan?' vs '+d.lawan:''}`,d.expl)});return L.join('\n')}
+function clipP(mode){doClip(genP(mode),'cmp')}
+
+/* ===== SINGLE ===== */
+function upSF(){const mk=$('sp').value,vc=$('svc'),pc=$('spc'),vi=$('sv'),pp=$('spp');
+if(mk==='HDP'){vc.style.display='block';pc.style.display='none';vi.value='-0.75'}
+else if(mk==='OU'){vc.style.display='block';pc.style.display='block';vi.value='2.5';pp.innerHTML='<option value="over">Over</option><option value="under">Under</option>'}
+else if(mk==='1x2'){vc.style.display='none';pc.style.display='block';pp.innerHTML='<option value="home">Home</option><option value="draw">Draw</option><option value="away">Away</option>'}
+else{vc.style.display='none';pc.style.display='block';pp.innerHTML='<option value="even">Even</option><option value="odd">Odd</option>'}}
+
+let lastS=null;
+function calcS(){
+let sg=$('st').value,on=parseFloat($('sn').value)||1,iv=prs($('si').value),tm=$('stm').value||'Tim',lw=$('slw').value||'Lawan',
+mk=$('sp').value,v=parseFloat($('sv').value)||0,p=$('spp').value,sh=parseInt($('sh').value)||0,sa=parseInt($('sa').value)||0;
+const st=stat(mk,sh,sa,v,p);let stake,profit;
+if(sg==='-'){profit=iv;stake=profit*on;$('slbl').textContent='Target Profit (Rp)'}else{stake=iv;profit=stake*on;$('slbl').textContent='Stake (Modal)'}
+let tk=stake,note='';
+if(st==='mf'){tk=stake+profit;note=`MENANG FULL! Profit Rp ${fmt(profit)}, kembali Rp ${fmt(tk)}.`}
+else if(st==='ms'){tk=stake+profit/2;note=`MENANG SETENGAH! Profit Rp ${fmt(profit/2)}, kembali Rp ${fmt(tk)}.`}
+else if(st==='ks'){tk=stake/2;note=`KALAH SETENGAH! Rugi Rp ${fmt(stake/2)}, kembali Rp ${fmt(tk)}.`}
+else if(st==='sr'){tk=stake;note=`PUSH — modal Rp ${fmt(stake)} kembali.`}
+else{tk=0;note=`KALAH FULL — modal Rp ${fmt(stake)} hangus.`}
+const pn={HDP:'Handicap',OU:'Over/Under','1x2':'1x2',OE:'Odd/Even'}[mk];
+const ex=mk==='HDP'?exHDP(tm,lw,v,sh-sa,st):mk==='OU'?exOU(p,v,sh+sa,st):mk==='1x2'?ex12(tm,lw,p,sh,sa,st):exOE(p,sh+sa,st);
+lastS={sg,on,iv,tm,lw,mk,pn,v,p,sh,sa,st,stake,profit,tk,note,ex};
+let h=`<div class="sbc">`;
+h+=`<div class="sbi"><span class="sbl">Pasaran</span><span class="sbv">${pn}</span></div>`;
+h+=`<div class="sbi"><span class="sbl">Tim</span><span class="sbv">${tm} vs ${lw}</span></div>`;
+if(mk==='HDP'||mk==='OU')h+=`<div class="sbi"><span class="sbl">Voor/Batas</span><span class="sbv">${v}${mk==='OU'?' ('+p.toUpperCase()+')':''}</span></div>`;
+if(mk==='1x2'||mk==='OE')h+=`<div class="sbi"><span class="sbl">Pilihan</span><span class="sbv">${p.toUpperCase()}</span></div>`;
+h+=`<div class="sbi"><span class="sbl">Skor</span><span class="sbv">${sh}:${sa} (Total: ${sh+sa})</span></div>`;
+h+=`<div class="sbi"><span class="sbl">Status</span><span class="sbv"><span class="badge b-${st}">${SL[st]}</span></span></div></div>`;
+h+=`<div class="pbox"><strong>Penjelasan:</strong><br>${ex}</div>`;
+h+=`<div class="hbox"><h4>Ringkasan</h4>`;
+h+=`<div class="ri"><span class="rl">Stake</span><span class="rr">Rp ${fmt(stake)}</span></div>`;
+h+=`<div class="ri"><span class="rl">Profit Penuh</span><span class="rp">Rp ${fmt(profit)}</span></div>`;
+h+=`<div class="ri"><span class="rl">Total Kembali</span><span class="rv">Rp ${fmt(tk)}</span></div>`;
+h+=`<div style="margin-top:8px;padding-top:6px;border-top:1px solid #222;font-size:clamp(.68rem,1.8vw,.78rem);color:#888">${note}</div></div>`;
+ $('srt').innerHTML=h}
+
+function resetS(){$('si').value='100.000';$('st').value='-';$('sn').value='1.00';$('stm').value='E-PSV';$('slw').value='MU';$('sp').value='HDP';$('sv').value='-0.75';$('sh').value='3';$('sa').value='2';upSF();calcS();lastS=null}
+
+function genS(mode){if(!lastS)return'';const d=lastS,os=(d.sg==='-'?'-':'+')+d.on.toFixed(2);
+if(mode==='ringkas')return[`SINGLE BET`,`${d.tm} vs ${d.lw} | ${d.pn} | ${d.sh}:${d.sa}`,`Odds: ${os} | ${SL[d.st]}`,`Stake: Rp ${fmt(d.stake)} | Kembali: Rp ${fmt(d.tk)}`].join('\n');
+if(mode==='lengkap'){let L=['════════════════════','   SINGLE BET','════════════════════',`Tim: ${d.tm} vs ${d.lw}`,`Pasaran: ${d.pn}`];if(d.mk==='HDP')L.push(`Voor: ${d.v}`);else if(d.mk==='OU')L.push(`Batas: ${d.v} | ${d.p.toUpperCase()}`);else L.push(`Pilihan: ${d.p.toUpperCase()}`);L.push(`Skor: ${d.sh}:${d.sa}`,`Odds: ${os}`,'──────────────────');if(d.sg==='-'){L.push(`Target Profit: Rp ${fmt(d.iv)}`,`Stake: Rp ${fmt(d.stake)}`)}else{L.push(`Stake: Rp ${fmt(d.stake)}`,`Profit: Rp ${fmt(d.profit)}`)}L.push('──────────────────',`Status: ${SL[d.st]}`,'──────────────────');if(d.st==='mf')L.push(`MENANG FULL → Rp ${fmt(d.tk)}`);else if(d.st==='ms')L.push(`MENANG SETENGAH → Rp ${fmt(d.tk)}`);else if(d.st==='ks')L.push(`KALAH SETENGAH → Rp ${fmt(d.tk)}`);else if(d.st==='sr')L.push(`PUSH → Rp ${fmt(d.stake)}`);else L.push(`KALAH FULL → Rp 0`);L.push('════════════════════');return L.join('\n')}
+if(mode==='penjelasan')return`SINGLE BET\n════════════════════\n${d.tm} vs ${d.lw}\n${d.ex}`;
+return genS('lengkap')+'\n\n──────────────────\nPENJELASAN:\n'+d.ex}
+function clipS(mode){doClip(genS(mode),'cms')}
+
+function go(t){document.querySelectorAll('.panel').forEach(e=>e.classList.remove('on'));document.querySelectorAll('.tab').forEach(e=>e.classList.remove('on'));$(t==='p'?'tp':'ts').classList.add('on');document.querySelectorAll('.tab')[t==='p'?0:1].classList.add('on')}
+function riFmt(id){const e=$(id);if(!e)return;e.addEventListener('input',function(){this.value=fmt(prs(this.value))})}
+
+/* Init */
+B=[{t:'E-PSV',l:'MU',m:'HDP',v:-.75,p:'',sh:3,sa:2,od:2},{t:'Japan',l:'Uruguay',m:'HDP',v:.25,p:'',sh:0,sa:0,od:2},{t:'Over 2.5',l:'',m:'OU',v:2.5,p:'over',sh:4,sa:0,od:1.9}];
+renderAll();riFmt('pm');riFmt('si');$('sp').addEventListener('change',upSF);
+['st','sn','si','stm','slw','sv','spp','sh','sa'].forEach(id=>{const e=$(id);if(e)e.addEventListener(id==='spp'?'change':'input',calcS)});
+upSF();calcS();chkW();
 </script>
 </body>
 </html>
