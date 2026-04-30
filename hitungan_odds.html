@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kalkulator Mix Parlay</title>
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css'>
+</head>
+<body>
+    <main class="container">
+        <form id="app" class="form-vertical">
+            <h3>
+                Kalkulator Parlay {{ totalbet }} Partai
+            </h3>
+            <hr>
+            <div class="row">
+                <div class="form-group col-xs-6 col-sm-5 col-lg-2">
+                    <button type="button" v-on:click="addNewParlay" class="btn btn-block btn-success">
+                        Tambah +
+                    </button>
+                </div>
+                <div class="form-group col-xs-6 col-sm-5 col-lg-2">
+                    <label>Nilai Bet</label>
+                    <input type="number" name="nilaibet" v-model="nilaibet" class="form-control" min="1" max="10000000" @change="oddstotal()">
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-xs-6 col-sm-5 col-lg-2">
+                    <label>Hasil Odds</label>
+                    <div class="form-control btn-info"><b>{{ totalodds }}</b></div>
+                </div>
+                <div class="form-group col-xs-6 col-sm-5 col-lg-2">
+                    <label>Hasil Akhir</label>
+                    <div class="form-control btn-warning"><b>{{ totalc }}</b></div>
+                </div>
+            </div>
+            
+            <div v-for="(parlay, index) in parlays" :key="index">
+                <div class="form-group row">
+                    <div class="col-xs-6 col-sm-5 col-lg-2">
+                        <label>&nbsp;</label>
+                        <button type="button" v-on:click="removeParlay(index)" class="btn btn-block btn-danger">
+                            Hapus -
+                        </button>
+                    </div>
+                    <div class="form-group col-xs-6 col-sm-5 col-lg-2">
+                        <label>Odds {{ index + 1 }}</label>
+                        <input @change="oddstotal()" v-model="parlay.odds" type="number" step="0.01" name="parlays[][odds]" class="form-control" placeholder="1.75">
+                    </div>
+                    <div class="form-group col-xs-7">
+                        <label>Hasil Partai {{ index + 1 }}</label>
+                        <section>
+                            <input type="radio" @change="oddstotal()" v-model="parlay.hasil" value="1"> Menang Full<br>
+                            <input type="radio" @change="oddstotal()" v-model="parlay.hasil" value="0.5"> Menang Setengah<br>
+                            <input type="radio" @change="oddstotal()" v-model="parlay.hasil" value="-0.5"> Kalah Setengah<br>
+                            <input type="radio" @change="oddstotal()" v-model="parlay.hasil" value="0"> Seri
+                            <br>
+                            <span>Hasil Odds: <strong>{{ parlay.oddsx }}</strong></span>
+                        </section>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-xs-6 col-sm-5 col-lg-4">
+                    <b>Catatan:</b><br>
+                    Jika menang full, hitungan nya akan menjadi sama dengan Odds<br>
+                    Jika menang setengah, hitungan nya (Odds-1)/2 +1<br>
+                    Jika kalah setengah, hitungan nya menjadi tetap 0.5<br>
+                    Jika seri, hitungan nya akan menjadi tetap 1 atau tidak dihitung
+                </div>
+                <div class="col-xs-6 col-sm-5 col-lg-4">
+                    <b>Rumus Mix Parlay</b> = (Hasil Perkalian Odds x Jumlah Betting) - Jumlah Betting.<br>
+                    <i>Jika hasil minus, Anda kalah sejumlah hasil yang dikeluarkan.<br>
+                    Jika hasil plus, Anda menang sejumlah hasil yang dikeluarkan.</i>
+                </div>
+            </div>
+            <hr>
+        </form>
+    </main>
+    
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                nilaibet: 10000,
+                parlays: [
+                    { odds: 1.75, hasil: '1', oddsx: 0 }
+                ]
+            },
+            computed: {
+                totalbet() {
+                    return this.parlays.length;
+                },
+                totalodds() {
+                    let total = 1;
+                    for (let i = 0; i < this.parlays.length; i++) {
+                        const parlay = this.parlays[i];
+                        let oddsValue = 0;
+                        const hasil = parlay.hasil;
+                        const odds = parseFloat(parlay.odds) || 0;
+                        
+                        if (hasil === '1') {
+                            // Menang Full
+                            oddsValue = odds;
+                        } else if (hasil === '0.5') {
+                            // Menang Setengah
+                            oddsValue = ((odds - 1) / 2) + 1;
+                        } else if (hasil === '-0.5') {
+                            // Kalah Setengah
+                            oddsValue = 0.5;
+                        } else if (hasil === '0') {
+                            // Seri
+                            oddsValue = 1;
+                        }
+                        
+                        // Format 3 angka di belakang koma
+                        parlay.oddsx = parseFloat(oddsValue.toFixed(3));
+                        total *= oddsValue;
+                    }
+                    // Format 3 angka di belakang koma
+                    return parseFloat(total.toFixed(3));
+                },
+                totalc() {
+                    const totalOdds = parseFloat(this.totalodds) || 0;
+                    const nilaiBet = parseFloat(this.nilaibet) || 0;
+                    const hasil = (totalOdds * nilaiBet) - nilaiBet;
+                    
+                    // Format ke Rupiah
+                    const formatted = Math.round(hasil).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                    return 'Rp ' + formatted;
+                }
+            },
+            methods: {
+                addNewParlay() {
+                    this.parlays.push({ odds: 1.75, hasil: '1', oddsx: 0 });
+                },
+                removeParlay(index) {
+                    if (this.parlays.length > 1) {
+                        this.parlays.splice(index, 1);
+                        this.oddstotal();
+                    }
+                },
+                oddstotal() {
+                    this.$forceUpdate();
+                }
+            },
+            mounted() {
+                this.oddstotal();
+            }
+        });
+    </script>
+</body>
+</html>
