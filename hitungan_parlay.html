@@ -50,11 +50,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .warn.err{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.25);border-left-color:var(--red);color:var(--red)}
 
 /* ===== TABEL: DESKTOP VS MOBILE ===== */
-/* Container scroll horizontal hanya muncul di layar cukup lebar */
 .tw{overflow-x:auto;margin:0 -12px 12px;padding:0 12px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.12) transparent}
 .tw::-webkit-scrollbar{height:5px}.tw::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}
 
-/* Tabel desktop (default) */
 .dt{width:100%;border-collapse:separate;border-spacing:0;font-size:clamp(.72rem,2vw,.8rem);min-width:900px}
 .dt th{position:sticky;top:0;background:#1a1a30;color:var(--gold);font-weight:700;font-size:clamp(.62rem,1.8vw,.7rem);text-transform:uppercase;letter-spacing:.03em;padding:10px 6px;text-align:center;border-bottom:1px solid rgba(255,255,255,.08);white-space:nowrap}
 .dt td{background:rgba(28,28,48,.5);padding:8px 5px;text-align:center;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;transition:.15s}
@@ -153,7 +151,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 @keyframes tin{from{opacity:0;transform:translateY(12px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes tout{to{opacity:0;transform:translateY(6px) scale(.94)}}
 
-/* Responsif halus */
+/* Responsif */
 @media(max-width:900px){
 .dt{min-width:780px}
 .dt .expl{min-width:180px}
@@ -288,7 +286,6 @@ const eq=(a,b)=>Math.abs(a-b)<.001;
 const $=id=>document.getElementById(id);
 const SL={mf:'Menang Full',ms:'Menang Setengah',ks:'Kalah Setengah',sr:'Seri',kf:'Kalah Full'};
 const EM={mf:'✅',ms:'🔵',ks:'🟠',sr:'🟣',kf:'❌'};
-const MN={HDP:'HDP',OU:'OU','1x2':'1x2',OE:'OE'};
 
 function toast(m,t){const c=$('tc'),d=document.createElement('div');d.className=`toast t-${t}`;d.innerHTML=`${t==='ok'?'✅':'❌'} ${m}`;c.appendChild(d);setTimeout(()=>{d.classList.add('out');setTimeout(()=>d.remove(),200)},1800)}
 
@@ -313,26 +310,133 @@ function evalHP(vp,d){const r=d+vp;if(r>.001)return'W';if(eq(r,0))return'V';retu
 function sym(r){return r==='W'?'✓':r==='V'?'○':'✗'}
 function lbl(r){return r==='W'?'MENANG':r==='V'?'VOID':'KALAH'}
 
-/* Penjelasan */
-function exHDP(t,lw,v,d,st){const sg=v>=0?'+':'',ds=d>0?`menang ${d} gol`:d<0?`kalah ${Math.abs(d)} gol`:'seri';
-if(eq(Math.abs(v)%1,0)||(eq(Math.abs(v),.5)&&!eq(Math.abs(v)%.5,.25))){if(eq(Math.abs(v),0)){if(st==='mf')return`✅ MENANG FULL\nPasang ${t} voor 0 (lek).\nSkor: ${ds}.\n${t} menang → MENANG FULL.`;if(st==='sr')return`🟣 PUSH\nPasang ${t} voor 0.\nSeri → modal kembali.`;return`❌ KALAH FULL\nPasang ${t} voor 0.\nSkor: ${ds}. → KALAH FULL.`}if(st==='mf')return`✅ MENANG FULL\nPasang ${t} HDP ${sg}${v}.\nSkor: ${ds}.\nMenutupi voor → MENANG FULL.`;if(st==='sr')return`🟣 PUSH\nPasang ${t} HDP ${sg}${v}.\nSetelah voor tepat void → modal kembali.`;return`❌ KALAH FULL\nPasang ${t} HDP ${sg}${v}.\nSkor: ${ds}. Tidak menutupi → KALAH FULL.`}
-const sp=splitV(v),r1=evalHP(sp.lo,d),r2=evalHP(sp.hi,d);return`${EM[st]} ${SL[st]}\nPasang ${t} HDP ${sg}${v} (split: ${sg}${Math.abs(sp.lo)} & ${sg}${Math.abs(sp.hi)}).\nSkor: ${ds}.\n\n${sym(r1)} ${sg}${Math.abs(sp.lo)} → ${lbl(r1)}\n${sym(r2)} ${sg}${Math.abs(sp.hi)} → ${lbl(r2)}\n\nHasil: ${SL[st]}.`}
-function exOU(p,v,tot,st){const lb=p==='over'?'OVER':'UNDER';if(eq(v%1,0)||(eq(v,.5)&&!eq(v%.5,.25))){if(st==='mf')return`✅ MENANG FULL\n${lb} ${v}. Total: ${tot}. ${tot}${p==='over'?' >':' <'}${v} → MENANG.`;if(st==='sr')return`🟣 PUSH\n${lb} ${v}. Total: ${tot} = batas → modal kembali.`;return`❌ KALAH FULL\n${lb} ${v}. Total: ${tot}. Tidak memenuhi → KALAH.`}const lo=p==='over'?Math.floor(v*2)/2:Math.ceil(v*2)/2,hi=p==='over'?lo+.5:lo-.5;const eu=b=>{if(p==='over'){if(tot>b+.001)return'W';if(eq(tot,b))return'V';return'L'}else{if(tot<b-.001)return'W';if(eq(tot,b))return'V';return'L'}};const r1=eu(lo),r2=eu(hi);return`${EM[st]} ${SL[st]}\n${lb} ${v} (split: ${lb} ${lo} & ${lb} ${hi}).\nTotal: ${tot}.\n\n${sym(r1)} ${lb} ${lo} → ${lbl(r1)}\n${sym(r2)} ${lb} ${hi} → ${lbl(r2)}\n\nHasil: ${SL[st]}.`}
-function ex12(t,lw,p,sh,sa,st){const pm={home:`HOME (${t})`,away:`AWAY (${lw})`,draw:'DRAW'}[p];if(st==='mf')return`✅ MENANG FULL\nPasang ${pm}.\nSkor: ${sh}:${sa}. Sesuai → MENANG.`;return`❌ KALAH FULL\nPasang ${pm}.\nSkor: ${sh}:${sa}. Tidak sesuai → KALAH.`}
-function exOE(p,tot,st){const lb=p==='even'?'EVEN':'ODD',jn=p==='even'?'genap':'ganjil';if(st==='mf')return`✅ MENANG FULL\nPasang ${lb}.\nTotal: ${tot} (${jn}) → sesuai → MENANG.`;return`❌ KALAH FULL\nPasang ${lb}.\nTotal: ${tot} (${p==='even'?'ganjil':'genap'}) → tidak sesuai → KALAH.`}
-function getExpl(b,st){const t=b.t||'Tim',l=b.l||'Lawan';if(b.m==='HDP')return exHDP(t,l,b.v||0,(b.sh||0)-(b.sa||0),st);if(b.m==='OU')return exOU(b.p||'',b.v||0,(b.sh||0)+(b.sa||0),st);if(b.m==='1x2')return ex12(t,l,b.p||'',b.sh||0,b.sa||0,st);if(b.m==='OE')return exOE(b.p||'',(b.sh||0)+(b.sa||0),st);return''}
+/* ========== PENJELASAN LEBIH DETAIL ========== */
+function exHDP(t,lw,v,d,st,odds){
+  const sg=v>=0?'+':'';
+  const voorStr = v===0 ? '0 (lek)' : `${sg}${v}`;
+  const selisih = d;
+  const selisihStr = d>0?`menang ${d} gol`:d<0?`kalah ${Math.abs(d)} gol`:'seri';
+  let base = `📌 PASARAN: HDP\nTim: ${t} vs ${lw}\nVoor: ${voorStr}\nSkor: ${t} ${d>0?d:0} - ${lw} ${d<0?Math.abs(d):0}  → Selisih skor: ${selisihStr}\n──────────────────\n`;
 
-/* ===== PARLAY ===== */
+  // Voor bulat (0, 0.5, 1, 1.5, dst. — bukan quarter)
+  if(Math.abs(v)%0.5 === 0){
+    const hasilVoor = d + v;
+    base += `🔹 Rumus: Selisih Skor + Voor = ${d} + (${v}) = ${hasilVoor}\n`;
+    if(hasilVoor > 0.001){
+      base += `🔹 Karena hasil > 0, maka taruhan MENANG.\n➡️ Status: MENANG FULL\n🔹 Odds Efektif = Odds Awal = ${odds}`;
+    } else if(eq(hasilVoor,0)){
+      base += `🔹 Karena hasil = 0, maka taruhan SERI (PUSH).\n➡️ Status: SERI\n🔹 Odds Efektif = 1 (modal kembali)`;
+    } else {
+      base += `🔹 Karena hasil < 0, maka taruhan KALAH.\n➡️ Status: KALAH FULL\n🔹 Odds Efektif = 0`;
+    }
+    return base;
+  }
+
+  // Voor quarter (0.25, 0.75, dst.)
+  const sp=splitV(v);
+  const r1=evalHP(sp.lo,d);
+  const r2=evalHP(sp.hi,d);
+  base += `🔹 Voor ${v} adalah voor quarter → taruhan dibagi menjadi 2 bagian:\n`;
+  base += `   • 50% pasang voor ${sp.lo}\n   • 50% pasang voor ${sp.hi}\n\n`;
+  base += `🔹 Bagian 1: voor ${sp.lo}\n   Selisih + voor = ${d} + (${sp.lo}) = ${d+sp.lo} → ${lbl(r1)} (${r1==='W'?'✓':r1==='V'?'○':'✗'})\n`;
+  base += `🔹 Bagian 2: voor ${sp.hi}\n   Selisih + voor = ${d} + (${sp.hi}) = ${d+sp.hi} → ${lbl(r2)} (${r2==='W'?'✓':r2==='V'?'○':'✗'})\n\n`;
+  const efek = getEff(st, odds);
+  if(st==='mf'){
+    base += `🔹 Kedua bagian MENANG → MENANG FULL\n🔹 Odds Efektif = ${odds}`;
+  } else if(st==='ms'){
+    base += `🔹 Satu bagian menang, satu bagian void/kalah → MENANG SETENGAH\n🔹 Rumus: (Odds - 1) / 2 + 1 = (${odds} - 1) / 2 + 1 = ${efek.toFixed(3)}`;
+  } else if(st==='ks'){
+    base += `🔹 Satu bagian kalah, satu bagian void/menang → KALAH SETENGAH\n🔹 Odds Efektif = 0.5`;
+  } else if(st==='sr'){
+    base += `🔹 Kedua bagian void? → SERI\n🔹 Odds Efektif = 1`;
+  } else {
+    base += `🔹 Kedua bagian kalah → KALAH FULL\n🔹 Odds Efektif = 0`;
+  }
+  return base;
+}
+
+function exOU(p,v,tot,st,odds){
+  const lb=p==='over'?'OVER':'UNDER';
+  let base = `📌 PASARAN: Over/Under\nBatas: ${v}\nPilihan: ${lb}\nTotal Gol: ${tot}\n──────────────────\n`;
+  if(v % 0.5 === 0){
+    base += `🔹 Batas bulat, tidak split.\n`;
+    if(p==='over'){
+      if(tot > v) base += `🔹 Total ${tot} > ${v} → MENANG FULL\n🔹 Odds Efektif = ${odds}`;
+      else if(eq(tot,v)) base += `🔹 Total ${tot} = ${v} → SERI\n🔹 Odds Efektif = 1`;
+      else base += `🔹 Total ${tot} < ${v} → KALAH FULL\n🔹 Odds Efektif = 0`;
+    } else {
+      if(tot < v) base += `🔹 Total ${tot} < ${v} → MENANG FULL\n🔹 Odds Efektif = ${odds}`;
+      else if(eq(tot,v)) base += `🔹 Total ${tot} = ${v} → SERI\n🔹 Odds Efektif = 1`;
+      else base += `🔹 Total ${tot} > ${v} → KALAH FULL\n🔹 Odds Efektif = 0`;
+    }
+    return base;
+  }
+  const lo = p==='over' ? Math.floor(v*2)/2 : Math.ceil(v*2)/2;
+  const hi = p==='over' ? lo+0.5 : lo-0.5;
+  const eu = (b) => {
+    if(p==='over') return tot > b+0.001 ? 'W' : (eq(tot,b) ? 'V' : 'L');
+    else return tot < b-0.001 ? 'W' : (eq(tot,b) ? 'V' : 'L');
+  };
+  const r1 = eu(lo), r2 = eu(hi);
+  base += `🔹 Batas quarter → taruhan dibagi 2:\n   • 50% pasang ${lb} ${lo}\n   • 50% pasang ${lb} ${hi}\n\n`;
+  base += `🔹 Bagian 1: ${lb} ${lo} → Total ${tot} → ${lbl(r1)} (${r1==='W'?'✓':r1==='V'?'○':'✗'})\n`;
+  base += `🔹 Bagian 2: ${lb} ${hi} → Total ${tot} → ${lbl(r2)} (${r2==='W'?'✓':r2==='V'?'○':'✗'})\n\n`;
+  const efek = getEff(st, odds);
+  if(st==='mf') base += `🔹 Kedua bagian MENANG → MENANG FULL\n🔹 Odds Efektif = ${odds}`;
+  else if(st==='ms') base += `🔹 Satu bagian menang → MENANG SETENGAH\n🔹 Rumus: (${odds} - 1)/2 + 1 = ${efek.toFixed(3)}`;
+  else if(st==='ks') base += `🔹 KALAH SETENGAH\n🔹 Odds Efektif = 0.5`;
+  else if(st==='sr') base += `🔹 SERI\n🔹 Odds Efektif = 1`;
+  else base += `🔹 KALAH FULL\n🔹 Odds Efektif = 0`;
+  return base;
+}
+
+function ex12(t,lw,p,sh,sa,st,odds){
+  const d = sh - sa;
+  const pilihan = p==='home'?`HOME (${t})`:p==='away'?`AWAY (${lw})`:'DRAW';
+  let base = `📌 PASARAN: 1x2\nPilihan: ${pilihan}\nSkor: ${sh} - ${sa}\n`;
+  if(p==='home' && d>0) base += `🔹 Home menang (${sh}>${sa}) → sesuai pilihan → MENANG FULL\n🔹 Odds Efektif = ${odds}`;
+  else if(p==='away' && d<0) base += `🔹 Away menang (${sa}>${sh}) → sesuai pilihan → MENANG FULL\n🔹 Odds Efektif = ${odds}`;
+  else if(p==='draw' && d===0) base += `🔹 Draw (${sh}=${sa}) → sesuai pilihan → MENANG FULL\n🔹 Odds Efektif = ${odds}`;
+  else base += `🔹 Hasil tidak sesuai pilihan → KALAH FULL\n🔹 Odds Efektif = 0`;
+  return base;
+}
+
+function exOE(p,tot,st,odds){
+  const lb=p==='even'?'EVEN (Genap)':'ODD (Ganjil)';
+  let base = `📌 PASARAN: Odd/Even\nPilihan: ${lb}\nTotal Gol: ${tot}\n`;
+  if((p==='even' && tot%2===0) || (p==='odd' && tot%2===1)){
+    base += `🔹 Total gol sesuai → MENANG FULL\n🔹 Odds Efektif = ${odds}`;
+  } else {
+    base += `🔹 Total gol tidak sesuai → KALAH FULL\n🔹 Odds Efektif = 0`;
+  }
+  return base;
+}
+
+function getEff(st,od){
+  if(st==='mf') return od;
+  if(st==='ms') return (od-1)/2+1;
+  if(st==='ks') return 0.5;
+  if(st==='sr') return 1;
+  return 0;
+}
+
+function getExpl(b,st){
+  const t=b.t||'Tim',l=b.l||'Lawan';
+  const sh=b.sh||0,sa=b.sa||0,od=b.od||1;
+  if(b.m==='HDP') return exHDP(t,l,b.v||0,sh-sa,st,od);
+  if(b.m==='OU') return exOU(b.p||'',b.v||0,sh+sa,st,od);
+  if(b.m==='1x2') return ex12(t,l,b.p||'',sh,sa,st,od);
+  if(b.m==='OE') return exOE(b.p||'',sh+sa,st,od);
+  return'';
+}
+
+/* ===== PARLAY RENDER ===== */
 let B=[];
 function chkW(){const w=$('pwarn'),j=$('pcount');if(w&&j){j.textContent=B.length;w.style.display=(B.length>0&&B.length<3)?'flex':'none'}}
 
-/* Buat elemen input/select yang sama untuk desktop & mobile */
 function mkInput(type,val,cls,ph){const e=document.createElement('input');e.type=type;e.value=val||'';if(ph)e.placeholder=ph;if(cls)e.className=cls;return e}
 function mkSelect(opts,cur){const s=document.createElement('select');opts.forEach(([v,l])=>{const o=document.createElement('option');o.value=v;o.textContent=l;if(cur===v)o.selected=true;s.appendChild(o)});return s}
 
-function getEff(st,od){if(st==='mf')return od;if(st==='ms')return(od-1)/2+1;if(st==='ks')return.5;if(st==='sr')return 1;return 0}
-
-/* Render tabel DESKTOP */
 function renderDT(){
 const tb=$('dtbody');tb.innerHTML='';
 if(!B.length){tb.innerHTML='<tr><td colspan="11" style="text-align:center;padding:24px;color:var(--muted)">Klik "+ Tambah" (min. 3 tim)</td></tr>';return}
@@ -349,7 +453,6 @@ c=r.insertCell(9);c.className='expl';c.innerHTML=getExpl(b,st);
 c=r.insertCell(10);const db=document.createElement('button');db.textContent='Hapus';db.className='del';db.onclick=()=>{B.splice(i,1);renderAll();calcP()};c.appendChild(db)
 })}
 
-/* Render kartu MOBILE */
 function renderMC(){
 const wrap=$('mcards');wrap.innerHTML='';
 if(!B.length){wrap.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted)">Klik "+ Tambah" (min. 3 tim)</div>';return}
@@ -359,31 +462,23 @@ const ef=getEff(st,b.od);
 const k=document.createElement('div');k.className='mk';
 
 let h=`<div class="mk-num">#${i+1}</div>`;
-// Baris 1: Tim & Lawan
 h+=`<div class="mk-row"><div class="mk-fg"><label>Tim</label><input type="text" value="${b.t||''}" placeholder="Tim" data-i="${i}" data-f="t"></div><div class="mk-fg"><label>Lawan</label><input type="text" value="${b.l||''}" placeholder="Lawan" data-i="${i}" data-f="l"></div></div>`;
-// Baris 2: Pasaran & Voor
 h+=`<div class="mk-row"><div class="mk-fg"><label>Pasaran</label><select data-i="${i}" data-f="m">`;
 [['HDP','HDP'],['OU','OU'],['1x2','1x2'],['OE','OE']].forEach(([v,l])=>{h+=`<option value="${v}"${b.m===v?' selected':''}>${l}</option>`});
 h+=`</select></div><div class="mk-fg" data-voor="${i}"><label>Voor/Batas</label>`;
 h+=renderVoorHTML(b,i);
 h+=`</div></div>`;
-// Baris 3: Skor
 h+=`<div class="mk-row"><div class="mk-fg"><label>Skor</label><div class="mk-skor"><input type="number" value="${b.sh||0}" data-i="${i}" data-f="sh"><span>:</span><input type="number" value="${b.sa||0}" data-i="${i}" data-f="sa"></div></div><div class="mk-fg"><label>&nbsp;</label><div class="mk-meta"><span class="badge b-${st}">${SL[st]}</span><span class="mk-eff">Eff: ${ef.toFixed(3)}</span></div></div></div>`;
-// Baris 4: Odds
 h+=`<div class="mk-odds"><label style="font-size:.65rem;color:var(--muted);font-weight:600">ODDS</label><input type="number" value="${b.od}" step="0.01" data-i="${i}" data-f="od"></div>`;
-// Penjelasan
 h+=`<div class="mk-expl">${getExpl(b,st)}</div>`;
-// Hapus
 h+=`<button class="mk-del" data-del="${i}">Hapus Pilihan #${i+1}</button>`;
 k.innerHTML=h;
 wrap.appendChild(k)
 });
-// Pasang event delegation
 wrap.querySelectorAll('input,select').forEach(el=>{el.addEventListener('change',e=>{const idx=parseInt(e.target.dataset.i),f=e.target.dataset.f;if(isNaN(idx))return;if(f==='t')B[idx].t=e.target.value;else if(f==='l')B[idx].l=e.target.value;else if(f==='m'){B[idx].m=e.target.value;renderAll()}else if(f==='v')B[idx].v=parseFloat(e.target.value)||0;else if(f==='p')B[idx].p=e.target.value;else if(f==='sh')B[idx].sh=parseInt(e.target.value)||0;else if(f==='sa')B[idx].sa=parseInt(e.target.value)||0;else if(f==='od')B[idx].od=parseFloat(e.target.value)||1;renderAll()})});
 wrap.querySelectorAll('[data-del]').forEach(el=>{el.addEventListener('click',e=>{const idx=parseInt(e.target.dataset.del);B.splice(idx,1);renderAll();calcP()})})
 }
 
-/* Render voor cell (desktop) */
 function renderVoorCell(c,b,i){
 if(b.m==='HDP'){const inp=mkInput('number',b.v,'vi');inp.step='.25';inp.onchange=e=>{B[i].v=parseFloat(e.target.value)||0;renderAll()};c.appendChild(inp)}
 else if(b.m==='OU'){const inp=mkInput('number',b.v,'vi');inp.step='.25';inp.onchange=e=>{B[i].v=parseFloat(e.target.value)||2.5;renderAll()};c.appendChild(inp);const sel=mkSelect([['over','OVER'],['under','UNDER']],b.p);sel.onchange=e=>{B[i].p=e.target.value;renderAll()};c.appendChild(sel)}
@@ -391,7 +486,6 @@ else if(b.m==='1x2'){const sel=mkSelect([['home','Home'],['draw','Draw'],['away'
 else if(b.m==='OE'){const sel=mkSelect([['even','EVEN'],['odd','ODD']],b.p);sel.onchange=e=>{B[i].p=e.target.value;renderAll()};c.appendChild(sel)}
 }
 
-/* Render voor HTML (mobile) */
 function renderVoorHTML(b,i){
 if(b.m==='HDP')return`<input type="number" value="${b.v||0}" step="0.25" data-i="${i}" data-f="v">`;
 if(b.m==='OU')return`<div style="display:flex;gap:4px"><input type="number" value="${b.v||2.5}" step="0.25" data-i="${i}" data-f="v" style="flex:1"><select data-i="${i}" data-f="p"><option value="over"${b.p==='over'?' selected':''}>OV</option><option value="under"${b.p==='under'?' selected':''}>UN</option></select></div>`;
@@ -422,7 +516,6 @@ html+=`<div style="margin-top:8px;padding-top:6px;border-top:1px solid #222;font
 
 function resetP(){B=[];renderAll();$('prt').innerHTML='Belum ada perhitungan';$('pm').value='100.000';lastP=null}
 
-/* Generate teks salin parlay */
 function genP(mode){if(!lastP)return'';const{mod,to,h,win,kf,ri,details}=lastP;let L=[];
 if(mode==='ringkas'){return['MIX PARLAY',`Modal: Rp ${fmt(mod)}`,`Odds: ${to.toFixed(3)}`,`Hasil: ${win?'MENANG':'KALAH'} Rp ${fmt(Math.abs(h))}`,!kf?`Total: Rp ${fmt(mod+h)}`:''].filter(Boolean).join('\n')}
 if(mode==='lengkap'){L=['════════════════════','   MIX PARLAY','════════════════════',`Modal: Rp ${fmt(mod)}`,'──────────────────'];details.forEach((d,i)=>{L.push(`${i+1}. ${d.nama}${d.lawan?' vs '+d.lawan:''} → ${d.status} (${d.odds.toFixed(2)} → ${d.eff.toFixed(3)})`)});L.push('──────────────────',`Odds: ${to.toFixed(3)}`,`Hasil: Rp ${fmt(h)}`);if(kf)L.push('════════════════════','KALAH FULL','════════════════════');else if(win)L.push('════════════════════','MENANG',`Profit: Rp ${fmt(h)}`,`Total: Rp ${fmt(mod+h)}`,'════════════════════');else if(h===0)L.push('════════════════════','PUSH/SERI','════════════════════');else L.push('════════════════════','KALAH',`Rugi: Rp ${fmt(Math.abs(h))}`,'════════════════════');return L.join('\n')}
@@ -450,7 +543,7 @@ else if(st==='ks'){tk=stake/2;note=`KALAH SETENGAH! Rugi Rp ${fmt(stake/2)}, kem
 else if(st==='sr'){tk=stake;note=`PUSH — modal Rp ${fmt(stake)} kembali.`}
 else{tk=0;note=`KALAH FULL — modal Rp ${fmt(stake)} hangus.`}
 const pn={HDP:'Handicap',OU:'Over/Under','1x2':'1x2',OE:'Odd/Even'}[mk];
-const ex=mk==='HDP'?exHDP(tm,lw,v,sh-sa,st):mk==='OU'?exOU(p,v,sh+sa,st):mk==='1x2'?ex12(tm,lw,p,sh,sa,st):exOE(p,sh+sa,st);
+const ex=mk==='HDP'?exHDP(tm,lw,v,sh-sa,st, on):mk==='OU'?exOU(p,v,sh+sa,st, on):mk==='1x2'?ex12(tm,lw,p,sh,sa,st, on):exOE(p,sh+sa,st, on);
 lastS={sg,on,iv,tm,lw,mk,pn,v,p,sh,sa,st,stake,profit,tk,note,ex};
 let h=`<div class="sbc">`;
 h+=`<div class="sbi"><span class="sbl">Pasaran</span><span class="sbv">${pn}</span></div>`;
