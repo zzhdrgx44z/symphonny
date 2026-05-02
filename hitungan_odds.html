@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kalkulator Mix Parlay</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        display: ['Outfit', 'sans-serif'],
-                        body: ['DM Sans', 'sans-serif'],
-                        mono: ['Space Mono', 'monospace'],
+                        display: ['Sora', 'sans-serif'],
+                        body: ['Manrope', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
                     }
                 }
             }
@@ -22,473 +22,430 @@
     </script>
     <style>
         :root {
-            --bg-base: #080c14;
-            --bg-surface: #0e1420;
-            --bg-card: #131b2b;
-            --bg-elevated: #1a2538;
-            --border-subtle: rgba(56, 189, 148, 0.08);
-            --border-normal: rgba(56, 189, 148, 0.15);
-            --border-bright: rgba(56, 189, 148, 0.35);
-            --accent: #38bd94;
-            --accent-bright: #4ae6b6;
-            --accent-dim: rgba(56, 189, 148, 0.1);
-            --gold: #e6a817;
-            --gold-dim: rgba(230, 168, 23, 0.1);
-            --win: #38bd94;
-            --win-dim: rgba(56, 189, 148, 0.12);
-            --half-win: #3b9edd;
-            --half-win-dim: rgba(59, 158, 221, 0.12);
-            --half-lose: #e85d5d;
-            --half-lose-dim: rgba(232, 93, 93, 0.12);
-            --draw: #e6a817;
-            --draw-dim: rgba(230, 168, 23, 0.12);
-            --text-primary: #e8edf5;
-            --text-secondary: #8899b0;
-            --text-muted: #4d5f78;
+            --bg-base: #f7f6f3;
+            --bg-surface: #f0efeb;
+            --bg-card: #ffffff;
+            --bg-elevated: #ffffff;
+            --bg-input: #f5f4f1;
+            --accent: #0d7c66;
+            --accent-light: #10a37f;
+            --accent-dim: rgba(13, 124, 102, 0.06);
+            --accent-border: rgba(13, 124, 102, 0.15);
+            --win: #16a34a;
+            --win-dim: rgba(22, 163, 74, 0.08);
+            --win-border: rgba(22, 163, 74, 0.2);
+            --hw: #2563eb;
+            --hw-dim: rgba(37, 99, 235, 0.08);
+            --hw-border: rgba(37, 99, 235, 0.2);
+            --hl: #dc2626;
+            --hl-dim: rgba(220, 38, 38, 0.07);
+            --hl-border: rgba(220, 38, 38, 0.18);
+            --draw: #d97706;
+            --draw-dim: rgba(217, 119, 6, 0.08);
+            --draw-border: rgba(217, 119, 6, 0.2);
+            --tp: #1a1a2e;
+            --ts: #5a5a72;
+            --tm: #9898aa;
+            --bs: rgba(0,0,0,0.06);
+            --bn: rgba(0,0,0,0.09);
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 2px 8px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+            --shadow-lg: 0 4px 16px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             background: var(--bg-base);
-            color: var(--text-primary);
-            font-family: 'DM Sans', sans-serif;
+            color: var(--tp);
+            font-family: 'Manrope', sans-serif;
             min-height: 100vh;
             overflow-x: hidden;
         }
 
-        /* === Atmosfer Latar === */
-        .atmosphere {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
+        /* === Latar === */
+        .atmos { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+        .atmos .dots {
+            position: absolute; inset: 0;
+            background-image: radial-gradient(rgba(13,124,102,0.04) 1px, transparent 1px);
+            background-size: 24px 24px;
         }
-        .atmosphere .glow-1 {
-            position: absolute;
-            top: -200px;
-            right: -100px;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(56,189,148,0.07) 0%, transparent 65%);
-            border-radius: 50%;
-            animation: drift 30s ease-in-out infinite;
+        .atmos .orb {
+            position: absolute; border-radius: 50%; filter: blur(90px);
         }
-        .atmosphere .glow-2 {
-            position: absolute;
-            bottom: -150px;
-            left: -80px;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(230,168,23,0.05) 0%, transparent 65%);
-            border-radius: 50%;
-            animation: drift 25s ease-in-out infinite reverse;
+        .atmos .orb-a {
+            width: 500px; height: 500px;
+            top: -120px; right: -80px;
+            background: rgba(13, 124, 102, 0.06);
+            animation: orbDrift 28s ease-in-out infinite;
         }
-        .atmosphere .noise {
-            position: absolute;
-            inset: 0;
-            opacity: 0.025;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-            background-size: 200px 200px;
+        .atmos .orb-b {
+            width: 400px; height: 400px;
+            bottom: -80px; left: -80px;
+            background: rgba(217, 119, 6, 0.05);
+            animation: orbDrift 22s ease-in-out infinite reverse;
         }
-        @keyframes drift {
+        @keyframes orbDrift {
             0%, 100% { transform: translate(0, 0); }
-            33% { transform: translate(30px, -20px); }
-            66% { transform: translate(-20px, 15px); }
-        }
-
-        /* === Garis Horizontal Halus === */
-        .line-accent {
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--border-normal), transparent);
-        }
-
-        /* === Kartu === */
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            border-radius: 14px;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-        .card:hover {
-            border-color: var(--border-normal);
+            33% { transform: translate(20px, -15px); }
+            66% { transform: translate(-15px, 10px); }
         }
 
         /* === Input === */
-        .field-input {
-            background: var(--bg-base);
-            border: 1px solid var(--border-subtle);
+        .fi {
+            background: var(--bg-input);
+            border: 1px solid var(--bs);
             border-radius: 8px;
-            color: var(--text-primary);
-            font-family: 'Space Mono', monospace;
-            font-size: 0.9rem;
-            padding: 10px 12px;
+            color: var(--tp);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.88rem;
+            padding: 9px 12px;
             width: 100%;
-            transition: all 0.2s ease;
+            transition: border-color 0.2s, box-shadow 0.2s;
             outline: none;
         }
-        .field-input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 2px var(--accent-dim);
+        .fi:focus {
+            border-color: var(--accent-border);
+            box-shadow: 0 0 0 3px var(--accent-dim);
         }
-        .field-input::placeholder { color: var(--text-muted); }
-        .field-input::-webkit-outer-spin-button,
-        .field-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .field-input[type=number] { -moz-appearance: textfield; }
+        .fi::placeholder { color: var(--tm); }
+        .fi::-webkit-outer-spin-button,
+        .fi::-webkit-inner-spin-button { -webkit-appearance: none; }
+        .fi[type=number] { -moz-appearance: textfield; }
 
         /* === Label === */
-        .label-text {
-            font-size: 0.68rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-            display: block;
+        .lbl {
+            font-size: 0.65rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            color: var(--tm); margin-bottom: 5px; display: block;
         }
 
-        /* === Tombol Tambah === */
-        .btn-tambah {
-            background: var(--accent);
-            color: var(--bg-base);
-            border: none;
-            border-radius: 8px;
-            padding: 10px 20px;
-            font-family: 'Outfit', sans-serif;
-            font-weight: 700;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            letter-spacing: 0.01em;
+        /* === Stepper === */
+        .stepper {
+            display: inline-flex; align-items: center;
+            background: var(--bg-input); border: 1px solid var(--bs);
+            border-radius: 8px; overflow: hidden;
         }
-        .btn-tambah:hover {
-            background: var(--accent-bright);
-            box-shadow: 0 4px 20px rgba(56, 189, 148, 0.25);
-            transform: translateY(-1px);
+        .stepper button {
+            background: transparent; border: none; color: var(--ts);
+            width: 36px; height: 38px; cursor: pointer;
+            font-size: 0.8rem; transition: all 0.15s;
+            display: flex; align-items: center; justify-content: center;
         }
-        .btn-tambah:active { transform: translateY(0); }
+        .stepper button:hover { background: var(--accent-dim); color: var(--accent); }
+        .stepper .sep { width: 1px; height: 18px; background: var(--bs); }
+        .stepper input {
+            background: transparent; border: none; color: var(--tp);
+            font-family: 'JetBrains Mono', monospace; font-size: 0.92rem;
+            font-weight: 600; width: 110px; text-align: center;
+            outline: none; padding: 8px 4px;
+        }
+        .stepper input::-webkit-outer-spin-button,
+        .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; }
+        .stepper input[type=number] { -moz-appearance: textfield; }
 
-        /* === Tombol Hapus === */
-        .btn-hapus {
-            background: transparent;
-            border: 1px solid rgba(232, 93, 93, 0.2);
-            color: var(--half-lose);
-            border-radius: 8px;
-            padding: 8px 14px;
-            font-family: 'DM Sans', sans-serif;
-            font-weight: 600;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
+        /* === Segmented Control === */
+        .seg {
+            display: flex; background: var(--bg-input);
+            border: 1px solid var(--bs); border-radius: 7px;
+            padding: 2px; gap: 2px;
         }
-        .btn-hapus:hover {
-            background: var(--half-lose-dim);
-            border-color: rgba(232, 93, 93, 0.4);
+        .seg button {
+            flex: 1; padding: 5px 6px; border: none; border-radius: 5px;
+            font-family: 'Manrope', sans-serif; font-size: 0.62rem;
+            font-weight: 700; cursor: pointer; transition: all 0.2s;
+            background: transparent; color: var(--tm); white-space: nowrap;
+            text-transform: uppercase; letter-spacing: 0.03em;
         }
+        .seg button:hover { color: var(--ts); background: rgba(0,0,0,0.02); }
+        .seg button.s-win { background: var(--win-dim); color: var(--win); border: 1px solid var(--win-border); }
+        .seg button.s-hw { background: var(--hw-dim); color: var(--hw); border: 1px solid var(--hw-border); }
+        .seg button.s-hl { background: var(--hl-dim); color: var(--hl); border: 1px solid var(--hl-border); }
+        .seg button.s-draw { background: var(--draw-dim); color: var(--draw); border: 1px solid var(--draw-border); }
 
-        /* === Radio Pill === */
-        .pill-group { display: flex; flex-wrap: wrap; gap: 5px; }
-        .pill-item { position: relative; cursor: pointer; }
-        .pill-item input { position: absolute; opacity: 0; pointer-events: none; }
-        .pill-surface {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 5px 11px;
-            border-radius: 6px;
-            font-size: 0.72rem;
-            font-weight: 600;
-            border: 1px solid var(--border-subtle);
-            background: var(--bg-base);
-            color: var(--text-secondary);
-            transition: all 0.2s ease;
-            user-select: none;
-            white-space: nowrap;
-        }
-        .pill-surface:hover {
-            border-color: var(--border-normal);
-            color: var(--text-primary);
-        }
-        .pill-item input[value="1"]:checked + .pill-surface {
-            background: var(--win-dim);
-            border-color: var(--win);
-            color: var(--win);
-        }
-        .pill-item input[value="0.5"]:checked + .pill-surface {
-            background: var(--half-win-dim);
-            border-color: var(--half-win);
-            color: var(--half-win);
-        }
-        .pill-item input[value="-0.5"]:checked + .pill-surface {
-            background: var(--half-lose-dim);
-            border-color: var(--half-lose);
-            color: var(--half-lose);
-        }
-        .pill-item input[value="0"]:checked + .pill-surface {
-            background: var(--draw-dim);
-            border-color: var(--draw);
-            color: var(--draw);
-        }
-
-        /* === Badge Odds === */
-        .odds-chip {
-            font-family: 'Space Mono', monospace;
-            font-weight: 700;
-            font-size: 0.85rem;
-            padding: 3px 10px;
-            border-radius: 5px;
-            display: inline-block;
-        }
-        .odds-chip.c-win { background: var(--win-dim); color: var(--win); }
-        .odds-chip.c-hw { background: var(--half-win-dim); color: var(--half-win); }
-        .odds-chip.c-hl { background: var(--half-lose-dim); color: var(--half-lose); }
-        .odds-chip.c-draw { background: var(--draw-dim); color: var(--draw); }
-
-        /* === Panel Statistik === */
-        .stat-panel {
-            border-radius: 12px;
-            padding: 18px 20px;
+        /* === Baris Partai === */
+        .prow {
             position: relative;
+            background: var(--bg-card);
+            border: 1px solid var(--bs);
+            border-radius: 10px;
+            box-shadow: var(--shadow-sm);
             overflow: hidden;
+            transition: border-color 0.25s, box-shadow 0.25s;
         }
-        .stat-panel::after {
-            content: '';
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            height: 2px;
+        .prow:hover { border-color: var(--bn); box-shadow: var(--shadow-md); }
+        .prow::before {
+            content: ''; position: absolute;
+            left: 0; top: 0; bottom: 0; width: 3px;
+            background: var(--row-color, var(--tm));
+            transition: background 0.3s ease;
         }
-        .sp-partai {
-            background: linear-gradient(180deg, var(--bg-card), var(--bg-surface));
-            border: 1px solid var(--border-subtle);
-        }
-        .sp-partai::after { background: var(--accent); }
-        .sp-odds {
-            background: linear-gradient(180deg, var(--bg-card), var(--bg-surface));
-            border: 1px solid var(--border-subtle);
-        }
-        .sp-odds::after { background: var(--half-win); }
-        .sp-hasil {
-            background: linear-gradient(180deg, var(--bg-card), var(--bg-surface));
-            border: 1px solid var(--border-subtle);
-            transition: border-color 0.3s ease;
-        }
-        .sp-hasil.is-win { border-color: rgba(56, 189, 148, 0.25); }
-        .sp-hasil.is-win::after { background: var(--win); }
-        .sp-hasil.is-lose { border-color: rgba(232, 93, 93, 0.25); }
-        .sp-hasil.is-lose::after { background: var(--half-lose); }
-        .sp-hasil.is-draw { border-color: rgba(230, 168, 23, 0.25); }
-        .sp-hasil.is-draw::after { background: var(--draw); }
-
-        /* === Animasi Baris === */
-        .parlay-enter {
-            animation: rowSlide 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-        @keyframes rowSlide {
-            from { opacity: 0; transform: translateY(12px); }
+        .prow-enter { animation: prowIn 0.3s cubic-bezier(0.22,1,0.36,1); }
+        @keyframes prowIn {
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         /* === Nomor Partai === */
-        .partai-num {
-            width: 28px;
-            height: 28px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Space Mono', monospace;
-            font-size: 0.72rem;
-            font-weight: 700;
-            background: var(--accent-dim);
-            color: var(--accent);
-            border: 1px solid rgba(56, 189, 148, 0.15);
-            flex-shrink: 0;
+        .pnum {
+            width: 26px; height: 26px; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem; font-weight: 700;
+            background: var(--accent-dim); color: var(--accent);
+            border: 1px solid var(--accent-border); flex-shrink: 0;
         }
 
-        /* === Info Box === */
-        .info-box {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-subtle);
-            border-radius: 10px;
-            padding: 18px;
+        /* === Odds Chip === */
+        .ochip {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700; font-size: 0.78rem;
+            padding: 3px 9px; border-radius: 5px;
+            display: inline-block; letter-spacing: -0.02em;
+        }
+        .ochip.c-w { background: var(--win-dim); color: var(--win); border: 1px solid var(--win-border); }
+        .ochip.c-hw { background: var(--hw-dim); color: var(--hw); border: 1px solid var(--hw-border); }
+        .ochip.c-hl { background: var(--hl-dim); color: var(--hl); border: 1px solid var(--hl-border); }
+        .ochip.c-d { background: var(--draw-dim); color: var(--draw); border: 1px solid var(--draw-border); }
+
+        /* === Tombol Hapus === */
+        .btn-del {
+            background: transparent; border: none; color: var(--tm);
+            width: 28px; height: 28px; border-radius: 6px;
+            cursor: pointer; transition: all 0.15s;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; flex-shrink: 0; opacity: 0;
+        }
+        .prow:hover .btn-del { opacity: 1; }
+        .btn-del:hover { background: var(--hl-dim); color: var(--hl); }
+
+        /* === Result Card === */
+        .result-wrap {
+            padding: 1.5px; border-radius: 14px;
+            transition: background 0.5s ease;
+        }
+        .result-inner {
+            background: var(--bg-card);
+            border-radius: 12.5px;
+            padding: 22px 24px;
+            position: relative; overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+        .result-inner::after {
+            content: ''; position: absolute;
+            top: -40%; right: -20%; width: 180px; height: 180px;
+            border-radius: 50%; filter: blur(70px);
+            opacity: 0.1; transition: background 0.5s ease;
+            pointer-events: none;
+        }
+        .result-wrap.rw-win .result-inner::after { background: var(--win); }
+        .result-wrap.rw-lose .result-inner::after { background: var(--hl); }
+        .result-wrap.rw-draw .result-inner::after { background: var(--draw); }
+
+        .result-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700; font-size: 1.9rem;
+            letter-spacing: -0.03em; line-height: 1.2;
+            transition: color 0.4s ease;
+        }
+
+        /* === Odds Chain === */
+        .chain {
+            display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+        }
+        .chain-chip {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600; font-size: 0.78rem;
+            padding: 4px 10px; border-radius: 5px;
+            animation: chipFloat 4s ease-in-out infinite;
+            border: 1px solid transparent;
+        }
+        .chain-chip:nth-child(odd) { animation-delay: -1s; }
+        @keyframes chipFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-2px); }
+        }
+        .chain-op {
+            color: var(--tm); font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .chain-total {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700; font-size: 0.9rem;
+            padding: 4px 12px; border-radius: 5px;
+            background: var(--accent-dim); color: var(--accent);
+            border: 1px solid var(--accent-border);
+        }
+
+        /* === Tombol Tambah === */
+        .btn-add {
+            background: var(--bg-card);
+            border: 1.5px dashed var(--accent-border);
+            color: var(--accent); border-radius: 10px;
+            padding: 11px 20px; font-family: 'Sora', sans-serif;
+            font-weight: 600; font-size: 0.78rem;
+            cursor: pointer; transition: all 0.2s;
+            display: inline-flex; align-items: center; gap: 7px;
+            width: 100%; justify-content: center;
+            box-shadow: var(--shadow-sm);
+        }
+        .btn-add:hover {
+            background: var(--accent-dim);
+            border-style: solid;
+            border-color: rgba(13, 124, 102, 0.3);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* === Info Card === */
+        .icard {
+            background: var(--bg-card);
+            border: 1px solid var(--bs);
+            border-radius: 10px; padding: 18px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* === Divider === */
+        .hdiv {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--bn), transparent);
+        }
+
+        /* === Formula Box === */
+        .fbox {
+            background: var(--bg-input); border: 1px solid var(--bs);
+            border-radius: 8px; padding: 10px 14px; text-align: center;
+        }
+
+        /* === Section Head === */
+        .shead {
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 14px;
+        }
+        .shead::after {
+            content: ''; flex: 1; height: 1px;
+            background: linear-gradient(90deg, var(--bn), transparent);
+        }
+        .shead span {
+            font-size: 0.65rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            color: var(--tm); white-space: nowrap;
+        }
+
+        /* === Glow Pulse === */
+        @keyframes glowPulse {
+            0%, 100% { opacity: 0.08; }
+            50% { opacity: 0.15; }
+        }
+        .result-wrap.rw-win .result-inner::after,
+        .result-wrap.rw-lose .result-inner::after {
+            animation: glowPulse 3s ease-in-out infinite;
+        }
+
+        /* === Stat mini === */
+        .stat-mini {
+            background: var(--bg-card);
+            border: 1px solid var(--bs);
+            border-radius: 8px;
+            padding: 10px 14px;
+            box-shadow: var(--shadow-sm);
         }
 
         /* === Scrollbar === */
-        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 3px; }
-
-        /* === Shimmer untuk stat besar === */
-        .shimmer-text {
-            background-size: 200% auto;
-            animation: shimmer 3s linear infinite;
-        }
-        @keyframes shimmer {
-            0% { background-position: -200% center; }
-            100% { background-position: 200% center; }
-        }
-
-        /* === Separator titik-titik === */
-        .dot-sep {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            padding: 4px 0;
-        }
-        .dot-sep span {
-            width: 3px;
-            height: 3px;
-            border-radius: 50%;
-            background: var(--text-muted);
-            opacity: 0.4;
-        }
+        ::-webkit-scrollbar-thumb { background: var(--tm); border-radius: 2px; }
 
         @media (max-width: 640px) {
-            .pill-surface { font-size: 0.65rem; padding: 4px 7px; }
+            .seg button { font-size: 0.55rem; padding: 4px 4px; }
+            .result-num { font-size: 1.5rem; }
+            .btn-del { opacity: 1; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
         }
     </style>
 </head>
 <body>
     <!-- Atmosfer -->
-    <div class="atmosphere">
-        <div class="glow-1"></div>
-        <div class="glow-2"></div>
-        <div class="noise"></div>
+    <div class="atmos">
+        <div class="dots"></div>
+        <div class="orb orb-a"></div>
+        <div class="orb orb-b"></div>
     </div>
 
-    <main class="relative z-10 max-w-3xl mx-auto px-4 py-8 sm:py-14">
+    <main class="relative z-10 max-w-2xl mx-auto px-4 py-8 sm:py-12">
         <form id="app" onsubmit="return false;">
 
             <!-- Header -->
             <header class="mb-8">
-                <div class="flex items-center gap-3 mb-2">
-                    <div style="width:36px;height:36px;border-radius:8px;background:var(--accent-dim);border:1px solid rgba(56,189,148,0.15);display:flex;align-items:center;justify-content:center;">
-                        <i class="fa-solid fa-calculator" style="color:var(--accent);font-size:0.85rem;"></i>
+                <div class="flex items-center gap-2.5 mb-3">
+                    <div style="width:34px;height:34px;border-radius:8px;background:var(--accent-dim);border:1px solid var(--accent-border);display:flex;align-items:center;justify-content:center;">
+                        <i class="fa-solid fa-layer-group" style="color:var(--accent);font-size:0.75rem;"></i>
                     </div>
-                    <span style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-muted);">Mix Parlay Calculator</span>
+                    <span class="font-display" style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--tm);">Mix Parlay Calculator</span>
                 </div>
-                <h1 class="font-display text-3xl sm:text-4xl font-900 leading-tight" style="color:var(--text-primary);">
-                    Kalkulator <span style="color:var(--accent);">Parlay</span>
+                <h1 class="font-display" style="font-size:2.6rem;font-weight:800;line-height:1.05;letter-spacing:-0.035em;color:var(--tp);">
+                    Kalkulator<br><span style="color:var(--accent);">Mix Parlay</span>
                 </h1>
-                <p class="mt-2 text-sm" style="color:var(--text-secondary);max-width:420px;">
-                    Hitung keuntungan mix parlay akurat untuk taruhan berganda — menang full, setengah, kalah setengah, atau seri.
+                <p class="mt-2.5" style="font-size:0.85rem;color:var(--ts);max-width:400px;line-height:1.65;">
+                    Hitung keuntungan taruhan berganda dengan akurat — mendukung menang full, setengah, kalah setengah, dan seri.
                 </p>
             </header>
 
-            <!-- Kontrol Atas -->
-            <div class="flex flex-wrap gap-3 items-end mb-5">
-                <div style="min-width:160px;max-width:220px;flex:1;">
-                    <label class="label-text"><i class="fa-solid fa-coins mr-1"></i>Nilai Bet (Rp)</label>
-                    <input type="number" name="nilaibet" v-model="nilaibet"
-                        class="field-input" style="font-size:1rem;font-weight:700;"
-                        min="1" max="10000000" @change="oddstotal()">
-                </div>
-                <button type="button" v-on:click="addNewParlay" class="btn-tambah">
-                    <i class="fa-solid fa-plus" style="font-size:0.7rem;"></i>
-                    Tambah Partai
-                </button>
-            </div>
-
-            <!-- Panel Statistik -->
-            <div class="grid grid-cols-3 gap-3 mb-6">
-                <div class="stat-panel sp-partai">
-                    <div class="label-text" style="margin-bottom:2px;">Partai</div>
-                    <div class="font-mono font-bold text-xl" style="color:var(--accent);">
-                        {{ totalbet }}
+            <!-- Bet Input + Result -->
+            <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 mb-6">
+                <!-- Bet Input -->
+                <div class="sm:col-span-2 icard" style="padding:16px 18px;">
+                    <label class="lbl"><i class="fa-solid fa-coins mr-1"></i>Nilai Taruhan</label>
+                    <div class="stepper">
+                        <button type="button" @click="adjustBet(-5000)"><i class="fa-solid fa-minus" style="font-size:0.6rem;"></i></button>
+                        <div class="sep"></div>
+                        <input type="number" v-model.number="nilaibet" min="1000" max="10000000" step="1000" @change="oddstotal()">
+                        <div class="sep"></div>
+                        <button type="button" @click="adjustBet(5000)"><i class="fa-solid fa-plus" style="font-size:0.6rem;"></i></button>
                     </div>
-                </div>
-                <div class="stat-panel sp-odds">
-                    <div class="label-text" style="margin-bottom:2px;">Odds Total</div>
-                    <div class="font-mono font-bold text-xl" style="color:var(--half-win);">
-                        {{ totalodds }}<span style="font-size:0.7rem;opacity:0.6;">x</span>
+                    <div class="mt-2" style="font-size:0.65rem;color:var(--tm);font-family:'JetBrains Mono',monospace;">
+                        Rp {{ formatNum(nilaibet) }}
                     </div>
-                </div>
-                <div class="stat-panel sp-hasil"
-                     :class="{ 'is-win': isWin, 'is-lose': isLose, 'is-draw': isDraw }">
-                    <div class="label-text" style="margin-bottom:2px;">Hasil Akhir</div>
-                    <div class="font-mono font-bold text-lg sm:text-xl"
-                         :style="{ color: resultColor }">
-                        {{ totalc }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="line-accent mb-5"></div>
-
-            <!-- Daftar Parlay -->
-            <div class="space-y-3">
-                <div v-for="(parlay, index) in parlays" :key="index"
-                     class="card parlay-enter p-4 sm:p-5">
-
-                    <!-- Header Baris -->
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center gap-2.5">
-                            <span class="partai-num">{{ index + 1 }}</span>
-                            <span style="font-size:0.8rem;font-weight:600;color:var(--text-secondary);">
-                                Partai {{ index + 1 }}
-                            </span>
+                    <!-- Mini stats -->
+                    <div class="grid grid-cols-2 gap-2 mt-3">
+                        <div class="stat-mini">
+                            <div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--tm);">Partai</div>
+                            <div class="font-mono font-bold" style="font-size:1.05rem;color:var(--tp);">{{ totalbet }}</div>
                         </div>
-                        <button type="button" v-on:click="removeParlay(index)"
-                                class="btn-hapus" v-show="parlays.length > 1">
-                            <i class="fa-solid fa-xmark" style="font-size:0.65rem;"></i>
-                            Hapus
-                        </button>
-                    </div>
-
-                    <!-- Konten Baris -->
-                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-start">
-                        <!-- Input Odds -->
-                        <div class="sm:col-span-3">
-                            <label class="label-text">Odds</label>
-                            <input @change="oddstotal()" v-model="parlay.odds"
-                                type="number" step="0.01" name="parlays[][odds]"
-                                class="field-input" placeholder="1.75">
+                        <div class="stat-mini">
+                            <div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--tm);">Odds Total</div>
+                            <div class="font-mono font-bold" style="font-size:1.05rem;color:var(--accent);">{{ totalodds }}<span style="font-size:0.65rem;opacity:0.6;">x</span></div>
                         </div>
+                    </div>
+                </div>
 
-                        <!-- Pilihan Hasil -->
-                        <div class="sm:col-span-6">
-                            <label class="label-text">Hasil Partai</label>
-                            <div class="pill-group">
-                                <label class="pill-item">
-                                    <input type="radio" @change="oddstotal()" v-model="parlay.hasil" value="1">
-                                    <span class="pill-surface">
-                                        <i class="fa-solid fa-check" style="font-size:0.55rem;"></i> Menang Full
-                                    </span>
-                                </label>
-                                <label class="pill-item">
-                                    <input type="radio" @change="oddstotal()" v-model="parlay.hasil" value="0.5">
-                                    <span class="pill-surface">
-                                        <i class="fa-solid fa-circle-half-stroke" style="font-size:0.55rem;"></i> Menang 1/2
-                                    </span>
-                                </label>
-                                <label class="pill-item">
-                                    <input type="radio" @change="oddstotal()" v-model="parlay.hasil" value="-0.5">
-                                    <span class="pill-surface">
-                                        <i class="fa-solid fa-xmark" style="font-size:0.55rem;"></i> Kalah 1/2
-                                    </span>
-                                </label>
-                                <label class="pill-item">
-                                    <input type="radio" @change="oddstotal()" v-model="parlay.hasil" value="0">
-                                    <span class="pill-surface">
-                                        <i class="fa-solid fa-minus" style="font-size:0.55rem;"></i> Seri
-                                    </span>
-                                </label>
+                <!-- Result Display -->
+                <div class="sm:col-span-3">
+                    <div class="result-wrap"
+                         :class="{ 'rw-win': isWin, 'rw-lose': isLose, 'rw-draw': isDraw }"
+                         :style="{ background: resultBorder }"
+                         style="height:100%;">
+                        <div class="result-inner" style="height:100%;display:flex;flex-direction:column;justify-content:center;">
+                            <div class="lbl" style="margin-bottom:4px;">Hasil Akhir</div>
+                            <div class="result-num" :style="{ color: resultColor }">
+                                {{ totalc }}
                             </div>
-                        </div>
-
-                        <!-- Odds Efektif -->
-                        <div class="sm:col-span-3 flex sm:justify-end items-end">
-                            <div>
-                                <div class="label-text text-right">Odds Efektif</div>
-                                <span class="odds-chip" :class="chipClass(parlay.hasil)">
-                                    {{ parlay.oddsx }}
+                            <div class="flex items-center gap-3 mt-2.5" style="font-size:0.72rem;">
+                                <span class="font-mono font-semibold" style="color:var(--accent);">
+                                    {{ totalodds }}x
+                                </span>
+                                <span style="color:var(--tm);">·</span>
+                                <span style="color:var(--ts);">
+                                    {{ totalbet }} partai
+                                </span>
+                                <span style="color:var(--tm);">·</span>
+                                <span :style="{ color: resultLabelColor }" style="font-weight:700;text-transform:uppercase;letter-spacing:0.05em;font-size:0.65rem;">
+                                    {{ resultLabel }}
                                 </span>
                             </div>
                         </div>
@@ -496,61 +453,175 @@
                 </div>
             </div>
 
-            <div class="line-accent mt-6 mb-6"></div>
+            <div class="hdiv mb-6"></div>
 
-            <!-- Catatan & Rumus -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="info-box">
-                    <h3 class="text-xs font-bold uppercase tracking-wider mb-3" style="color:var(--accent);">
-                        <i class="fa-solid fa-info-circle mr-1"></i> Catatan Hitungan
-                    </h3>
-                    <ul class="space-y-2">
-                        <li class="flex items-start gap-2 text-xs" style="color:var(--text-secondary);line-height:1.65;">
-                            <span style="margin-top:5px;width:5px;height:5px;border-radius:50%;background:var(--win);flex-shrink:0;"></span>
-                            <span><strong style="color:var(--win);">Menang Full</strong> — Odds tetap sesuai nilai</span>
-                        </li>
-                        <li class="flex items-start gap-2 text-xs" style="color:var(--text-secondary);line-height:1.65;">
-                            <span style="margin-top:5px;width:5px;height:5px;border-radius:50%;background:var(--half-win);flex-shrink:0;"></span>
-                            <span><strong style="color:var(--half-win);">Menang Setengah</strong> — (Odds - 1) / 2 + 1</span>
-                        </li>
-                        <li class="flex items-start gap-2 text-xs" style="color:var(--text-secondary);line-height:1.65;">
-                            <span style="margin-top:5px;width:5px;height:5px;border-radius:50%;background:var(--half-lose);flex-shrink:0;"></span>
-                            <span><strong style="color:var(--half-lose);">Kalah Setengah</strong> — Odds menjadi 0.5</span>
-                        </li>
-                        <li class="flex items-start gap-2 text-xs" style="color:var(--text-secondary);line-height:1.65;">
-                            <span style="margin-top:5px;width:5px;height:5px;border-radius:50%;background:var(--draw);flex-shrink:0;"></span>
-                            <span><strong style="color:var(--draw);">Seri</strong> — Odds menjadi 1 (netral)</span>
-                        </li>
-                    </ul>
+            <!-- Daftar Partai -->
+            <div class="shead">
+                <span><i class="fa-solid fa-list-ol mr-1.5"></i>Rincian Partai</span>
+            </div>
+
+            <div class="space-y-2.5 mb-4">
+                <div v-for="(parlay, index) in parlays" :key="index"
+                     class="prow prow-enter p-3.5 sm:p-4"
+                     :style="{ '--row-color': rowAccent(parlay.hasil) }">
+
+                    <div class="flex items-center gap-2.5">
+                        <span class="pnum">{{ index + 1 }}</span>
+
+                        <!-- Odds -->
+                        <div style="width:90px;flex-shrink:0;">
+                            <input @change="oddstotal()" v-model.number="parlay.odds"
+                                type="number" step="0.01" class="fi"
+                                style="padding:7px 9px;font-size:0.82rem;" placeholder="0.00">
+                        </div>
+
+                        <!-- Segmented -->
+                        <div class="seg" style="flex:1;min-width:0;">
+                            <button type="button" @click="parlay.hasil='1'; oddstotal();"
+                                    :class="{ 's-win': parlay.hasil==='1' }">
+                                <span class="hidden sm:inline">Menang</span><span class="sm:hidden">W</span>
+                            </button>
+                            <button type="button" @click="parlay.hasil='0.5'; oddstotal();"
+                                    :class="{ 's-hw': parlay.hasil==='0.5' }">
+                                <span class="hidden sm:inline">½ Menang</span><span class="sm:hidden">½W</span>
+                            </button>
+                            <button type="button" @click="parlay.hasil='-0.5'; oddstotal();"
+                                    :class="{ 's-hl': parlay.hasil==='-0.5' }">
+                                <span class="hidden sm:inline">½ Kalah</span><span class="sm:hidden">½L</span>
+                            </button>
+                            <button type="button" @click="parlay.hasil='0'; oddstotal();"
+                                    :class="{ 's-draw': parlay.hasil==='0' }">
+                                Seri
+                            </button>
+                        </div>
+
+                        <!-- Odds Efektif -->
+                        <span class="ochip" :class="chipClass(parlay.hasil)">
+                            {{ parlay.oddsx }}
+                        </span>
+
+                        <!-- Hapus -->
+                        <button type="button" v-on:click="removeParlay(index)"
+                                class="btn-del" v-show="parlays.length > 1"
+                                title="Hapus partai">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="info-box">
-                    <h3 class="text-xs font-bold uppercase tracking-wider mb-3" style="color:var(--accent);">
-                        <i class="fa-solid fa-square-root-variable mr-1"></i> Rumus Mix Parlay
+            </div>
+
+            <!-- Tambah -->
+            <button type="button" v-on:click="addNewParlay" class="btn-add mb-6">
+                <i class="fa-solid fa-plus" style="font-size:0.65rem;"></i>
+                Tambah Partai
+            </button>
+
+            <div class="hdiv mb-6"></div>
+
+            <!-- Perhitungan -->
+            <div class="shead">
+                <span><i class="fa-solid fa-link mr-1.5"></i>Perhitungan</span>
+            </div>
+
+            <div class="icard mb-4" style="padding:16px 18px;">
+                <div class="chain mb-4" v-if="parlays.length > 0">
+                    <template v-for="(parlay, index) in parlays">
+                        <span class="chain-chip" :class="chipClass(parlay.hasil)"
+                              :style="{ background: chipBg(parlay.hasil), color: chipFg(parlay.hasil), borderColor: chipBd(parlay.hasil) }">
+                            {{ parlay.oddsx }}
+                        </span>
+                        <span v-if="index < parlays.length - 1" class="chain-op">×</span>
+                    </template>
+                    <span class="chain-op">=</span>
+                    <span class="chain-total">{{ totalodds }}x</span>
+                </div>
+                <div class="fbox">
+                    <span class="font-mono text-xs sm:text-sm" style="color:var(--draw);font-weight:600;">
+                        {{ totalodds }} × {{ formatNum(nilaibet) }} − {{ formatNum(nilaibet) }}
+                        = <span :style="{ color: resultColor }">{{ totalc }}</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="hdiv mb-6"></div>
+
+            <!-- Info -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+                <div class="icard">
+                    <h3 class="font-display" style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);margin-bottom:12px;">
+                        <i class="fa-solid fa-circle-info mr-1"></i>Panduan Hasil
                     </h3>
-                    <div style="background:var(--bg-base);border:1px solid var(--border-subtle);border-radius:8px;padding:10px 14px;margin-bottom:12px;text-align:center;">
-                        <span class="font-mono text-sm font-bold" style="color:var(--gold);">
-                            (Odds Total &times; Bet) - Bet
+                    <div class="space-y-2.5">
+                        <div class="flex items-start gap-2.5">
+                            <span style="margin-top:5px;width:8px;height:8px;border-radius:2px;background:var(--win);flex-shrink:0;"></span>
+                            <div>
+                                <div style="font-size:0.72rem;font-weight:700;color:var(--win);">Menang Full</div>
+                                <div style="font-size:0.65rem;color:var(--ts);line-height:1.55;">Odds tetap sesuai nilai input</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2.5">
+                            <span style="margin-top:5px;width:8px;height:8px;border-radius:2px;background:var(--hw);flex-shrink:0;"></span>
+                            <div>
+                                <div style="font-size:0.72rem;font-weight:700;color:var(--hw);">Menang Setengah</div>
+                                <div style="font-size:0.65rem;color:var(--ts);line-height:1.55;">(Odds − 1) ÷ 2 + 1</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2.5">
+                            <span style="margin-top:5px;width:8px;height:8px;border-radius:2px;background:var(--hl);flex-shrink:0;"></span>
+                            <div>
+                                <div style="font-size:0.72rem;font-weight:700;color:var(--hl);">Kalah Setengah</div>
+                                <div style="font-size:0.65rem;color:var(--ts);line-height:1.55;">Odds menjadi 0.5</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2.5">
+                            <span style="margin-top:5px;width:8px;height:8px;border-radius:2px;background:var(--draw);flex-shrink:0;"></span>
+                            <div>
+                                <div style="font-size:0.72rem;font-weight:700;color:var(--draw);">Seri</div>
+                                <div style="font-size:0.65rem;color:var(--ts);line-height:1.55;">Odds menjadi 1 (netral)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="icard">
+                    <h3 class="font-display" style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);margin-bottom:12px;">
+                        <i class="fa-solid fa-square-root-variable mr-1"></i>Rumus
+                    </h3>
+                    <div class="fbox mb-3">
+                        <span class="font-mono" style="font-size:0.82rem;font-weight:700;color:var(--accent);">
+                            (Odds Total × Bet) − Bet
                         </span>
                     </div>
-                    <div class="space-y-2 text-xs" style="color:var(--text-secondary);line-height:1.65;">
-                        <p>
-                            <i class="fa-solid fa-arrow-trend-up mr-1" style="color:var(--win);"></i>
-                            Hasil <strong style="color:var(--win);">positif</strong> = Anda menang sejumlah hasil
-                        </p>
-                        <p>
-                            <i class="fa-solid fa-arrow-trend-down mr-1" style="color:var(--half-lose);"></i>
-                            Hasil <strong style="color:var(--half-lose);">negatif</strong> = Anda kalah sejumlah hasil
-                        </p>
+                    <div class="space-y-2.5">
+                        <div class="flex items-start gap-2.5">
+                            <i class="fa-solid fa-arrow-trend-up" style="margin-top:4px;color:var(--win);font-size:0.65rem;flex-shrink:0;"></i>
+                            <div style="font-size:0.68rem;color:var(--ts);line-height:1.6;">
+                                Hasil <strong style="color:var(--win);">positif</strong> — Anda untung sebesar angka yang ditampilkan
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2.5">
+                            <i class="fa-solid fa-arrow-trend-down" style="margin-top:4px;color:var(--hl);font-size:0.65rem;flex-shrink:0;"></i>
+                            <div style="font-size:0.68rem;color:var(--ts);line-height:1.6;">
+                                Hasil <strong style="color:var(--hl);">negatif</strong> — Anda rugi sebesar angka yang ditampilkan
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2.5">
+                            <i class="fa-solid fa-equals" style="margin-top:4px;color:var(--draw);font-size:0.65rem;flex-shrink:0;"></i>
+                            <div style="font-size:0.68rem;color:var(--ts);line-height:1.6;">
+                                Hasil <strong style="color:var(--draw);">nol</strong> — Taruhan dikembalikan utuh
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Footer -->
-            <div class="text-center mt-10 pb-4">
-                <div class="dot-sep mb-4">
-                    <span></span><span></span><span></span>
+            <div class="text-center pb-4">
+                <div class="flex items-center justify-center gap-2 mb-3">
+                    <span style="width:16px;height:1px;background:var(--bn);"></span>
+                    <span style="width:3px;height:3px;border-radius:50%;background:var(--tm);opacity:0.5;"></span>
+                    <span style="width:16px;height:1px;background:var(--bn);"></span>
                 </div>
-                <p class="text-xs" style="color:var(--text-muted);">
+                <p style="font-size:0.65rem;color:var(--tm);letter-spacing:0.02em;">
                     Kalkulator mix parlay — gunakan dengan bijak.
                 </p>
             </div>
@@ -574,47 +645,49 @@
                 totalodds() {
                     let total = 1;
                     for (let i = 0; i < this.parlays.length; i++) {
-                        const parlay = this.parlays[i];
-                        let oddsValue = 0;
-                        const hasil = parlay.hasil;
-                        const odds = parseFloat(parlay.odds) || 0;
-
-                        if (hasil === '1') {
-                            oddsValue = odds;
-                        } else if (hasil === '0.5') {
-                            oddsValue = ((odds - 1) / 2) + 1;
-                        } else if (hasil === '-0.5') {
-                            oddsValue = 0.5;
-                        } else if (hasil === '0') {
-                            oddsValue = 1;
-                        }
-
-                        parlay.oddsx = parseFloat(oddsValue.toFixed(3));
-                        total *= oddsValue;
+                        const p = this.parlays[i];
+                        let v = 0;
+                        const o = parseFloat(p.odds) || 0;
+                        if (p.hasil === '1') v = o;
+                        else if (p.hasil === '0.5') v = ((o - 1) / 2) + 1;
+                        else if (p.hasil === '-0.5') v = 0.5;
+                        else if (p.hasil === '0') v = 1;
+                        p.oddsx = parseFloat(v.toFixed(3));
+                        total *= v;
                     }
                     return parseFloat(total.toFixed(3));
                 },
                 totalc() {
-                    const totalOdds = parseFloat(this.totalodds) || 0;
-                    const nilaiBet = parseFloat(this.nilaibet) || 0;
-                    const hasil = (totalOdds * nilaiBet) - nilaiBet;
-                    const formatted = Math.round(hasil).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-                    return 'Rp ' + formatted;
+                    const to = parseFloat(this.totalodds) || 0;
+                    const nb = parseFloat(this.nilaibet) || 0;
+                    const h = (to * nb) - nb;
+                    const prefix = h >= 0 ? '+Rp ' : '-Rp ';
+                    const abs = Math.abs(Math.round(h)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                    return prefix + abs;
                 },
-                isWin() {
-                    return parseFloat(this.totalodds) > 1;
-                },
-                isLose() {
-                    return parseFloat(this.totalodds) < 1;
-                },
-                isDraw() {
-                    return parseFloat(this.totalodds) === 1;
-                },
+                isWin() { return parseFloat(this.totalodds) > 1; },
+                isLose() { return parseFloat(this.totalodds) < 1; },
+                isDraw() { return parseFloat(this.totalodds) === 1; },
                 resultColor() {
                     const o = parseFloat(this.totalodds) || 0;
-                    if (o > 1) return '#38bd94';
-                    if (o < 1) return '#e85d5d';
-                    return '#e6a817';
+                    if (o > 1) return '#16a34a';
+                    if (o < 1) return '#dc2626';
+                    return '#d97706';
+                },
+                resultLabelColor() {
+                    return this.resultColor;
+                },
+                resultLabel() {
+                    const o = parseFloat(this.totalodds) || 0;
+                    if (o > 1) return 'MENANG';
+                    if (o < 1) return 'KALAH';
+                    return 'SERI';
+                },
+                resultBorder() {
+                    const o = parseFloat(this.totalodds) || 0;
+                    if (o > 1) return 'linear-gradient(135deg, rgba(22,163,74,0.4), rgba(22,163,74,0.05))';
+                    if (o < 1) return 'linear-gradient(135deg, rgba(220,38,38,0.4), rgba(220,38,38,0.05))';
+                    return 'linear-gradient(135deg, rgba(217,119,6,0.4), rgba(217,119,6,0.05))';
                 }
             },
             methods: {
@@ -630,12 +703,48 @@
                 oddstotal() {
                     this.$forceUpdate();
                 },
-                chipClass(hasil) {
-                    if (hasil === '1') return 'c-win';
-                    if (hasil === '0.5') return 'c-hw';
-                    if (hasil === '-0.5') return 'c-hl';
-                    if (hasil === '0') return 'c-draw';
+                adjustBet(amount) {
+                    const next = (parseFloat(this.nilaibet) || 0) + amount;
+                    this.nilaibet = Math.max(1000, Math.min(10000000, next));
+                    this.oddstotal();
+                },
+                formatNum(n) {
+                    return (parseInt(n) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                },
+                chipClass(h) {
+                    if (h === '1') return 'c-w';
+                    if (h === '0.5') return 'c-hw';
+                    if (h === '-0.5') return 'c-hl';
+                    if (h === '0') return 'c-d';
                     return '';
+                },
+                chipBg(h) {
+                    if (h === '1') return 'rgba(22,163,74,0.07)';
+                    if (h === '0.5') return 'rgba(37,99,235,0.07)';
+                    if (h === '-0.5') return 'rgba(220,38,38,0.06)';
+                    if (h === '0') return 'rgba(217,119,6,0.07)';
+                    return 'rgba(0,0,0,0.03)';
+                },
+                chipFg(h) {
+                    if (h === '1') return '#16a34a';
+                    if (h === '0.5') return '#2563eb';
+                    if (h === '-0.5') return '#dc2626';
+                    if (h === '0') return '#d97706';
+                    return '#9898aa';
+                },
+                chipBd(h) {
+                    if (h === '1') return 'rgba(22,163,74,0.18)';
+                    if (h === '0.5') return 'rgba(37,99,235,0.18)';
+                    if (h === '-0.5') return 'rgba(220,38,38,0.16)';
+                    if (h === '0') return 'rgba(217,119,6,0.18)';
+                    return 'transparent';
+                },
+                rowAccent(h) {
+                    if (h === '1') return '#16a34a';
+                    if (h === '0.5') return '#2563eb';
+                    if (h === '-0.5') return '#dc2626';
+                    if (h === '0') return '#d97706';
+                    return '#9898aa';
                 }
             },
             mounted() {
