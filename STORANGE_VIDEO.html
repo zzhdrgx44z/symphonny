@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Video Vault - Google Drive (Gratis 15 GB)</title>
+
+    <!-- Google API Client Library -->
+    <script src="https://apis.google.com/js/api.js"></script>
+
+    <style>
+        /* Styling sama persis seperti sebelumnya, dengan warna & UI yang sudah dibuat */
+        :root {
+            --bg: #0f0f1a; --surface: #1a1a2e; --surface2: #222240;
+            --primary: #6c5ce7; --primary-hover: #7f6ff0; --accent: #00cec9;
+            --danger: #e74c3c; --danger-hover: #ff5c4a; --text: #e0e0e0;
+            --text2: #a0a0b8; --border: #2a2a45; --radius: 14px;
+            --shadow: 0 8px 32px rgba(0,0,0,0.4); --transition: 0.25s ease;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            background-image:
+                radial-gradient(ellipse at 20% 20%, rgba(108,92,231,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 80%, rgba(0,206,201,0.06) 0%, transparent 60%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 20px; line-height: 1.6;
+        }
+        .header { text-align:center; margin-bottom:30px; animation: fadeInDown 0.6s ease; }
+        .header .icon { font-size:52px; display:block; margin-bottom:6px; }
+        .header h1 {
+            font-size:2.2rem; font-weight:700;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header p { color:var(--text2); font-size:0.95rem; margin-top:2px; }
+        .container {
+            width:100%; max-width:900px;
+            background: var(--surface); border:1px solid var(--border);
+            border-radius: var(--radius); box-shadow: var(--shadow);
+            padding:28px 30px; animation: fadeInUp 0.6s ease;
+        }
+        .storage-info { display:flex; flex-wrap:wrap; gap:14px; justify-content:center; margin-bottom:24px; }
+        .storage-card {
+            flex:1 1 180px; background:var(--surface2); border-radius:12px;
+            padding:16px 18px; text-align:center; border:1px solid var(--border);
+            transition:var(--transition);
+        }
+        .storage-card:hover { border-color:var(--primary); box-shadow:0 0 20px rgba(108,92,231,0.15); }
+        .storage-card .label { font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; color:var(--text2); margin-bottom:4px; }
+        .storage-card .value { font-size:1.5rem; font-weight:700; color:var(--accent); }
+        .upload-area {
+            border:2px dashed var(--border); border-radius:var(--radius); padding:40px 20px;
+            text-align:center; cursor:pointer; transition:var(--transition); background:var(--surface2);
+            margin-bottom:24px; position:relative; overflow:hidden;
+        }
+        .upload-area:hover, .upload-area.drag-over { border-color:var(--primary); background:rgba(108,92,231,0.06); }
+        .upload-area .upload-icon { font-size:48px; display:block; margin-bottom:8px; }
+        .upload-area p { color:var(--text2); margin:4px 0; font-size:0.95rem; }
+        .upload-area .browse-link { color:var(--accent); font-weight:600; text-decoration:underline; cursor:pointer; }
+        #fileInput { display:none; }
+        .progress-container { display:none; margin-bottom:20px; background:var(--surface2); border-radius:10px; padding:14px 18px; border:1px solid var(--border); }
+        .progress-container.active { display:block; animation: fadeIn 0.3s ease; }
+        .progress-label { display:flex; justify-content:space-between; margin-bottom:6px; font-size:0.85rem; color:var(--text2); }
+        .progress-bar { width:100%; height:8px; background:var(--border); border-radius:10px; overflow:hidden; }
+        .progress-fill { height:100%; background:linear-gradient(90deg, var(--primary), var(--accent)); width:0%; border-radius:10px; transition: width 0.3s; }
+        .progress-status { text-align:center; margin-top:6px; font-size:0.8rem; color:var(--accent); }
+        .video-list-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px; }
+        .video-list-header h2 { font-size:1.3rem; font-weight:600; }
+        .btn { padding:9px 18px; border-radius:8px; border:none; cursor:pointer; font-weight:600; font-size:0.9rem; transition:var(--transition); letter-spacing:0.3px; display:inline-flex; align-items:center; gap:6px; }
+        .btn-danger { background:var(--danger); color:#fff; }
+        .btn-danger:hover { background:var(--danger-hover); box-shadow:0 4px 16px rgba(231,76,60,0.35); transform:translateY(-1px); }
+        .btn-outline { background:transparent; border:1.5px solid var(--border); color:var(--text); }
+        .btn-outline:hover { border-color:var(--primary); background:rgba(108,92,231,0.08); }
+        .btn-login { background:var(--primary); color:#fff; }
+        .btn-login:hover { background:var(--primary-hover); box-shadow:0 4px 16px rgba(108,92,231,0.35); }
+        .video-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:16px; }
+        .video-card { background:var(--surface2); border-radius:12px; overflow:hidden; border:1px solid var(--border); transition:var(--transition); }
+        .video-card:hover { border-color:var(--primary); box-shadow:0 6px 24px rgba(0,0,0,0.35); transform:translateY(-3px); }
+        .video-card video { width:100%; height:170px; object-fit:cover; background:#000; cursor:pointer; display:block; }
+        .video-card .card-body { padding:12px 14px; }
+        .video-card .video-name { font-weight:600; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px; }
+        .video-card .video-meta { font-size:0.75rem; color:var(--text2); display:flex; justify-content:space-between; align-items:center; }
+        .video-card .card-actions { display:flex; gap:6px; margin-top:8px; }
+        .btn-sm { padding:6px 12px; font-size:0.78rem; border-radius:6px; flex:1; text-align:center; cursor:pointer; border:none; font-weight:600; transition:var(--transition); }
+        .btn-play { background:var(--primary); color:#fff; }
+        .btn-play:hover { background:var(--primary-hover); }
+        .btn-download { background:var(--accent); color:#000; }
+        .btn-download:hover { filter:brightness(1.15); }
+        .btn-delete-sm { background:transparent; border:1px solid var(--danger); color:var(--danger); }
+        .btn-delete-sm:hover { background:var(--danger); color:#fff; }
+        .empty-state { text-align:center; padding:50px 20px; color:var(--text2); grid-column:1/-1; }
+        .empty-state .empty-icon { font-size:60px; display:block; margin-bottom:10px; opacity:0.5; }
+        .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1000; justify-content:center; align-items:center; animation: fadeIn 0.3s; }
+        .modal-overlay.active { display:flex; }
+        .modal { background:var(--surface); border-radius:var(--radius); max-width:800px; width:95%; padding:20px; position:relative; border:1px solid var(--border); box-shadow:0 20px 60px rgba(0,0,0,0.7); animation: scaleIn 0.3s; }
+        .modal video { width:100%; border-radius:8px; max-height:70vh; background:#000; }
+        .modal .close-btn { position:absolute; top:-14px; right:-14px; width:36px; height:36px; border-radius:50%; background:var(--danger); color:#fff; border:none; font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:var(--transition); z-index:2; }
+        .modal .close-btn:hover { background:var(--danger-hover); transform:scale(1.1); }
+        .modal .modal-title { margin-bottom:12px; font-weight:600; font-size:1rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes fadeInDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes scaleIn { from { opacity:0; transform:scale(0.9); } to { opacity:1; transform:scale(1); } }
+        .toast { position:fixed; bottom:24px; right:24px; background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:12px 20px; border-radius:10px; font-size:0.9rem; font-weight:500; z-index:2000; box-shadow:0 8px 24px rgba(0,0,0,0.5); animation: slideInRight 0.35s ease, fadeOut 0.5s ease 2.5s forwards; max-width:400px; }
+        .toast.error { border-left:4px solid var(--danger); }
+        .toast.success { border-left:4px solid var(--accent); }
+        @keyframes slideInRight { from { opacity:0; transform:translateX(100px); } to { opacity:1; transform:translateX(0); } }
+        @keyframes fadeOut { to { opacity:0; transform:translateY(10px); } }
+        @media (max-width:600px) {
+            .container { padding:16px 14px; }
+            .header h1 { font-size:1.6rem; }
+            .video-grid { grid-template-columns:1fr 1fr; gap:10px; }
+            .video-card video { height:120px; }
+            .storage-card { flex:1 1 120px; padding:12px; }
+            .storage-card .value { font-size:1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <span class="icon">☁️</span>
+    <h1>Cloud Video Vault</h1>
+    <p>Simpan video Anda di Google Drive (gratis 15 GB) • Akses dari mana saja</p>
+</div>
+
+<div class="container">
+    <!-- Tombol Login & Info -->
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:20px;">
+        <button class="btn btn-login" id="loginBtn">🔑 Login Google Drive</button>
+        <div style="display:flex; gap:20px; align-items:center;">
+            <div class="storage-card" style="padding:10px 16px;">
+                <div class="label">📊 Total Video</div>
+                <div class="value" id="videoCount">0</div>
+            </div>
+            <div class="storage-card" style="padding:10px 16px;">
+                <div class="label">💾 Terpakai</div>
+                <div class="value" id="storageUsed">0 MB</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Area -->
+    <div class="upload-area" id="uploadArea">
+        <span class="upload-icon">📤</span>
+        <p><strong>Seret & lepas video di sini</strong></p>
+        <p>atau <span class="browse-link" id="browseLink">jelajahi file</span></p>
+        <p style="font-size:0.78rem; color:#666;">Video akan diupload langsung ke Google Drive Anda</p>
+    </div>
+    <input type="file" id="fileInput" accept="video/*" multiple>
+
+    <!-- Progress Bar -->
+    <div class="progress-container" id="progressContainer">
+        <div class="progress-label">
+            <span id="progressFileName">...</span>
+            <span id="progressPercent">0%</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-status" id="progressStatus">Mengupload...</div>
+    </div>
+
+    <!-- Daftar Video -->
+    <div class="video-list-header">
+        <h2>📂 Video di Google Drive</h2>
+        <button class="btn btn-danger" id="deleteAllBtn">🗑️ Hapus Semua</button>
+    </div>
+    <div class="video-grid" id="videoGrid">
+        <div class="empty-state">
+            <span class="empty-icon">🔐</span>
+            <p>Silakan login terlebih dahulu.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Player -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <button class="close-btn" id="closeModal">✕</button>
+        <div class="modal-title" id="modalTitle">Video Player</div>
+        <video id="modalVideo" controls autoplay></video>
+    </div>
+</div>
+
+<script>
+    // ──── KONFIGURASI ── Ganti dengan Client ID Anda
+    const CLIENT_ID = 'YOUR_CLIENT_ID.apps.googleusercontent.com';
+    const API_KEY = '';    // tidak wajib, tapi bisa ditambahkan
+    const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
+    const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+
+    // Nama folder di Google Drive untuk menyimpan video
+    const FOLDER_NAME = 'VideoVault_Cloud';
+
+    let tokenClient;
+    let accessToken = null;
+    let folderId = null;
+
+    // ──── UI ELEMENTS ─────────────────────────
+    const elements = {
+        videoGrid: document.getElementById('videoGrid'),
+        videoCount: document.getElementById('videoCount'),
+        storageUsed: document.getElementById('storageUsed'),
+        progressContainer: document.getElementById('progressContainer'),
+        progressFill: document.getElementById('progressFill'),
+        progressPercent: document.getElementById('progressPercent'),
+        progressFileName: document.getElementById('progressFileName'),
+        progressStatus: document.getElementById('progressStatus'),
+        modalOverlay: document.getElementById('modalOverlay'),
+        modalVideo: document.getElementById('modalVideo'),
+        modalTitle: document.getElementById('modalTitle'),
+        fileInput: document.getElementById('fileInput'),
+        uploadArea: document.getElementById('uploadArea'),
+        browseLink: document.getElementById('browseLink'),
+        deleteAllBtn: document.getElementById('deleteAllBtn'),
+        closeModal: document.getElementById('closeModal'),
+        loginBtn: document.getElementById('loginBtn')
+    };
+
+    // ──── HELPER ──────────────────────────────
+    function showToast(msg, type = 'success') {
+        const existing = document.querySelector('.toast');
+        if (existing) existing.remove();
+        const t = document.createElement('div');
+        t.className = `toast ${type}`;
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 3200);
+    }
+
+    function formatBytes(bytes) {
+        if (!bytes || bytes === 0) return '0 B';
+        const units = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(1024));
+        return (bytes / Math.pow(1024, i)).toFixed(i >= 2 ? 2 : 1) + ' ' + units[i];
+    }
+
+    // ──── GOOGLE API INIT & AUTH ──────────────
+    async function initGoogleAPI() {
+        return new Promise((resolve, reject) => {
+            gapi.load('client', async () => {
+                try {
+                    await gapi.client.init({
+                        apiKey: API_KEY,
+                        discoveryDocs: DISCOVERY_DOCS,
+                    });
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        });
+    }
+
+    // Dapatkan folder khusus (buat jika belum ada)
+    async function getOrCreateFolder() {
+        // Cari folder berdasarkan nama
+        const res = await gapi.client.drive.files.list({
+            q: `name='${FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+            fields: 'files(id, name)',
+        });
+        const files = res.result.files;
+        if (files.length > 0) {
+            folderId = files[0].id;
+        } else {
+            // Buat folder
+            const folderMetadata = {
+                name: FOLDER_NAME,
+                mimeType: 'application/vnd.google-apps.folder',
+            };
+            const folder = await gapi.client.drive.files.create({
+                resource: folderMetadata,
+                fields: 'id',
+            });
+            folderId = folder.result.id;
+        }
+    }
+
+    // Login
+    async function handleLogin() {
+        if (accessToken) return; // sudah login
+        return new Promise((resolve, reject) => {
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: SCOPES,
+                callback: async (response) => {
+                    if (response.error) {
+                        showToast('Login gagal: ' + response.error, 'error');
+                        reject(response.error);
+                        return;
+                    }
+                    accessToken = response.access_token;
+                    // Simpan token di sessionStorage (opsional)
+                    sessionStorage.setItem('gdrive_token', accessToken);
+                    elements.loginBtn.textContent = '✅ Terhubung';
+                    await getOrCreateFolder();
+                    await renderVideos();
+                    showToast('Berhasil login dan terhubung ke Google Drive', 'success');
+                    resolve();
+                },
+            });
+            tokenClient.requestAccessToken();
+        });
+    }
+
+    function logout() {
+        accessToken = null;
+        sessionStorage.removeItem('gdrive_token');
+        folderId = null;
+        elements.loginBtn.textContent = '🔑 Login Google Drive';
+        elements.videoGrid.innerHTML = '<div class="empty-state"><p>Silakan login untuk melihat video.</p></div>';
+        elements.videoCount.textContent = '0';
+        elements.storageUsed.textContent = '0 MB';
+    }
+
+    // ──── OPERASI VIDEO ──────────────────────
+    async function listVideos() {
+        if (!folderId) return [];
+        const res = await gapi.client.drive.files.list({
+            q: `'${folderId}' in parents and mimeType contains 'video/' and trashed=false`,
+            fields: 'files(id, name, size, mimeType, webContentLink, thumbnailLink)',
+            orderBy: 'createdTime desc',
+            pageSize: 100,
+        });
+        return res.result.files;
+    }
+
+    async function uploadVideo(file) {
+        const metadata = {
+            name: file.name,
+            parents: [folderId],
+            mimeType: file.type
+        };
+
+        const formData = new FormData();
+        formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+        formData.append('file', file);
+
+        // Gunakan XMLHttpRequest untuk upload dengan progress
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,size');
+            xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    elements.progressFill.style.width = percent + '%';
+                    elements.progressPercent.textContent = percent + '%';
+                    elements.progressStatus.textContent = 'Mengupload...';
+                }
+            });
+
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    const result = JSON.parse(xhr.responseText);
+                    resolve(result);
+                } else {
+                    reject(new Error('Upload gagal: ' + xhr.statusText));
+                }
+            };
+            xhr.onerror = () => reject(new Error('Network error'));
+            xhr.send(formData);
+        });
+    }
+
+    async function deleteVideo(fileId) {
+        await gapi.client.drive.files.delete({
+            fileId: fileId,
+        });
+    }
+
+    async function deleteAll() {
+        // Hapus semua video di folder
+        const videos = await listVideos();
+        const deletePromises = videos.map(v => deleteVideo(v.id));
+        await Promise.all(deletePromises);
+    }
+
+    // ──── RENDER UI ──────────────────────────
+    async function renderVideos() {
+        if (!accessToken) return;
+        try {
+            const videos = await listVideos();
+            const totalSize = videos.reduce((sum, v) => sum + (parseInt(v.size) || 0), 0);
+            elements.videoCount.textContent = videos.length;
+            elements.storageUsed.textContent = formatBytes(totalSize);
+
+            if (videos.length === 0) {
+                elements.videoGrid.innerHTML = `<div class="empty-state">
+                    <span class="empty-icon">📭</span>
+                    <p>Belum ada video. Upload sekarang!</p>
+                </div>`;
+                return;
+            }
+
+            // Untuk setiap video, dapatkan URL direct menggunakan webContentLink
+            elements.videoGrid.innerHTML = videos.map(v => {
+                // URL untuk direct download/play (tanpa redirect)
+                const directUrl = `https://www.googleapis.com/drive/v3/files/${v.id}?alt=media&access_token=${accessToken}`;
+                return `
+                <div class="video-card" data-id="${v.id}" data-name="${escapeHTML(v.name)}">
+                    <video src="${directUrl}" muted preload="metadata"
+                           onclick="document.getElementById('modalVideo').src='${directUrl}';
+                                    document.getElementById('modalTitle').textContent='${escapeHTML(v.name)}';
+                                    document.getElementById('modalOverlay').classList.add('active');
+                                    document.getElementById('modalVideo').play();"
+                           title="Klik untuk putar"></video>
+                    <div class="card-body">
+                        <div class="video-name" title="${escapeHTML(v.name)}">${escapeHTML(v.name)}</div>
+                        <div class="video-meta">
+                            <span>${formatBytes(v.size)}</span>
+                            <span>${v.mimeType.split('/')[1] || 'video'}</span>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn-sm btn-play play-btn">▶ Putar</button>
+                            <button class="btn-sm btn-download download-btn">⬇ Unduh</button>
+                            <button class="btn-sm btn-delete-sm delete-btn">🗑️</button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            // Event listeners
+            document.querySelectorAll('.video-card').forEach(card => {
+                const id = card.dataset.id;
+                const name = card.dataset.name;
+                const directUrl = `https://www.googleapis.com/drive/v3/files/${id}?alt=media&access_token=${accessToken}`;
+
+                card.querySelector('.play-btn').addEventListener('click', () => {
+                    elements.modalVideo.src = directUrl;
+                    elements.modalTitle.textContent = name;
+                    elements.modalOverlay.classList.add('active');
+                    elements.modalVideo.play();
+                });
+                card.querySelector('.download-btn').addEventListener('click', () => {
+                    const a = document.createElement('a');
+                    a.href = directUrl;
+                    a.download = name;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                });
+                card.querySelector('.delete-btn').addEventListener('click', async () => {
+                    if (confirm(`Hapus "${name}"?`)) {
+                        await deleteVideo(id);
+                        await renderVideos();
+                        showToast('Video dihapus');
+                    }
+                });
+            });
+        } catch (err) {
+            console.error(err);
+            elements.videoGrid.innerHTML = '<div class="empty-state"><p>Gagal memuat video. Pastikan Anda sudah login.</p></div>';
+        }
+    }
+
+    function escapeHTML(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    // ──── EVENT LISTENERS ───────────────────
+    elements.loginBtn.addEventListener('click', handleLogin);
+
+    elements.uploadArea.addEventListener('click', (e) => {
+        if (!e.target.closest('.browse-link')) elements.fileInput.click();
+    });
+    elements.browseLink.addEventListener('click', (e) => {
+        e.stopPropagation();
+        elements.fileInput.click();
+    });
+    elements.fileInput.addEventListener('change', async (e) => {
+        if (!accessToken) {
+            showToast('Anda harus login terlebih dahulu', 'error');
+            return;
+        }
+        if (e.target.files.length) {
+            for (const file of e.target.files) {
+                elements.progressContainer.classList.add('active');
+                elements.progressFileName.textContent = file.name;
+                elements.progressPercent.textContent = '0%';
+                elements.progressFill.style.width = '0%';
+                elements.progressStatus.textContent = 'Mengupload...';
+                try {
+                    await uploadVideo(file);
+                    elements.progressStatus.textContent = '✅ Selesai';
+                    showToast(`"${file.name}" berhasil diupload`, 'success');
+                } catch (err) {
+                    elements.progressStatus.textContent = '❌ Gagal';
+                    showToast('Upload gagal: ' + err.message, 'error');
+                }
+                await new Promise(r => setTimeout(r, 800));
+            }
+            elements.progressContainer.classList.remove('active');
+            await renderVideos();
+            e.target.value = '';
+        }
+    });
+
+    // Drag & drop
+    elements.uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); elements.uploadArea.classList.add('drag-over'); });
+    elements.uploadArea.addEventListener('dragleave', () => { elements.uploadArea.classList.remove('drag-over'); });
+    elements.uploadArea.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        elements.uploadArea.classList.remove('drag-over');
+        if (!accessToken) { showToast('Login dulu', 'error'); return; }
+        if (e.dataTransfer.files.length) {
+            for (const file of e.dataTransfer.files) {
+                elements.progressContainer.classList.add('active');
+                elements.progressFileName.textContent = file.name;
+                elements.progressPercent.textContent = '0%';
+                elements.progressFill.style.width = '0%';
+                try {
+                    await uploadVideo(file);
+                    elements.progressStatus.textContent = '✅ Selesai';
+                    showToast(`"${file.name}" diupload`, 'success');
+                } catch (err) {
+                    elements.progressStatus.textContent = '❌ Gagal';
+                    showToast('Gagal: ' + err.message, 'error');
+                }
+                await new Promise(r => setTimeout(r, 700));
+            }
+            elements.progressContainer.classList.remove('active');
+            await renderVideos();
+        }
+    });
+
+    elements.deleteAllBtn.addEventListener('click', async () => {
+        if (!accessToken) return;
+        if (confirm('Hapus SEMUA video dari Google Drive? Tindakan ini tidak bisa dibatalkan.')) {
+            await deleteAll();
+            await renderVideos();
+            showToast('Semua video dihapus');
+        }
+    });
+
+    // Modal
+    elements.closeModal.addEventListener('click', () => {
+        elements.modalVideo.pause();
+        elements.modalVideo.src = '';
+        elements.modalOverlay.classList.remove('active');
+    });
+    elements.modalOverlay.addEventListener('click', (e) => {
+        if (e.target === elements.modalOverlay) {
+            elements.modalVideo.pause();
+            elements.modalVideo.src = '';
+            elements.modalOverlay.classList.remove('active');
+        }
+    });
+
+    // ──── STARTUP ────────────────────────────
+    window.addEventListener('DOMContentLoaded', async () => {
+        try {
+            await initGoogleAPI();
+            // Cek token tersimpan
+            const savedToken = sessionStorage.getItem('gdrive_token');
+            if (savedToken) {
+                accessToken = savedToken;
+                await getOrCreateFolder();
+                elements.loginBtn.textContent = '✅ Terhubung';
+                await renderVideos();
+                showToast('Tersambung kembali ke Google Drive', 'success');
+            } else {
+                // Tampilkan pesan login
+                elements.videoGrid.innerHTML = '<div class="empty-state"><span class="empty-icon">🔐</span><p>Silakan login untuk mengakses Google Drive Anda.</p></div>';
+            }
+        } catch (err) {
+            console.error(err);
+            showToast('Gagal inisialisasi Google API. Pastikan client ID valid dan jalankan di http://localhost', 'error');
+        }
+    });
+</script>
+</body>
+</html> 
