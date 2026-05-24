@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cloud Video Vault - Google Drive (Gratis 15 GB)</title>
 
-    <!-- Google API Client Library -->
-    <script src="https://apis.google.com/js/api.js" onload="onGoogleApiLoad()" onerror="onGoogleApiError()"></script>
+    <!-- Google Identity Services untuk OAuth 2.0 -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <style>
         :root {
@@ -265,7 +265,9 @@
             object-fit: cover;
             background: #000;
             cursor: pointer;
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             position: relative;
         }
         .video-card .video-thumb .play-overlay {
@@ -282,9 +284,6 @@
         }
         .video-card .video-thumb:hover .play-overlay {
             opacity: 1;
-        }
-        .video-card video.video-thumb {
-            pointer-events: auto;
         }
         .video-card .card-body {
             padding: 12px 14px;
@@ -429,47 +428,23 @@
             text-overflow: ellipsis;
         }
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         @keyframes scaleIn {
-            from {
-                opacity: 0;
-                transform: scale(0.9);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
         }
         @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
+            to { transform: rotate(360deg); }
         }
         .toast {
             position: fixed;
@@ -488,323 +463,412 @@
             max-width: 400px;
             word-break: break-word;
         }
-        .toast.error {
-            border-left: 4px solid var(--danger);
-        }
-        .toast.success {
-            border-left: 4px solid var(--accent);
-        }
-        .toast.warning {
-            border-left: 4px solid #f39c12;
-        }
+        .toast.error { border-left: 4px solid var(--danger); }
+        .toast.success { border-left: 4px solid var(--accent); }
+        .toast.warning { border-left: 4px solid #f39c12; }
         @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(100px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
         }
         @keyframes fadeOutToast {
-            to {
-                opacity: 0;
-                transform: translateY(10px);
-            }
+            to { opacity: 0; transform: translateY(10px); }
         }
         @media (max-width: 600px) {
-            .container {
-                padding: 16px 14px;
-            }
-            .header h1 {
-                font-size: 1.6rem;
-            }
-            .video-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-            }
-            .video-card .video-thumb {
-                height: 120px;
-            }
-            .storage-card {
-                flex: 1 1 120px;
-                padding: 12px;
-            }
-            .storage-card .value {
-                font-size: 1.1rem;
-            }
+            .container { padding: 16px 14px; }
+            .header h1 { font-size: 1.6rem; }
+            .video-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .video-card .video-thumb { height: 120px; }
+            .storage-card { flex: 1 1 120px; padding: 12px; }
+            .storage-card .value { font-size: 1.1rem; }
         }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <span class="icon">☁️</span>
-        <h1>Cloud Video Vault</h1>
-        <p>Simpan video Anda di Google Drive (gratis 15 GB) • Akses dari mana saja</p>
-    </div>
+<div class="header">
+    <span class="icon">☁️</span>
+    <h1>Cloud Video Vault</h1>
+    <p>Simpan video Anda di Google Drive (gratis 15 GB) • Akses dari mana saja</p>
+</div>
 
-    <div class="container">
-        <!-- Tombol Login & Info -->
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:20px;">
-            <button class="btn btn-login" id="loginBtn" title="Hubungkan ke Google Drive Anda">
-                <span class="loading-spinner" id="loginSpinner" style="display:none;"></span>
-                <span id="loginBtnText">🔑 Login Google Drive</span>
-            </button>
-            <div style="display:flex; gap:20px; align-items:center;">
-                <div class="storage-card" style="padding:10px 16px;">
-                    <div class="label">📊 Total Video</div>
-                    <div class="value" id="videoCount">0</div>
-                </div>
-                <div class="storage-card" style="padding:10px 16px;">
-                    <div class="label">💾 Terpakai</div>
-                    <div class="value" id="storageUsed">0 MB</div>
-                </div>
+<div class="container">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:20px;">
+        <button class="btn btn-login" id="loginBtn">
+            <span class="loading-spinner" id="loginSpinner" style="display:none;"></span>
+            <span id="loginBtnText">🔑 Login Google Drive</span>
+        </button>
+        <div style="display:flex; gap:20px; align-items:center;">
+            <div class="storage-card" style="padding:10px 16px;">
+                <div class="label">📊 Total Video</div>
+                <div class="value" id="videoCount">0</div>
             </div>
-        </div>
-
-        <!-- Upload Area -->
-        <div class="upload-area" id="uploadArea">
-            <span class="upload-icon">📤</span>
-            <p><strong>Seret & lepas video di sini</strong></p>
-            <p>atau <span class="browse-link" id="browseLink">jelajahi file</span></p>
-            <p style="font-size:0.78rem; color:#666;">Video akan diupload langsung ke Google Drive Anda</p>
-        </div>
-        <input type="file" id="fileInput" accept="video/*" multiple>
-
-        <!-- Progress Bar -->
-        <div class="progress-container" id="progressContainer">
-            <div class="progress-label">
-                <span id="progressFileName">...</span>
-                <span id="progressPercent">0%</span>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-            <div class="progress-status" id="progressStatus">Mengupload...</div>
-        </div>
-
-        <!-- Daftar Video -->
-        <div class="video-list-header">
-            <h2>📂 Video di Google Drive</h2>
-            <button class="btn btn-danger" id="deleteAllBtn" disabled>🗑️ Hapus Semua</button>
-        </div>
-        <div class="video-grid" id="videoGrid">
-            <div class="empty-state">
-                <span class="empty-icon">🔐</span>
-                <p>Silakan login terlebih dahulu.</p>
+            <div class="storage-card" style="padding:10px 16px;">
+                <div class="label">💾 Terpakai</div>
+                <div class="value" id="storageUsed">0 MB</div>
             </div>
         </div>
     </div>
 
-    <!-- Modal Player -->
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal">
-            <button class="close-btn" id="closeModal">✕</button>
-            <div class="modal-title" id="modalTitle">Video Player</div>
-            <video id="modalVideo" controls autoplay crossorigin="anonymous"></video>
+    <div class="upload-area" id="uploadArea">
+        <span class="upload-icon">📤</span>
+        <p><strong>Seret & lepas video di sini</strong></p>
+        <p>atau <span class="browse-link" id="browseLink">jelajahi file</span></p>
+        <p style="font-size:0.78rem; color:#666;">Video akan diupload langsung ke Google Drive Anda</p>
+    </div>
+    <input type="file" id="fileInput" accept="video/*" multiple>
+
+    <div class="progress-container" id="progressContainer">
+        <div class="progress-label">
+            <span id="progressFileName">...</span>
+            <span id="progressPercent">0%</span>
         </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-status" id="progressStatus">Mengupload...</div>
     </div>
 
-    <script>
-        (function() {
-            // ──── KONFIGURASI ──────────────────────────────
-            // ⚠️ GANTI dengan Client ID Anda dari Google Cloud Console
-            // Dapatkan di: https://console.cloud.google.com/apis/credentials
-            const CLIENT_ID = 'YOUR_CLIENT_ID.apps.googleusercontent.com';
-            const API_KEY = ''; // Opsional: API Key untuk permintaan publik
-            const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
-            const SCOPES = 'https://www.googleapis.com/auth/drive.file';
-            const FOLDER_NAME = 'VideoVault_Cloud';
+    <div class="video-list-header">
+        <h2>📂 Video di Google Drive</h2>
+        <button class="btn btn-danger" id="deleteAllBtn" disabled>🗑️ Hapus Semua</button>
+    </div>
+    <div class="video-grid" id="videoGrid">
+        <div class="empty-state">
+            <span class="empty-icon">🔐</span>
+            <p>Silakan login terlebih dahulu.</p>
+        </div>
+    </div>
+</div>
 
-            // ──── STATE ───────────────────────────────────
-            let tokenClient = null;
-            let accessToken = null;
-            let folderId = null;
-            let isApiLoaded = false;
-            let isGapiReady = false;
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <button class="close-btn" id="closeModal">✕</button>
+        <div class="modal-title" id="modalTitle">Video Player</div>
+        <video id="modalVideo" controls autoplay crossorigin="anonymous"></video>
+    </div>
+</div>
 
-            // ──── DOM ELEMENTS ────────────────────────────
-            const els = {
-                videoGrid: document.getElementById('videoGrid'),
-                videoCount: document.getElementById('videoCount'),
-                storageUsed: document.getElementById('storageUsed'),
-                progressContainer: document.getElementById('progressContainer'),
-                progressFill: document.getElementById('progressFill'),
-                progressPercent: document.getElementById('progressPercent'),
-                progressFileName: document.getElementById('progressFileName'),
-                progressStatus: document.getElementById('progressStatus'),
-                modalOverlay: document.getElementById('modalOverlay'),
-                modalVideo: document.getElementById('modalVideo'),
-                modalTitle: document.getElementById('modalTitle'),
-                fileInput: document.getElementById('fileInput'),
-                uploadArea: document.getElementById('uploadArea'),
-                browseLink: document.getElementById('browseLink'),
-                deleteAllBtn: document.getElementById('deleteAllBtn'),
-                closeModal: document.getElementById('closeModal'),
-                loginBtn: document.getElementById('loginBtn'),
-                loginBtnText: document.getElementById('loginBtnText'),
-                loginSpinner: document.getElementById('loginSpinner'),
-            };
+<script>
+    (function() {
+        // ⚠️ GANTI DENGAN CLIENT ID ANDA dari Google Cloud Console
+        // Dapatkan di: https://console.cloud.google.com/apis/credentials
+        const CLIENT_ID = 'YOUR_CLIENT_ID.apps.googleusercontent.com';
+        const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+        const FOLDER_NAME = 'VideoVault_Cloud';
 
-            // ──── TOAST NOTIFICATION ──────────────────────
-            function showToast(msg, type = 'success') {
-                const existing = document.querySelector('.toast');
-                if (existing) existing.remove();
-                const t = document.createElement('div');
-                t.className = `toast ${type}`;
-                t.textContent = msg;
-                document.body.appendChild(t);
-                setTimeout(() => {
-                    if (t.parentNode) t.remove();
-                }, 3300);
+        // State
+        let accessToken = null;
+        let folderId = null;
+        let tokenClient = null;
+
+        // DOM Elements
+        const els = {
+            videoGrid: document.getElementById('videoGrid'),
+            videoCount: document.getElementById('videoCount'),
+            storageUsed: document.getElementById('storageUsed'),
+            progressContainer: document.getElementById('progressContainer'),
+            progressFill: document.getElementById('progressFill'),
+            progressPercent: document.getElementById('progressPercent'),
+            progressFileName: document.getElementById('progressFileName'),
+            progressStatus: document.getElementById('progressStatus'),
+            modalOverlay: document.getElementById('modalOverlay'),
+            modalVideo: document.getElementById('modalVideo'),
+            modalTitle: document.getElementById('modalTitle'),
+            fileInput: document.getElementById('fileInput'),
+            uploadArea: document.getElementById('uploadArea'),
+            browseLink: document.getElementById('browseLink'),
+            deleteAllBtn: document.getElementById('deleteAllBtn'),
+            closeModal: document.getElementById('closeModal'),
+            loginBtn: document.getElementById('loginBtn'),
+            loginBtnText: document.getElementById('loginBtnText'),
+            loginSpinner: document.getElementById('loginSpinner'),
+        };
+
+        // Helper: Toast
+        function showToast(msg, type = 'success') {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3300);
+        }
+
+        function formatBytes(bytes) {
+            if (!bytes || bytes === 0) return '0 B';
+            const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+            return (bytes / Math.pow(1024, i)).toFixed(i >= 2 ? 2 : 1) + ' ' + units[i];
+        }
+
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str || '';
+            return div.innerHTML;
+        }
+
+        // --- Fungsi API dengan fetch & access token ---
+        async function driveRequest(path, options = {}) {
+            if (!accessToken) throw new Error('Tidak ada token akses');
+            const url = `https://www.googleapis.com/drive/v3/${path}`;
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json',
+                    ...(options.headers || {})
+                }
+            });
+            if (response.status === 401) {
+                logout(true);
+                throw new Error('Sesi habis. Silakan login ulang.');
             }
-
-            // ──── FORMATTERS ──────────────────────────────
-            function formatBytes(bytes) {
-                if (!bytes || bytes === 0) return '0 B';
-                const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-                const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
-                return (bytes / Math.pow(1024, i)).toFixed(i >= 2 ? 2 : 1) + ' ' + units[i];
-            }
-
-            function escapeHTML(str) {
-                const div = document.createElement('div');
-                div.textContent = str || '';
-                return div.innerHTML;
-            }
-
-            // ──── GOOGLE API INIT ─────────────────────────
-            function initGapiClient() {
-                return new Promise((resolve, reject) => {
-                    if (!window.gapi) {
-                        reject(new Error('Google API script tidak termuat. Periksa koneksi internet.'));
-                        return;
-                    }
-                    gapi.load('client', async () => {
-                        try {
-                            await gapi.client.init({
-                                apiKey: API_KEY || undefined,
-                                discoveryDocs: DISCOVERY_DOCS,
-                            });
-                            isGapiReady = true;
-                            resolve();
-                        } catch (err) {
-                            reject(new Error('Gagal inisialisasi gapi.client: ' + (err.message || err)));
-                        }
-                    });
-                });
-            }
-
-            // ──── FOLDER MANAGEMENT ──────────────────────
-            async function getOrCreateFolder() {
-                if (!accessToken) throw new Error('Tidak ada access token');
-                if (folderId) return folderId;
-
+            if (!response.ok) {
+                let errorMsg = `HTTP ${response.status}`;
                 try {
-                    const res = await gapi.client.drive.files.list({
-                        q: `name='${FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
-                        fields: 'files(id, name)',
-                        pageSize: 5,
-                    });
-                    const files = res.result.files || [];
-                    if (files.length > 0) {
-                        folderId = files[0].id;
-                    } else {
-                        const folderMeta = {
-                            name: FOLDER_NAME,
-                            mimeType: 'application/vnd.google-apps.folder',
-                        };
-                        const folderRes = await gapi.client.drive.files.create({
-                            resource: folderMeta,
-                            fields: 'id',
-                        });
-                        folderId = folderRes.result.id;
+                    const err = await response.json();
+                    errorMsg = err.error?.message || errorMsg;
+                } catch(e) {}
+                throw new Error(errorMsg);
+            }
+            return response.json();
+        }
+
+        async function getOrCreateFolder() {
+            if (folderId) return folderId;
+            const query = encodeURIComponent(`name='${FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+            const data = await driveRequest(`files?q=${query}&fields=files(id,name)&pageSize=1`);
+            if (data.files && data.files.length > 0) {
+                folderId = data.files[0].id;
+            } else {
+                const folderMeta = { name: FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' };
+                const created = await driveRequest('files', {
+                    method: 'POST',
+                    body: JSON.stringify(folderMeta),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                folderId = created.id;
+            }
+            return folderId;
+        }
+
+        async function listVideos() {
+            if (!folderId) return [];
+            const query = encodeURIComponent(`'${folderId}' in parents and mimeType contains 'video/' and trashed=false`);
+            const data = await driveRequest(`files?q=${query}&fields=files(id,name,size,mimeType,createdTime)&orderBy=createdTime desc&pageSize=100`);
+            return data.files || [];
+        }
+
+        async function uploadVideo(file) {
+            if (!folderId) await getOrCreateFolder();
+            const metadata = {
+                name: file.name,
+                parents: [folderId],
+                mimeType: file.type || 'video/mp4',
+            };
+            const formData = new FormData();
+            formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+            formData.append('file', file);
+
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,size,mimeType');
+                xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        els.progressFill.style.width = percent + '%';
+                        els.progressPercent.textContent = percent + '%';
+                        els.progressStatus.textContent = percent < 100 ? 'Mengupload...' : 'Memproses...';
                     }
-                    return folderId;
-                } catch (err) {
-                    if (err.status === 401 || (err.result && err.result.error && err.result.error
-                            .code === 401)) {
+                });
+                xhr.onload = () => {
+                    if (xhr.status === 200) {
+                        try {
+                            resolve(JSON.parse(xhr.responseText));
+                        } catch(e) { reject(new Error('Respon tidak valid')); }
+                    } else if (xhr.status === 401) {
                         logout(true);
-                        throw new Error('Sesi login habis. Silakan login ulang.');
+                        reject(new Error('Sesi habis. Login ulang.'));
+                    } else {
+                        let msg = `Upload gagal (${xhr.status})`;
+                        try {
+                            const errRes = JSON.parse(xhr.responseText);
+                            if (errRes.error?.message) msg = errRes.error.message;
+                        } catch(e) {}
+                        reject(new Error(msg));
                     }
-                    throw new Error('Gagal mengakses folder: ' + (err.message || err));
-                }
-            }
+                };
+                xhr.onerror = () => reject(new Error('Koneksi terputus'));
+                xhr.timeout = 600000;
+                xhr.send(formData);
+            });
+        }
 
-            // ──── AUTHENTICATION ──────────────────────────
-            function setAccessToken(token) {
-                accessToken = token;
-                if (token) {
-                    sessionStorage.setItem('gdrive_token', token);
-                    sessionStorage.setItem('gdrive_token_time', Date.now().toString());
-                } else {
-                    sessionStorage.removeItem('gdrive_token');
-                    sessionStorage.removeItem('gdrive_token_time');
-                }
-            }
+        async function deleteVideo(fileId) {
+            await driveRequest(`files/${fileId}`, { method: 'DELETE' });
+        }
 
-            function updateLoginUI(isLoggedIn) {
-                if (isLoggedIn) {
-                    els.loginBtnText.textContent = '✅ Terhubung';
-                    els.loginBtn.classList.add('btn-outline');
-                    els.loginBtn.classList.remove('btn-login');
-                    els.deleteAllBtn.disabled = false;
-                } else {
-                    els.loginBtnText.textContent = '🔑 Login Google Drive';
-                    els.loginBtn.classList.remove('btn-outline');
-                    els.loginBtn.classList.add('btn-login');
-                    els.deleteAllBtn.disabled = true;
-                }
+        async function deleteAllVideos() {
+            const videos = await listVideos();
+            for (const video of videos) {
+                await deleteVideo(video.id);
             }
+        }
 
-            function logout(silent = false) {
-                accessToken = null;
-                folderId = null;
-                tokenClient = null;
-                setAccessToken(null);
-                updateLoginUI(false);
-                els.videoGrid.innerHTML =
-                    '<div class="empty-state"><span class="empty-icon">🔐</span><p>Silakan login untuk mengakses Google Drive Anda.</p></div>';
+        // Streaming & download URL dengan access_token (query param agar bisa diputar langsung di video tag)
+        function getVideoStreamUrl(fileId) {
+            return `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&access_token=${accessToken}`;
+        }
+
+        // Render video grid
+        async function renderVideos() {
+            if (!accessToken || !folderId) {
+                els.videoGrid.innerHTML = '<div class="empty-state"><span class="empty-icon">🔐</span><p>Silakan login untuk melihat video.</p></div>';
                 els.videoCount.textContent = '0';
                 els.storageUsed.textContent = '0 MB';
-                els.loginSpinner.style.display = 'none';
-                if (!silent) {
-                    showToast('Anda telah logout.', 'warning');
-                }
+                return;
             }
-
-            async function handleLogin() {
-                if (accessToken && folderId) {
-                    showToast('Anda sudah terhubung ke Google Drive.', 'success');
+            try {
+                const videos = await listVideos();
+                const totalSize = videos.reduce((sum, v) => sum + (parseInt(v.size) || 0), 0);
+                els.videoCount.textContent = videos.length;
+                els.storageUsed.textContent = formatBytes(totalSize);
+                if (videos.length === 0) {
+                    els.videoGrid.innerHTML = `<div class="empty-state"><span class="empty-icon">📭</span><p>Belum ada video. Upload sekarang!</p></div>`;
                     return;
                 }
-                if (!isGapiReady) {
-                    showToast('Google API belum siap. Tunggu sebentar...', 'warning');
-                    return;
-                }
+                els.videoGrid.innerHTML = videos.map(v => {
+                    const safeName = escapeHTML(v.name);
+                    const safeId = escapeHTML(v.id);
+                    const sizeStr = formatBytes(parseInt(v.size) || 0);
+                    const mimeType = (v.mimeType || 'video/mp4').split('/')[1] || 'video';
+                    return `
+                    <div class="video-card" data-id="${safeId}">
+                        <div class="video-thumb" onclick="window._cloudVaultPlayVideo('${safeId}', '${safeName}')">
+                            <span class="play-overlay">▶</span>
+                            <span style="color:#fff; font-size:0.8rem; opacity:0.7;">🎬 ${mimeType.toUpperCase()}</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="video-name" title="${safeName}">${safeName}</div>
+                            <div class="video-meta"><span>${sizeStr}</span><span>${mimeType}</span></div>
+                            <div class="card-actions">
+                                <button class="btn-sm btn-play" onclick="window._cloudVaultPlayVideo('${safeId}', '${safeName}')">▶ Putar</button>
+                                <button class="btn-sm btn-download" onclick="window._cloudVaultDownload('${safeId}', '${safeName}')">⬇ Unduh</button>
+                                <button class="btn-sm btn-delete-sm" onclick="window._cloudVaultDelete('${safeId}', '${safeName}')">🗑️</button>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch (err) {
+                console.error(err);
+                els.videoGrid.innerHTML = `<div class="empty-state"><span class="empty-icon">⚠️</span><p>${escapeHTML(err.message)}</p></div>`;
+            }
+        }
 
-                els.loginSpinner.style.display = 'inline-block';
-                els.loginBtn.disabled = true;
-                els.loginBtnText.textContent = 'Menghubungkan...';
+        // Global actions
+        window._cloudVaultPlayVideo = async (fileId, fileName) => {
+            if (!accessToken) {
+                showToast('Silakan login terlebih dahulu.', 'error');
+                return;
+            }
+            els.modalTitle.textContent = fileName || 'Video Player';
+            els.modalOverlay.classList.add('active');
+            const videoUrl = getVideoStreamUrl(fileId);
+            els.modalVideo.src = videoUrl;
+            els.modalVideo.load();
+            els.modalVideo.play().catch(e => console.warn('Autoplay diblokir:', e));
+        };
 
-                try {
-                    // Inisialisasi token client setiap kali login (untuk memastikan fresh state)
+        window._cloudVaultDownload = (fileId, fileName) => {
+            if (!accessToken) {
+                showToast('Silakan login terlebih dahulu.', 'error');
+                return;
+            }
+            const url = getVideoStreamUrl(fileId);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName || 'video';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            showToast('Download dimulai...', 'success');
+        };
+
+        window._cloudVaultDelete = async (fileId, fileName) => {
+            if (!accessToken) {
+                showToast('Silakan login terlebih dahulu.', 'error');
+                return;
+            }
+            if (!confirm(`Hapus video "${fileName}"? Tindakan tidak bisa dibatalkan.`)) return;
+            try {
+                await deleteVideo(fileId);
+                await renderVideos();
+                showToast(`"${fileName}" berhasil dihapus.`, 'success');
+            } catch (err) {
+                showToast(err.message, 'error');
+                if (err.message.includes('Sesi habis')) logout(true);
+            }
+        };
+
+        // Logout & update UI
+        function logout(silent = false) {
+            accessToken = null;
+            folderId = null;
+            sessionStorage.removeItem('gdrive_token');
+            sessionStorage.removeItem('gdrive_token_time');
+            updateLoginUI(false);
+            els.videoGrid.innerHTML = '<div class="empty-state"><span class="empty-icon">🔐</span><p>Silakan login untuk mengakses Google Drive Anda.</p></div>';
+            els.videoCount.textContent = '0';
+            els.storageUsed.textContent = '0 MB';
+            if (!silent) showToast('Anda telah logout.', 'warning');
+        }
+
+        function updateLoginUI(isLoggedIn) {
+            if (isLoggedIn) {
+                els.loginBtnText.textContent = '✅ Terhubung';
+                els.loginBtn.classList.add('btn-outline');
+                els.loginBtn.classList.remove('btn-login');
+                els.deleteAllBtn.disabled = false;
+            } else {
+                els.loginBtnText.textContent = '🔑 Login Google Drive';
+                els.loginBtn.classList.remove('btn-outline');
+                els.loginBtn.classList.add('btn-login');
+                els.deleteAllBtn.disabled = true;
+            }
+        }
+
+        // Proses Login dengan GSI
+        async function handleLogin() {
+            if (accessToken) {
+                showToast('Sudah terhubung ke Google Drive.', 'success');
+                return;
+            }
+            if (!window.google?.accounts?.oauth2) {
+                showToast('Library GSI belum siap. Coba refresh halaman.', 'error');
+                return;
+            }
+            els.loginSpinner.style.display = 'inline-block';
+            els.loginBtn.disabled = true;
+            els.loginBtnText.textContent = 'Menghubungkan...';
+
+            try {
+                if (!tokenClient) {
                     tokenClient = google.accounts.oauth2.initTokenClient({
                         client_id: CLIENT_ID,
                         scope: SCOPES,
                         callback: async (response) => {
                             if (response.error) {
+                                showToast('Login gagal: ' + (response.error_description || response.error), 'error');
                                 els.loginSpinner.style.display = 'none';
                                 els.loginBtn.disabled = false;
                                 els.loginBtnText.textContent = '🔑 Login Google Drive';
-                                showToast('Login gagal: ' + (response.error_description || response
-                                    .error), 'error');
                                 return;
                             }
                             accessToken = response.access_token;
-                            setAccessToken(accessToken);
+                            sessionStorage.setItem('gdrive_token', accessToken);
+                            sessionStorage.setItem('gdrive_token_time', Date.now().toString());
                             updateLoginUI(true);
                             try {
                                 await getOrCreateFolder();
@@ -818,568 +882,158 @@
                             els.loginBtn.disabled = false;
                         },
                         error_callback: (err) => {
+                            showToast('Error OAuth: ' + (err.message || 'Unknown'), 'error');
                             els.loginSpinner.style.display = 'none';
                             els.loginBtn.disabled = false;
                             els.loginBtnText.textContent = '🔑 Login Google Drive';
-                            showToast('Error saat login: ' + (err.message || 'Tidak diketahui'), 'error');
-                            console.error('Token client error:', err);
-                        },
-                    });
-
-                    // Cek apakah token sudah expired
-                    if (accessToken) {
-                        try {
-                            // Tes token dengan request ringan
-                            await gapi.client.drive.files.list({ pageSize: 1, fields: 'files(id)' });
-                        } catch (e) {
-                            accessToken = null;
-                            setAccessToken(null);
-                        }
-                    }
-
-                    if (!accessToken) {
-                        tokenClient.requestAccessToken({ prompt: '' });
-                    } else {
-                        // Sudah punya token valid
-                        updateLoginUI(true);
-                        await getOrCreateFolder();
-                        await renderVideos();
-                        els.loginSpinner.style.display = 'none';
-                        els.loginBtn.disabled = false;
-                    }
-                } catch (err) {
-                    els.loginSpinner.style.display = 'none';
-                    els.loginBtn.disabled = false;
-                    els.loginBtnText.textContent = '🔑 Login Google Drive';
-                    showToast('Gagal memulai login: ' + err.message, 'error');
-                }
-            }
-
-            // ──── VIDEO OPERATIONS ───────────────────────
-            async function listVideos() {
-                if (!folderId) return [];
-                try {
-                    const res = await gapi.client.drive.files.list({
-                        q: `'${folderId}' in parents and mimeType contains 'video/' and trashed=false`,
-                        fields: 'files(id, name, size, mimeType, thumbnailLink, createdTime)',
-                        orderBy: 'createdTime desc',
-                        pageSize: 100,
-                    });
-                    return res.result.files || [];
-                } catch (err) {
-                    if (err.status === 401 || (err.result && err.result.error && err.result.error.code ===
-                            401)) {
-                        logout(true);
-                        throw new Error('Sesi habis. Silakan login ulang.');
-                    }
-                    throw new Error('Gagal mengambil daftar video: ' + (err.message || err));
-                }
-            }
-
-            async function uploadVideo(file) {
-                if (!folderId) await getOrCreateFolder();
-                if (!folderId) throw new Error('Folder tidak ditemukan. Login ulang.');
-
-                const metadata = {
-                    name: file.name,
-                    parents: [folderId],
-                    mimeType: file.type || 'video/mp4',
-                };
-
-                const formData = new FormData();
-                formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-                formData.append('file', file);
-
-                return new Promise((resolve, reject) => {
-                    const xhr = new XMLHttpRequest();
-                    xhr.open('POST',
-                        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,size,mimeType'
-                        );
-                    xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
-
-                    xhr.upload.addEventListener('progress', (e) => {
-                        if (e.lengthComputable) {
-                            const percent = Math.round((e.loaded / e.total) * 100);
-                            els.progressFill.style.width = percent + '%';
-                            els.progressPercent.textContent = percent + '%';
-                            els.progressStatus.textContent = percent < 100 ? 'Mengupload...' :
-                                'Memproses...';
                         }
                     });
-
-                    xhr.onload = () => {
-                        if (xhr.status === 200) {
-                            try {
-                                const result = JSON.parse(xhr.responseText);
-                                resolve(result);
-                            } catch (e) {
-                                reject(new Error('Response tidak valid dari server'));
-                            }
-                        } else if (xhr.status === 401) {
-                            logout(true);
-                            reject(new Error('Sesi habis. Silakan login ulang.'));
-                        } else {
-                            let errorMsg = 'Upload gagal (HTTP ' + xhr.status + ')';
-                            try {
-                                const errRes = JSON.parse(xhr.responseText);
-                                if (errRes.error && errRes.error.message) {
-                                    errorMsg = errRes.error.message;
-                                }
-                            } catch (e) { /* ignore parse error */ }
-                            reject(new Error(errorMsg));
-                        }
-                    };
-
-                    xhr.onerror = () => reject(new Error('Koneksi terputus. Periksa jaringan Anda.'));
-                    xhr.ontimeout = () => reject(new Error('Upload timeout. File terlalu besar atau koneksi lambat.'));
-                    xhr.timeout = 600000; // 10 menit timeout
-                    xhr.send(formData);
-                });
+                }
+                tokenClient.requestAccessToken({ prompt: 'consent' });
+            } catch (err) {
+                showToast('Gagal memulai login: ' + err.message, 'error');
+                els.loginSpinner.style.display = 'none';
+                els.loginBtn.disabled = false;
+                els.loginBtnText.textContent = '🔑 Login Google Drive';
             }
+        }
 
-            async function deleteVideo(fileId) {
-                try {
-                    await gapi.client.drive.files.delete({ fileId });
-                } catch (err) {
-                    if (err.status === 401 || (err.result && err.result.error && err.result.error.code === 401)) {
-                        logout(true);
-                        throw new Error('Sesi habis. Silakan login ulang.');
-                    }
-                    throw new Error('Gagal menghapus: ' + (err.message || err));
-                }
-            }
-
-            async function deleteAll() {
-                const videos = await listVideos();
-                if (videos.length === 0) return;
-                const results = await Promise.allSettled(videos.map(v => deleteVideo(v.id)));
-                const failed = results.filter(r => r.status === 'rejected');
-                if (failed.length > 0) {
-                    throw new Error(`${failed.length} video gagal dihapus. Coba lagi.`);
-                }
-            }
-
-            // ──── STREAMING HELPER ────────────────────────
-            function getDirectVideoUrl(fileId) {
-                // Gunakan endpoint alt=media dengan access token
-                return `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`;
-            }
-
-            async function fetchVideoBlobUrl(fileId) {
-                // Alternatif: fetch sebagai blob untuk streaming yang lebih baik
-                const response = await fetch(getDirectVideoUrl(fileId), {
-                    headers: {
-                        'Authorization': 'Bearer ' + accessToken,
-                    },
-                });
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        logout(true);
-                        throw new Error('Sesi habis');
-                    }
-                    throw new Error('Gagal memuat video (HTTP ' + response.status + ')');
-                }
-                const blob = await response.blob();
-                return URL.createObjectURL(blob);
-            }
-
-            // ──── RENDER UI ──────────────────────────────
-            async function renderVideos() {
-                if (!accessToken || !folderId) {
-                    els.videoGrid.innerHTML =
-                        '<div class="empty-state"><span class="empty-icon">🔐</span><p>Silakan login untuk melihat video.</p></div>';
-                    els.videoCount.textContent = '0';
-                    els.storageUsed.textContent = '0 MB';
-                    return;
-                }
-
-                try {
-                    const videos = await listVideos();
-                    const totalSize = videos.reduce((sum, v) => sum + (parseInt(v.size) || 0), 0);
-                    els.videoCount.textContent = videos.length;
-                    els.storageUsed.textContent = formatBytes(totalSize);
-
-                    if (videos.length === 0) {
-                        els.videoGrid.innerHTML = `<div class="empty-state">
-                            <span class="empty-icon">📭</span>
-                            <p>Belum ada video. Upload sekarang!</p>
-                        </div>`;
-                        return;
-                    }
-
-                    els.videoGrid.innerHTML = videos.map(v => {
-                        const safeName = escapeHTML(v.name);
-                        const safeId = escapeHTML(v.id);
-                        const sizeStr = formatBytes(parseInt(v.size) || 0);
-                        const mimeType = (v.mimeType || 'video/mp4').split('/')[1] || 'video';
-
-                        return `
-                        <div class="video-card" data-id="${safeId}" data-name="${safeName}">
-                            <div class="video-thumb" style="position:relative; background:#000; height:170px; display:flex; align-items:center; justify-content:center; cursor:pointer;"
-                                 onclick="window._cloudVaultPlayVideo('${safeId}', '${safeName}')"
-                                 title="Klik untuk putar">
-                                <span class="play-overlay">▶</span>
-                                <span style="color:#fff; font-size:0.8rem; opacity:0.7;">🎬 ${mimeType.toUpperCase()}</span>
-                            </div>
-                            <div class="card-body">
-                                <div class="video-name" title="${safeName}">${safeName}</div>
-                                <div class="video-meta">
-                                    <span>${sizeStr}</span>
-                                    <span>${mimeType}</span>
-                                </div>
-                                <div class="card-actions">
-                                    <button class="btn-sm btn-play" onclick="window._cloudVaultPlayVideo('${safeId}', '${safeName}')">▶ Putar</button>
-                                    <button class="btn-sm btn-download" onclick="window._cloudVaultDownload('${safeId}', '${safeName}')">⬇ Unduh</button>
-                                    <button class="btn-sm btn-delete-sm" onclick="window._cloudVaultDelete('${safeId}', '${safeName}')">🗑️</button>
-                                </div>
-                            </div>
-                        </div>`;
-                    }).join('');
-
-                } catch (err) {
-                    console.error('Render error:', err);
-                    els.videoGrid.innerHTML =
-                        `<div class="empty-state"><span class="empty-icon">⚠️</span><p>${escapeHTML(err.message)}</p></div>`;
-                    if (err.message.includes('Sesi habis') || err.message.includes('401')) {
-                        showToast('Sesi login habis. Silakan login ulang.', 'error');
-                    }
-                }
-            }
-
-            // ──── GLOBAL ACTIONS (exposed untuk onclick di HTML) ──
-            window._cloudVaultPlayVideo = async function(fileId, fileName) {
-                if (!accessToken) {
-                    showToast('Silakan login terlebih dahulu.', 'error');
-                    return;
-                }
-                els.modalTitle.textContent = fileName || 'Video Player';
-                els.modalOverlay.classList.add('active');
-                els.modalVideo.src = '';
-                els.modalVideo.load();
-                els.modalVideo.style.display = 'block';
-
-                // Tampilkan loading di modal
-                els.modalVideo.poster = ''; // hapus poster
-
-                try {
-                    // Gunakan URL langsung dengan token (lebih cepat untuk streaming)
-                    const url = getDirectVideoUrl(fileId);
-                    // Fetch dengan header Authorization
-                    const response = await fetch(url, {
-                        headers: { 'Authorization': 'Bearer ' + accessToken },
-                    });
-                    if (!response.ok) {
-                        if (response.status === 401) {
-                            logout(true);
-                            showToast('Sesi habis. Login ulang.', 'error');
-                            els.modalOverlay.classList.remove('active');
-                            return;
-                        }
-                        throw new Error('HTTP ' + response.status);
-                    }
-                    const blob = await response.blob();
-                    const blobUrl = URL.createObjectURL(blob);
-                    els.modalVideo.src = blobUrl;
-                    els.modalVideo.onloadedmetadata = () => {
-                        els.modalVideo.play().catch(e => console.warn('Autoplak blocked:', e));
-                    };
-                    // Revoke blob URL setelah selesai
-                    els.modalVideo.onended = () => {
-                        URL.revokeObjectURL(blobUrl);
-                    };
-                } catch (err) {
-                    showToast('Gagal memutar video: ' + err.message, 'error');
-                    els.modalOverlay.classList.remove('active');
-                }
-            };
-
-            window._cloudVaultDownload = function(fileId, fileName) {
-                if (!accessToken) {
-                    showToast('Silakan login terlebih dahulu.', 'error');
-                    return;
-                }
-                // Buat anchor dan trigger download
-                const url = getDirectVideoUrl(fileId);
-                fetch(url, {
-                        headers: { 'Authorization': 'Bearer ' + accessToken },
-                    })
-                    .then(response => {
-                        if (!response.ok) throw new Error('HTTP ' + response.status);
-                        return response.blob();
-                    })
-                    .then(blob => {
-                        const blobUrl = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = blobUrl;
-                        a.download = fileName || 'video';
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
-                        showToast('Download dimulai...', 'success');
-                    })
-                    .catch(err => {
-                        if (err.message.includes('401')) {
-                            logout(true);
-                            showToast('Sesi habis. Login ulang.', 'error');
-                        } else {
-                            showToast('Gagal mengunduh: ' + err.message, 'error');
-                        }
-                    });
-            };
-
-            window._cloudVaultDelete = async function(fileId, fileName) {
-                if (!accessToken) {
-                    showToast('Silakan login terlebih dahulu.', 'error');
-                    return;
-                }
-                if (!confirm(`Hapus video "${fileName}"?\nTindakan ini tidak bisa dibatalkan.`)) return;
-                try {
-                    await deleteVideo(fileId);
-                    await renderVideos();
-                    showToast(`"${fileName}" berhasil dihapus.`, 'success');
-                } catch (err) {
-                    showToast(err.message, 'error');
-                    if (err.message.includes('Sesi habis')) {
-                        await renderVideos();
-                    }
-                }
-            };
-
-            // ──── EVENT LISTENERS ────────────────────────
-            els.loginBtn.addEventListener('click', handleLogin);
-
-            els.uploadArea.addEventListener('click', (e) => {
-                if (!e.target.closest('.browse-link')) {
-                    if (!accessToken) {
-                        showToast('Anda harus login terlebih dahulu.', 'error');
-                        return;
-                    }
-                    els.fileInput.click();
-                }
-            });
-
-            els.browseLink.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (!accessToken) {
-                    showToast('Anda harus login terlebih dahulu.', 'error');
-                    return;
-                }
+        // Event Listeners
+        els.loginBtn.addEventListener('click', handleLogin);
+        els.uploadArea.addEventListener('click', (e) => {
+            if (!e.target.closest('.browse-link')) {
+                if (!accessToken) { showToast('Login dulu untuk upload.', 'error'); return; }
                 els.fileInput.click();
-            });
+            }
+        });
+        els.browseLink.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!accessToken) { showToast('Login dulu untuk upload.', 'error'); return; }
+            els.fileInput.click();
+        });
 
-            els.fileInput.addEventListener('change', async (e) => {
-                if (!accessToken) {
-                    showToast('Anda harus login terlebih dahulu.', 'error');
-                    e.target.value = '';
-                    return;
-                }
-                const files = Array.from(e.target.files || []);
-                if (files.length === 0) return;
-
-                els.progressContainer.classList.add('active');
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    els.progressFileName.textContent = file.name;
-                    els.progressPercent.textContent = '0%';
-                    els.progressFill.style.width = '0%';
-                    els.progressStatus.textContent = `Mengupload (${i + 1}/${files.length})...`;
-                    try {
-                        await uploadVideo(file);
-                        els.progressStatus.textContent = '✅ Selesai';
-                        showToast(`"${file.name}" berhasil diupload.`, 'success');
-                    } catch (err) {
-                        els.progressStatus.textContent = '❌ Gagal';
-                        showToast(`Gagal upload "${file.name}": ${err.message}`, 'error');
-                        if (err.message.includes('Sesi habis')) break;
-                    }
-                    if (i < files.length - 1) {
-                        await new Promise(r => setTimeout(r, 600));
-                    }
-                }
-                els.progressContainer.classList.remove('active');
-                await renderVideos();
-                e.target.value = '';
-            });
-
-            // Drag & drop
-            els.uploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                els.uploadArea.classList.add('drag-over');
-            });
-            els.uploadArea.addEventListener('dragleave', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                els.uploadArea.classList.remove('drag-over');
-            });
-            els.uploadArea.addEventListener('drop', async (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                els.uploadArea.classList.remove('drag-over');
-                if (!accessToken) {
-                    showToast('Login dulu sebelum upload.', 'error');
-                    return;
-                }
-                const files = Array.from(e.dataTransfer.files || []);
-                if (files.length === 0) return;
-
-                els.progressContainer.classList.add('active');
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    els.progressFileName.textContent = file.name;
-                    els.progressPercent.textContent = '0%';
-                    els.progressFill.style.width = '0%';
-                    els.progressStatus.textContent = `Mengupload (${i + 1}/${files.length})...`;
-                    try {
-                        await uploadVideo(file);
-                        els.progressStatus.textContent = '✅ Selesai';
-                        showToast(`"${file.name}" diupload.`, 'success');
-                    } catch (err) {
-                        els.progressStatus.textContent = '❌ Gagal';
-                        showToast(`Gagal: ${err.message}`, 'error');
-                        if (err.message.includes('Sesi habis')) break;
-                    }
-                    if (i < files.length - 1) {
-                        await new Promise(r => setTimeout(r, 600));
-                    }
-                }
-                els.progressContainer.classList.remove('active');
-                await renderVideos();
-            });
-
-            els.deleteAllBtn.addEventListener('click', async () => {
-                if (!accessToken || !folderId) return;
-                const videos = await listVideos();
-                if (videos.length === 0) {
-                    showToast('Tidak ada video untuk dihapus.', 'warning');
-                    return;
-                }
-                if (!confirm(
-                        `⚠️ Hapus SEMUA ${videos.length} video dari Google Drive?\n\nTindakan ini tidak bisa dibatalkan.`
-                        )) return;
+        els.fileInput.addEventListener('change', async (e) => {
+            if (!accessToken) { showToast('Login diperlukan.', 'error'); e.target.value = ''; return; }
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+            els.progressContainer.classList.add('active');
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                els.progressFileName.textContent = file.name;
+                els.progressPercent.textContent = '0%';
+                els.progressFill.style.width = '0%';
+                els.progressStatus.textContent = `Mengupload (${i+1}/${files.length})...`;
                 try {
-                    els.deleteAllBtn.disabled = true;
-                    els.deleteAllBtn.textContent = '⏳ Menghapus...';
-                    await deleteAll();
-                    await renderVideos();
-                    showToast('Semua video berhasil dihapus.', 'success');
+                    await uploadVideo(file);
+                    showToast(`"${file.name}" berhasil diupload.`, 'success');
                 } catch (err) {
-                    showToast(err.message, 'error');
-                } finally {
-                    els.deleteAllBtn.disabled = false;
-                    els.deleteAllBtn.textContent = '🗑️ Hapus Semua';
+                    showToast(`Gagal upload "${file.name}": ${err.message}`, 'error');
+                    if (err.message.includes('Sesi habis')) break;
                 }
-            });
+                if (i < files.length-1) await new Promise(r => setTimeout(r, 600));
+            }
+            els.progressContainer.classList.remove('active');
+            await renderVideos();
+            e.target.value = '';
+        });
 
-            // Modal
-            els.closeModal.addEventListener('click', () => {
+        // Drag & drop
+        els.uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); e.stopPropagation(); els.uploadArea.classList.add('drag-over'); });
+        els.uploadArea.addEventListener('dragleave', () => { els.uploadArea.classList.remove('drag-over'); });
+        els.uploadArea.addEventListener('drop', async (e) => {
+            e.preventDefault(); e.stopPropagation(); els.uploadArea.classList.remove('drag-over');
+            if (!accessToken) { showToast('Login dulu untuk upload.', 'error'); return; }
+            const files = Array.from(e.dataTransfer.files);
+            if (files.length === 0) return;
+            els.progressContainer.classList.add('active');
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                els.progressFileName.textContent = file.name;
+                els.progressPercent.textContent = '0%';
+                els.progressFill.style.width = '0%';
+                els.progressStatus.textContent = `Mengupload (${i+1}/${files.length})...`;
+                try {
+                    await uploadVideo(file);
+                    showToast(`"${file.name}" diupload.`, 'success');
+                } catch (err) {
+                    showToast(`Gagal: ${err.message}`, 'error');
+                    if (err.message.includes('Sesi habis')) break;
+                }
+                if (i < files.length-1) await new Promise(r => setTimeout(r, 600));
+            }
+            els.progressContainer.classList.remove('active');
+            await renderVideos();
+        });
+
+        els.deleteAllBtn.addEventListener('click', async () => {
+            const videos = await listVideos();
+            if (videos.length === 0) { showToast('Tidak ada video.', 'warning'); return; }
+            if (!confirm(`⚠️ Hapus SEMUA ${videos.length} video secara permanen? Tindakan tidak bisa dibatalkan.`)) return;
+            try {
+                els.deleteAllBtn.disabled = true;
+                els.deleteAllBtn.textContent = '⏳ Menghapus...';
+                await deleteAllVideos();
+                await renderVideos();
+                showToast('Semua video berhasil dihapus.', 'success');
+            } catch (err) {
+                showToast(err.message, 'error');
+            } finally {
+                els.deleteAllBtn.disabled = false;
+                els.deleteAllBtn.textContent = '🗑️ Hapus Semua';
+            }
+        });
+
+        // Modal controls
+        els.closeModal.addEventListener('click', () => {
+            els.modalVideo.pause();
+            els.modalVideo.src = '';
+            els.modalOverlay.classList.remove('active');
+        });
+        els.modalOverlay.addEventListener('click', (e) => {
+            if (e.target === els.modalOverlay) {
                 els.modalVideo.pause();
-                if (els.modalVideo.src && els.modalVideo.src.startsWith('blob:')) {
-                    URL.revokeObjectURL(els.modalVideo.src);
-                }
                 els.modalVideo.src = '';
-                els.modalVideo.load();
                 els.modalOverlay.classList.remove('active');
-            });
-            els.modalOverlay.addEventListener('click', (e) => {
-                if (e.target === els.modalOverlay) {
-                    els.modalVideo.pause();
-                    if (els.modalVideo.src && els.modalVideo.src.startsWith('blob:')) {
-                        URL.revokeObjectURL(els.modalVideo.src);
-                    }
-                    els.modalVideo.src = '';
-                    els.modalVideo.load();
-                    els.modalOverlay.classList.remove('active');
-                }
-            });
-
-            // Keyboard shortcut untuk menutup modal
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && els.modalOverlay.classList.contains('active')) {
-                    els.modalVideo.pause();
-                    if (els.modalVideo.src && els.modalVideo.src.startsWith('blob:')) {
-                        URL.revokeObjectURL(els.modalVideo.src);
-                    }
-                    els.modalVideo.src = '';
-                    els.modalVideo.load();
-                    els.modalOverlay.classList.remove('active');
-                }
-            });
-
-            // ──── STARTUP ────────────────────────────────
-            async function startup() {
-                // Cek apakah CLIENT_ID sudah diisi
-                if (!CLIENT_ID || CLIENT_ID === 'YOUR_CLIENT_ID.apps.googleusercontent.com') {
-                    els.videoGrid.innerHTML = `<div class="empty-state">
-                        <span class="empty-icon">⚙️</span>
-                        <p><strong>Client ID belum dikonfigurasi.</strong></p>
-                        <p style="margin-top:10px;">Silakan buka kode dan ganti <code>CLIENT_ID</code> dengan Client ID dari Google Cloud Console.</p>
-                        <p style="font-size:0.8rem; margin-top:6px;">Dapatkan di: <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color:var(--accent);">Google Cloud Console</a></p>
-                    </div>`;
-                    els.loginBtn.disabled = true;
-                    els.loginBtnText.textContent = '⚙️ Perlu Konfigurasi';
-                    showToast('Client ID belum disetel. Edit kode untuk menambahkannya.', 'warning');
-                    return;
-                }
-
-                try {
-                    await initGapiClient();
-                } catch (err) {
-                    console.error('Init error:', err);
-                    els.videoGrid.innerHTML =
-                        `<div class="empty-state"><span class="empty-icon">❌</span><p>${escapeHTML(err.message)}</p></div>`;
-                    els.loginBtn.disabled = true;
-                    showToast('Gagal inisialisasi Google API. Jalankan di localhost atau HTTPS.', 'error');
-                    return;
-                }
-
-                // Cek token tersimpan
-                const savedToken = sessionStorage.getItem('gdrive_token');
-                const savedTime = parseInt(sessionStorage.getItem('gdrive_token_time') || '0');
-                const tokenAge = Date.now() - savedTime;
-                const MAX_TOKEN_AGE = 50 * 60 * 1000; // 50 menit (token biasanya expired 1 jam)
-
-                if (savedToken && tokenAge < MAX_TOKEN_AGE) {
-                    accessToken = savedToken;
-                    updateLoginUI(true);
-                    try {
-                        await getOrCreateFolder();
-                        await renderVideos();
-                        showToast('Tersambung kembali ke Google Drive ✨', 'success');
-                    } catch (err) {
-                        console.warn('Gagal restore session:', err);
-                        logout(true);
-                        showToast('Sesi sebelumnya expired. Silakan login ulang.', 'warning');
-                    }
-                } else if (savedToken) {
-                    // Token terlalu tua
-                    setAccessToken(null);
-                    els.videoGrid.innerHTML =
-                        '<div class="empty-state"><span class="empty-icon">🔐</span><p>Silakan login untuk mengakses Google Drive Anda.</p></div>';
-                }
             }
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && els.modalOverlay.classList.contains('active')) {
+                els.modalVideo.pause();
+                els.modalVideo.src = '';
+                els.modalOverlay.classList.remove('active');
+            }
+        });
 
-            // ──── GLOBAL CALLBACKS UNTUK SCRIPT LOAD ──────
-            window.onGoogleApiLoad = function() {
-                isApiLoaded = true;
-                console.log('Google API script loaded.');
-            };
-            window.onGoogleApiError = function() {
-                console.error('Google API script gagal dimuat.');
-                els.videoGrid.innerHTML =
-                    '<div class="empty-state"><span class="empty-icon">🌐</span><p>Gagal memuat Google API. Periksa koneksi internet Anda.</p></div>';
+        // Startup: cek token tersimpan
+        async function startup() {
+            if (!CLIENT_ID || CLIENT_ID === 'YOUR_CLIENT_ID.apps.googleusercontent.com') {
+                els.videoGrid.innerHTML = `<div class="empty-state"><span class="empty-icon">⚙️</span><p><strong>Client ID belum dikonfigurasi.</strong><br>Ganti <code>CLIENT_ID</code> dengan milik Anda dari Google Cloud Console.</p></div>`;
                 els.loginBtn.disabled = true;
-                showToast('Gagal memuat Google API. Periksa koneksi.', 'error');
-            };
-
-            // Jalankan startup setelah DOM siap
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', startup);
-            } else {
-                startup();
+                els.loginBtnText.textContent = '⚙️ Perlu Konfigurasi';
+                showToast('Client ID belum disetel. Edit kode untuk menambahkannya.', 'warning');
+                return;
             }
-        })();
-    </script>
+            const savedToken = sessionStorage.getItem('gdrive_token');
+            const savedTime = parseInt(sessionStorage.getItem('gdrive_token_time') || '0');
+            if (savedToken && (Date.now() - savedTime) < 50 * 60 * 1000) {
+                accessToken = savedToken;
+                updateLoginUI(true);
+                try {
+                    await getOrCreateFolder();
+                    await renderVideos();
+                    showToast('Tersambung kembali ke Google Drive ✨', 'success');
+                } catch (err) {
+                    logout(true);
+                    showToast('Sesi expired. Login ulang.', 'warning');
+                }
+            } else {
+                if (savedToken) sessionStorage.removeItem('gdrive_token');
+                els.videoGrid.innerHTML = '<div class="empty-state"><span class="empty-icon">🔐</span><p>Silakan login untuk mengakses Google Drive Anda.</p></div>';
+            }
+        }
+
+        startup();
+    })();
+</script>
 </body>
 </html>
