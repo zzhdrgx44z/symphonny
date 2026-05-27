@@ -3,579 +3,728 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloud Video Vault - Local DB</title>
+    <title>Video Drive - Local Storage</title>
     <style>
         :root {
-            --bg: #0f0f1a;
-            --card: #1a1a2e;
-            --card2: #222239;
-            --text: #e0e0e0;
-            --muted: #a0a0b8;
-            --accent: #6c5ce7;
-            --accent2: #8b7cf0;
-            --danger: #e74c3c;
-            --success: #00cec9;
-            --radius: 14px;
-            --shadow: 0 8px 32px rgba(0,0,0,0.4);
+            --bg-body: #f7f9fc;
+            --bg-sidebar: #ffffff;
+            --bg-card: #ffffff;
+            --text-main: #3c4043;
+            --text-muted: #5f6368;
+            --accent: #1a73e8; /* Google Blue */
+            --accent-hover: #1765cc;
+            --border: #dadce0;
+            --shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+            --radius: 8px;
         }
-        * { margin:0; padding:0; box-sizing:border-box; }
+
+        * { margin:0; padding:0; box-sizing:border-box; font-family: 'Roboto', 'Segoe UI', sans-serif; }
+        
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            height: 100vh;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            background-image:
-                radial-gradient(ellipse at 30% 20%, rgba(108,92,231,0.08) 0%, transparent 60%),
-                radial-gradient(ellipse at 70% 80%, rgba(0,206,201,0.06) 0%, transparent 60%);
+            overflow: hidden;
         }
-        .app {
-            max-width: 1000px;
-            width: 100%;
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 256px;
+            background: var(--bg-sidebar);
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            padding: 16px 0;
+            border-right: 1px solid var(--border);
+            transition: transform 0.3s ease;
+            z-index: 10;
         }
-        .header {
-            background: var(--card);
-            padding: 18px 24px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
+        .logo-area {
+            padding: 0 16px 24px 16px;
             display: flex;
             align-items: center;
             gap: 12px;
-            font-weight: 700;
-            font-size: 1.3rem;
-            border: 1px solid rgba(255,255,255,0.05);
+            font-size: 1.4rem;
+            color: var(--text-muted);
+            cursor: pointer;
         }
-        .header span { font-size: 2rem; }
-        .section {
-            background: var(--card);
-            border-radius: var(--radius);
-            padding: 22px 26px;
-            box-shadow: var(--shadow);
-            border: 1px solid rgba(255,255,255,0.05);
+        .logo-icon { color: #fbbc04; font-size: 2rem; }
+        .logo-text { font-weight: 500; color: var(--text-main); }
+        
+        .nav-item {
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            height: 40px;
+            cursor: pointer;
+            color: var(--text-main);
+            font-size: 0.9rem;
+            border-radius: 0 20px 20px 0;
+            margin-right: 16px;
         }
-        .section h3 { font-size: 1.1rem; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; color: #ccc; }
-        .record-area { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
-        .camera-container {
+        .nav-item:hover { background-color: #e8f0fe; color: var(--accent); }
+        .nav-item.active { background-color: #e8f0fe; color: var(--accent); font-weight: 500; }
+
+        /* MAIN CONTENT */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             position: relative;
-            background: #000;
+        }
+
+        /* HEADER */
+        header {
+            height: 64px;
+            background: var(--bg-sidebar);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+        }
+        .search-bar {
+            background: #f1f3f4;
+            border-radius: 8px;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 50%;
+            max-width: 600px;
+            color: var(--text-muted);
+        }
+        .search-bar input {
+            border: none;
+            background: transparent;
+            outline: none;
+            width: 100%;
+            font-size: 1rem;
+            color: var(--text-main);
+        }
+        .storage-pill {
+            font-size: 0.8rem;
+            background: #e8f0fe;
+            color: var(--accent);
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-weight: 500;
+        }
+
+        /* CONTENT AREA */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        /* UPLOAD ZONE */
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 40px;
+            text-align: center;
+            background: #fff;
+            margin-bottom: 30px;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--accent);
+            background: #f8fbff;
+        }
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+        .btn-upload {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 0.95rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .btn-upload:hover { background: var(--accent-hover); }
+
+        /* GRID */
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+            color: var(--text-main);
+        }
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        .video-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
             border-radius: var(--radius);
             overflow: hidden;
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .video-card:hover {
+            box-shadow: var(--shadow);
+            transform: translateY(-2px);
+            border-color: transparent;
+        }
+        .video-thumb {
+            height: 120px;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .video-thumb img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        .play-overlay {
+            position: absolute; width: 40px; height: 40px;
+            background: rgba(0,0,0,0.6); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white; opacity: 0; transition: 0.2s;
+        }
+        .video-card:hover .play-overlay { opacity: 1; }
+        
+        .video-info {
+            padding: 12px;
+            font-size: 0.85rem;
+        }
+        .video-name {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+        .video-meta {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        /* CARD ACTIONS (3 Dots) */
+        .card-menu-btn {
+            position: absolute; top: 8px; right: 8px;
+            background: rgba(255,255,255,0.9);
+            border: none; border-radius: 50%; width: 28px; height: 28px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: 0.2s;
+        }
+        .video-card:hover .card-menu-btn { opacity: 1; }
+        .card-menu-btn:hover { background: #eee; }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: #fff;
+            border-radius: 8px;
             width: 100%;
-            max-width: 400px;
-            aspect-ratio: 4/3;
-            flex-shrink: 0;
-            border: 2px solid rgba(255,255,255,0.1);
+            max-width: 900px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
-        .camera-container video { width:100%; height:100%; object-fit:cover; display:block; }
-        .recording-dot {
-            position:absolute; top:12px; right:14px; width:14px; height:14px;
-            background:#e74c3c; border-radius:50%; animation:pulse 1s infinite;
-            display:none; z-index:2;
+        .modal-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .camera-container.recording .recording-dot { display:block; }
-        @keyframes pulse {
-            0%,100%{ box-shadow:0 0 0 0 rgba(231,76,60,0.7); }
-            50%{ box-shadow:0 0 0 14px rgba(231,76,60,0); }
+        .modal-title { font-weight: 500; font-size: 1.1rem; }
+        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
+        
+        .modal-body {
+            flex: 1;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        .record-controls { display:flex; flex-direction:column; gap:12px; flex:1; min-width:200px; }
-        .timer {
-            font-size:2.5rem; font-weight:700; font-family: 'SF Mono','Cascadia Code',monospace;
-            letter-spacing:2px; color:#fff;
+        .modal-body video {
+            max-width: 100%;
+            max-height: 80vh;
         }
-        .timer.warning { color:#fdcb6e; animation: blink 0.6s infinite; }
-        @keyframes blink { 50%{opacity:0.4;} }
-        .btn {
-            display:inline-flex; align-items:center; gap:8px; padding:12px 28px;
-            border-radius:25px; font-weight:600; font-size:0.95rem; cursor:pointer;
-            border:none; transition:0.25s; white-space:nowrap;
+        .modal-footer {
+            padding: 12px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
         }
-        .btn-record { background:#e74c3c; color:#fff; font-size:1rem; padding:14px 28px; border-radius:30px; }
-        .btn-record:hover { background:#ff4757; box-shadow:0 6px 24px rgba(231,76,60,0.5); }
-        .btn-record.stop { background:#fff; color:#e74c3c; }
-        .btn-record:disabled { opacity:0.5; cursor:not-allowed; pointer-events:none; }
-        .btn-primary { background:var(--accent); color:#fff; }
-        .btn-primary:hover { background:var(--accent2); transform:translateY(-2px); box-shadow:0 8px 25px rgba(108,92,231,0.4); }
-        .btn-sm { padding:7px 16px; font-size:0.8rem; border-radius:18px; }
-        .btn-outline { background:transparent; color:var(--accent2); border:1.5px solid var(--accent); }
-        .btn-outline:hover { background:var(--accent); color:#fff; }
-        .progress-wrap { margin-top:8px; display:none; }
-        .progress-wrap.active { display:block; }
-        .progress-bar { width:100%; height:8px; background:rgba(255,255,255,0.1); border-radius:10px; overflow:hidden; }
-        .progress-fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--success)); border-radius:10px; transition:width 0.3s; width:0%; }
-        .progress-text { font-size:0.78rem; color:var(--muted); margin-top:4px; }
+        .btn-modal {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .btn-del { background: #ffebee; color: #d93025; }
+        .btn-del:hover { background: #ffcdd2; }
+        .btn-dl { background: #e8f0fe; color: #1967d2; }
+        .btn-dl:hover { background: #d2e3fc; }
 
-        .video-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:18px; }
-        .video-card {
-            background:var(--card2); border-radius:var(--radius); overflow:hidden;
-            transition:0.25s; border:1px solid rgba(255,255,255,0.04); cursor:pointer;
+        /* CONTEXT MENU (Custom simple) */
+        .context-menu {
+            position: absolute;
+            background: white;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            border-radius: 4px;
+            width: 150px;
+            display: none;
+            z-index: 1001;
         }
-        .video-card:hover { transform:translateY(-4px); box-shadow:0 12px 30px rgba(0,0,0,0.5); border-color:rgba(255,255,255,0.12); }
-        .video-card .thumb {
-            width:100%; aspect-ratio:16/10; object-fit:cover; background:#111;
-            display:flex; align-items:center; justify-content:center; font-size:3rem; color:#333;
+        .context-item {
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            cursor: pointer;
         }
-        .video-card .thumb img { width:100%; height:100%; object-fit:cover; }
-        .video-card .info { padding:14px 16px; }
-        .video-card .info .vname { font-weight:600; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:4px; }
-        .video-card .info .vmeta { font-size:0.75rem; color:var(--muted); display:flex; justify-content:space-between; }
-        .video-card .actions { display:flex; gap:6px; padding:0 16px 14px; }
-        .video-card .actions button {
-            flex:1; font-size:0.75rem; padding:7px 10px; border-radius:14px;
-            cursor:pointer; border:none; font-weight:600; transition:0.25s;
-        }
-        .btn-play { background:var(--accent); color:#fff; }
-        .btn-play:hover { background:var(--accent2); }
-        .btn-del { background:transparent; color:var(--danger); border:1px solid transparent; }
-        .btn-del:hover { border-color:var(--danger); background:rgba(231,76,60,0.1); }
-        .btn-download { background:transparent; color:var(--success); border:1px solid var(--success); }
-        .btn-download:hover { background:var(--success); color:#000; }
-        .empty-state { text-align:center; padding:40px 20px; color:var(--muted); }
-        .empty-state .empty-icon { font-size:5rem; margin-bottom:12px; opacity:0.6; }
+        .context-item:hover { background: #f1f3f4; }
+        .context-item.delete { color: #d93025; }
 
-        /* Toast */
-        #toastContainer { position:fixed; top:20px; right:20px; z-index:9999; display:flex; flex-direction:column; gap:10px; pointer-events:none; }
+        /* HIDDEN INPUT */
+        #fileInput { display: none; }
+        
+        /* TOAST */
         .toast {
-            padding:14px 20px; border-radius:10px; color:#fff; font-weight:500;
-            font-size:0.9rem; pointer-events:auto; animation:slideIn 0.35s, fadeOut 0.4s 2.5s forwards;
-            max-width:380px; box-shadow:var(--shadow); backdrop-filter:blur(8px);
+            position: fixed; bottom: 24px; left: 24px;
+            background: #323232; color: white;
+            padding: 14px 24px; border-radius: 4px;
+            font-size: 0.9rem; z-index: 2000;
+            opacity: 0; transform: translateY(20px); transition: 0.3s;
         }
-        .toast.success { background:#00b894dd; border:1px solid #00cec9; }
-        .toast.error { background:#e74c3cdd; border:1px solid #ff6b6b; }
-        .toast.info { background:#6c5ce7dd; border:1px solid #8b7cf0; }
-        @keyframes slideIn{ from{transform:translateX(120%);opacity:0;} to{transform:translateX(0);opacity:1;} }
-        @keyframes fadeOut{ to{opacity:0; transform:translateY(-20px);} }
+        .toast.show { opacity: 1; transform: translateY(0); }
 
-        @media (max-width:640px) {
-            .record-area { flex-direction:column; align-items:center; }
-            .camera-container { max-width:100%; }
-            .video-grid { grid-template-columns:1fr 1fr; gap:10px; }
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .sidebar { position: absolute; height: 100%; transform: translateX(-100%); box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
+            .sidebar.open { transform: translateX(0); }
+            .menu-toggle { display: block !important; margin-right: 16px; cursor: pointer; font-size: 1.5rem; }
+            .search-bar { width: 100%; }
+            header { padding: 0 16px; }
         }
-        @media (max-width:400px) {
-            .video-grid { grid-template-columns:1fr; }
-        }
+        .menu-toggle { display: none; }
     </style>
 </head>
 <body>
-    <div id="toastContainer"></div>
-    <div class="app">
-        <div class="header"><span>☁️</span> Cloud Video Vault (Local DB)</div>
 
-        <div class="section">
-            <h3>🎬 Rekam Video Baru</h3>
-            <div class="record-area">
-                <div class="camera-container" id="cameraContainer">
-                    <video id="cameraPreview" autoplay playsinline muted></video>
-                    <div class="recording-dot"></div>
-                </div>
-                <div class="record-controls">
-                    <div class="timer" id="recordTimer">00:00</div>
-                    <button class="btn btn-record" id="btnRecord" disabled>⏺ Mulai Rekam</button>
-                    <button class="btn btn-outline btn-sm" id="btnRetryCamera" style="display:none;">🔄 Coba Lagi Kamera</button>
-                    <p style="font-size:0.75rem;color:var(--muted);" id="recordHint">Izinkan akses kamera untuk mulai merekam</p>
-                    <div class="progress-wrap" id="saveProgress">
-                        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-                        <div class="progress-text" id="progressText">Menyimpan ke database...</div>
-                    </div>
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+        <div class="logo-area" onclick="location.reload()">
+            <div class="logo-icon">▶</div>
+            <div class="logo-text">Video Drive</div>
+        </div>
+        <div class="nav-item active">
+            <span>☁️</span> Drive Saya
+        </div>
+        <div class="nav-item" onclick="alert('Fitur Komputer Segera Hadir!')">
+            <span>💻</span> Komputer
+        </div>
+        <div class="nav-item" onclick="alert('Fitur Sampah Segera Hadir!')">
+            <span>🗑️</span> Sampah
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <header>
+            <div style="display:flex; align-items:center;">
+                <div class="menu-toggle" onclick="toggleSidebar()">☰</div>
+                <div class="search-bar">
+                    <span>🔍</span>
+                    <input type="text" id="searchInput" placeholder="Cari video..." onkeyup="filterVideos()">
                 </div>
             </div>
-        </div>
+            <div style="display:flex; align-items:center; gap:15px;">
+                <div class="storage-pill" id="storageStatus">Menghitung...</div>
+            </div>
+        </header>
 
-        <div class="section">
-            <h3>📁 Database Video Tersimpan</h3>
-            <div class="video-grid" id="videoGrid"></div>
-            <div class="empty-state" id="emptyState">
-                <div class="empty-icon">📭</div>
-                <p>Belum ada video tersimpan.<br>Rekam video pertama Anda!</p>
+        <div class="content-area">
+            <!-- UPLOAD ZONE -->
+            <div class="upload-zone" id="dropZone">
+                <div class="upload-icon">☁️</div>
+                <p style="color:var(--text-main);">Tarik video ke sini atau</p>
+                <button class="btn-upload" onclick="document.getElementById('fileInput').click()">
+                    + Unggah Video
+                </button>
+                <input type="file" id="fileInput" accept="video/*" multiple>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-top:10px;">
+                    Hanya file video (MP4, WebM, MOV) yang diterima.
+                </p>
+            </div>
+
+            <!-- VIDEO GRID -->
+            <div class="section-title">Video</div>
+            <div class="video-grid" id="videoGrid">
+                <!-- Video Cards will be injected here -->
+            </div>
+            <div id="emptyState" style="display:none; text-align:center; padding:40px; color:var(--text-muted);">
+                <p>Belum ada video. Mulai unggah!</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- VIDEO PLAYER MODAL -->
+    <div class="modal-overlay" id="videoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">Nama Video</div>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <video id="mainPlayer" controls></video>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-dl" id="btnModalDl">Unduh</button>
+                <button class="btn-modal btn-del" id="btnModalDel">Hapus</button>
             </div>
         </div>
     </div>
 
+    <!-- TOAST -->
+    <div class="toast" id="toast">Pesan notifikasi</div>
+
     <script>
-        (function() {
-            // IndexedDB setup
-            const DB_NAME = 'CloudVideoVaultLocal';
-            const DB_VERSION = 1;
-            const STORE_NAME = 'videos';
-            let db;
+        // --- CONFIG & STATE ---
+        const DB_NAME = 'VideoDriveDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'videos';
+        let db;
+        let allVideos = []; // Local cache
+        let currentPlayingId = null;
 
-            const MAX_RECORD_SEC = 300;
-            let mediaStream = null, mediaRecorder = null, recordedBlob = null;
-            let recordStartTime = null, recordTimerInterval = null, isRecording = false;
+        // --- DOM ELEMENTS ---
+        const $dropZone = document.getElementById('dropZone');
+        const $fileInput = document.getElementById('fileInput');
+        const $videoGrid = document.getElementById('videoGrid');
+        const $emptyState = document.getElementById('emptyState');
+        const $storageStatus = document.getElementById('storageStatus');
+        const $sidebar = document.getElementById('sidebar');
+        const $modal = document.getElementById('videoModal');
+        const $player = document.getElementById('mainPlayer');
+        const $modalTitle = document.getElementById('modalTitle');
+        const $btnModalDl = document.getElementById('btnModalDl');
+        const $btnModalDel = document.getElementById('btnModalDel');
 
-            // DOM
-            const $cameraContainer = document.getElementById('cameraContainer');
-            const $cameraPreview = document.getElementById('cameraPreview');
-            const $btnRecord = document.getElementById('btnRecord');
-            const $btnRetryCamera = document.getElementById('btnRetryCamera');
-            const $recordTimer = document.getElementById('recordTimer');
-            const $recordHint = document.getElementById('recordHint');
-            const $saveProgress = document.getElementById('saveProgress');
-            const $progressFill = document.getElementById('progressFill');
-            const $progressText = document.getElementById('progressText');
-            const $videoGrid = document.getElementById('videoGrid');
-            const $emptyState = document.getElementById('emptyState');
-            const $toastContainer = document.getElementById('toastContainer');
-
-            function toast(msg, type='info') {
-                const el = document.createElement('div');
-                el.className = `toast ${type}`;
-                el.textContent = msg;
-                $toastContainer.appendChild(el);
-                setTimeout(() => el.remove(), 3000);
-            }
-
-            // ========== IndexedDB ==========
-            function openDB() {
-                return new Promise((resolve, reject) => {
-                    const request = indexedDB.open(DB_NAME, DB_VERSION);
-                    request.onupgradeneeded = (event) => {
-                        const database = event.target.result;
-                        if (!database.objectStoreNames.contains(STORE_NAME)) {
-                            database.createObjectStore(STORE_NAME, { keyPath: 'id' });
-                        }
-                    };
-                    request.onsuccess = (event) => {
-                        db = event.target.result;
-                        resolve(db);
-                    };
-                    request.onerror = (event) => reject(event.target.error);
-                });
-            }
-
-            function saveVideoToDB(videoData) {
-                return new Promise((resolve, reject) => {
-                    if (!db) return reject('Database belum siap');
-                    const tx = db.transaction(STORE_NAME, 'readwrite');
-                    const store = tx.objectStore(STORE_NAME);
-                    const request = store.add(videoData);
-                    request.onsuccess = () => resolve(request.result);
-                    request.onerror = () => reject(request.error);
-                });
-            }
-
-            function getAllVideos() {
-                return new Promise((resolve, reject) => {
-                    if (!db) return reject('Database belum siap');
-                    const tx = db.transaction(STORE_NAME, 'readonly');
-                    const store = tx.objectStore(STORE_NAME);
-                    const request = store.getAll();
-                    request.onsuccess = () => resolve(request.result || []);
-                    request.onerror = () => reject(request.error);
-                });
-            }
-
-            function deleteVideoFromDB(id) {
-                return new Promise((resolve, reject) => {
-                    if (!db) return reject('Database belum siap');
-                    const tx = db.transaction(STORE_NAME, 'readwrite');
-                    const store = tx.objectStore(STORE_NAME);
-                    const request = store.delete(id);
-                    request.onsuccess = () => resolve();
-                    request.onerror = () => reject(request.error);
-                });
-            }
-
-            // ========== Camera ==========
-            async function initCamera() {
-                try {
-                    if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
-                    mediaStream = await navigator.mediaDevices.getUserMedia({
-                        video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
-                        audio: true,
-                    });
-                    $cameraPreview.srcObject = mediaStream;
-                    $cameraContainer.classList.remove('recording');
-                    $btnRecord.disabled = false;
-                    $btnRecord.textContent = '⏺ Mulai Rekam';
-                    $btnRecord.className = 'btn btn-record';
-                    $recordHint.textContent = 'Kamera siap. Klik untuk merekam.';
-                    $btnRetryCamera.style.display = 'none';
-                    isRecording = false; recordedBlob = null;
-                    $saveProgress.classList.remove('active');
-                    $recordTimer.textContent = '00:00'; $recordTimer.classList.remove('warning');
-                    if (recordTimerInterval) clearInterval(recordTimerInterval);
-                    recordTimerInterval = null;
-                } catch (err) {
-                    console.error(err);
-                    $btnRecord.disabled = true;
-                    $recordHint.textContent = '⚠️ Gagal akses kamera: ' + err.message;
-                    $btnRetryCamera.style.display = 'inline-block';
-                    toast('Gagal mengakses kamera/mikrofon.', 'error');
-                }
-            }
-
-            function startRecording() {
-                if (!mediaStream || isRecording) return;
-                if (!window.MediaRecorder) { toast('Browser tidak mendukung perekaman.', 'error'); return; }
-                const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
-                try { mediaRecorder = new MediaRecorder(mediaStream, { mimeType }); } catch(e) { mediaRecorder = new MediaRecorder(mediaStream); }
-                const chunks = [];
-                mediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunks.push(e.data); };
-                mediaRecorder.onstop = () => {
-                    recordedBlob = new Blob(chunks, { type: mediaRecorder.mimeType || 'video/webm' });
-                    $cameraPreview.srcObject = null;
-                    $cameraPreview.src = URL.createObjectURL(recordedBlob);
-                    $cameraPreview.controls = true; $cameraPreview.loop = false; $cameraPreview.muted = false;
-                    $btnRecord.textContent = '💾 Simpan ke Database';
-                    $btnRecord.className = 'btn btn-primary';
-                    $btnRecord.disabled = false;
-                    $recordHint.textContent = `Rekaman selesai (${formatSize(recordedBlob.size)}). Klik untuk menyimpan.`;
-                    isRecording = false;
-                    $cameraContainer.classList.remove('recording');
-                    if (recordTimerInterval) clearInterval(recordTimerInterval);
+        // --- INDEXEDDB ---
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                    }
                 };
-                recordStartTime = Date.now();
-                mediaRecorder.start(1000);
-                isRecording = true;
-                $btnRecord.textContent = '⏹ Stop Rekam';
-                $btnRecord.className = 'btn btn-record stop';
-                $cameraContainer.classList.add('recording');
-                $recordHint.textContent = '🔴 Sedang merekam...';
-                recordedBlob = null;
-                $cameraPreview.controls = false; $cameraPreview.src = ''; $cameraPreview.srcObject = mediaStream; $cameraPreview.muted = true;
-                $recordTimer.textContent = '00:00'; updateTimer();
-                recordTimerInterval = setInterval(updateTimer, 200);
-                setTimeout(() => {
-                    if (isRecording && mediaRecorder && mediaRecorder.state === 'recording') {
-                        stopRecording();
-                        toast('Rekaman dihentikan otomatis (batas 5 menit).', 'info');
-                    }
-                }, MAX_RECORD_SEC * 1000);
-            }
-
-            function stopRecording() {
-                if (!mediaRecorder || mediaRecorder.state !== 'recording') return;
-                mediaRecorder.stop();
-                if (recordTimerInterval) clearInterval(recordTimerInterval);
-                $btnRecord.disabled = true;
-                $btnRecord.textContent = '⏳ Memproses...';
-                $cameraContainer.classList.remove('recording');
-            }
-
-            function updateTimer() {
-                if (!recordStartTime || !isRecording) return;
-                const elapsed = Math.floor((Date.now() - recordStartTime) / 1000);
-                const mins = Math.floor(elapsed / 60), secs = elapsed % 60;
-                $recordTimer.textContent = String(mins).padStart(2,'0')+':'+String(secs).padStart(2,'0');
-                if (elapsed >= MAX_RECORD_SEC - 10) $recordTimer.classList.add('warning');
-            }
-
-            function formatSize(bytes) {
-                if (bytes < 1024) return bytes + ' B';
-                if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-                return (bytes / 1048576).toFixed(2) + ' MB';
-            }
-
-            function formatDate(ts) {
-                const d = new Date(ts);
-                return d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-            }
-
-            // Thumbnail
-            function generateThumbnail(blob) {
-                return new Promise((resolve) => {
-                    const video = document.createElement('video');
-                    video.preload = 'metadata'; video.muted = true; video.playsInline = true;
-                    const url = URL.createObjectURL(blob);
-                    video.src = url;
-                    video.onloadeddata = () => { video.currentTime = 1; };
-                    video.onseeked = () => {
-                        const canvas = document.createElement('canvas');
-                        const maxW = 320, ratio = maxW / video.videoWidth;
-                        canvas.width = maxW; canvas.height = Math.round(video.videoHeight * ratio);
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(video,0,0,canvas.width,canvas.height);
-                        const dataUrl = canvas.toDataURL('image/jpeg',0.7);
-                        URL.revokeObjectURL(url);
-                        resolve(dataUrl);
-                    };
-                    video.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
-                    setTimeout(() => { if (video.readyState < 2) { URL.revokeObjectURL(url); resolve(null); } }, 4000);
-                });
-            }
-
-            // Render grid
-            async function renderVideoGrid() {
-                const videos = await getAllVideos().catch(() => []);
-                $videoGrid.innerHTML = '';
-                if (videos.length === 0) {
-                    $emptyState.style.display = 'block';
-                    return;
-                }
-                $emptyState.style.display = 'none';
-                // urutkan terbaru di atas
-                videos.sort((a,b) => b.date - a.date);
-                for (const video of videos) {
-                    const card = document.createElement('div');
-                    card.className = 'video-card';
-                    const thumbContent = video.thumbnail ? `<img src="${video.thumbnail}" alt="thumb" loading="lazy">` : '🎬';
-                    card.innerHTML = `
-                        <div class="thumb">${thumbContent}</div>
-                        <div class="info">
-                            <div class="vname">${escapeHtml(video.name)}</div>
-                            <div class="vmeta">
-                                <span>${formatDate(video.date)}</span>
-                                <span>${video.sizeFormatted}</span>
-                            </div>
-                        </div>
-                        <div class="actions">
-                            <button class="btn-play" data-id="${video.id}">▶ Play</button>
-                            <button class="btn-download" data-id="${video.id}">⬇ Unduh</button>
-                            <button class="btn-del" data-id="${video.id}">🗑 Hapus</button>
-                        </div>
-                    `;
-                    card.querySelector('.btn-play').addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        playVideoFromDB(video.id);
-                    });
-                    card.querySelector('.btn-download').addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        downloadVideo(video);
-                    });
-                    card.querySelector('.btn-del').addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        deleteVideo(video.id, video.name);
-                    });
-                    card.addEventListener('click', () => playVideoFromDB(video.id));
-                    $videoGrid.appendChild(card);
-                }
-            }
-
-            function escapeHtml(str) {
-                const div = document.createElement('div');
-                div.textContent = str;
-                return div.innerHTML;
-            }
-
-            async function getVideoBlob(id) {
-                // Ambil blob dari IndexedDB? Kita simpan blob sebagai properti.
-                // Di IndexedDB, blob bisa disimpan sebagai File/Blob.
-                return new Promise((resolve, reject) => {
-                    if (!db) return reject('DB belum siap');
-                    const tx = db.transaction(STORE_NAME, 'readonly');
-                    const store = tx.objectStore(STORE_NAME);
-                    const request = store.get(id);
-                    request.onsuccess = () => {
-                        const record = request.result;
-                        if (record && record.blob) resolve(record.blob);
-                        else reject('Video tidak ditemukan');
-                    };
-                    request.onerror = () => reject(request.error);
-                });
-            }
-
-            function playVideoFromDB(id) {
-                getVideoBlob(id).then(blob => {
-                    const url = URL.createObjectURL(blob);
-                    // Buka di tab baru atau pemutar sederhana
-                    const playerWindow = window.open('', '_blank', 'width=800,height=600');
-                    if (playerWindow) {
-                        playerWindow.document.write(`
-                            <html><head><title>Pemutar Video</title></head>
-                            <body style="margin:0;display:flex;justify-content:center;align-items:center;background:#000;height:100vh;">
-                                <video controls autoplay style="max-width:100%;max-height:100%;">
-                                    <source src="${url}" type="${blob.type || 'video/webm'}">
-                                </video>
-                            </body></html>
-                        `);
-                    }
-                }).catch(err => toast('Gagal memutar video: '+err, 'error'));
-            }
-
-            function downloadVideo(video) {
-                if (!video.blob) return toast('Data video tidak tersedia', 'error');
-                const url = URL.createObjectURL(video.blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = video.name;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }
-
-            async function deleteVideo(id, name) {
-                if (!confirm(`Hapus permanen video "${name}"?`)) return;
-                try {
-                    await deleteVideoFromDB(id);
-                    await renderVideoGrid();
-                    toast('Video dihapus.', 'success');
-                } catch (err) {
-                    toast('Gagal menghapus: '+err, 'error');
-                }
-            }
-
-            // Simpan ke DB
-            async function saveToDatabase() {
-                if (!recordedBlob) return;
-                $btnRecord.disabled = true;
-                $saveProgress.classList.add('active');
-                $progressFill.style.width = '0%';
-                $progressText.textContent = 'Membuat thumbnail...';
-                try {
-                    const thumbnail = await generateThumbnail(recordedBlob);
-                    const videoEntry = {
-                        id: Date.now().toString() + Math.random().toString(36).substr(2,6),
-                        name: 'Rekaman_' + new Date().toISOString().replace(/[:.]/g,'-') + '.webm',
-                        date: Date.now(),
-                        size: recordedBlob.size,
-                        sizeFormatted: formatSize(recordedBlob.size),
-                        thumbnail: thumbnail,
-                        blob: recordedBlob,
-                    };
-                    $progressFill.style.width = '50%';
-                    $progressText.textContent = 'Menyimpan video...';
-                    await saveVideoToDB(videoEntry);
-                    $saveProgress.classList.remove('active');
-                    toast('Video tersimpan di database lokal!', 'success');
-                    $recordHint.textContent = 'Tersimpan. Rekam lagi atau lihat daftar.';
-                    $btnRecord.textContent = '⏺ Rekam Lagi';
-                    $btnRecord.className = 'btn btn-record';
-                    $btnRecord.disabled = false;
-                    recordedBlob = null;
-                    if (mediaStream) {
-                        $cameraPreview.src = '';
-                        $cameraPreview.controls = false;
-                        $cameraPreview.srcObject = mediaStream;
-                        $cameraPreview.muted = true;
-                    }
-                    await renderVideoGrid();
-                } catch (err) {
-                    console.error(err);
-                    $saveProgress.classList.remove('active');
-                    toast('Gagal menyimpan: '+err, 'error');
-                    $btnRecord.textContent = '💾 Coba Simpan Lagi';
-                    $btnRecord.disabled = false;
-                }
-            }
-
-            $btnRecord.addEventListener('click', () => {
-                if (isRecording) stopRecording();
-                else if (recordedBlob && !isRecording) saveToDatabase();
-                else startRecording();
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    resolve(db);
+                };
+                request.onerror = (e) => reject(e.target.error);
             });
+        }
 
-            $btnRetryCamera.addEventListener('click', initCamera);
+        function saveVideoToDB(videoObj) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                const req = store.add(videoObj);
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
 
-            // init
-            async function initApp() {
+        function getAllVideos() {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readonly');
+                const store = tx.objectStore(STORE_NAME);
+                const req = store.getAll();
+                req.onsuccess = () => resolve(req.result || []);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        function deleteVideoFromDB(id) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                const req = store.delete(id);
+                req.onsuccess = () => resolve();
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        // --- INITIALIZATION ---
+        async function init() {
+            try {
+                await openDB();
+                await loadVideos();
+                updateStorageUsage();
+            } catch (err) {
+                console.error("Init Error:", err);
+                showToast("Gagal memuat database video", "error");
+            }
+        }
+
+        async function loadVideos() {
+            allVideos = await getAllVideos();
+            renderGrid(allVideos);
+        }
+
+        // --- RENDERING ---
+        function renderGrid(videos) {
+            $videoGrid.innerHTML = '';
+            if (videos.length === 0) {
+                $emptyState.style.display = 'block';
+                return;
+            }
+            $emptyState.style.display = 'none';
+
+            // Sort by newest
+            videos.sort((a,b) => b.date - a.date);
+
+            videos.forEach(vid => {
+                const card = document.createElement('div');
+                card.className = 'video-card';
+                card.onclick = () => openVideo(vid.id);
+                
+                const thumb = vid.thumbnail ? `<img src="${vid.thumbnail}">` : '';
+                const size = formatBytes(vid.size);
+                const date = new Date(vid.date).toLocaleDateString('id-ID', { day:'numeric', month:'short' });
+
+                card.innerHTML = `
+                    <div class="video-thumb">
+                        ${thumb}
+                        <div class="play-overlay">▶</div>
+                    </div>
+                    <div class="video-info">
+                        <div class="video-name" title="${vid.name}">${vid.name}</div>
+                        <div class="video-meta">${size} • ${date}</div>
+                    </div>
+                    <button class="card-menu-btn" onclick="event.stopPropagation(); toggleContextMenu(event, '${vid.id}')">⋮</button>
+                `;
+                $videoGrid.appendChild(card);
+            });
+        }
+
+        // --- UPLOAD HANDLING ---
+        $fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+        
+        // Drag & Drop
+        $dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            $dropZone.classList.add('dragover');
+        });
+        $dropZone.addEventListener('dragleave', () => $dropZone.classList.remove('dragover'));
+        $dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            $dropZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        async function handleFiles(files) {
+            if (!files.length) return;
+            
+            let count = 0;
+            for (let file of files) {
+                if (!file.type.startsWith('video/')) {
+                    showToast(`Lewati: ${file.name} (bukan video)`);
+                    continue;
+                }
+
                 try {
-                    await openDB();
-                    await renderVideoGrid();
-                    await initCamera();
+                    // Generate thumbnail
+                    const thumb = await generateThumbnail(file);
+                    
+                    const videoData = {
+                        id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                        date: Date.now(),
+                        blob: file,
+                        thumbnail: thumb
+                    };
+
+                    await saveVideoToDB(videoData);
+                    count++;
                 } catch (err) {
                     console.error(err);
-                    toast('Gagal inisialisasi database/kamera: '+err.message, 'error');
+                    if (err.name === 'QuotaExceededError') {
+                        showToast('Penyimpanan Penuh! Hapus beberapa video.', 'error');
+                        break; // Stop processing
+                    } else {
+                        showToast(`Gagal upload: ${file.name}`, 'error');
+                    }
                 }
             }
-            initApp();
-        })();
+
+            if (count > 0) {
+                showToast(`${count} video berhasil diunggah`);
+                await loadVideos();
+                updateStorageUsage();
+            }
+            // Reset input
+            $fileInput.value = '';
+        }
+
+        // --- THUMBNAIL GENERATOR ---
+        function generateThumbnail(file) {
+            return new Promise(resolve => {
+                const url = URL.createObjectURL(file);
+                const video = document.createElement('video');
+                video.src = url;
+                video.muted = true;
+                video.currentTime = 2; // Ambil frame di detik ke-2
+                video.onloadeddata = () => {
+                    // Seek jika durasi pendek
+                    if (video.duration < 2) video.currentTime = 0.1;
+                };
+                video.onseeked = () => {
+                    const cvs = document.createElement('canvas');
+                    cvs.width = 320; 
+                    cvs.height = 180; // 16:9 aspect ratio thumbnail
+                    const ctx = cvs.getContext('2d');
+                    try {
+                        ctx.drawImage(video, 0, 0, cvs.width, cvs.height);
+                        resolve(cvs.toDataURL('image/jpeg', 0.7));
+                    } catch(e) {
+                        resolve(null);
+                    }
+                    URL.revokeObjectURL(url);
+                };
+                video.onerror = () => resolve(null);
+                // Fallback timeout
+                setTimeout(() => resolve(null), 5000);
+            });
+        }
+
+        // --- VIDEO PLAYER & ACTIONS ---
+        function openVideo(id) {
+            const vid = allVideos.find(v => v.id === id);
+            if (!vid) return;
+
+            currentPlayingId = id;
+            $modalTitle.textContent = vid.name;
+            $player.src = URL.createObjectURL(vid.blob);
+            
+            // Setup Modal Buttons
+            $btnModalDl.onclick = () => downloadVideo(vid);
+            $btnModalDel.onclick = () => {
+                if(confirm(`Hapus video "${vid.name}"?`)) {
+                    deleteVideo(vid.id);
+                    closeModal();
+                }
+            };
+
+            $modal.classList.add('active');
+            $player.play().catch(e => console.log("Auto-play prevented"));
+        }
+
+        function closeModal() {
+            $modal.classList.remove('active');
+            $player.pause();
+            $player.src = '';
+            currentPlayingId = null;
+        }
+
+        function downloadVideo(vid) {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(vid.blob);
+            a.download = vid.name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        async function deleteVideo(id) {
+            try {
+                await deleteVideoFromDB(id);
+                showToast('Video dihapus');
+                await loadVideos();
+                updateStorageUsage();
+            } catch (err) {
+                showToast('Gagal menghapus video', 'error');
+            }
+        }
+
+        // --- SEARCH & UTILS ---
+        function filterVideos() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allVideos.filter(v => v.name.toLowerCase().includes(query));
+            renderGrid(filtered);
+        }
+
+        function updateStorageUsage() {
+            let totalSize = allVideos.reduce((acc, curr) => acc + curr.size, 0);
+            
+            // Get browser quota estimate
+            if (navigator.storage && navigator.storage.estimate) {
+                navigator.storage.estimate().then(estimate => {
+                    const quota = estimate.quota;
+                    const percentage = ((totalSize / quota) * 100).toFixed(1);
+                    $storageStatus.textContent = `${formatBytes(totalSize)} digunakan (${percentage}%)`;
+                });
+            } else {
+                $storageStatus.textContent = `${formatBytes(totalSize)} digunakan`;
+            }
+        }
+
+        function formatBytes(bytes, decimals = 1) {
+            if (!+bytes) return '0 B';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        function toggleSidebar() {
+            $sidebar.classList.toggle('open');
+        }
+
+        // Close modal on outside click
+        $modal.addEventListener('click', (e) => {
+            if (e.target === $modal) closeModal();
+        });
+
+        // Initialize
+        init();
+
     </script>
 </body>
 </html>
