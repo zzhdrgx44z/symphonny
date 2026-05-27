@@ -3,59 +3,1414 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloud Video Vault - Simple Login</title>
-    <script src="https://apis.google.com/js/api.js"></script>
+    <title>Cloud Video Vault</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        body { font-family: sans-serif; background: #0f0f1a; color: #eee; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .card { background: #1e1e2f; padding: 2rem; border-radius: 16px; text-align: center; max-width: 400px; }
-        button { background: #6c5ce7; border: none; padding: 12px 24px; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        #status { margin-top: 20px; color: #00cec9; }
+        :root {
+            --bg: #0f0f1a;
+            --card: #1a1a2e;
+            --card2: #222239;
+            --text: #e0e0e0;
+            --muted: #a0a0b8;
+            --accent: #6c5ce7;
+            --accent2: #8b7cf0;
+            --danger: #e74c3c;
+            --success: #00cec9;
+            --warning: #fdcb6e;
+            --radius: 14px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image:
+                radial-gradient(ellipse at 30% 20%, rgba(108, 92, 231, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 80%, rgba(0, 206, 201, 0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.015) 0%, transparent 70%);
+        }
+
+        /* ============ TOAST ============ */
+        #toastContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .toast {
+            padding: 14px 20px;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: 500;
+            font-size: 0.9rem;
+            pointer-events: auto;
+            animation: slideIn 0.35s ease, fadeOut 0.4s 2.5s forwards;
+            max-width: 380px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(8px);
+        }
+        .toast.success {
+            background: #00b894dd;
+            border: 1px solid #00cec9;
+        }
+        .toast.error {
+            background: #e74c3cdd;
+            border: 1px solid #ff6b6b;
+        }
+        .toast.info {
+            background: #6c5ce7dd;
+            border: 1px solid #8b7cf0;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+
+        /* ============ LOGIN SCREEN ============ */
+        #loginScreen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        #loginScreen.hidden {
+            display: none;
+        }
+        .login-card {
+            background: var(--card);
+            padding: 3rem 2.5rem;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .login-icon {
+            font-size: 4rem;
+            margin-bottom: 0.5rem;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-14px);
+            }
+        }
+        .login-card h2 {
+            font-size: 1.7rem;
+            margin-bottom: 0.3rem;
+            background: linear-gradient(135deg, #a29bfe, #00cec9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .login-card p {
+            color: var(--muted);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            border: none;
+            transition: var(--transition);
+            letter-spacing: 0.01em;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: var(--accent2);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(108, 92, 231, 0.4);
+        }
+        .btn-sm {
+            padding: 7px 16px;
+            font-size: 0.8rem;
+            border-radius: 18px;
+        }
+        .btn-danger {
+            background: transparent;
+            color: var(--danger);
+            border: 1.5px solid var(--danger);
+        }
+        .btn-danger:hover {
+            background: var(--danger);
+            color: #fff;
+        }
+        .btn-outline {
+            background: transparent;
+            color: var(--accent2);
+            border: 1.5px solid var(--accent);
+        }
+        .btn-outline:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+        .btn-ghost {
+            background: transparent;
+            color: var(--muted);
+            border: 1.5px solid transparent;
+        }
+        .btn-ghost:hover {
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        #loginStatus {
+            margin-top: 18px;
+            font-size: 0.85rem;
+            color: var(--success);
+            min-height: 22px;
+        }
+
+        /* ============ MAIN APP ============ */
+        #appScreen {
+            display: none;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+            flex-direction: column;
+            gap: 24px;
+        }
+        #appScreen.visible {
+            display: flex;
+        }
+
+        /* Header */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+            background: var(--card);
+            padding: 16px 22px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .app-header .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        .app-header .brand span {
+            font-size: 1.6rem;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+        .user-info img {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 2px solid var(--accent);
+        }
+
+        /* Section Cards */
+        .section {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 22px 26px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .section h3 {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ccc;
+        }
+
+        /* Record Area */
+        .record-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .camera-container {
+            position: relative;
+            background: #000;
+            border-radius: var(--radius);
+            overflow: hidden;
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 4/3;
+            flex-shrink: 0;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        .camera-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .camera-container .recording-dot {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            width: 14px;
+            height: 14px;
+            background: #e74c3c;
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+            display: none;
+            z-index: 2;
+        }
+        .camera-container.recording .recording-dot {
+            display: block;
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 0 14px rgba(231, 76, 60, 0);
+            }
+        }
+        .record-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+            min-width: 200px;
+        }
+        .record-controls .timer {
+            font-size: 2.5rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+            letter-spacing: 2px;
+            color: #fff;
+        }
+        .record-controls .timer.warning {
+            color: var(--warning);
+            animation: blink 0.6s infinite;
+        }
+        @keyframes blink {
+            50% {
+                opacity: 0.4;
+            }
+        }
+        .btn-record {
+            background: #e74c3c;
+            color: #fff;
+            font-size: 1rem;
+            padding: 14px 28px;
+            border-radius: 30px;
+            font-weight: 700;
+        }
+        .btn-record:hover {
+            background: #ff4757;
+            box-shadow: 0 6px 24px rgba(231, 76, 60, 0.5);
+        }
+        .btn-record.stop {
+            background: #fff;
+            color: #e74c3c;
+        }
+        .btn-record:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Upload Progress */
+        .progress-wrap {
+            margin-top: 8px;
+            display: none;
+        }
+        .progress-wrap.active {
+            display: block;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--success));
+            border-radius: 10px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+        .progress-text {
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        /* Video Grid */
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 18px;
+        }
+        .video-card {
+            background: var(--card2);
+            border-radius: var(--radius);
+            overflow: hidden;
+            transition: var(--transition);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            cursor: pointer;
+            position: relative;
+        }
+        .video-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+        .video-card .thumb {
+            width: 100%;
+            aspect-ratio: 16/10;
+            object-fit: cover;
+            background: #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: #333;
+        }
+        .video-card .thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .video-card .info {
+            padding: 14px 16px;
+        }
+        .video-card .info .vname {
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+        .video-card .info .vmeta {
+            font-size: 0.75rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .video-card .actions {
+            display: flex;
+            gap: 6px;
+            padding: 0 16px 14px;
+        }
+        .video-card .actions button {
+            flex: 1;
+            font-size: 0.75rem;
+            padding: 7px 10px;
+            border-radius: 14px;
+            cursor: pointer;
+            border: none;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        .video-card .actions .btn-play {
+            background: var(--accent);
+            color: #fff;
+        }
+        .video-card .actions .btn-play:hover {
+            background: var(--accent2);
+        }
+        .video-card .actions .btn-del {
+            background: transparent;
+            color: var(--danger);
+            border: 1px solid transparent;
+        }
+        .video-card .actions .btn-del:hover {
+            border-color: var(--danger);
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--muted);
+        }
+        .empty-state .empty-icon {
+            font-size: 5rem;
+            margin-bottom: 12px;
+            opacity: 0.6;
+        }
+        .empty-state p {
+            font-size: 0.95rem;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.25s;
+        }
+        .modal-overlay.hidden {
+            display: none;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        .modal-content {
+            background: #1a1a2e;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 14px;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.6);
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .modal-content iframe {
+            width: 100%;
+            height: 65vh;
+            min-height: 400px;
+            border: none;
+            border-radius: 0 0 16px 16px;
+        }
+        .modal-content .modal-title {
+            padding: 16px 20px;
+            font-weight: 600;
+            font-size: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2.5px solid rgba(255, 255, 255, 0.25);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .login-card {
+                padding: 2rem 1.5rem;
+            }
+            .record-area {
+                flex-direction: column;
+                align-items: center;
+            }
+            .camera-container {
+                max-width: 100%;
+                aspect-ratio: 4/3;
+            }
+            .video-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            .app-header {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+        @media (max-width: 400px) {
+            .video-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
-<div class="card">
-    <h2>☁️ Cloud Video Vault</h2>
-    <p>Login dengan Google Drive</p>
-    <button id="loginBtn">🔑 Login</button>
-    <div id="status"></div>
-</div>
 
-<script>
-    // GANTI DENGAN CLIENT ID ANDA
-    const CLIENT_ID = 'YOUR_CLIENT_ID.apps.googleusercontent.com';
-    const SCOPES = 'https://www.googleapis.com/auth/drive.file';
-    let tokenClient;
+    <!-- ==================== TOAST CONTAINER ==================== -->
+    <div id="toastContainer"></div>
 
-    function showStatus(msg, isError = false) {
-        const div = document.getElementById('status');
-        div.textContent = msg;
-        div.style.color = isError ? '#e74c3c' : '#00cec9';
-    }
+    <!-- ==================== LOGIN SCREEN ==================== -->
+    <div id="loginScreen">
+        <div class="login-card">
+            <div class="login-icon">☁️</div>
+            <h2>Cloud Video Vault</h2>
+            <p>Simpan & kelola rekaman video Anda di Google Drive</p>
+            <button class="btn btn-primary" id="loginBtn">
+                <span>🔑</span> Login dengan Google
+            </button>
+            <div id="loginStatus"></div>
+        </div>
+    </div>
 
-    window.onGoogleApiLoad = () => {
-        showStatus('API siap. Klik login.');
-    };
+    <!-- ==================== MAIN APP SCREEN ==================== -->
+    <div id="appScreen">
+        <!-- Header -->
+        <div class="app-header">
+            <div class="brand"><span>☁️</span> Cloud Video Vault</div>
+            <div class="user-info" id="userInfo"></div>
+        </div>
 
-    document.getElementById('loginBtn').addEventListener('click', () => {
-        if (tokenClient) {
-            tokenClient.requestAccessToken({ prompt: 'consent' });
-            return;
-        }
-        tokenClient = google.accounts.oauth2.initTokenClient({
-            client_id: CLIENT_ID,
-            scope: SCOPES,
-            callback: (response) => {
+        <!-- Record Section -->
+        <div class="section" id="recordSection">
+            <h3>🎬 Rekam Video Baru</h3>
+            <div class="record-area">
+                <div class="camera-container" id="cameraContainer">
+                    <video id="cameraPreview" autoplay playsinline muted></video>
+                    <div class="recording-dot"></div>
+                </div>
+                <div class="record-controls">
+                    <div class="timer" id="recordTimer">00:00</div>
+                    <button class="btn btn-record" id="btnRecord" disabled>⏺ Mulai Rekam</button>
+                    <button class="btn btn-outline btn-sm" id="btnRetryCamera" style="display:none;">🔄 Coba Lagi Kamera</button>
+                    <p style="font-size:0.75rem;color:var(--muted);margin-top:4px;" id="recordHint">
+                        Izinkan akses kamera untuk mulai merekam
+                    </p>
+                    <div class="progress-wrap" id="uploadProgress">
+                        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+                        <div class="progress-text" id="progressText">Mengunggah...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video List Section -->
+        <div class="section">
+            <h3>📁 Database Video Tersimpan</h3>
+            <div class="video-grid" id="videoGrid"></div>
+            <div class="empty-state" id="emptyState">
+                <div class="empty-icon">📭</div>
+                <p>Belum ada video tersimpan.<br>Rekam video pertama Anda!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== PLAYER MODAL ==================== -->
+    <div class="modal-overlay hidden" id="playerModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">✕</button>
+            <div class="modal-title" id="modalTitle">🎥 Memutar Video</div>
+            <iframe id="playerIframe" allowfullscreen allow="autoplay"></iframe>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ==================== CONFIG ====================
+            const CLIENT_ID = 'YOUR_CLIENT_ID.apps.googleusercontent.com'; // ⚠️ GANTI DENGAN CLIENT ID ANDA
+            const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+            const DB_KEY = 'cloudVideoVaultDB';
+            const MAX_RECORD_SEC = 300; // Maksimal 5 menit rekaman
+
+            // ==================== STATE ====================
+            let accessToken = null;
+            let tokenExpiry = 0; // timestamp in ms
+            let tokenClient = null;
+            let mediaStream = null;
+            let mediaRecorder = null;
+            let recordedBlob = null;
+            let recordStartTime = null;
+            let recordTimerInterval = null;
+            let isRecording = false;
+
+            // ==================== DOM REFS ====================
+            const $loginScreen = document.getElementById('loginScreen');
+            const $appScreen = document.getElementById('appScreen');
+            const $loginStatus = document.getElementById('loginStatus');
+            const $loginBtn = document.getElementById('loginBtn');
+            const $userInfo = document.getElementById('userInfo');
+            const $cameraContainer = document.getElementById('cameraContainer');
+            const $cameraPreview = document.getElementById('cameraPreview');
+            const $btnRecord = document.getElementById('btnRecord');
+            const $btnRetryCamera = document.getElementById('btnRetryCamera');
+            const $recordTimer = document.getElementById('recordTimer');
+            const $recordHint = document.getElementById('recordHint');
+            const $uploadProgress = document.getElementById('uploadProgress');
+            const $progressFill = document.getElementById('progressFill');
+            const $progressText = document.getElementById('progressText');
+            const $videoGrid = document.getElementById('videoGrid');
+            const $emptyState = document.getElementById('emptyState');
+            const $playerModal = document.getElementById('playerModal');
+            const $playerIframe = document.getElementById('playerIframe');
+            const $modalTitle = document.getElementById('modalTitle');
+            const $modalClose = document.getElementById('modalClose');
+            const $toastContainer = document.getElementById('toastContainer');
+
+            // ==================== TOAST ====================
+            function toast(msg, type = 'info') {
+                const el = document.createElement('div');
+                el.className = `toast ${type}`;
+                el.textContent = msg;
+                $toastContainer.appendChild(el);
+                setTimeout(() => el.remove(), 3000);
+            }
+
+            // ==================== DATABASE (localStorage) ====================
+            function getDB() {
+                try {
+                    return JSON.parse(localStorage.getItem(DB_KEY)) || [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function saveDB(db) {
+                try {
+                    localStorage.setItem(DB_KEY, JSON.stringify(db));
+                } catch (e) {
+                    toast('Penyimpanan lokal penuh!', 'error');
+                }
+            }
+
+            function addVideoToDB(entry) {
+                const db = getDB();
+                db.unshift(entry); // Terbaru di atas
+                saveDB(db);
+                renderVideoGrid();
+            }
+
+            function removeVideoFromDB(driveFileId) {
+                let db = getDB();
+                db = db.filter(v => v.driveFileId !== driveFileId);
+                saveDB(db);
+                renderVideoGrid();
+            }
+
+            // ==================== TOKEN MANAGEMENT ====================
+            function getValidToken() {
+                return new Promise((resolve, reject) => {
+                    if (accessToken && Date.now() < tokenExpiry - 60000) {
+                        // Token masih valid (dengan buffer 1 menit)
+                        resolve(accessToken);
+                        return;
+                    }
+                    // Perlu refresh / minta token baru
+                    if (!tokenClient) {
+                        reject(new Error('Token client belum diinisialisasi. Silakan login ulang.'));
+                        return;
+                    }
+                    // Coba silent refresh
+                    tokenClient.requestAccessToken({ prompt: '' });
+                    // Callback akan dipanggil, kita perlu handle di callback
+                    // Tapi karena callback tidak return promise, kita gunakan pendekatan event
+                    // Simpan resolver untuk dipanggil dari callback
+                    window._tokenResolver = resolve;
+                    window._tokenRejecter = reject;
+                    // Fallback: jika dalam 3 detik tidak ada response, reject
+                    setTimeout(() => {
+                        if (window._tokenResolver) {
+                            delete window._tokenResolver;
+                            delete window._tokenRejecter;
+                            reject(new Error('Timeout mendapatkan token. Silakan login ulang.'));
+                        }
+                    }, 5000);
+                });
+            }
+
+            function handleTokenResponse(response) {
                 if (response.error) {
-                    showStatus('Login gagal: ' + response.error_description, true);
+                    const msg = response.error_description || response.error;
+                    // Jika silent refresh gagal, coba dengan consent
+                    if (window._tokenRejecter && response.error === 'popup_closed_by_user') {
+                        // User menutup popup, reject
+                        const rej = window._tokenRejecter;
+                        delete window._tokenResolver;
+                        delete window._tokenRejecter;
+                        rej(new Error('Login dibatalkan.'));
+                        return;
+                    }
+                    if (window._tokenRejecter && response.error !== 'popup_closed_by_user') {
+                        // Coba dengan consent prompt
+                        tokenClient.requestAccessToken({ prompt: 'consent' });
+                        return;
+                    }
+                    if (window._tokenRejecter) {
+                        const rej = window._tokenRejecter;
+                        delete window._tokenResolver;
+                        delete window._tokenRejecter;
+                        rej(new Error(msg));
+                    }
+                    $loginStatus.textContent = 'Login gagal: ' + msg;
+                    $loginStatus.style.color = '#e74c3c';
                     return;
                 }
-                showStatus('✅ Login berhasil! Token: ' + response.access_token.slice(0, 20) + '...');
-                // Di sini Anda bisa lanjut ke fungsi upload, dll.
-            },
-        });
-        tokenClient.requestAccessToken();
-    });
-</script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+                // Sukses
+                accessToken = response.access_token;
+                tokenExpiry = Date.now() + (response.expires_in || 3600) * 1000;
+                if (window._tokenResolver) {
+                    const res = window._tokenResolver;
+                    delete window._tokenResolver;
+                    delete window._tokenRejecter;
+                    res(accessToken);
+                }
+                // Jika ini dari login awal
+                if ($appScreen && !$appScreen.classList.contains('visible')) {
+                    onLoginSuccess();
+                }
+            }
+
+            // ==================== GOOGLE API CALLS ====================
+            async function callDriveAPI(url, options = {}) {
+                const token = await getValidToken();
+                const headers = {
+                    'Authorization': `Bearer ${token}`,
+                    ...(options.headers || {}),
+                };
+                const fetchOptions = { ...options, headers };
+                const response = await fetch(url, fetchOptions);
+                if (response.status === 401) {
+                    // Token expired / invalid, force refresh
+                    accessToken = null;
+                    tokenExpiry = 0;
+                    const newToken = await new Promise((resolve, reject) => {
+                        window._tokenResolver = resolve;
+                        window._tokenRejecter = reject;
+                        tokenClient.requestAccessToken({ prompt: 'consent' });
+                        setTimeout(() => {
+                            if (window._tokenResolver) {
+                                delete window._tokenResolver;
+                                delete window._tokenRejecter;
+                                reject(new Error('Timeout refresh token'));
+                            }
+                        }, 5000);
+                    });
+                    const retryHeaders = {
+                        'Authorization': `Bearer ${newToken}`,
+                        ...(options.headers || {}),
+                    };
+                    return fetch(url, { ...options, headers: retryHeaders });
+                }
+                return response;
+            }
+
+            async function uploadToDrive(blob, fileName, onProgress) {
+                const mimeType = blob.type || 'video/webm';
+                const fileSize = blob.size;
+
+                // Step 1: Initiate resumable upload
+                const initUrl =
+                    `https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable`;
+                const initResponse = await callDriveAPI(initUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Upload-Content-Type': mimeType,
+                        'X-Upload-Content-Length': String(fileSize),
+                    },
+                    body: JSON.stringify({
+                        name: fileName,
+                        mimeType: mimeType,
+                    }),
+                });
+
+                if (!initResponse.ok) {
+                    const errBody = await initResponse.text();
+                    throw new Error(`Gagal inisiasi upload: ${initResponse.status} ${errBody}`);
+                }
+
+                const uploadUrl = initResponse.headers.get('Location');
+                if (!uploadUrl) {
+                    throw new Error('Tidak mendapatkan upload URL dari Google Drive');
+                }
+
+                // Step 2: Upload data dengan XHR untuk progress tracking
+                const fileId = await new Promise((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('PUT', uploadUrl, true);
+                    xhr.setRequestHeader('Content-Type', mimeType);
+                    xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
+
+                    xhr.upload.onprogress = (e) => {
+                        if (e.lengthComputable && onProgress) {
+                            const pct = Math.round((e.loaded / e.total) * 100);
+                            onProgress(pct, e.loaded, e.total);
+                        }
+                    };
+
+                    xhr.onload = () => {
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            try {
+                                const fileMeta = JSON.parse(xhr.responseText);
+                                resolve(fileMeta.id);
+                            } catch (e) {
+                                resolve(null); // fallback
+                            }
+                        } else if (xhr.status === 401 || xhr.status === 403) {
+                            // Token issue, perlu retry
+                            reject(new Error('Token tidak valid saat upload. Silakan coba lagi.'));
+                        } else {
+                            reject(new Error(`Upload gagal: ${xhr.status} ${xhr.statusText}`));
+                        }
+                    };
+
+                    xhr.onerror = () => reject(new Error('Network error saat upload'));
+                    xhr.ontimeout = () => reject(new Error('Upload timeout'));
+                    xhr.send(blob);
+                });
+
+                return fileId;
+            }
+
+            async function deleteFromDrive(fileId) {
+                const response = await callDriveAPI(
+                    `https://www.googleapis.com/drive/v3/files/${fileId}`, { method: 'DELETE' }
+                );
+                if (!response.ok && response.status !== 404) {
+                    throw new Error(`Gagal menghapus file: ${response.status}`);
+                }
+                return true;
+            }
+
+            // ==================== CAMERA & RECORDING ====================
+            async function initCamera() {
+                try {
+                    if (mediaStream) {
+                        mediaStream.getTracks().forEach(t => t.stop());
+                        mediaStream = null;
+                    }
+                    mediaStream = await navigator.mediaDevices.getUserMedia({
+                        video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
+                        audio: true,
+                    });
+                    $cameraPreview.srcObject = mediaStream;
+                    $cameraContainer.classList.remove('recording');
+                    $btnRecord.disabled = false;
+                    $btnRecord.textContent = '⏺ Mulai Rekam';
+                    $btnRecord.className = 'btn btn-record';
+                    $recordHint.textContent = 'Kamera siap. Klik tombol untuk merekam.';
+                    $btnRetryCamera.style.display = 'none';
+                    isRecording = false;
+                    recordedBlob = null;
+                    $uploadProgress.classList.remove('active');
+                    $recordTimer.textContent = '00:00';
+                    $recordTimer.classList.remove('warning');
+                    if (recordTimerInterval) clearInterval(recordTimerInterval);
+                    recordTimerInterval = null;
+                } catch (err) {
+                    console.error('Camera error:', err);
+                    $btnRecord.disabled = true;
+                    $recordHint.textContent = '⚠️ Tidak dapat mengakses kamera: ' + err.message;
+                    $btnRetryCamera.style.display = 'inline-block';
+                    toast('Gagal mengakses kamera/mikrofon. Periksa izin.', 'error');
+                }
+            }
+
+            function startRecording() {
+                if (!mediaStream || isRecording) return;
+                // Cek support MediaRecorder
+                if (!window.MediaRecorder) {
+                    toast('Browser Anda tidak mendukung perekaman video.', 'error');
+                    return;
+                }
+                const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ?
+                    'video/webm;codecs=vp9' :
+                    MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : '';
+                const options = mimeType ? { mimeType } : {};
+                try {
+                    mediaRecorder = new MediaRecorder(mediaStream, options);
+                } catch (e) {
+                    mediaRecorder = new MediaRecorder(mediaStream);
+                }
+
+                const chunks = [];
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data && e.data.size > 0) chunks.push(e.data);
+                };
+                mediaRecorder.onstop = () => {
+                    recordedBlob = new Blob(chunks, { type: mediaRecorder.mimeType || 'video/webm' });
+                    // Tampilkan preview hasil rekaman di kamera
+                    const url = URL.createObjectURL(recordedBlob);
+                    $cameraPreview.srcObject = null;
+                    $cameraPreview.src = url;
+                    $cameraPreview.loop = false;
+                    $cameraPreview.controls = true;
+                    $cameraPreview.muted = false;
+                    $btnRecord.textContent = '☁️ Upload ke Drive';
+                    $btnRecord.className = 'btn btn-primary';
+                    $btnRecord.disabled = false;
+                    $recordHint.textContent =
+                        `Rekaman selesai! Ukuran: ${formatSize(recordedBlob.size)}. Klik untuk upload.`;
+                    isRecording = false;
+                    $cameraContainer.classList.remove('recording');
+                    $recordTimer.classList.remove('warning');
+                    if (recordTimerInterval) clearInterval(recordTimerInterval);
+                    recordTimerInterval = null;
+                };
+
+                recordStartTime = Date.now();
+                mediaRecorder.start(1000); // chunk setiap detik
+                isRecording = true;
+                $btnRecord.textContent = '⏹ Stop Rekam';
+                $btnRecord.className = 'btn btn-record stop';
+                $btnRecord.disabled = false;
+                $cameraContainer.classList.add('recording');
+                $recordHint.textContent = '🔴 Sedang merekam...';
+                $uploadProgress.classList.remove('active');
+                recordedBlob = null;
+                $cameraPreview.controls = false;
+                $cameraPreview.src = '';
+                $cameraPreview.srcObject = mediaStream;
+                $cameraPreview.muted = true;
+                $recordTimer.textContent = '00:00';
+                $recordTimer.classList.remove('warning');
+                updateTimer();
+                recordTimerInterval = setInterval(updateTimer, 200);
+
+                // Auto-stop jika melebihi batas
+                setTimeout(() => {
+                    if (isRecording && mediaRecorder && mediaRecorder.state === 'recording') {
+                        stopRecording();
+                        toast('Rekaman dihentikan otomatis (batas ' + MAX_RECORD_SEC + ' detik).', 'info');
+                    }
+                }, MAX_RECORD_SEC * 1000);
+            }
+
+            function stopRecording() {
+                if (!mediaRecorder || mediaRecorder.state !== 'recording') return;
+                mediaRecorder.stop();
+                if (recordTimerInterval) clearInterval(recordTimerInterval);
+                recordTimerInterval = null;
+                $btnRecord.disabled = true;
+                $btnRecord.textContent = '⏳ Memproses...';
+                $recordHint.textContent = 'Memproses rekaman...';
+                $cameraContainer.classList.remove('recording');
+            }
+
+            function updateTimer() {
+                if (!recordStartTime || !isRecording) return;
+                const elapsed = Math.floor((Date.now() - recordStartTime) / 1000);
+                const mins = Math.floor(elapsed / 60);
+                const secs = elapsed % 60;
+                $recordTimer.textContent = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2,
+                '0');
+                if (elapsed >= MAX_RECORD_SEC - 10) {
+                    $recordTimer.classList.add('warning');
+                }
+            }
+
+            function formatSize(bytes) {
+                if (bytes < 1024) return bytes + ' B';
+                if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+                return (bytes / 1048576).toFixed(2) + ' MB';
+            }
+
+            function formatDate(ts) {
+                const d = new Date(ts);
+                return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) +
+                    ' ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            }
+
+            // ==================== THUMBNAIL GENERATION ====================
+            function generateThumbnail(blob) {
+                return new Promise((resolve) => {
+                    const video = document.createElement('video');
+                    video.preload = 'metadata';
+                    video.muted = true;
+                    video.playsInline = true;
+                    const url = URL.createObjectURL(blob);
+                    video.src = url;
+                    video.onloadeddata = () => {
+                        video.currentTime = 1; // Ambil frame di detik ke-1
+                    };
+                    video.onseeked = () => {
+                        const canvas = document.createElement('canvas');
+                        const maxW = 320;
+                        const ratio = maxW / video.videoWidth;
+                        canvas.width = maxW;
+                        canvas.height = Math.round(video.videoHeight * ratio);
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                        URL.revokeObjectURL(url);
+                        resolve(dataUrl);
+                    };
+                    video.onerror = () => {
+                        URL.revokeObjectURL(url);
+                        resolve(null);
+                    };
+                    // Timeout fallback
+                    setTimeout(() => {
+                        if (video.readyState < 2) {
+                            URL.revokeObjectURL(url);
+                            resolve(null);
+                        }
+                    }, 4000);
+                });
+            }
+
+            // ==================== RENDER VIDEO GRID ====================
+            function renderVideoGrid() {
+                const db = getDB();
+                $videoGrid.innerHTML = '';
+                if (db.length === 0) {
+                    $emptyState.style.display = 'block';
+                    return;
+                }
+                $emptyState.style.display = 'none';
+                db.forEach((video, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'video-card';
+                    const thumbContent = video.thumbnail ?
+                        `<img src="${video.thumbnail}" alt="thumbnail" loading="lazy">` :
+                        '🎬';
+                    card.innerHTML = `
+                        <div class="thumb">${thumbContent}</div>
+                        <div class="info">
+                            <div class="vname" title="${escapeHtml(video.name)}">${escapeHtml(video.name)}</div>
+                            <div class="vmeta">
+                                <span>${formatDate(video.date)}</span>
+                                <span>${video.sizeFormatted || ''}</span>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button class="btn-play" data-id="${video.driveFileId}">▶ Play</button>
+                            <button class="btn-del" data-id="${video.driveFileId}">🗑 Hapus</button>
+                        </div>
+                    `;
+                    // Event listeners
+                    card.querySelector('.btn-play').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        playVideo(video.driveFileId, video.name);
+                    });
+                    card.querySelector('.btn-del').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteVideo(video.driveFileId, video.name);
+                    });
+                    card.addEventListener('click', () => {
+                        playVideo(video.driveFileId, video.name);
+                    });
+                    $videoGrid.appendChild(card);
+                });
+            }
+
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            // ==================== PLAY VIDEO ====================
+            function playVideo(driveFileId, name) {
+                $modalTitle.textContent = '🎥 ' + (name || 'Video');
+                // Gunakan Google Drive preview
+                $playerIframe.src = `https://drive.google.com/file/d/${driveFileId}/preview`;
+                $playerModal.classList.remove('hidden');
+            }
+
+            function closePlayer() {
+                $playerIframe.src = '';
+                $playerModal.classList.add('hidden');
+            }
+
+            // ==================== DELETE VIDEO ====================
+            async function deleteVideo(driveFileId, name) {
+                if (!confirm(`Hapus video "${name}" dari Drive dan database?`)) return;
+                try {
+                    await deleteFromDrive(driveFileId);
+                    removeVideoFromDB(driveFileId);
+                    toast('Video berhasil dihapus.', 'success');
+                } catch (err) {
+                    console.error('Delete error:', err);
+                    // Tetap hapus dari DB meski gagal hapus dari Drive
+                    removeVideoFromDB(driveFileId);
+                    toast('Dihapus dari database. Gagal menghapus dari Drive: ' + err.message, 'error');
+                }
+            }
+
+            // ==================== UPLOAD HANDLER ====================
+            async function handleUpload() {
+                if (!recordedBlob) return;
+                const fileName = 'Rekaman_' + new Date().toISOString().replace(/[:.]/g, '-') + '.webm';
+                $btnRecord.disabled = true;
+                $btnRecord.textContent = '⏳ Mengunggah...';
+                $uploadProgress.classList.add('active');
+                $progressFill.style.width = '0%';
+                $progressText.textContent = 'Menyiapkan upload...';
+
+                try {
+                    // Generate thumbnail dulu
+                    const thumbnail = await generateThumbnail(recordedBlob);
+                    const fileId = await uploadToDrive(recordedBlob, fileName, (pct, loaded, total) => {
+                        $progressFill.style.width = pct + '%';
+                        $progressText.textContent =
+                            `Mengunggah... ${pct}% (${formatSize(loaded)} / ${formatSize(total)})`;
+                    });
+
+                    if (!fileId) throw new Error('Tidak mendapatkan file ID dari Drive');
+
+                    // Simpan ke database
+                    const entry = {
+                        driveFileId: fileId,
+                        name: fileName,
+                        date: Date.now(),
+                        size: recordedBlob.size,
+                        sizeFormatted: formatSize(recordedBlob.size),
+                        thumbnail: thumbnail,
+                    };
+                    addVideoToDB(entry);
+
+                    $uploadProgress.classList.remove('active');
+                    toast('✅ Video berhasil diupload ke Google Drive!', 'success');
+                    $recordHint.textContent = 'Upload selesai! Rekam lagi atau lihat di daftar.';
+                    $btnRecord.textContent = '⏺ Rekam Lagi';
+                    $btnRecord.className = 'btn btn-record';
+                    $btnRecord.disabled = false;
+                    recordedBlob = null;
+                    // Kembalikan preview kamera
+                    if (mediaStream) {
+                        $cameraPreview.src = '';
+                        $cameraPreview.controls = false;
+                        $cameraPreview.srcObject = mediaStream;
+                        $cameraPreview.muted = true;
+                    }
+                } catch (err) {
+                    console.error('Upload error:', err);
+                    $uploadProgress.classList.remove('active');
+                    toast('❌ Upload gagal: ' + err.message, 'error');
+                    $btnRecord.textContent = '☁️ Coba Upload Lagi';
+                    $btnRecord.className = 'btn btn-primary';
+                    $btnRecord.disabled = false;
+                    $recordHint.textContent = 'Upload gagal. Coba lagi.';
+                }
+            }
+
+            // ==================== BUTTON HANDLERS ====================
+            $btnRecord.addEventListener('click', () => {
+                if (isRecording) {
+                    stopRecording();
+                } else if (recordedBlob && !isRecording) {
+                    handleUpload();
+                } else {
+                    startRecording();
+                }
+            });
+
+            $btnRetryCamera.addEventListener('click', () => {
+                initCamera();
+            });
+
+            $modalClose.addEventListener('click', closePlayer);
+            $playerModal.addEventListener('click', (e) => {
+                if (e.target === $playerModal) closePlayer();
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !$playerModal.classList.contains('hidden')) {
+                    closePlayer();
+                }
+            });
+
+            // ==================== LOGIN / LOGOUT ====================
+            function onLoginSuccess() {
+                $loginScreen.classList.add('hidden');
+                $appScreen.classList.add('visible');
+                // Tampilkan user info
+                const payload = parseJWT(accessToken);
+                if (payload) {
+                    const name = payload.name || payload.email || 'User';
+                    const picture = payload.picture || '';
+                    $userInfo.innerHTML = `
+                        ${picture ? `<img src="${picture}" alt="avatar">` : ''}
+                        <span>${escapeHtml(name)}</span>
+                        <button class="btn btn-ghost btn-sm" id="btnLogout">🚪 Keluar</button>
+                    `;
+                    document.getElementById('btnLogout').addEventListener('click', logout);
+                }
+                initCamera();
+                renderVideoGrid();
+                toast('Selamat datang! Kamera siap digunakan.', 'success');
+            }
+
+            function parseJWT(token) {
+                try {
+                    const base64Url = token.split('.')[1];
+                    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                    return JSON.parse(decodeURIComponent(escape(atob(base64))));
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            function logout() {
+                if (mediaStream) {
+                    mediaStream.getTracks().forEach(t => t.stop());
+                    mediaStream = null;
+                }
+                if (recordTimerInterval) clearInterval(recordTimerInterval);
+                accessToken = null;
+                tokenExpiry = 0;
+                recordedBlob = null;
+                isRecording = false;
+                $cameraPreview.srcObject = null;
+                $cameraPreview.src = '';
+                $cameraPreview.controls = false;
+                $btnRecord.disabled = true;
+                $btnRecord.textContent = '⏺ Mulai Rekam';
+                $btnRecord.className = 'btn btn-record';
+                $recordTimer.textContent = '00:00';
+                $recordTimer.classList.remove('warning');
+                $uploadProgress.classList.remove('active');
+                $recordHint.textContent = 'Izinkan akses kamera untuk mulai merekam';
+                $btnRetryCamera.style.display = 'none';
+                $appScreen.classList.remove('visible');
+                $loginScreen.classList.remove('hidden');
+                $loginStatus.textContent = '';
+                $loginStatus.style.color = '#00cec9';
+                $userInfo.innerHTML = '';
+                if (tokenClient) {
+                    try { google.accounts.oauth2.revoke(accessToken); } catch (e) {}
+                }
+                toast('Anda telah keluar.', 'info');
+            }
+
+            // ==================== INIT LOGIN ====================
+            function initGoogleAuth() {
+                if (!CLIENT_ID || CLIENT_ID.includes('YOUR_CLIENT_ID')) {
+                    $loginStatus.textContent =
+                        '⚠️ Ganti CLIENT_ID dengan milik Anda di kode!';
+                    $loginStatus.style.color = '#fdcb6e';
+                    $loginBtn.disabled = true;
+                    $loginBtn.style.opacity = '0.5';
+                    return;
+                }
+                $loginStatus.textContent = 'API siap. Klik login untuk melanjutkan.';
+                $loginStatus.style.color = '#00cec9';
+
+                tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: CLIENT_ID,
+                    scope: SCOPES,
+                    callback: handleTokenResponse,
+                    prompt: 'consent',
+                });
+
+                $loginBtn.addEventListener('click', () => {
+                    $loginStatus.textContent = 'Meminta izin...';
+                    $loginStatus.style.color = '#a0a0b8';
+                    tokenClient.requestAccessToken({ prompt: 'consent' });
+                });
+            }
+
+            // ==================== STARTUP ====================
+            function init() {
+                // Cek apakah Google API sudah loaded
+                if (window.google && google.accounts && google.accounts.oauth2) {
+                    initGoogleAuth();
+                } else {
+                    // Polling sampai Google API siap
+                    const checkInterval = setInterval(() => {
+                        if (window.google && google.accounts && google.accounts.oauth2) {
+                            clearInterval(checkInterval);
+                            initGoogleAuth();
+                        }
+                    }, 200);
+                    // Timeout setelah 10 detik
+                    setTimeout(() => {
+                        clearInterval(checkInterval);
+                        if (!tokenClient) {
+                            $loginStatus.textContent =
+                                '⚠️ Gagal memuat Google API. Periksa koneksi internet.';
+                            $loginStatus.style.color = '#e74c3c';
+                        }
+                    }, 10000);
+                }
+
+                // Render awal grid (kosong)
+                renderVideoGrid();
+            }
+
+            // Jalankan
+            init();
+        })();
+    </script>
 </body>
 </html>
