@@ -3,371 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Drive - Aman (Persistent)</title>
+    <title>Video Drive - Debug Mode</title>
     <style>
-        :root {
-            --bg-body: #f7f9fc;
-            --bg-sidebar: #ffffff;
-            --text-main: #3c4043;
-            --accent: #1a73e8; 
-            --border: #dadce0;
-            --radius: 8px;
-        }
-        * { margin:0; padding:0; box-sizing:border-box; font-family: 'Roboto', sans-serif; }
-        body { background-color: var(--bg-body); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; }
-
-        /* Layout */
-        .sidebar { width: 250px; background: var(--bg-sidebar); padding: 20px; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-        .logo { font-size: 1.5rem; font-weight: bold; color: var(--accent); margin-bottom: 30px; display: flex; align-items: center; gap: 10px; }
+        :root { --bg: #f0f2f5; --card: #fff; --primary: #1877f2; --danger: #dc3545; }
+        body { font-family: sans-serif; background: var(--bg); padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
         
-        .main-content { flex: 1; display: flex; flex-direction: column; padding: 20px; overflow-y: auto; }
+        .card { background: var(--card); padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h1 { margin-top: 0; color: #333; }
         
-        /* Header & Buttons */
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .btn {
-            padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer;
-            font-weight: 500; display: inline-flex; align-items: center; gap: 8px;
-            transition: 0.2s;
-        }
-        .btn-upload { background: var(--accent); color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .btn-upload:hover { background: #1557b0; }
-        .btn-export { background: white; border: 1px solid var(--border); color: var(--text-main); }
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: bold; }
+        .btn-blue { background: var(--primary); }
+        .btn-red { background: var(--danger); }
         
-        /* Status Bar (Penting) */
-        .status-bar {
-            background: #e8f0fe; color: var(--accent); padding: 10px; 
-            border-radius: 6px; font-size: 0.9rem; margin-bottom: 20px;
-            display: flex; align-items: center; gap: 8px;
+        /* AREA DEBUGGING (PENTING) */
+        #debugConsole {
+            background: #1e1e1e; color: #00ff00; font-family: monospace; 
+            padding: 15px; border-radius: 8px; height: 200px; overflow-y: auto; 
+            font-size: 0.85rem; border: 2px solid #333;
         }
-        .status-icon { font-size: 1.2rem; }
-
-        /* Grid */
-        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
-        .video-card {
-            background: white; border: 1px solid var(--border); border-radius: 8px;
-            overflow: hidden; cursor: pointer; transition: 0.2s;
-            display: flex; flex-direction: column;
-        }
-        .video-card:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.1); transform: translateY(-2px); }
-        .video-thumb { height: 120px; background: #000; position: relative; }
-        .video-thumb img { width: 100%; height: 100%; object-fit: cover; }
-        .play-btn {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.6); color: white; width: 40px; height: 40px;
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            opacity: 0; transition: 0.2s;
-        }
-        .video-card:hover .play-btn { opacity: 1; }
-        .video-info { padding: 10px; font-size: 0.85rem; }
-        .video-name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-        /* Upload Area */
-        .upload-area {
-            border: 2px dashed var(--border); border-radius: 8px;
-            padding: 30px; text-align: center; margin-bottom: 20px;
-            background: white; transition: 0.2s; cursor: pointer;
-        }
-        .upload-area:hover { border-color: var(--accent); background: #f8fbff; }
-
-        /* Toast Notification */
-        .toast {
-            position: fixed; bottom: 20px; right: 20px;
-            background: #323232; color: white; padding: 12px 24px;
-            border-radius: 4px; font-size: 0.9rem; z-index: 1000;
-            opacity: 0; transform: translateY(20px); transition: 0.3s;
-        }
-        .toast.show { opacity: 1; transform: translateY(0); }
-
-        /* Modal */
-        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
-        .modal.active { display: flex; }
-        .modal-content { background: white; width: 90%; max-width: 800px; border-radius: 8px; overflow: hidden; }
-        .modal-header { padding: 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
-        .modal-body { background: black; display: flex; justify-content: center; }
-        .modal-body video { max-width: 100%; max-height: 70vh; }
+        .log-err { color: #ff5555; font-weight: bold; }
+        .log-warn { color: #ffff55; }
+        .log-info { color: #00ffff; }
         
+        .list-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         input[type="file"] { display: none; }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="logo">☁️ VideoDrive <span style="font-size:0.8rem; color:green; font-weight:normal;">(Aman)</span></div>
-        <div style="color: #666; font-size: 0.8rem; margin-top: 10px; line-height: 1.5;">
-            Database ini tersimpan di browser lokal.<br>
-            Jangan hapus "Cookie & Data Situs" agar video tidak hilang.
+<div class="container">
+    <div class="card">
+        <h1>🔧 Video Drive Debug Mode</h1>
+        <p>Aplikasi ini akan mencatat SEMUA aktivitas ke kotak hitam di bawah agar kita tahu kenapa data tidak tersimpan.</p>
+        
+        <div style="margin: 20px 0; display: flex; gap: 10px;">
+            <button class="btn btn-blue" onclick="document.getElementById('f').click()">Pilih File Video</button>
+            <input type="file" id="f" accept="video/*">
+            <button class="btn btn-red" onclick="clearDb()">Hapus Semua Data (Reset)</button>
         </div>
+        
+        <p><strong>Status Penyimpanan:</strong> <span id="storageStatus">Mengecek...</span></p>
     </div>
 
-    <div class="main-content">
-        <div class="status-bar" id="statusBar">
-            <span class="status-icon">⏳</span> Menyiapkan penyimpanan aman...
-        </div>
-
-        <div class="header">
-            <h2>Video Saya</h2>
-            <div style="display:flex; gap:10px;">
-                <button class="btn btn-export" onclick="exportData()">💾 Ekspor Backup</button>
-                <button class="btn btn-upload" onclick="triggerUpload()">+ Unggah Video</button>
-            </div>
-        </div>
-
-        <div class="upload-area" id="dropZone">
-            <div style="font-size: 2rem; margin-bottom: 10px;">☁️</div>
-            <p>Klik tombol upload atau tarik file video ke sini</p>
-            <input type="file" id="fileInput" accept="video/*" multiple>
-        </div>
-
-        <div class="video-grid" id="grid"></div>
-        <div id="emptyMsg" style="text-align:center; color:#999; display:none; margin-top:50px;">Belum ada video.</div>
+    <div class="card">
+        <h3>Video Tersimpan</h3>
+        <div id="videoList">Belum ada.</div>
     </div>
 
-    <!-- Modal Player -->
-    <div class="modal" id="playerModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span id="vidTitle">Judul Video</span>
-                <button class="close-btn" onclick="closeModal()">×</button>
-            </div>
-            <div class="modal-body">
-                <video id="mainPlayer" controls></video>
-            </div>
-            <div style="padding:10px; text-align:right;">
-                <button class="btn btn-upload" style="background:#d93025;" onclick="deleteCurrentVideo()">Hapus Video</button>
-            </div>
-        </div>
-    </div>
+    <!-- KOTAK DEBUG -->
+    <h3>📝 Sistem Log (Baca ini jika error)</h3>
+    <div id="debugConsole">Memulai sistem...</div>
+</div>
 
-    <div class="toast" id="toast">Pesan Notifikasi</div>
+<script>
+    const DB_NAME = 'TestVideoDB_V3';
+    const STORE_NAME = 'videos';
+    let db;
 
-    <script>
-        // KONFIGURASI DATABASE
-        const DB_NAME = 'VideoVaultSafeDB';
-        const STORE_NAME = 'my_videos';
-        let db;
-        let currentVideoId = null;
-        let allVideos = [];
+    // FUNGSI LOG VISUAL
+    function log(msg, type = 'info') {
+        const consoleDiv = document.getElementById('debugConsole');
+        const time = new Date().toLocaleTimeString();
+        const line = document.createElement('div');
+        line.className = `log-${type}`;
+        line.innerText = `[${time}] ${msg}`;
+        consoleDiv.appendChild(line);
+        consoleDiv.scrollTop = consoleDiv.scrollHeight; // Auto scroll ke bawah
+        console.log(msg); // Log juga ke F12 browser
+    }
 
-        // 1. INISIALISASI DAN REQUEST PERMISI PERSISTENSI (ANTI-HAPUS)
-        async function initApp() {
-            try {
-                // Buka Database
-                db = await openDB();
-                
-                // Coba minta izin agar data TIDAK dihapus browser (Storage Persistence)
-                if (navigator.storage && navigator.storage.persist) {
-                    const isPersistent = await navigator.storage.persist();
-                    const statusEl = document.getElementById('statusBar');
-                    
-                    if (isPersistent) {
-                        statusEl.innerHTML = '<span class="status-icon">🛡️</span> Penyimpanan AMAN (Data tidak akan otomatis terhapus).';
-                        statusEl.style.background = '#e6f4ea';
-                        statusEl.style.color = '#137333';
-                    } else {
-                        statusEl.innerHTML = '<span class="status-icon">⚠️</span> Peringatan: Browser Mungkin Menghapus Data jika memori penuh.';
-                        statusEl.style.background = '#fef7e0';
-                        statusEl.style.color = '#b06000';
-                    }
-                } else {
-                    document.getElementById('statusBar').style.display = 'none';
+    // 1. BUKA DATABASE
+    async function init() {
+        log("Mencoba membuka IndexedDB...", "info");
+        
+        // Cek URL
+        const currentUrl = window.location.href;
+        log(`URL Saat ini: ${currentUrl}`, "info");
+        if (currentUrl.startsWith('file://')) {
+            log("⚠️ PERINGATAN: Anda membuka file dengan file://", "warn");
+            log("Browser MUNGKIN memblokir penyimpanan database.", "warn");
+            log("SARAN: Gunakan Live Server di VS Code.", "warn");
+        }
+
+        try {
+            const request = indexedDB.open(DB_NAME, 1);
+            
+            request.onerror = (e) => {
+                log(`GAGAL membuka DB: ${e.target.error}`, "err");
+            };
+
+            request.onupgradeneeded = (e) => {
+                log("Membuat struktur database baru...", "info");
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                    log("Object store 'videos' berhasil dibuat.", "info");
                 }
+            };
 
+            request.onsuccess = (e) => {
+                db = e.target.result;
+                log("Database TERBUKA dengan sukses!", "info");
                 loadVideos();
-            } catch (err) {
-                console.error("Init Error:", err);
-                alert("Gagal memulai database: " + err.message);
-            }
+                checkStorage();
+            };
+        } catch (err) {
+            log("Error Kritis saat init: " + err.message, "err");
         }
+    }
 
-        function openDB() {
-            return new Promise((resolve, reject) => {
-                const req = indexedDB.open(DB_NAME, 1);
-                req.onupgradeneeded = (e) => {
-                    const db = e.target.result;
-                    if (!db.objectStoreNames.contains(STORE_NAME)) {
-                        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-                    }
-                };
-                req.onsuccess = (e) => resolve(e.target.result);
-                req.onerror = (e) => reject(e.target.error);
-            });
-        }
+    // 2. SIMPAN VIDEO
+    document.getElementById('f').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
 
-        // 2. FUNGSI LOAD (TAMPILKAN DATA)
-        function loadVideos() {
-            const tx = db.transaction(STORE_NAME, 'readonly');
+        log(`Mulai upload: ${file.name} (${formatSize(file.size)})`, "info");
+
+        try {
+            const tx = db.transaction([STORE_NAME], "readwrite");
             const store = tx.objectStore(STORE_NAME);
-            const req = store.getAll();
+
+            const data = {
+                id: Date.now().toString(),
+                name: file.name,
+                size: file.size,
+                blob: file,
+                date: new Date().toISOString()
+            };
+
+            log("Mengirim data ke IndexedDB...", "info");
+            const request = store.add(data);
+
+            request.onsuccess = () => {
+                log(`✅ SUKSES! Video ${file.name} tersimpan di DB.`, "info");
+                loadVideos();
+                checkStorage();
+            };
+
+            request.onerror = (e) => {
+                const err = e.target.error;
+                log(`❌ GAGAL menyimpan! Error: ${err.name}`, "err");
+                if (err.name === 'QuotaExceededError') {
+                    log("Penyebab: PENYIMPANAN PENUH.", "err");
+                }
+            };
+
+        } catch (err) {
+            log("Exception saat upload: " + err.message, "err");
+        }
+    });
+
+    // 3. LOAD VIDEO
+    function loadVideos() {
+        const tx = db.transaction(STORE_NAME, "readonly");
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.getAll();
+
+        req.onsuccess = () => {
+            const videos = req.result;
+            log(`Database saat ini berisi ${videos.length} video.`, "info");
             
+            const list = document.getElementById('videoList');
+            list.innerHTML = '';
+            
+            if(videos.length === 0) {
+                list.innerHTML = "Kosong.";
+                return;
+            }
+
+            videos.forEach(v => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.innerHTML = `
+                    <span>${v.name} <small>(${formatSize(v.size)})</small></span>
+                    <button class="btn btn-red" style="padding:5px 10px; font-size:0.8rem" onclick="deleteVid('${v.id}')">Hapus</button>
+                `;
+                list.appendChild(div);
+            });
+        };
+    }
+
+    function deleteVid(id) {
+        const tx = db.transaction(STORE_NAME, "readwrite");
+        tx.objectStore(STORE_NAME).delete(id);
+        tx.oncomplete = () => {
+            log("Video dihapus.", "warn");
+            loadVideos();
+        };
+    }
+
+    function clearDb() {
+        if(confirm("Yakin hapus SEMUA data?")) {
+            const req = indexedDB.deleteDatabase(DB_NAME);
             req.onsuccess = () => {
-                allVideos = req.result.sort((a,b) => b.date - a.date);
-                renderGrid();
-            };
-            req.onerror = () => {
-                showToast("Gagal memuat data database!");
+                log("Database DIHAPUS TOTAL. Refresh halaman.", "warn");
+                setTimeout(() => location.reload(), 1000);
             };
         }
+    }
 
-        function renderGrid() {
-            const grid = document.getElementById('grid');
-            const empty = document.getElementById('emptyMsg');
-            grid.innerHTML = '';
-            
-            if (allVideos.length === 0) {
-                empty.style.display = 'block';
-            } else {
-                empty.style.display = 'none';
-                allVideos.forEach(v => {
-                    const el = document.createElement('div');
-                    el.className = 'video-card';
-                    el.onclick = () => openPlayer(v);
-                    el.innerHTML = `
-                        <div class="video-thumb">
-                            ${v.thumbnail ? `<img src="${v.thumbnail}">` : '<div style="color:white;height:100%;display:flex;align-items:center;justify-content:center;">No Thumb</div>'}
-                            <div class="play-btn">▶</div>
-                        </div>
-                        <div class="video-info">
-                            <div class="video-name" title="${v.name}">${v.name}</div>
-                            <div style="font-size:0.75rem; color:#888;">${formatSize(v.size)}</div>
-                        </div>
-                    `;
-                    grid.appendChild(el);
-                });
-            }
+    function formatSize(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    async function checkStorage() {
+        if (navigator.storage && navigator.storage.estimate) {
+            const est = await navigator.storage.estimate();
+            document.getElementById('storageStatus').innerText = 
+                `Terpakai: ${formatSize(est.usage)} dari Kuota: ${formatSize(est.quota)}`;
         }
+    }
 
-        // 3. FUNGSI UPLOAD (SIMPAN)
-        document.getElementById('fileInput').addEventListener('change', (e) => handleUpload(e.target.files));
-        
-        // Drag and Drop
-        const dz = document.getElementById('dropZone');
-        dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.style.borderColor = 'var(--accent)'; });
-        dz.addEventListener('dragleave', () => dz.style.borderColor = 'var(--border)');
-        dz.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dz.style.borderColor = 'var(--border)';
-            handleUpload(e.dataTransfer.files);
-        });
+    // JALAN
+    init();
 
-        async function handleUpload(files) {
-            if (!files.length) return;
-            showToast("Sedang menyimpan...");
-
-            let successCount = 0;
-            for (let file of files) {
-                if (!file.type.startsWith('video/')) continue;
-                
-                try {
-                    const thumb = await createThumbnail(file);
-                    const videoData = {
-                        id: Date.now().toString() + Math.random().toString(36).substr(2,5),
-                        name: file.name,
-                        size: file.size,
-                        date: Date.now(),
-                        blob: file,
-                        thumbnail: thumb
-                    };
-
-                    // Simpan ke DB dengan Error Handling Jelas
-                    await saveToDB(videoData);
-                    successCount++;
-                } catch (err) {
-                    console.error("Save Error:", err);
-                    if(err.name === 'QuotaExceededError') {
-                        alert("PENYIMPANAN PENUH! Browser tidak mau menyimpan lagi. Hapus beberapa video.");
-                        break;
-                    } else {
-                        alert("Gagal menyimpan " + file.name + ": " + err.message);
-                    }
-                }
-            }
-            
-            if (successCount > 0) {
-                showToast(successCount + " video BERHASIL disimpan.");
-                loadVideos();
-            }
-            document.getElementById('fileInput').value = ''; // Reset input
-        }
-
-        function saveToDB(data) {
-            return new Promise((resolve, reject) => {
-                const tx = db.transaction(STORE_NAME, 'readwrite');
-                const store = tx.objectStore(STORE_NAME);
-                const req = store.add(data);
-                req.onsuccess = () => resolve();
-                req.onerror = () => reject(req.error);
-            });
-        }
-
-        // 4. UTILS
-        function triggerUpload() { document.getElementById('fileInput').click(); }
-        function formatSize(b) { return (b/1024/1024).toFixed(1) + ' MB'; }
-        function showToast(msg) {
-            const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 3000);
-        }
-        
-        // Thumbnail Generator
-        function createThumbnail(file) {
-            return new Promise(resolve => {
-                const url = URL.createObjectURL(file);
-                const v = document.createElement('video');
-                v.src = url; v.muted = true; v.currentTime = 2;
-                v.onseeked = () => {
-                    const cvs = document.createElement('canvas');
-                    cvs.width = 300; cvs.height = 170;
-                    cvs.getContext('2d').drawImage(v, 0, 0, cvs.width, cvs.height);
-                    resolve(cvs.toDataURL('image/jpeg', 0.5));
-                    URL.revokeObjectURL(url);
-                };
-                v.onerror = () => resolve(null);
-                setTimeout(() => resolve(null), 4000);
-            });
-        }
-
-        // 5. PLAYER & DELETE
-        function openPlayer(vid) {
-            currentVideoId = vid.id;
-            document.getElementById('vidTitle').innerText = vid.name;
-            document.getElementById('mainPlayer').src = URL.createObjectURL(vid.blob);
-            document.getElementById('playerModal').classList.add('active');
-            document.getElementById('mainPlayer').play();
-        }
-        function closeModal() {
-            document.getElementById('playerModal').classList.remove('active');
-            document.getElementById('mainPlayer').pause();
-        }
-        async function deleteCurrentVideo() {
-            if(!confirm("Hapus video ini permanen?")) return;
-            const tx = db.transaction(STORE_NAME, 'readwrite');
-            tx.objectStore(STORE_NAME).delete(currentVideoId);
-            tx.oncomplete = () => {
-                showToast("Video dihapus");
-                closeModal();
-                loadVideos();
-            };
-        }
-
-        // 6. EXPORT (FITUR TAMBAHAN)
-        async function exportData() {
-            if (allVideos.length === 0) return alert("Tidak ada data untuk diekspor");
-            if(!window.showDirectoryPicker) return alert("Fitur ini butuh Chrome/Edge Desktop.");
-            
-            try {
-                const dirHandle = await window.showDirectoryPicker();
-                for(let v of allVideos) {
-                    const fh = await dirHandle.getFileHandle(v.name, {create:true});
-                    const w = await fh.createWritable();
-                    await w.write(v.blob);
-                    await w.close();
-                }
-                alert("Semua video berhasil diekspor ke folder!");
-            } catch(e) { console.error(e); }
-        }
-
-        // Jalankan saat load
-        initApp();
-    </script>
+</script>
 </body>
 </html>
