@@ -4,384 +4,634 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kalkulator Taruhan – Voor Angka (Minus Otomatis)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         :root {
-            --bg: #f7f8fc;
-            --card: #ffffff;
-            --border: #e5e7eb;
-            --gold: #e67e22;
+            --bg: #0a0f1a;
+            --bg2: #111827;
+            --card: rgba(17,24,39,0.85);
+            --card2: rgba(30,41,59,0.7);
+            --border: rgba(255,255,255,0.08);
+            --gold: #f59e0b;
+            --gold2: #fbbf24;
             --green: #10b981;
+            --green2: #34d399;
             --red: #ef4444;
-            --muted: #6b7280;
-            --text: #1f2937;
-            --shadow: 0 2px 8px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02);
-            --radius: 16px;
-            --input-radius: 10px;
+            --cyan: #06b6d4;
+            --muted: #94a3b8;
+            --text: #e2e8f0;
+            --radius: 18px;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin:0; padding:0; box-sizing:border-box; }
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            padding: 28px 16px;
-            line-height: 1.5;
+            font-family: 'Outfit', system-ui, sans-serif;
+            background: var(--bg); color: var(--text);
+            min-height: 100vh; overflow-x: hidden;
         }
-        .wrap { max-width: 1340px; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 24px; }
-        .header h1 {
-            font-size: 1.9rem;
-            font-weight: 800;
-            color: #1e293b;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+
+        /* ===== BACKGROUND ===== */
+        .bg-layer {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background:
+                radial-gradient(ellipse 80% 50% at 50% 0%, rgba(16,185,129,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 80% 100%, rgba(245,158,11,0.04) 0%, transparent 50%),
+                linear-gradient(180deg, #0a0f1a 0%, #111827 100%);
         }
-        .header h1 span {
-            background: linear-gradient(135deg, #e67e22, #f97316);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .stadium-light {
+            position: fixed; top: -120px; width: 400px; height: 400px;
+            border-radius: 50%; pointer-events: none; z-index: 0;
+            filter: blur(100px); opacity: 0.15;
         }
-        .header p { color: var(--muted); font-size: 0.9rem; margin-top: 6px; }
-        .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 24px; }
+        .stadium-light.left { left: -100px; background: #fbbf24; }
+        .stadium-light.right { right: -100px; background: #fbbf24; }
+
+        /* ===== HERO SCENE ===== */
+        .hero-scene {
+            position: relative; z-index: 1;
+            min-height: 520px; overflow: hidden;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 30px 16px 0;
+        }
+
+        /* ===== FOOTBALL PITCH ===== */
+        .pitch-container {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 280px; overflow: hidden;
+            perspective: 800px;
+        }
+        .pitch {
+            position: absolute; bottom: 0; left: -5%; right: -5%;
+            height: 300px;
+            background: linear-gradient(180deg, #15803d 0%, #166534 100%);
+            border-radius: 50% 50% 0 0 / 30px 30px 0 0;
+            transform: rotateX(55deg);
+            transform-origin: bottom center;
+            box-shadow: 0 0 80px rgba(22,101,52,0.3), inset 0 0 60px rgba(0,0,0,0.2);
+            border: 3px solid rgba(255,255,255,0.3);
+            border-bottom: none;
+        }
+        /* Grass stripes */
+        .pitch::before {
+            content: ''; position: absolute; inset: 0;
+            background: repeating-linear-gradient(
+                90deg, transparent, transparent 60px,
+                rgba(255,255,255,0.03) 60px, rgba(255,255,255,0.03) 120px
+            );
+            border-radius: inherit;
+        }
+        /* Pitch markings */
+        .pitch-lines {
+            position: absolute; inset: 0; pointer-events: none;
+        }
+        .pitch-lines svg { width: 100%; height: 100%; }
+
+        /* ===== PLAYER ANIMATION ===== */
+        .player-area {
+            position: absolute; bottom: 130px; left: 18%;
+            width: 180px; height: 240px; z-index: 2;
+        }
+        .player-svg {
+            width: 100%; height: 100%;
+            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.5));
+        }
+
+        /* Kicking leg animation */
+        @keyframes kickLeg {
+            0%, 100% { transform: rotate(0deg); }
+            15% { transform: rotate(-50deg); }
+            35% { transform: rotate(55deg); }
+            50% { transform: rotate(15deg); }
+            65% { transform: rotate(0deg); }
+        }
+        .kick-leg {
+            transform-origin: 85px 142px;
+            animation: kickLeg 2.5s ease-in-out infinite;
+        }
+
+        /* Plant leg slight bend */
+        @keyframes plantLeg {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            35% { transform: rotate(-8deg); }
+            50% { transform: rotate(-3deg); }
+        }
+        .plant-leg {
+            transform-origin: 68px 142px;
+            animation: plantLeg 2.5s ease-in-out infinite;
+        }
+
+        /* Arms swing */
+        @keyframes armSwingBack {
+            0%, 100% { transform: rotate(0deg); }
+            15% { transform: rotate(30deg); }
+            35% { transform: rotate(-25deg); }
+            50% { transform: rotate(-10deg); }
+        }
+        .arm-back {
+            transform-origin: 78px 88px;
+            animation: armSwingBack 2.5s ease-in-out infinite;
+        }
+        @keyframes armSwingFront {
+            0%, 100% { transform: rotate(0deg); }
+            15% { transform: rotate(-20deg); }
+            35% { transform: rotate(35deg); }
+            50% { transform: rotate(10deg); }
+        }
+        .arm-front {
+            transform-origin: 92px 88px;
+            animation: armSwingFront 2.5s ease-in-out infinite;
+        }
+
+        /* Ball fly */
+        @keyframes ballFly {
+            0%, 34% { transform: translate(0,0) rotate(0deg); opacity: 1; }
+            100% { transform: translate(320px, -180px) rotate(720deg); opacity: 0.6; }
+        }
+        .ball-fly {
+            animation: ballFly 2.5s ease-out infinite;
+            animation-delay: 0s;
+        }
+
+        /* Ball trail */
+        @keyframes ballTrail {
+            0%, 34% { opacity: 0; }
+            40% { opacity: 0.4; }
+            100% { opacity: 0; transform: translate(200px, -100px); }
+        }
+        .ball-trail {
+            animation: ballTrail 2.5s ease-out infinite;
+        }
+
+        /* Body lean */
+        @keyframes bodyLean {
+            0%, 100% { transform: rotate(0deg); }
+            15% { transform: rotate(-5deg); }
+            35% { transform: rotate(8deg); }
+            50% { transform: rotate(3deg); }
+        }
+        .player-body {
+            transform-origin: 80px 200px;
+            animation: bodyLean 2.5s ease-in-out infinite;
+        }
+
+        /* ===== HERO TEXT ===== */
+        .hero-text {
+            position: relative; z-index: 3;
+            text-align: center; margin-bottom: 60px;
+        }
+        .hero-text h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 3.2rem; font-weight: 900; line-height: 1.1;
+            color: #fff; text-shadow: 0 4px 30px rgba(0,0,0,0.5);
+        }
+        .hero-text h1 .grad {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24, #f97316);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hero-text p {
+            color: var(--muted); font-size: 1.05rem; margin-top: 14px;
+            font-weight: 300; max-width: 500px; margin-left: auto; margin-right: auto;
+        }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3);
+            padding: 8px 18px; border-radius: 40px; font-size: 0.8rem;
+            color: var(--green2); font-weight: 600; margin-top: 20px;
+            box-shadow: 0 0 20px rgba(16,185,129,0.1);
+        }
+
+        /* ===== CONTENT ===== */
+        .content { position: relative; z-index: 1; padding: 0 16px 60px; max-width: 1340px; margin: 0 auto; }
+
+        /* ===== TABS ===== */
+        .tabs { display: flex; justify-content: center; gap: 8px; margin-bottom: 28px; }
         .tab {
-            padding: 10px 26px;
-            border: 1px solid var(--border);
-            border-radius: 40px;
-            background: white;
-            color: var(--muted);
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: var(--shadow);
+            padding: 12px 32px; border: 1px solid var(--border);
+            border-radius: 50px; background: var(--card);
+            backdrop-filter: blur(12px); color: var(--muted);
+            font-weight: 600; font-size: 0.95rem; cursor: pointer;
+            transition: all 0.3s; font-family: inherit;
         }
         .tab.active {
-            background: linear-gradient(135deg, #f57c00, #ff9500);
-            border-color: transparent;
-            color: white;
-            box-shadow: 0 4px 14px rgba(245, 124, 0, 0.25);
-        }
-        .tab:hover:not(.active) { background: #f1f5f9; border-color: #cbd5e1; }
-        .panel { display: none; animation: fade 0.2s ease; }
-        .panel.active { display: block; }
-        @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 20px 24px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow);
-        }
-        .bar {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            background: #f9fafb;
-            padding: 10px 16px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
-        .bar label { font-weight: 600; color: var(--gold); font-size: 0.9rem; white-space: nowrap; }
-        .bar input {
-            background: white;
-            border: 1px solid var(--border);
-            padding: 8px 12px;
-            border-radius: var(--input-radius);
-            text-align: right;
-            width: 140px;
-            font-size: 0.9rem;
-            transition: 0.2s;
-        }
-        .bar input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 0 3px rgba(230,126,34,0.1); }
-        .spacer { flex: 1; }
-        .btn {
-            padding: 9px 20px;
-            border: none;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-        .btn-green { background: #22c55e; color: white; }
-        .btn-orange { background: #f57c00; color: white; }
-        .btn-red { background: #ef4444; color: white; }
-        .btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
-        .warn {
-            background: rgba(245,158,11,0.08);
-            border-left: 4px solid var(--gold);
-            padding: 10px 14px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            color: #b45309;
-            font-size: 0.8rem;
-            display: none;
-        }
-        .table-wrap {
-            overflow-x: auto;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            background: white;
-        }
-        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 1050px; }
-        th {
-            background: #f8fafc;
-            color: var(--muted);
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            border-color: transparent; color: #000;
+            box-shadow: 0 4px 24px rgba(245,158,11,0.35);
             font-weight: 700;
-            text-transform: uppercase;
-            font-size: 0.7rem;
-            padding: 14px 8px;
-            position: sticky;
-            top: 0;
-            letter-spacing: 0.03em;
-            border-bottom: 2px solid var(--border);
+        }
+        .tab:hover:not(.active) { border-color: rgba(255,255,255,0.15); color: var(--text); }
+        .tab i { margin-right: 6px; }
+
+        /* ===== PANEL ===== */
+        .panel { display: none; animation: fadeUp 0.35s ease; }
+        .panel.active { display: block; }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+
+        /* ===== CARD ===== */
+        .card {
+            background: var(--card); backdrop-filter: blur(16px);
+            border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 24px 28px; margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .card-glow::before {
+            content: ''; position: absolute; top: -1px; left: 20%; right: 20%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            border-radius: 2px;
+        }
+
+        /* ===== BAR ===== */
+        .bar {
+            display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+            background: rgba(15,23,42,0.6); padding: 14px 18px;
+            border-radius: 14px; margin-bottom: 22px;
+            border: 1px solid var(--border);
+        }
+        .bar label { font-weight: 700; color: var(--gold2); font-size: 0.9rem; white-space: nowrap; }
+        .bar input, .bar select {
+            background: rgba(15,23,42,0.8); border: 1px solid var(--border);
+            color: var(--text); padding: 10px 14px; border-radius: 10px;
+            font-size: 0.9rem; font-family: inherit; transition: 0.25s;
+        }
+        .bar input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(245,158,11,0.12); outline: none; }
+        .spacer { flex: 1; }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            padding: 10px 22px; border: none; border-radius: 50px;
+            font-weight: 700; font-size: 0.85rem; cursor: pointer;
+            transition: all 0.25s; white-space: nowrap; font-family: inherit;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-green { background: linear-gradient(135deg, #10b981, #059669); color: #fff; box-shadow: 0 4px 16px rgba(16,185,129,0.3); }
+        .btn-orange { background: linear-gradient(135deg, #f59e0b, #f97316); color: #000; box-shadow: 0 4px 16px rgba(245,158,11,0.3); }
+        .btn-red { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; box-shadow: 0 4px 16px rgba(239,68,68,0.25); }
+        .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn:active { transform: translateY(0); }
+
+        /* ===== WARN ===== */
+        .warn {
+            background: rgba(245,158,11,0.08); border-left: 4px solid var(--gold);
+            padding: 12px 16px; border-radius: 10px; margin-bottom: 16px;
+            color: #fbbf24; font-size: 0.82rem; display: none;
+        }
+
+        /* ===== TABLE ===== */
+        .table-wrap {
+            overflow-x: auto; border-radius: 14px;
+            border: 1px solid var(--border); background: rgba(15,23,42,0.5);
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 1080px; }
+        th {
+            background: rgba(15,23,42,0.8); color: var(--muted);
+            font-weight: 700; text-transform: uppercase; font-size: 0.68rem;
+            padding: 16px 8px; position: sticky; top: 0;
+            letter-spacing: 0.06em; border-bottom: 1px solid var(--border);
         }
         td {
-            background: white;
-            padding: 12px 8px;
-            border-bottom: 1px solid #f1f5f9;
-            text-align: center;
-            vertical-align: middle;
+            background: transparent; padding: 12px 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            text-align: center; vertical-align: middle;
         }
         tr:last-child td { border-bottom: none; }
-        tr:nth-child(even) td { background: #fcfcfd; }
+        tr:hover td { background: rgba(245,158,11,0.03); }
         td input, td select {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 9px 6px;
-            font-size: 0.8rem;
-            width: 100%;
-            transition: 0.2s;
-            color: var(--text);
+            background: rgba(15,23,42,0.9); border: 1px solid var(--border);
+            border-radius: 8px; padding: 9px 8px; font-size: 0.82rem;
+            width: 100%; transition: 0.25s; color: var(--text); font-family: inherit;
         }
-        td input:focus, td select:focus {
-            border-color: var(--gold);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(230,126,34,0.08);
-        }
+        td input:focus, td select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(245,158,11,0.1); outline: none; }
+        td select option { background: #1e293b; color: var(--text); }
         .small-input { width: 54px; text-align: center; }
-        .voor-input { width: 80px; text-align: center; font-weight: 600; }
+        .voor-input { width: 82px; text-align: center; font-weight: 600; }
+
+        /* ===== BADGES ===== */
         .badge {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 14px;
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.02em;
-            white-space: nowrap;
+            display: inline-block; padding: 4px 12px; border-radius: 20px;
+            font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.03em; white-space: nowrap;
         }
-        .badge-mf { background: rgba(16,185,129,0.1); color: #047857; }
-        .badge-ms { background: rgba(59,130,246,0.1); color: #1e40af; }
-        .badge-ks { background: rgba(245,158,11,0.1); color: #b45309; }
-        .badge-sr { background: rgba(139,92,246,0.1); color: #6d28d9; }
-        .badge-kf { background: rgba(239,68,68,0.1); color: #b91c1c; }
+        .badge-mf { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+        .badge-ms { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+        .badge-ks { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+        .badge-sr { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.25); }
+        .badge-kf { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+
+        /* ===== EXPL CELL ===== */
         .expl-cell {
-            max-width: 320px;
-            text-align: left;
-            font-size: 0.72rem;
-            background: #fafbfc;
-            border-radius: 8px;
-            padding: 10px;
-            white-space: pre-line;
-            position: relative;
-            line-height: 1.5;
-            color: #334155;
+            max-width: 320px; text-align: left; font-size: 0.72rem;
+            background: rgba(15,23,42,0.6); border-radius: 8px; padding: 10px;
+            white-space: pre-line; position: relative; line-height: 1.55;
+            color: #94a3b8; border: 1px solid var(--border);
         }
         .copy-btn {
-            position: absolute;
-            bottom: 6px;
-            right: 6px;
-            background: rgba(230,126,34,0.08);
-            border: 1px solid rgba(230,126,34,0.2);
-            border-radius: 6px;
-            padding: 2px 8px;
-            font-size: 0.6rem;
-            cursor: pointer;
-            color: #c2410c;
-            font-weight: 600;
-            transition: 0.2s;
+            position: absolute; bottom: 6px; right: 6px;
+            background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25);
+            border-radius: 6px; padding: 3px 10px; font-size: 0.6rem;
+            cursor: pointer; color: var(--gold2); font-weight: 600; transition: 0.2s;
         }
-        .copy-btn:hover { background: rgba(230,126,34,0.15); }
+        .copy-btn:hover { background: rgba(245,158,11,0.2); }
         .delete-btn {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #b91c1c;
-            padding: 5px 10px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.7rem;
-            font-weight: 600;
-            transition: 0.2s;
+            background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);
+            color: #f87171; padding: 6px 12px; border-radius: 8px; cursor: pointer;
+            font-size: 0.72rem; font-weight: 600; transition: 0.2s; font-family: inherit;
         }
-        .delete-btn:hover { background: #fee2e2; border-color: #fca5a5; }
+        .delete-btn:hover { background: rgba(239,68,68,0.2); }
+
+        /* ===== CHIPS ===== */
         .chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin: 16px 0;
-            background: #f1f5f9;
-            padding: 10px 14px;
-            border-radius: 12px;
-            font-size: 0.72rem;
+            display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0;
+            background: rgba(15,23,42,0.5); padding: 12px 16px;
+            border-radius: 12px; font-size: 0.75rem; border: 1px solid var(--border);
         }
         .chip {
-            background: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            font-weight: 500;
-            color: var(--text);
+            background: rgba(30,41,59,0.8); padding: 5px 14px; border-radius: 20px;
+            border: 1px solid var(--border); font-weight: 500; color: var(--muted);
         }
+
+        /* ===== RESULT BOX ===== */
         .result-box {
-            background: #fff;
-            border-left: 4px solid var(--gold);
-            padding: 16px 18px;
-            border-radius: 12px;
-            margin-top: 16px;
-            box-shadow: var(--shadow);
+            background: rgba(15,23,42,0.7); border: 1px solid var(--border);
+            border-left: 4px solid var(--gold); padding: 20px 22px;
+            border-radius: 14px; margin-top: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
         }
+        .result-box h3 { color: var(--gold2); font-size: 1.1rem; font-family: 'Space Grotesk', sans-serif; }
         .summary-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px dashed #e2e8f0;
-            font-size: 0.9rem;
+            display: flex; justify-content: space-between;
+            padding: 10px 0; border-bottom: 1px dashed rgba(255,255,255,0.06); font-size: 0.92rem;
         }
         .summary-item:last-child { border-bottom: none; }
+
+        /* ===== MENU ===== */
         .menu-wrap { position: relative; display: inline-block; }
         .menu-btn {
-            padding: 8px 16px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: white;
-            color: var(--gold);
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: 0.2s;
+            padding: 9px 18px; border: 1px solid var(--border);
+            border-radius: 10px; background: rgba(15,23,42,0.8);
+            color: var(--gold2); font-weight: 600; cursor: pointer;
+            font-size: 0.82rem; transition: 0.2s; font-family: inherit;
         }
-        .menu-btn:hover { border-color: var(--gold); background: rgba(230,126,34,0.03); }
+        .menu-btn:hover { border-color: var(--gold); }
         .menu-dropdown {
-            position: absolute;
-            right: 0;
-            top: calc(100% + 6px);
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 6px;
-            min-width: 190px;
-            display: none;
-            z-index: 20;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+            position: absolute; right: 0; top: calc(100% + 6px);
+            background: #1e293b; border: 1px solid var(--border);
+            border-radius: 12px; padding: 6px; min-width: 200px;
+            display: none; z-index: 20; box-shadow: 0 12px 36px rgba(0,0,0,0.5);
         }
         .menu-dropdown.show { display: block; }
         .menu-item {
-            padding: 10px 12px;
-            cursor: pointer;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            transition: 0.2s;
+            padding: 10px 14px; cursor: pointer; border-radius: 8px;
+            font-size: 0.82rem; font-weight: 500; transition: 0.2s; color: var(--muted);
         }
-        .menu-item:hover { background: #f1f5f9; }
+        .menu-item:hover { background: rgba(245,158,11,0.08); color: var(--gold2); }
+
+        /* ===== SINGLE FORM ===== */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .field { display: flex; flex-direction: column; gap: 5px; }
+        .field label { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .field input, .field select {
+            background: rgba(15,23,42,0.9); border: 1px solid var(--border);
+            color: var(--text); padding: 10px 14px; border-radius: 10px;
+            font-size: 0.9rem; font-family: inherit; transition: 0.25s;
+        }
+        .field input:focus, .field select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(245,158,11,0.1); outline: none; }
+        .field select option { background: #1e293b; }
+
+        /* ===== TOAST ===== */
         .toast-container {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 999;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+            position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+            z-index: 999; display: flex; flex-direction: column; gap: 8px;
         }
         .toast {
-            padding: 10px 20px;
-            border-radius: 30px;
-            background: #1e293b;
-            color: white;
-            font-weight: 500;
-            font-size: 0.8rem;
-            animation: slideUp 0.25s ease;
-            white-space: nowrap;
+            padding: 12px 24px; border-radius: 50px;
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border: 1px solid var(--border); color: var(--gold2);
+            font-weight: 600; font-size: 0.85rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            animation: toastIn 0.3s ease;
         }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes toastIn { from { opacity:0; transform:translateY(16px) scale(0.95); } to { opacity:1; transform:translateY(0) scale(1); } }
+
+        /* ===== MOBILE ===== */
         .mobile-cards { display: none; }
+        .eff-cell { font-weight: 700; color: var(--gold2); font-family: 'Space Grotesk', monospace; }
+        @keyframes pulseGold {
+            0%,100% { text-shadow: 0 0 4px rgba(245,158,11,0.3); }
+            50% { text-shadow: 0 0 12px rgba(245,158,11,0.6); }
+        }
+        .eff-cell { animation: pulseGold 2s ease-in-out infinite; }
+
+        .footer {
+            text-align: center; padding: 30px 16px; color: var(--muted);
+            font-size: 0.75rem; position: relative; z-index: 1;
+        }
+        .footer span { color: var(--gold); }
+
+        @media (max-width: 900px) {
+            .hero-text h1 { font-size: 2.2rem; }
+            .player-area { left: 10%; width: 130px; height: 180px; bottom: 110px; }
+        }
         @media (max-width: 768px) {
             .table-wrap { display: none; }
             .mobile-cards { display: block; }
             .mobile-card {
-                background: white;
-                border: 1px solid var(--border);
-                border-radius: 14px;
-                padding: 16px;
-                margin-bottom: 14px;
-                position: relative;
-                box-shadow: var(--shadow);
+                background: var(--card); backdrop-filter: blur(16px);
+                border: 1px solid var(--border); border-radius: 16px;
+                padding: 18px; margin-bottom: 16px; position: relative;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
             }
             .badge-num {
-                position: absolute;
-                top: -8px;
-                left: 16px;
-                background: #f57c00;
-                color: white;
-                font-size: 0.65rem;
-                font-weight: 700;
-                padding: 2px 12px;
-                border-radius: 12px;
+                position: absolute; top: -10px; left: 18px;
+                background: linear-gradient(135deg, #f59e0b, #f97316);
+                color: #000; font-size: 0.65rem; font-weight: 800;
+                padding: 3px 14px; border-radius: 14px;
             }
             .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-            .field { display: flex; flex-direction: column; gap: 4px; }
-            .field label {
-                font-size: 0.65rem;
-                font-weight: 600;
-                color: var(--muted);
-                text-transform: uppercase;
-                letter-spacing: 0.03em;
-            }
-            .field input, .field select {
-                padding: 8px 10px;
-                border: 1px solid var(--border);
-                border-radius: 8px;
-                font-size: 0.8rem;
-            }
+            .field input, .field select { padding: 9px 12px; }
             .skor-row { display: flex; align-items: center; gap: 8px; }
             .skor-row input { width: 56px; text-align: center; }
+            .player-area { left: 5%; width: 110px; height: 150px; bottom: 100px; }
+            .hero-scene { min-height: 420px; }
+            .pitch-container { height: 220px; }
         }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(245,158,11,0.3); border-radius: 10px; }
     </style>
 </head>
 <body>
-<div class="wrap">
-    <div class="header">
-        <h1>⚽ <span>Kalkulator Taruhan</span></h1>
-        <p>Mix Parlay & Single Bet – Voor hanya angka (otomatis Minus)</p>
-    </div>
-    <div class="tabs">
-        <button class="tab active" onclick="switchTab('parlay')">🎲 Mix Parlay</button>
-        <button class="tab" onclick="switchTab('single')">⚡ Single Bet</button>
+
+<div class="bg-layer"></div>
+<div class="stadium-light left"></div>
+<div class="stadium-light right"></div>
+
+<!-- ===== HERO SCENE ===== -->
+<section class="hero-scene">
+    <div class="hero-text">
+        <h1><span class="grad">Kalkulator</span><br>Taruhan Bola</h1>
+        <p>Mix Parlay & Single Bet — Voor hanya angka dengan Minus Otomatis. Hitung odds, status, dan profit secara instan.</p>
+        <div class="hero-badge"><i class="fa-solid fa-circle-check"></i> Voor Otomatis Minus</div>
     </div>
 
-    <!-- PARLAY -->
+    <!-- FOOTBALL PITCH -->
+    <div class="pitch-container">
+        <div class="pitch">
+            <div class="pitch-lines">
+                <svg viewBox="0 0 1000 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="20" y="20" width="960" height="560" stroke="rgba(255,255,255,0.25)" stroke-width="3"/>
+                    <line x1="500" y1="20" x2="500" y2="580" stroke="rgba(255,255,255,0.25)" stroke-width="3"/>
+                    <circle cx="500" cy="300" r="90" stroke="rgba(255,255,255,0.25)" stroke-width="3"/>
+                    <circle cx="500" cy="300" r="5" fill="rgba(255,255,255,0.25)"/>
+                    <!-- Left penalty area -->
+                    <rect x="20" y="160" width="160" height="280" stroke="rgba(255,255,255,0.25)" stroke-width="3"/>
+                    <rect x="20" y="220" width="60" height="160" stroke="rgba(255,255,255,0.25)" stroke-width="3"/>
+                    <circle cx="130" cy="300" r="5" fill="rgba(255,255,255,0.25)"/>
+                    <path d="M160 250 A60 60 0 0 1 160 350" stroke="rgba(255,255,255,0.25)" stroke-width="3" fill="none"/>
+                    <!-- Right penalty area -->
+                    <rect x="820" y="160" width="160" height="280" stroke="rgba(255,255,255,0.25)" stroke-width="3"/>
+                    <rect x="920" y="220" width="60" height="160" stroke="rgba(255,255,255,0.25)" stroke-width="3"/>
+                    <circle cx="870" cy="300" r="5" fill="rgba(255,255,255,0.25)"/>
+                    <path d="M840 250 A60 60 0 0 0 840 350" stroke="rgba(255,255,255,0.25)" stroke-width="3" fill="none"/>
+                    <!-- Corner arcs -->
+                    <path d="M20 35 A15 15 0 0 0 35 20" stroke="rgba(255,255,255,0.25)" stroke-width="3" fill="none"/>
+                    <path d="M35 580 A15 15 0 0 0 20 565" stroke="rgba(255,255,255,0.25)" stroke-width="3" fill="none"/>
+                    <path d="M965 20 A15 15 0 0 0 980 35" stroke="rgba(255,255,255,0.25)" stroke-width="3" fill="none"/>
+                    <path d="M980 565 A15 15 0 0 0 965 580" stroke="rgba(255,255,255,0.25)" stroke-width="3" fill="none"/>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- ANIMATED PLAYER -->
+    <div class="player-area">
+        <svg class="player-svg" viewBox="0 0 180 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g class="player-body">
+                <!-- Shadow on ground -->
+                <ellipse cx="80" cy="230" rx="35" ry="6" fill="rgba(0,0,0,0.3)"/>
+
+                <!-- PLANT LEG (Left) -->
+                <g class="plant-leg">
+                    <path d="M68 142 L62 185 L58 220" stroke="#e2e8f0" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+                    <!-- Shoe -->
+                    <ellipse cx="55" cy="223" rx="14" ry="7" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
+                </g>
+
+                <!-- KICKING LEG (Right) -->
+                <g class="kick-leg">
+                    <path d="M85 142 L98 180 L105 210" stroke="#e2e8f0" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+                    <!-- Shoe -->
+                    <ellipse cx="108" cy="213" rx="14" ry="7" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5" transform="rotate(15 108 213)"/>
+                </g>
+
+                <!-- SHORTS -->
+                <path d="M58 120 L54 148 L88 148 L84 120Z" fill="#1e293b"/>
+                <path d="M84 148 L84 120 L100 120 L96 148Z" fill="#1e293b"/>
+                <!-- Shorts stripe -->
+                <line x1="58" y1="128" x2="88" y2="128" stroke="#f59e0b" stroke-width="2"/>
+
+                <!-- JERSEY -->
+                <path d="M50 65 L46 122 L100 122 L96 65Z" fill="#10b981" stroke="#059669" stroke-width="1.5"/>
+                <!-- Jersey side panels -->
+                <path d="M50 65 L46 122 L56 122 L54 65Z" fill="#059669" opacity="0.5"/>
+                <path d="M96 65 L100 122 L90 122 L92 65Z" fill="#059669" opacity="0.5"/>
+                <!-- Collar -->
+                <path d="M64 63 Q75 72 86 63" stroke="#fbbf24" stroke-width="2.5" fill="none"/>
+                <!-- Number -->
+                <text x="74" y="105" font-family="Space Grotesk,sans-serif" font-size="28" font-weight="900" fill="rgba(255,255,255,0.9)" text-anchor="middle">10</text>
+
+                <!-- ARM (Back) -->
+                <g class="arm-back">
+                    <path d="M50 75 L30 100 L22 118" stroke="#e2e8f0" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <!-- Glove -->
+                    <circle cx="20" cy="121" r="7" fill="#fbbf24"/>
+                </g>
+
+                <!-- ARM (Front) -->
+                <g class="arm-front">
+                    <path d="M96 75 L116 100 L124 115" stroke="#e2e8f0" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <!-- Glove -->
+                    <circle cx="126" cy="118" r="7" fill="#fbbf24"/>
+                </g>
+
+                <!-- HEAD -->
+                <circle cx="75" cy="44" r="24" fill="#fbbf24"/>
+                <!-- Hair -->
+                <path d="M52 38 Q55 12 75 10 Q96 12 98 38" fill="#1e293b"/>
+                <path d="M56 30 Q58 18 75 16 Q92 18 94 30" fill="#0f172a"/>
+                <!-- Eyes -->
+                <ellipse cx="67" cy="44" rx="2.5" ry="3" fill="#1e293b"/>
+                <ellipse cx="83" cy="44" rx="2.5" ry="3" fill="#1e293b"/>
+                <!-- Eye whites -->
+                <circle cx="66" cy="43" r="1" fill="#fff"/>
+                <circle cx="82" cy="43" r="1" fill="#fff"/>
+                <!-- Mouth (determination) -->
+                <path d="M68 54 Q75 58 82 54" stroke="#92400e" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <!-- Cheek -->
+                <circle cx="60" cy="50" r="4" fill="rgba(248,113,113,0.25)"/>
+                <circle cx="90" cy="50" r="4" fill="rgba(248,113,113,0.25)"/>
+            </g>
+
+            <!-- BALL -->
+            <g class="ball-fly">
+                <circle cx="130" cy="190" r="16" fill="#fff" stroke="#1e293b" stroke-width="2"/>
+                <path d="M130 174 L135 183 L130 192 L125 183Z" fill="#1e293b"/>
+                <path d="M114 190 L123 185 L133 190 L123 195Z" fill="#1e293b"/>
+                <path d="M146 190 L137 185 L127 190 L137 195Z" fill="#1e293b"/>
+                <path d="M118 204 L125 196 L130 204 L125 212Z" fill="#1e293b" opacity="0.5"/>
+                <path d="M142 204 L135 196 L130 204 L135 212Z" fill="#1e293b" opacity="0.5"/>
+            </g>
+
+            <!-- Ball trail effect -->
+            <g class="ball-trail">
+                <circle cx="140" cy="195" r="6" fill="rgba(255,255,255,0.15)"/>
+                <circle cx="150" cy="190" r="4" fill="rgba(255,255,255,0.1)"/>
+            </g>
+
+            <!-- Kick effect lines -->
+            <g opacity="0.4">
+                <line x1="120" y1="210" x2="135" y2="200" stroke="#fbbf24" stroke-width="2" stroke-linecap="round">
+                    <animate attributeName="opacity" values="0;0.6;0" dur="2.5s" repeatCount="indefinite" begin="0.35s"/>
+                </line>
+                <line x1="122" y1="218" x2="140" y2="212" stroke="#fbbf24" stroke-width="2" stroke-linecap="round">
+                    <animate attributeName="opacity" values="0;0.5;0" dur="2.5s" repeatCount="indefinite" begin="0.38s"/>
+                </line>
+                <line x1="125" y1="225" x2="142" y2="224" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round">
+                    <animate attributeName="opacity" values="0;0.4;0" dur="2.5s" repeatCount="indefinite" begin="0.4s"/>
+                </line>
+            </g>
+        </svg>
+    </div>
+</section>
+
+<!-- ===== CONTENT ===== -->
+<div class="content">
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('parlay')"><i class="fa-solid fa-dice"></i> Mix Parlay</button>
+        <button class="tab" onclick="switchTab('single')"><i class="fa-solid fa-bolt"></i> Single Bet</button>
+    </div>
+
+    <!-- PARLAY PANEL -->
     <div id="parlayPanel" class="panel active">
-        <div class="card">
+        <div class="card card-glow">
             <div class="bar">
-                <label>💰 Modal</label>
+                <label><i class="fa-solid fa-wallet"></i> Modal</label>
                 <input type="text" id="modalParlay" value="100.000" oninput="hitungParlay()">
                 <div class="spacer"></div>
-                <button class="btn btn-green" id="addPartaiBtn">+ Tambah Partai</button>
-                <button class="btn btn-orange" onclick="hitungParlay()">🧮 Hitung</button>
-                <button class="btn btn-red" onclick="resetParlay()">🗑️ Reset</button>
+                <button class="btn btn-green" id="addPartaiBtn"><i class="fa-solid fa-plus"></i> Tambah Partai</button>
+                <button class="btn btn-orange" onclick="hitungParlay()"><i class="fa-solid fa-calculator"></i> Hitung</button>
+                <button class="btn btn-red" onclick="resetParlay()"><i class="fa-solid fa-trash-can"></i> Reset</button>
             </div>
-            <div id="parlayWarn" class="warn">⚠️ Minimal 3 tim! Saat ini: <b id="teamCount">0</b></div>
+            <div id="parlayWarn" class="warn"><i class="fa-solid fa-triangle-exclamation"></i> Minimal 3 tim! Saat ini: <b id="teamCount">0</b></div>
             <div class="table-wrap">
                 <table id="parlayTable">
-                    <thead><tr><th>No</th><th>Tim Anda</th><th>Lawan</th><th>Pasaran</th><th>Voor <span style="font-weight:400;">(minus)</span></th><th>Skor</th><th>Status</th><th>Odds</th><th>Eff</th><th>Penjelasan</th><th></th></tr></thead>
+                    <thead><tr>
+                        <th>No</th><th>Tim Anda</th><th>Lawan</th><th>Pasaran</th>
+                        <th>Voor <span style="font-weight:400;">(minus)</span></th><th>Skor</th>
+                        <th>Status</th><th>Odds</th><th>Eff</th><th>Penjelasan</th><th></th>
+                    </tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
@@ -393,68 +643,73 @@
             </div>
             <div class="result-box" id="parlayResult">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <h3 style="color:var(--gold);font-size:1.05rem;">📊 Hasil Parlay</h3>
+                    <h3><i class="fa-solid fa-chart-line"></i> Hasil Parlay</h3>
                     <div class="menu-wrap" id="parlayMenuWrap">
-                        <button class="menu-btn" onclick="toggleMenu('parlayMenu')">📋 Salin ▾</button>
+                        <button class="menu-btn" onclick="toggleMenu('parlayMenu')"><i class="fa-solid fa-copy"></i> Salin ▾</button>
                         <div class="menu-dropdown" id="parlayMenu">
-                            <div class="menu-item" onclick="copyParlay('ringkas')">📊 Ringkas</div>
-                            <div class="menu-item" onclick="copyParlay('lengkap')">📝 Lengkap</div>
-                            <div class="menu-item" onclick="copyParlay('penjelasan')">💬 Penjelasan</div>
-                            <div class="menu-item" onclick="copyParlay('semua')">📋 Semua</div>
+                            <div class="menu-item" onclick="copyParlay('ringkas')"><i class="fa-solid fa-chart-bar"></i> Ringkas</div>
+                            <div class="menu-item" onclick="copyParlay('lengkap')"><i class="fa-solid fa-file-lines"></i> Lengkap</div>
+                            <div class="menu-item" onclick="copyParlay('penjelasan')"><i class="fa-solid fa-comment-dots"></i> Penjelasan</div>
+                            <div class="menu-item" onclick="copyParlay('semua')"><i class="fa-solid fa-clipboard-list"></i> Semua</div>
                         </div>
                     </div>
                 </div>
-                <div id="parlayResultText" style="margin-top:10px;">✨ Isi minimal 3 tim.</div>
+                <div id="parlayResultText" style="margin-top:12px;">Isi minimal 3 tim untuk mulai menghitung.</div>
             </div>
         </div>
     </div>
 
-    <!-- SINGLE -->
+    <!-- SINGLE PANEL -->
     <div id="singlePanel" class="panel">
-        <div class="card">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                <div class="field"><label id="singleLabelStake">Target Profit (Rp)</label><input type="text" id="singleInput" value="100.000" style="text-align:right;" oninput="hitungSingle()"></div>
-                <div class="field"><label>Odds</label><div style="display:flex;gap:6px;"><select id="singleOddsSign" style="width:64px;" onchange="hitungSingle()"><option value="-">-</option><option value="+">+</option></select><input type="number" id="singleOdds" value="1.00" step="0.01" style="flex:1;" oninput="hitungSingle()"></div></div>
+        <div class="card card-glow">
+            <div class="form-grid">
+                <div class="field"><label id="singleLabelStake"><i class="fa-solid fa-bullseye"></i> Target Profit (Rp)</label><input type="text" id="singleInput" value="100.000" style="text-align:right;" oninput="hitungSingle()"></div>
+                <div class="field"><label><i class="fa-solid fa-percent"></i> Odds</label><div style="display:flex;gap:6px;"><select id="singleOddsSign" style="width:64px;" onchange="hitungSingle()"><option value="-">-</option><option value="+">+</option></select><input type="number" id="singleOdds" value="1.00" step="0.01" style="flex:1;" oninput="hitungSingle()"></div></div>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px;">
-                <div class="field"><label>Tim Anda</label><input type="text" id="singleTim" value="E-PSV" oninput="hitungSingle()"></div>
-                <div class="field"><label>Lawan</label><input type="text" id="singleLawan" value="MU" oninput="hitungSingle()"></div>
+            <div class="form-grid" style="margin-top:16px;">
+                <div class="field"><label><i class="fa-solid fa-shield-halved"></i> Tim Anda</label><input type="text" id="singleTim" value="E-PSV" oninput="hitungSingle()"></div>
+                <div class="field"><label><i class="fa-solid fa-users"></i> Lawan</label><input type="text" id="singleLawan" value="MU" oninput="hitungSingle()"></div>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px;">
-                <div class="field"><label>Pasaran</label><select id="singlePasar" onchange="updateSingleForm(); hitungSingle();"><option value="HDP">Handicap</option><option value="OU">Over/Under</option><option value="1x2">1x2</option><option value="OE">Odd/Even</option></select></div>
-                <div class="field" id="voorField"><label>Voor (angka)</label><input type="number" id="singleVoor" step="0.25" value="0.75" min="0" oninput="hitungSingle()"></div>
-                <div class="field" id="opsiField" style="display:none;"><label>Pilihan</label><select id="singleOpsi" onchange="hitungSingle()"></select></div>
+            <div class="form-grid" style="margin-top:16px;">
+                <div class="field"><label><i class="fa-solid fa-tag"></i> Pasaran</label><select id="singlePasar" onchange="updateSingleForm(); hitungSingle();"><option value="HDP">Handicap</option><option value="OU">Over/Under</option><option value="1x2">1x2</option><option value="OE">Odd/Even</option></select></div>
+                <div class="field" id="voorField"><label><i class="fa-solid fa-arrow-down-short-wide"></i> Voor (angka)</label><input type="number" id="singleVoor" step="0.25" value="0.75" min="0" oninput="hitungSingle()"></div>
+                <div class="field" id="opsiField" style="display:none;"><label><i class="fa-solid fa-hand-pointer"></i> Pilihan</label><select id="singleOpsi" onchange="hitungSingle()"></select></div>
             </div>
-            <div class="field" style="margin-top:14px;">
-                <label>Skor</label>
-                <div style="display:flex;align-items:center;gap:12px;">
-                    <div><span style="font-size:0.65rem;color:var(--muted);">Tim Anda</span><input type="number" id="singleSkorTim" value="3" style="width:64px;" oninput="hitungSingle()"></div>
-                    <span style="font-weight:700;">:</span>
-                    <div><span style="font-size:0.65rem;color:var(--muted);">Lawan</span><input type="number" id="singleSkorLawan" value="2" style="width:64px;" oninput="hitungSingle()"></div>
+            <div class="field" style="margin-top:16px;">
+                <label><i class="fa-solid fa-futbol"></i> Skor</label>
+                <div style="display:flex;align-items:center;gap:14px;">
+                    <div><span style="font-size:0.65rem;color:var(--muted);">Tim Anda</span><input type="number" id="singleSkorTim" value="3" style="width:72px;" oninput="hitungSingle()"></div>
+                    <span style="font-weight:900;font-size:1.3rem;color:var(--gold);">:</span>
+                    <div><span style="font-size:0.65rem;color:var(--muted);">Lawan</span><input type="number" id="singleSkorLawan" value="2" style="width:72px;" oninput="hitungSingle()"></div>
                 </div>
             </div>
-            <div style="margin-top:16px;display:flex;gap:10px;">
-                <button class="btn btn-orange" onclick="hitungSingle()">Hitung Single</button>
-                <button class="btn btn-red" onclick="resetSingle()">Reset</button>
+            <div style="margin-top:20px;display:flex;gap:10px;">
+                <button class="btn btn-orange" onclick="hitungSingle()"><i class="fa-solid fa-calculator"></i> Hitung Single</button>
+                <button class="btn btn-red" onclick="resetSingle()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
             </div>
-            <div class="result-box" id="singleResult" style="margin-top:16px;">
+            <div class="result-box" id="singleResult" style="margin-top:20px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <h3 style="color:var(--gold);font-size:1.05rem;">Hasil Single Bet</h3>
+                    <h3><i class="fa-solid fa-chart-line"></i> Hasil Single Bet</h3>
                     <div class="menu-wrap" id="singleMenuWrap">
-                        <button class="menu-btn" onclick="toggleMenu('singleMenu')">📋 Salin ▾</button>
+                        <button class="menu-btn" onclick="toggleMenu('singleMenu')"><i class="fa-solid fa-copy"></i> Salin ▾</button>
                         <div class="menu-dropdown" id="singleMenu">
-                            <div class="menu-item" onclick="copySingle('ringkas')">📊 Ringkas</div>
-                            <div class="menu-item" onclick="copySingle('lengkap')">📝 Lengkap</div>
-                            <div class="menu-item" onclick="copySingle('penjelasan')">💬 Penjelasan</div>
-                            <div class="menu-item" onclick="copySingle('semua')">📋 Semua</div>
+                            <div class="menu-item" onclick="copySingle('ringkas')"><i class="fa-solid fa-chart-bar"></i> Ringkas</div>
+                            <div class="menu-item" onclick="copySingle('lengkap')"><i class="fa-solid fa-file-lines"></i> Lengkap</div>
+                            <div class="menu-item" onclick="copySingle('penjelasan')"><i class="fa-solid fa-comment-dots"></i> Penjelasan</div>
+                            <div class="menu-item" onclick="copySingle('semua')"><i class="fa-solid fa-clipboard-list"></i> Semua</div>
                         </div>
                     </div>
                 </div>
-                <div id="singleResultText" style="margin-top:10px;">Belum ada perhitungan</div>
+                <div id="singleResultText" style="margin-top:12px;">Belum ada perhitungan</div>
             </div>
         </div>
     </div>
 </div>
+
+<footer class="footer">
+    Dibuat dengan <span><i class="fa-solid fa-heart"></i></span> untuk petaruh bola — <span>Kalkulator Taruhan</span> 2025
+</footer>
+
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
@@ -462,7 +717,6 @@
     const fmt = n => Math.round(n).toLocaleString('id-ID');
     const parseNum = s => parseInt((s||'').replace(/\D/g,'')) || 0;
     const eq = (a,b) => Math.abs(a-b) < 0.001;
-
     const STATUS = { mf:'Menang Full', ms:'Menang Setengah', ks:'Kalah Setengah', sr:'Seri', kf:'Kalah Full' };
 
     function getStatus(mk, sh, sa, v, p) {
@@ -481,7 +735,7 @@
         return 'mf';
     }
 
-    function getEff(st, odds) { if (st==='mf') return odds; if (st==='ms') return (odds-1)/2+1; if (st==='ks') return 0.5; if (st==='sr') return 1; return 0; }
+    function getEff(st, odds) { if(st==='mf')return odds; if(st==='ms')return(odds-1)/2+1; if(st==='ks')return 0.5; if(st==='sr')return 1; return 0; }
     function fmtVoor(v) { return v===0?'0':(v>0?`+${v}`:`${v}`); }
 
     function penjelasan(b, st) {
@@ -519,8 +773,7 @@
             } else {
                 const lo = p==='over' ? Math.floor(v*2)/2 : Math.ceil(v*2)/2;
                 const hi = p==='over' ? lo+0.5 : lo-0.5;
-                const ev = (bts) => p==='over' ? (tot>bts+0.25?'W':(eq(tot,bts+0.25)?'MS':(eq(tot,bts)?'V':(eq(tot,bts-0.25)?'KS':'L')))) : (tot<bts-0.25?'W':(eq(tot,bts-0.25)?'MS':(eq(tot,bts)?'V':(eq(tot,bts+0.25)?'KS':'L'))));
-                txt += `Terbelah: ${lb} ${lo} (${ev(lo)}) & ${lb} ${hi} (${ev(hi)})\n`;
+                txt += `Terbelah: ${lb} ${lo} & ${lb} ${hi}\n`;
                 const ef = getEff(st, odds);
                 if (st==='mf') txt += `✅ MENANG FULL → ${odds}`;
                 else if (st==='ms') txt += `⚡ MENANG SETENGAH → ${ef.toFixed(3)}`;
@@ -546,22 +799,22 @@
     function renderParlayTable() {
         const tbody = document.querySelector('#parlayTable tbody');
         tbody.innerHTML = '';
-        if (!parlayData.length) { tbody.innerHTML = '<tr><td colspan="11">Tambah partai</td></tr>'; return; }
+        if (!parlayData.length) { tbody.innerHTML = '<tr><td colspan="11" style="color:var(--muted);padding:30px;">Tambah partai untuk mulai</td></tr>'; return; }
         parlayData.forEach((b,i) => {
             const st = getStatus(b.m, b.sh, b.sa, b.v, b.p);
             const eff = getEff(st, b.odds);
             const tr = document.createElement('tr'); tr.setAttribute('data-idx', i);
-            tr.innerHTML = `<td>${i+1}</td>
+            tr.innerHTML = `<td style="font-weight:700;color:var(--gold);">${i+1}</td>
                 <td><input type="text" value="${b.t}" data-field="t"></td>
                 <td><input type="text" value="${b.l}" data-field="l"></td>
                 <td><select data-field="m">${['HDP','OU','1x2','OE'].map(m=>`<option value="${m}" ${b.m===m?'selected':''}>${m}</option>`).join('')}</select></td>
                 <td>${renderVoorHTML(b,i)}</td>
-                <td><div style="display:flex;align-items:center;gap:2px;justify-content:center;"><div style="display:flex;flex-direction:column;align-items:center;"><span style="font-size:0.55rem;">Tim</span><input type="number" value="${b.sh}" data-field="sh" class="small-input"></div><span>:</span><div style="display:flex;flex-direction:column;align-items:center;"><span style="font-size:0.55rem;">Lawan</span><input type="number" value="${b.sa}" data-field="sa" class="small-input"></div></div></td>
+                <td><div style="display:flex;align-items:center;gap:2px;justify-content:center;"><div style="display:flex;flex-direction:column;align-items:center;"><span style="font-size:0.55rem;color:var(--muted);">Tim</span><input type="number" value="${b.sh}" data-field="sh" class="small-input"></div><span style="font-weight:700;color:var(--gold);margin:0 2px;">:</span><div style="display:flex;flex-direction:column;align-items:center;"><span style="font-size:0.55rem;color:var(--muted);">Lawan</span><input type="number" value="${b.sa}" data-field="sa" class="small-input"></div></div></td>
                 <td><span class="badge badge-${st} status-cell">${b.t||'Tim'}: ${STATUS[st]}</span></td>
-                <td><input type="number" value="${b.odds}" step="0.01" data-field="odds" style="width:70px;"></td>
-                <td class="eff-cell" style="font-weight:700;color:var(--gold);">${eff.toFixed(3)}</td>
+                <td><input type="number" value="${b.odds}" step="0.01" data-field="odds" style="width:72px;"></td>
+                <td class="eff-cell">${eff.toFixed(3)}</td>
                 <td class="expl-cell">${penjelasan(b,st).replace(/\n/g,'<br>')}<button class="copy-btn" data-penjelasan="${escapeAttr(penjelasan(b,st))}">📋</button></td>
-                <td><button class="delete-btn">🗑️</button></td>`;
+                <td><button class="delete-btn"><i class="fa-solid fa-xmark"></i></button></td>`;
             tbody.appendChild(tr);
         });
         attachTableEvents();
@@ -609,8 +862,9 @@
         tr.querySelector('.status-cell').textContent = `${b.t||'Tim'}: ${STATUS[st]}`;
         tr.querySelector('.status-cell').className = `badge badge-${st} status-cell`;
         tr.querySelector('.eff-cell').textContent = eff.toFixed(3);
-        tr.querySelector('.expl-cell').innerHTML = penjelasan(b,st).replace(/\n/g,'<br>') + `<button class="copy-btn" data-penjelasan="${escapeAttr(penjelasan(b,st))}">📋</button>`;
-        tr.querySelector('.copy-btn').addEventListener('click', function(e){ e.stopPropagation(); navigator.clipboard.writeText(this.dataset.penjelasan).then(()=>showToast('Tersalin')); });
+        const explCell = tr.querySelector('.expl-cell');
+        explCell.innerHTML = penjelasan(b,st).replace(/\n/g,'<br>') + `<button class="copy-btn" data-penjelasan="${escapeAttr(penjelasan(b,st))}">📋</button>`;
+        explCell.querySelector('.copy-btn').addEventListener('click', function(e){ e.stopPropagation(); navigator.clipboard.writeText(this.dataset.penjelasan).then(()=>showToast('Tersalin')); });
     }
 
     function renderMobileCards() {
@@ -621,11 +875,11 @@
             card.innerHTML = `<div class="badge-num">#${i+1}</div>
                 <div class="grid-2"><div class="field"><label>Tim Anda</label><input type="text" value="${b.t}" data-field="t"></div><div class="field"><label>Lawan</label><input type="text" value="${b.l}" data-field="l"></div></div>
                 <div class="grid-2"><div class="field"><label>Pasaran</label><select data-field="m">${['HDP','OU','1x2','OE'].map(m=>`<option value="${m}" ${b.m===m?'selected':''}>${m}</option>`).join('')}</select></div><div class="field voor-mobile">${renderMobileVoor(b,i)}</div></div>
-                <div class="field"><label>Skor</label><div class="skor-row"><div><span style="font-size:0.55rem;">Tim</span><input type="number" value="${b.sh}" data-field="sh"></div><span>:</span><div><span style="font-size:0.55rem;">Lawan</span><input type="number" value="${b.sa}" data-field="sa"></div></div></div>
+                <div class="field"><label>Skor</label><div class="skor-row"><div><span style="font-size:0.55rem;color:var(--muted);">Tim</span><input type="number" value="${b.sh}" data-field="sh"></div><span style="font-weight:700;color:var(--gold);">:</span><div><span style="font-size:0.55rem;color:var(--muted);">Lawan</span><input type="number" value="${b.sa}" data-field="sa"></div></div></div>
                 <div class="field"><label>Odds</label><input type="number" value="${b.odds}" step="0.01" data-field="odds" style="width:80px;"></div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0;"><span class="badge badge-${st} status-cell">${STATUS[st]}</span><span style="font-weight:700;color:var(--gold);">Eff: ${eff.toFixed(3)}</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0;"><span class="badge badge-${st} status-cell">${STATUS[st]}</span><span class="eff-cell">Eff: ${eff.toFixed(3)}</span></div>
                 <div class="expl-cell" style="font-size:0.7rem;">${penjelasan(b,st).replace(/\n/g,'<br>')}</div>
-                <button class="delete-btn" style="width:100%;margin-top:10px;">Hapus</button>`;
+                <button class="delete-btn" style="width:100%;margin-top:12px;"><i class="fa-solid fa-xmark"></i> Hapus</button>`;
             cont.appendChild(card);
         });
         attachMobileEvents();
@@ -672,7 +926,7 @@
     }
 
     function hitungParlay() {
-        if (parlayData.length<3) { $('parlayResultText').innerHTML='<div class="warn err">❌ Minimal 3 tim!</div>'; return; }
+        if (parlayData.length<3) { $('parlayResultText').innerHTML='<div class="warn" style="display:block;">❌ Minimal 3 tim!</div>'; return; }
         const modal = parseNum($('modalParlay').value); if(modal<=0) return;
         let total=1, kf=false; const rincian=[];
         parlayData.forEach((b,i)=>{
@@ -680,16 +934,16 @@
             if(st==='kf') kf=true; total*=eff; rincian.push(`${i+1}. ${b.t} vs ${b.l} → ${STATUS[st]} (${eff.toFixed(3)})`);
         });
         total=Math.round(total*1000)/1000; let hasil=kf?-modal:Math.round(total*modal-modal); let menang=hasil>0;
-        $('parlayResultText').innerHTML=`<div style="max-height:120px;overflow-y:auto;background:#f8fafc;padding:8px;border-radius:6px;margin-bottom:8px;">${rincian.map(r=>'<div>'+r+'</div>').join('')}</div><div class="summary-item"><span>Modal</span><strong>Rp ${fmt(modal)}</strong></div><div class="summary-item"><span>Total Odds</span><strong>${total.toFixed(3)}</strong></div><div class="summary-item"><span>Hasil</span><strong style="color:${menang?'var(--green)':'var(--red)'};">${menang?'MENANG':'KALAH'} Rp ${fmt(Math.abs(hasil))}</strong></div>`;
+        $('parlayResultText').innerHTML=`<div style="max-height:120px;overflow-y:auto;background:rgba(15,23,42,0.6);padding:10px;border-radius:10px;margin-bottom:10px;border:1px solid var(--border);">${rincian.map(r=>'<div style="font-size:0.82rem;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.03);">'+r+'</div>').join('')}</div><div class="summary-item"><span>Modal</span><strong>Rp ${fmt(modal)}</strong></div><div class="summary-item"><span>Total Odds</span><strong style="color:var(--cyan);">${total.toFixed(3)}</strong></div><div class="summary-item"><span>Hasil</span><strong style="color:${menang?'var(--green2)':'var(--red)'};">${menang?'MENANG':'KALAH'} Rp ${fmt(Math.abs(hasil))}</strong></div>`;
         window._lastParlay = {modal,total,hasil,menang,data:parlayData};
     }
-    function resetParlay() { parlayData=[]; renderAllParlay(); $('modalParlay').value='100.000'; showToast('Reset'); }
+    function resetParlay() { parlayData=[]; renderAllParlay(); $('modalParlay').value='100.000'; showToast('Reset berhasil'); }
     function copyParlay(mode) {
         const d=window._lastParlay; if(!d) return showToast('Hitung dulu!');
         let txt=''; if(mode==='ringkas') txt=`MIX PARLAY\nModal: Rp ${fmt(d.modal)}\nOdds: ${d.total.toFixed(3)}\nHasil: ${d.menang?'MENANG':'KALAH'} Rp ${fmt(Math.abs(d.hasil))}`;
         else if(mode==='lengkap') { txt=`MIX PARLAY\nModal: Rp ${fmt(d.modal)}\n`; d.data.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p); txt+=`${i+1}. ${b.t} vs ${b.l} → ${STATUS[st]} (${getEff(st,b.odds).toFixed(3)})\n`}); txt+=`Odds: ${d.total.toFixed(3)}\nHasil: Rp ${fmt(d.hasil)}`; }
         else if(mode==='penjelasan') { txt='PENJELASAN\n'; d.data.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p); txt+=`\n[${i+1}] ${b.t} vs ${b.l}\n${penjelasan(b,st)}\n`}); }
-        else txt=copyParlay('lengkap')+'\n\n'+copyParlay('penjelasan');
+        else { copyParlay('lengkap'); copyParlay('penjelasan'); return; }
         navigator.clipboard.writeText(txt).then(()=>showToast('Tersalin!')); closeMenu('parlayMenu');
     }
 
@@ -710,17 +964,18 @@
         const p=$('singleOpsi').value, sh=parseInt($('singleSkorTim').value)||0, sa=parseInt($('singleSkorLawan').value)||0;
         const st=getStatus(mk,sh,sa,v,p);
         let stake,profit;
-        if(sign==='-') { profit=iv; stake=profit*odds; $('singleLabelStake').textContent='Target Profit (Rp)'; }
-        else { stake=iv; profit=stake*odds; $('singleLabelStake').textContent='Stake (Rp)'; }
+        if(sign==='-') { profit=iv; stake=profit*odds; $('singleLabelStake').innerHTML='<i class="fa-solid fa-bullseye"></i> Target Profit (Rp)'; }
+        else { stake=iv; profit=stake*odds; $('singleLabelStake').innerHTML='<i class="fa-solid fa-wallet"></i> Stake (Rp)'; }
         let kembali=stake; if(st==='mf') kembali=stake+profit; else if(st==='ms') kembali=stake+profit/2; else if(st==='ks') kembali=stake/2; else if(st==='sr') kembali=stake; else kembali=0;
         const penj=penjelasan({t:tim,l:lawan,m:mk,v,p,sh,sa,odds},st);
-        $('singleResultText').innerHTML=`<div class="summary-item"><span>Stake</span><strong>Rp ${fmt(stake)}</strong></div><div class="summary-item"><span>Profit</span><strong>Rp ${fmt(profit)}</strong></div><div class="summary-item"><span>Kembali</span><strong style="color:var(--gold)">Rp ${fmt(kembali)}</strong></div><div class="expl-cell" style="margin-top:8px;">${penj.replace(/\n/g,'<br>')}</div>`;
+        $('singleResultText').innerHTML=`<div class="summary-item"><span>Stake</span><strong>Rp ${fmt(stake)}</strong></div><div class="summary-item"><span>Profit</span><strong>Rp ${fmt(profit)}</strong></div><div class="summary-item"><span>Kembali</span><strong style="color:var(--gold2)">Rp ${fmt(kembali)}</strong></div><div class="expl-cell" style="margin-top:10px;">${penj.replace(/\n/g,'<br>')}</div>`;
         window._lastSingle={stake,profit,kembali,penj,tim,lawan,mk,v,p,sh,sa,odds,st,sign};
     }
 
     function resetSingle(){
         $('singleInput').value='100.000';$('singleOdds').value='1.00';$('singleTim').value='E-PSV';$('singleLawan').value='MU';
         $('singlePasar').value='HDP';$('singleVoor').value='0.75';$('singleSkorTim').value='3';$('singleSkorLawan').value='2';updateSingleForm();hitungSingle();
+        showToast('Reset berhasil');
     }
     function copySingle(mode){
         const d=window._lastSingle;if(!d)return showToast('Hitung dulu!');let txt='';
@@ -735,7 +990,7 @@
     function toggleMenu(id){ document.getElementById(id).classList.toggle('show'); }
     function closeMenu(id){ document.getElementById(id).classList.remove('show'); }
     window.addEventListener('click', e=>{ if(!e.target.closest('.menu-wrap')) document.querySelectorAll('.menu-dropdown').forEach(m=>m.classList.remove('show')); });
-    function showToast(msg){ const c=$('toastContainer'), t=document.createElement('div'); t.className='toast'; t.textContent=msg; c.appendChild(t); setTimeout(()=>t.remove(),2000); }
+    function showToast(msg){ const c=$('toastContainer'), t=document.createElement('div'); t.className='toast'; t.innerHTML=`<i class="fa-solid fa-circle-check"></i> ${msg}`; c.appendChild(t); setTimeout(()=>t.remove(),2200); }
     function escapeAttr(s){ return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
     $('addPartaiBtn').addEventListener('click',()=>{parlayData.push({t:'Tim',l:'Lawan',m:'HDP',v:-0.75,p:'',sh:0,sa:0,odds:1});renderAllParlay();showToast('Partai ditambahkan');});
