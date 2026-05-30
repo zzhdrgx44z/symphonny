@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         :root {
-            --bg: #0b0f14; --glass: rgba(12, 18, 26, 0.85); --glass-border: rgba(255, 255, 255, 0.08);
+            --bg: #0b0f14; --glass: rgba(12, 18, 26, 0.88); --glass-border: rgba(255, 255, 255, 0.08);
             --pitch: #00ff87; --pitch-dim: rgba(0, 255, 135, 0.15); --gold: #ffc400; --gold-dim: rgba(255, 196, 0, 0.15);
             --red: #ff3355; --blue: #3b82f6; --purple: #a855f7;
             --text: #ffffff; --muted: #8899a6; --radius: 12px;
@@ -16,12 +16,16 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
 
-        /* Stadium Background */
-        .stadium-bg { position: fixed; inset: 0; z-index: -1; background-image: url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80'); background-size: cover; background-position: center; background-attachment: fixed; }
+        /* Stadium Background & Moving Lights */
+        .stadium-bg { position: fixed; inset: 0; z-index: -2; background-image: url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80'); background-size: cover; background-position: center; background-attachment: fixed; }
         .stadium-overlay { position: fixed; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(11,15,20,0.95) 50%, rgba(0,0,0,0.9) 100%); }
         
-        /* Glow Effects */
-        .pitch-glow { position: fixed; top: -150px; left: 50%; transform: translateX(-50%); width: 600px; height: 400px; background: radial-gradient(circle, rgba(0,255,135,0.1) 0%, transparent 70%); pointer-events: none; z-index: -1; }
+        .spotlight { position: fixed; border-radius: 50%; pointer-events: none; z-index: -1; filter: blur(120px); opacity: 0.3; }
+        .spotlight-1 { width: 600px; height: 600px; background: var(--pitch); top: -200px; left: -200px; animation: moveLight1 20s infinite alternate ease-in-out; }
+        .spotlight-2 { width: 500px; height: 500px; background: var(--gold); bottom: -200px; right: -200px; animation: moveLight2 25s infinite alternate ease-in-out; }
+        
+        @keyframes moveLight1 { 0% { transform: translate(0, 0); } 100% { transform: translate(40vw, 40vh); } }
+        @keyframes moveLight2 { 0% { transform: translate(0, 0); } 100% { transform: translate(-30vw, -30vh); } }
 
         /* Hero Section */
         .hero-scene { position: relative; z-index: 1; text-align: center; padding: 50px 20px 10px; }
@@ -78,11 +82,13 @@
 
         /* Badges */
         .badge { display: inline-block; padding: 5px 10px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
-        .badge-mf { background: rgba(0,255,135,0.15); color: var(--pitch); border: 1px solid rgba(0,255,135,0.3); }
+        .badge-mf { background: rgba(0,255,135,0.15); color: var(--pitch); border: 1px solid rgba(0,255,135,0.3); animation: pulsePitch 2s infinite; }
         .badge-ms { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
         .badge-ks { background: rgba(255, 196, 0, 0.15); color: var(--gold); border: 1px solid rgba(255, 196, 0, 0.3); }
         .badge-sr { background: rgba(168, 85, 247, 0.15); color: #a78bfa; border: 1px solid rgba(168, 85, 247, 0.3); }
         .badge-kf { background: rgba(255, 51, 85, 0.15); color: var(--red); border: 1px solid rgba(255, 51, 85, 0.3); }
+        
+        @keyframes pulsePitch { 0% { box-shadow: 0 0 0 0 rgba(0,255,135,0.7); } 70% { box-shadow: 0 0 0 10px rgba(0,255,135,0); } 100% { box-shadow: 0 0 0 0 rgba(0,255,135,0); } }
 
         .expl-cell { max-width: 320px; text-align: left; font-size: 0.75rem; background: rgba(0,0,0,0.4); border-radius: 6px; padding: 10px; white-space: pre-line; position: relative; line-height: 1.5; color: var(--muted); border: 1px solid rgba(255,255,255,0.05); }
         .copy-btn { position: absolute; bottom: 6px; right: 6px; background: rgba(0,255,135,0.1); border: 1px solid rgba(0,255,135,0.3); border-radius: 4px; padding: 3px 8px; font-size: 0.6rem; cursor: pointer; color: var(--pitch); font-weight: 800; transition: 0.2s; text-transform: uppercase; }
@@ -93,11 +99,22 @@
         .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0; padding: 12px; border-radius: 6px; border: 1px dashed rgba(255,255,255,0.1); }
         .chip { background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; color: var(--muted); }
 
-        .result-box { background: linear-gradient(135deg, rgba(255,196,0,0.05), rgba(0,0,0,0.4)); border: 1px solid rgba(255,196,0,0.3); padding: 24px; border-radius: 8px; margin-top: 24px; position: relative; }
-        .result-box::before { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 4px; background: var(--gold); border-radius: 4px 0 0 4px; }
-        .result-box h3 { color: var(--gold); font-family: 'Oswald'; font-size: 1.2rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        /* Dynamic Result Box */
+        .result-box { background: linear-gradient(135deg, rgba(0,255,135,0.05), rgba(0,0,0,0.4)); border: 2px solid rgba(0,255,135,0.3); padding: 24px; border-radius: 8px; margin-top: 24px; position: relative; transition: all 0.5s ease; }
+        .result-box::before { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 4px; background: var(--pitch); border-radius: 4px 0 0 4px; transition: background 0.5s; }
+        .result-box h3 { color: var(--pitch); font-family: 'Oswald'; font-size: 1.2rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
         .summary-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); font-size: 0.95rem; font-weight: 600; }
         .summary-item:last-child { border-bottom: none; }
+        
+        .result-win { border-color: var(--gold); box-shadow: 0 0 40px rgba(255,196,0,0.3); }
+        .result-win::before { background: var(--gold); }
+        .result-win h3 { color: var(--gold); }
+        .result-lose { border-color: var(--red); box-shadow: 0 0 40px rgba(255,51,85,0.2); }
+        .result-lose::before { background: var(--red); }
+        .result-lose h3 { color: var(--red); }
+        .result-draw { border-color: var(--blue); box-shadow: 0 0 40px rgba(59,130,246,0.2); }
+        .result-draw::before { background: var(--blue); }
+        .result-draw h3 { color: var(--blue); }
 
         /* Menus & Forms */
         .menu-wrap { position: relative; display: inline-block; }
@@ -141,7 +158,8 @@
 <body>
 <div class="stadium-bg"></div>
 <div class="stadium-overlay"></div>
-<div class="pitch-glow"></div>
+<div class="spotlight spotlight-1"></div>
+<div class="spotlight spotlight-2"></div>
 
 <!-- ===== HERO TEXT ===== -->
 <section class="hero-scene">
@@ -185,7 +203,7 @@
                 <span class="chip" style="color: #a78bfa;">🔄 Seri</span>
                 <span class="chip" style="color: var(--red);">❌ Kalah Full</span>
             </div>
-            <div class="result-box" id="parlayResult">
+            <div class="result-box" id="parlayResultBox">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <h3><i class="fa-solid fa-chart-line"></i> Hasil Parlay</h3>
                     <div class="menu-wrap" id="parlayMenuWrap">
@@ -207,8 +225,17 @@
     <div id="singlePanel" class="panel">
         <div class="card">
             <div class="form-grid">
-                <div class="field"><label id="singleLabelStake"><i class="fa-solid fa-bullseye"></i> Target Profit (Rp)</label><input type="text" id="singleInput" value="100.000" style="text-align:right;" oninput="hitungSingle()"></div>
-                <div class="field"><label><i class="fa-solid fa-percent"></i> Odds</label><div style="display:flex;gap:6px;"><select id="singleOddsSign" style="width:64px;" onchange="hitungSingle()"><option value="-">-</option><option value="+">+</option></select><input type="number" id="singleOdds" value="1.00" step="0.01" style="flex:1;" oninput="hitungSingle()"></div></div>
+                <div class="field">
+                    <label><i class="fa-solid fa-wallet"></i> Modal / Stake (Rp)</label>
+                    <input type="text" id="singleModal" value="100.000" style="text-align:right;" oninput="hitungSingle()">
+                </div>
+                <div class="field">
+                    <label><i class="fa-solid fa-percent"></i> Odds (Indo)</label>
+                    <div style="display:flex;gap:6px;">
+                        <select id="singleOddsSign" style="width:64px;" onchange="hitungSingle()"><option value="-">-</option><option value="+">+</option></select>
+                        <input type="number" id="singleOdds" value="1.00" step="0.01" style="flex:1;" oninput="hitungSingle()">
+                    </div>
+                </div>
             </div>
             <div class="form-grid" style="margin-top:16px;">
                 <div class="field"><label><i class="fa-solid fa-shield-halved"></i> Tim Anda</label><input type="text" id="singleTim" value="E-PSV" oninput="hitungSingle()"></div>
@@ -231,7 +258,7 @@
                 <button class="btn btn-orange" onclick="hitungSingle()"><i class="fa-solid fa-calculator"></i> Hitung Single</button>
                 <button class="btn btn-red" onclick="resetSingle()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
             </div>
-            <div class="result-box" id="singleResult" style="margin-top:20px;">
+            <div class="result-box" id="singleResultBox">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <h3><i class="fa-solid fa-chart-line"></i> Hasil Single Bet</h3>
                     <div class="menu-wrap" id="singleMenuWrap">
@@ -316,16 +343,73 @@ function attachMobileEvents(){document.querySelectorAll('#mobileCards .mobile-ca
 
 function updateMobileCard(card,idx){const b=parlayData[idx];const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);card.querySelector('.status-cell').textContent=STATUS[st];card.querySelector('.status-cell').className=`badge badge-${st} status-cell`;card.querySelector('.expl-cell').innerHTML=penjelasan(b,st).replace(/\n/g,'<br>');}
 
-function hitungParlay(){if(parlayData.length<3){$('parlayResultText').innerHTML='<div class="warn" style="display:block;">❌ Minimal 3 tim!</div>';return;}const modal=parseNum($('modalParlay').value);if(modal<=0)return;let total=1,kf=false;const rincian=[];parlayData.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);const eff=getEff(st,b.odds);if(st==='kf')kf=true;total*=eff;rincian.push(`${i+1}. ${b.t} vs ${b.l} → ${STATUS[st]} (${eff.toFixed(3)})`);});total=Math.round(total*1000)/1000;let hasil=kf?-modal:Math.round(total*modal-modal);let menang=hasil>0;$('parlayResultText').innerHTML=`<div style="max-height:120px;overflow-y:auto;background:rgba(0,0,0,0.3);padding:10px;border-radius:6px;margin-bottom:10px;border:1px solid var(--glass-border);">${rincian.map(r=>'<div style="font-size:0.85rem;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);">'+r+'</div>').join('')}</div><div class="summary-item"><span>Modal</span><strong>Rp ${fmt(modal)}</strong></div><div class="summary-item"><span>Total Odds</span><strong style="color:var(--pitch);">${total.toFixed(3)}</strong></div><div class="summary-item"><span>Hasil</span><strong style="color:${menang?'var(--gold)':'var(--red)'};">${menang?'MENANG':'KALAH'} Rp ${fmt(Math.abs(hasil))}</strong></div>`;window._lastParlay={modal,total,hasil,menang,data:parlayData};}
+function hitungParlay(){
+    const rBox = $('parlayResultBox');
+    rBox.className = 'result-box'; // reset
+    
+    if(parlayData.length<3){$('parlayResultText').innerHTML='<div class="warn" style="display:block;">❌ Minimal 3 tim!</div>';return;}
+    const modal=parseNum($('modalParlay').value);if(modal<=0)return;
+    let total=1,kf=false,halfLose=false,isDraw=false;const rincian=[];
+    
+    parlayData.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);const eff=getEff(st,b.odds);if(st==='kf')kf=true;if(st==='ks')halfLose=true;if(st==='sr')isDraw=true;total*=eff;rincian.push(`${i+1}. ${b.t} vs ${b.l} → ${STATUS[st]} (${eff.toFixed(3)})`);});
+    
+    total=Math.round(total*1000)/1000;let hasil=kf?-modal:Math.round(total*modal-modal);let menang=hasil>0;
+    
+    if(kf) rBox.classList.add('result-lose');
+    else if(halfLose || isDraw) rBox.classList.add('result-draw');
+    else if(menang) rBox.classList.add('result-win');
+    
+    $('parlayResultText').innerHTML=`<div style="max-height:120px;overflow-y:auto;background:rgba(0,0,0,0.3);padding:10px;border-radius:6px;margin-bottom:10px;border:1px solid var(--glass-border);">${rincian.map(r=>'<div style="font-size:0.85rem;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);">'+r+'</div>').join('')}</div><div class="summary-item"><span>Modal</span><strong>Rp ${fmt(modal)}</strong></div><div class="summary-item"><span>Total Odds</span><strong style="color:var(--pitch);">${total.toFixed(3)}</strong></div><div class="summary-item"><span>Hasil</span><strong style="color:${menang?'var(--gold)':'var(--red)'};">${menang?'MENANG':'KALAH'} Rp ${fmt(Math.abs(hasil))}</strong></div>`;
+    window._lastParlay={modal,total,hasil,menang,data:parlayData};
+}
+
 function resetParlay(){parlayData=[];renderAllParlay();$('modalParlay').value='100.000';showToast('Reset berhasil');}
 function copyParlay(mode){const d=window._lastParlay;if(!d)return showToast('Hitung dulu!');let txt='';if(mode==='ringkas')txt=`MIX PARLAY\nModal: Rp ${fmt(d.modal)}\nOdds: ${d.total.toFixed(3)}\nHasil: ${d.menang?'MENANG':'KALAH'} Rp ${fmt(Math.abs(d.hasil))}`;else if(mode==='lengkap'){txt=`MIX PARLAY\nModal: Rp ${fmt(d.modal)}\n`;d.data.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);txt+=`${i+1}. ${b.t} vs ${b.l} → ${STATUS[st]} (${getEff(st,b.odds).toFixed(3)})\n`});txt+=`Odds: ${d.total.toFixed(3)}\nHasil: Rp ${fmt(d.hasil)}`;}else if(mode==='penjelasan'){txt='PENJELASAN\n';d.data.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);txt+=`\n[${i+1}] ${b.t} vs ${b.l}\n${penjelasan(b,st)}\n`});}else{copyParlay('lengkap');copyParlay('penjelasan');return;}navigator.clipboard.writeText(txt).then(()=>showToast('Tersalin!'));closeMenu('parlayMenu');}
 
 function updateSingleForm(){const mk=$('singlePasar').value;$('voorField').style.display=(mk==='HDP'||mk==='OU')?'block':'none';$('opsiField').style.display=(mk!=='HDP')?'block':'none';if(mk==='OU')$('singleOpsi').innerHTML='<option value="over">Over</option><option value="under">Under</option>';else if(mk==='1x2')$('singleOpsi').innerHTML='<option value="home">Home</option><option value="draw">Draw</option><option value="away">Away</option>';else if(mk==='OE')$('singleOpsi').innerHTML='<option value="even">Even</option><option value="odd">Odd</option>';hitungSingle();}
 
-function hitungSingle(){const sign=$('singleOddsSign').value,odds=parseFloat($('singleOdds').value)||1,iv=parseNum($('singleInput').value);const tim=$('singleTim').value||'Tim',lawan=$('singleLawan').value||'Lawan',mk=$('singlePasar').value;let v=(mk==='HDP')?-(parseFloat($('singleVoor').value)||0):(parseFloat($('singleVoor').value)||0);const p=$('singleOpsi').value,sh=parseInt($('singleSkorTim').value)||0,sa=parseInt($('singleSkorLawan').value)||0;const st=getStatus(mk,sh,sa,v,p);let stake,profit;if(sign==='-'){profit=iv;stake=profit*odds;$('singleLabelStake').innerHTML='<i class="fa-solid fa-bullseye"></i> Target Profit (Rp)';}else{stake=iv;profit=stake*odds;$('singleLabelStake').innerHTML='<i class="fa-solid fa-wallet"></i> Stake (Rp)';}let kembali=stake;if(st==='mf')kembali=stake+profit;else if(st==='ms')kembali=stake+profit/2;else if(st==='ks')kembali=stake/2;else if(st==='sr')kembali=stake;else kembali=0;const penj=penjelasan({t:tim,l:lawan,m:mk,v,p,sh,sa,odds},st);$('singleResultText').innerHTML=`<div class="summary-item"><span>Stake</span><strong>Rp ${fmt(stake)}</strong></div><div class="summary-item"><span>Profit</span><strong>Rp ${fmt(profit)}</strong></div><div class="summary-item"><span>Kembali</span><strong style="color:var(--gold)">Rp ${fmt(kembali)}</strong></div><div class="expl-cell" style="margin-top:10px;">${penj.replace(/\n/g,'<br>')}</div>`;window._lastSingle={stake,profit,kembali,penj,tim,lawan,mk,v,p,sh,sa,odds,st,sign};}
+function hitungSingle(){
+    const rBox = $('singleResultBox');
+    rBox.className = 'result-box'; // reset dynamic glow
+    
+    const sign=$('singleOddsSign').value;
+    const odds=Math.abs(parseFloat($('singleOdds').value))||0;
+    const modal=parseNum($('singleModal').value);
+    
+    const tim=$('singleTim').value||'Tim';const lawan=$('singleLawan').value||'Lawan';const mk=$('singlePasar').value;
+    let v=(mk==='HDP')?-(parseFloat($('singleVoor').value)||0):(parseFloat($('singleVoor').value)||0);
+    const p=$('singleOpsi').value;const sh=parseInt($('singleSkorTim').value)||0;const sa=parseInt($('singleSkorLawan').value)||0;
+    
+    const st=getStatus(mk,sh,sa,v,p);
+    let profit=0;
+    if(odds>0){
+        if(sign==='-'){profit=modal/odds;} 
+        else {profit=modal*odds;}
+    }
+    
+    let kembali=0;let hasilText='';
+    if(st==='mf'){kembali=modal+profit;hasilText='MENANG FULL'; rBox.classList.add('result-win');}
+    else if(st==='ms'){kembali=modal+(profit/2);hasilText='MENANG SETENGAH'; rBox.classList.add('result-win');}
+    else if(st==='ks'){kembali=modal/2;hasilText='KALAH SETENGAH'; rBox.classList.add('result-lose');}
+    else if(st==='sr'){kembali=modal;hasilText='SERI'; rBox.classList.add('result-draw');}
+    else {kembali=0;hasilText='KALAH FULL'; rBox.classList.add('result-lose');}
+    
+    let netHasil=kembali-modal;let isProfit=netHasil>=0;
+    const penj=penjelasan({t:tim,l:lawan,m:mk,v,p,sh,sa,odds},st);
+    
+    $('singleResultText').innerHTML=`
+        <div class="summary-item"><span>Modal (Stake)</span><strong>Rp ${fmt(modal)}</strong></div>
+        <div class="summary-item"><span>Potensi Profit (Full)</span><strong>Rp ${fmt(profit)}</strong></div>
+        <div class="summary-item"><span>Status Taruhan</span><strong class="badge badge-${st}">${hasilText}</strong></div>
+        <div class="summary-item"><span>Total Kembali</span><strong style="color:var(--pitch)">Rp ${fmt(kembali)}</strong></div>
+        <div class="summary-item"><span>Hasil Bersih</span><strong style="color:${isProfit?'var(--gold)':'var(--red)'};">${isProfit?'+':'-'} Rp ${fmt(Math.abs(netHasil))}</strong></div>
+        <div class="expl-cell" style="margin-top:10px;">${penj.replace(/\n/g,'<br>')}</div>`;
+        
+    window._lastSingle={modal,profit,kembali,netHasil,penj,tim,lawan,mk,v,p,sh,sa,odds,st,sign,hasilText};
+}
 
-function resetSingle(){$('singleInput').value='100.000';$('singleOdds').value='1.00';$('singleTim').value='E-PSV';$('singleLawan').value='MU';$('singlePasar').value='HDP';$('singleVoor').value='0.75';$('singleSkorTim').value='3';$('singleSkorLawan').value='2';updateSingleForm();hitungSingle();showToast('Reset berhasil');}
-function copySingle(mode){const d=window._lastSingle;if(!d)return showToast('Hitung dulu!');let txt='';if(mode==='ringkas')txt=`SINGLE BET\n${d.tim} vs ${d.lawan} | ${d.mk}\nStake: Rp ${fmt(d.stake)} | Kembali: Rp ${fmt(d.kembali)}`;else if(mode==='lengkap')txt=`SINGLE BET\nTim: ${d.tim} vs ${d.lawan}\nPasaran: ${d.mk}\nVoor/Batas: ${d.mk==='HDP'||d.mk==='OU'?fmtVoor(d.v):d.p}\nSkor: ${d.sh}:${d.sa}\nOdds: ${d.sign}${d.odds}\nStake: Rp ${fmt(d.stake)}\nProfit: Rp ${fmt(d.profit)}\nKembali: Rp ${fmt(d.kembali)}\nStatus: ${STATUS[d.st]}`;else if(mode==='penjelasan')txt=d.penj;else txt=copySingle('lengkap')+'\n\n'+d.penj;navigator.clipboard.writeText(txt).then(()=>showToast('Tersalin!'));closeMenu('singleMenu');}
+function resetSingle(){$('singleModal').value='100.000';$('singleOdds').value='1.00';$('singleTim').value='E-PSV';$('singleLawan').value='MU';$('singlePasar').value='HDP';$('singleVoor').value='0.75';$('singleSkorTim').value='3';$('singleSkorLawan').value='2';updateSingleForm();hitungSingle();showToast('Reset berhasil');}
+function copySingle(mode){const d=window._lastSingle;if(!d)return showToast('Hitung dulu!');let txt='';if(mode==='ringkas')txt=`SINGLE BET\n${d.tim} vs ${d.lawan} | ${d.mk}\nStake: Rp ${fmt(d.modal)} | Kembali: Rp ${fmt(d.kembali)}`;else if(mode==='lengkap')txt=`SINGLE BET\nTim: ${d.tim} vs ${d.lawan}\nPasaran: ${d.mk}\nVoor/Batas: ${d.mk==='HDP'||d.mk==='OU'?fmtVoor(d.v):d.p}\nSkor: ${d.sh}:${d.sa}\nOdds: ${d.sign}${d.odds}\nStake: Rp ${fmt(d.modal)}\nProfit Full: Rp ${fmt(d.profit)}\nStatus: ${d.hasilText}\nKembali: Rp ${fmt(d.kembali)}\nHasil Bersih: Rp ${fmt(d.netHasil)}`;else if(mode==='penjelasan')txt=d.penj;else txt=copySingle('lengkap')+'\n\n'+d.penj;navigator.clipboard.writeText(txt).then(()=>showToast('Tersalin!'));closeMenu('singleMenu');}
 
 function switchTab(t){$('parlayPanel').classList.toggle('active',t==='parlay');$('singlePanel').classList.toggle('active',t==='single');document.querySelectorAll('.tab').forEach((tb,i)=>tb.classList.toggle('active',i===(t==='parlay'?0:1)));}
 function toggleMenu(id){document.getElementById(id).classList.toggle('show');}
