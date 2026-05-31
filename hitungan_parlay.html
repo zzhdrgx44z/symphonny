@@ -16,7 +16,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
 
-        /* Stadium Background & Moving Lights */
         .stadium-bg { position: fixed; inset: 0; z-index: -2; background-image: url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80'); background-size: cover; background-position: center; background-attachment: fixed; }
         .stadium-overlay { position: fixed; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(11,15,20,0.95) 50%, rgba(0,0,0,0.9) 100%); }
         
@@ -27,58 +26,258 @@
         @keyframes moveLight1 { 0% { transform: translate(0, 0); } 100% { transform: translate(40vw, 40vh); } }
         @keyframes moveLight2 { 0% { transform: translate(0, 0); } 100% { transform: translate(-30vw, -30vh); } }
 
-        /* Soccer Ball Animation */
-        .soccer-ball {
+        /* ===== ENHANCED SOCCER BALL 3D ===== */
+        .ball-3d {
             position: fixed;
-            width: 24px;
-            height: 24px;
-            background: radial-gradient(circle at 30% 30%, #fff, #f0f0f0, #000);
-            border-radius: 50%;
             pointer-events: none;
-            z-index: 5;
-            box-shadow: 0 0 10px rgba(0, 255, 135, 0.5);
-            animation: soccerFly 6s infinite ease-in-out;
-        }
-        
-        .soccer-ball::before {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: 
-                conic-gradient(from 0deg, #000 0deg 60deg, transparent 60deg 120deg, #000 120deg 180deg, transparent 180deg 240deg, #000 240deg 300deg, transparent 300deg 360deg);
-            animation: rotateBall 0.5s linear infinite;
-        }
-        
-        @keyframes rotateBall {
-            0% { transform: rotateZ(0deg); }
-            100% { transform: rotateZ(360deg); }
-        }
-        
-        @keyframes soccerFly {
-            0% { left: 10%; top: 20%; opacity: 0; }
-            25% { left: 30%; top: 15%; opacity: 1; }
-            50% { left: 60%; top: 30%; opacity: 1; }
-            75% { left: 80%; top: 25%; opacity: 1; }
-            100% { left: 90%; top: 45%; opacity: 0; }
-        }
-        
-        .soccer-ball.ball-2 { animation: soccerFly2 7s infinite ease-in-out 1s; }
-        @keyframes soccerFly2 {
-            0% { right: 10%; top: 40%; opacity: 0; }
-            25% { right: 30%; top: 35%; opacity: 1; }
-            50% { right: 60%; top: 20%; opacity: 1; }
-            75% { right: 80%; top: 25%; opacity: 1; }
-            100% { right: 90%; top: 50%; opacity: 0; }
+            z-index: 10;
+            perspective: 200px;
         }
 
-        /* Player Kicking Animation */
+        .ball-3d-inner {
+            width: var(--ball-size, 28px);
+            height: var(--ball-size, 28px);
+            position: relative;
+            transform-style: preserve-3d;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #ffffff 0%, #e8e8e8 30%, #b0b0b0 60%, #707070 85%, #404040 100%);
+            box-shadow:
+                inset -4px -4px 8px rgba(0,0,0,0.4),
+                inset 2px 2px 4px rgba(255,255,255,0.6),
+                0 0 20px rgba(0, 255, 135, 0.5),
+                0 0 40px rgba(0, 255, 135, 0.2);
+            animation: ball3dSpin var(--spin-speed, 0.8s) linear infinite;
+        }
+
+        /* Pentagon pattern overlay */
+        .ball-3d-inner::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at 50% 20%, rgba(0,0,0,0.7) 6px, transparent 6px),
+                radial-gradient(circle at 25% 45%, rgba(0,0,0,0.6) 5px, transparent 5px),
+                radial-gradient(circle at 75% 45%, rgba(0,0,0,0.6) 5px, transparent 5px),
+                radial-gradient(circle at 35% 72%, rgba(0,0,0,0.5) 4px, transparent 4px),
+                radial-gradient(circle at 65% 72%, rgba(0,0,0,0.5) 4px, transparent 4px);
+            animation: ballPatternSpin var(--spin-speed, 0.8s) linear infinite reverse;
+        }
+
+        /* Sheen / highlight */
+        .ball-3d-inner::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.7) 0%, transparent 50%);
+        }
+
+        @keyframes ball3dSpin {
+            0% { transform: rotateY(0deg) rotateX(10deg); }
+            100% { transform: rotateY(360deg) rotateX(10deg); }
+        }
+
+        @keyframes ballPatternSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ===== NEON TRAIL ===== */
+        .neon-trail {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--pitch);
+            box-shadow: 0 0 6px var(--pitch), 0 0 12px var(--pitch), 0 0 24px rgba(0,255,135,0.5);
+            animation: trailFade 0.6s ease-out forwards;
+        }
+
+        @keyframes trailFade {
+            0% { opacity: 0.8; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.1); }
+        }
+
+        /* ===== PARABOLIC BALL FLIGHT ===== */
+        .ball-flight {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10;
+            animation: parabola var(--flight-dur, 3s) cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+        }
+
+        @keyframes parabola {
+            0% {
+                left: var(--start-x, 5%);
+                top: var(--start-y, 60%);
+                opacity: 0;
+                transform: scale(0.5) rotate(0deg);
+            }
+            10% { opacity: 1; transform: scale(1) rotate(90deg); }
+            50% {
+                top: var(--peak-y, 15%);
+                opacity: 1;
+                transform: scale(1.1) rotate(540deg);
+            }
+            90% { opacity: 1; transform: scale(0.9) rotate(900deg); }
+            100% {
+                left: var(--end-x, 85%);
+                top: var(--end-y, 55%);
+                opacity: 0;
+                transform: scale(0.3) rotate(1080deg);
+            }
+        }
+
+        /* ===== BOUNCING BALL ===== */
+        .ball-bounce {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10;
+            animation: bounceX var(--bounce-dur, 6s) linear infinite,
+                       bounceY 0.6s ease-in-out infinite alternate;
+        }
+
+        @keyframes bounceX {
+            0% { left: -40px; }
+            100% { left: calc(100% + 40px); }
+        }
+
+        @keyframes bounceY {
+            0% { top: var(--bounce-floor, 70%); transform: scaleY(0.8) scaleX(1.2); }
+            30% { transform: scaleY(1) scaleX(1); }
+            100% { top: calc(var(--bounce-floor, 70%) - 120px); transform: scaleY(1.1) scaleX(0.9); }
+        }
+
+        /* ===== GOAL EXPLOSION ===== */
+        .goal-explosion {
+            position: fixed;
+            pointer-events: none;
+            z-index: 50;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0,255,135,0.9) 0%, rgba(0,255,135,0.3) 30%, transparent 70%);
+            animation: explodeGoal 1s ease-out forwards;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes explodeGoal {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+            50% { opacity: 0.8; }
+            100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+        }
+
+        /* ===== CONFETTI ===== */
+        .confetti-piece {
+            position: fixed;
+            pointer-events: none;
+            z-index: 55;
+            width: var(--cw, 8px);
+            height: var(--ch, 14px);
+            background: var(--cc, var(--pitch));
+            border-radius: 2px;
+            animation: confettiFall var(--cf-dur, 2.5s) ease-out forwards;
+            transform-origin: center;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) rotate(0deg) scale(1);
+            }
+            25% { transform: translate(var(--cf-dx1, 30px), var(--cf-dy1, 80px)) rotate(360deg) scale(1); }
+            50% { transform: translate(var(--cf-dx2, -20px), var(--cf-dy2, 200px)) rotate(720deg) scale(0.8); }
+            100% {
+                opacity: 0;
+                transform: translate(var(--cf-dx3, 50px), var(--cf-dy3, 500px)) rotate(1440deg) scale(0.2);
+            }
+        }
+
+        /* ===== FIREWORK BURST ===== */
+        .firework-particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 52;
+            border-radius: 50%;
+            animation: fireworkBurst var(--fw-dur, 1.2s) ease-out forwards;
+        }
+
+        @keyframes fireworkBurst {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--fw-tx, 50px), var(--fw-ty, -50px)) scale(0); opacity: 0; }
+        }
+
+        /* ===== SPARKLE RING ===== */
+        .sparkle-ring {
+            position: fixed;
+            pointer-events: none;
+            z-index: 51;
+            border: 2px solid var(--pitch);
+            border-radius: 50%;
+            animation: sparkleExpand 0.8s ease-out forwards;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes sparkleExpand {
+            0% { width: 0; height: 0; opacity: 1; border-width: 4px; }
+            100% { width: 250px; height: 250px; opacity: 0; border-width: 1px; }
+        }
+
+        /* ===== GOAL TEXT FLASH ===== */
+        .goal-text-flash {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            z-index: 60;
+            font-family: 'Oswald', sans-serif;
+            font-size: 8rem;
+            font-weight: 700;
+            color: var(--pitch);
+            text-shadow:
+                0 0 20px var(--pitch),
+                0 0 40px var(--pitch),
+                0 0 80px rgba(0,255,135,0.5),
+                0 0 120px rgba(0,255,135,0.3);
+            pointer-events: none;
+            animation: goalTextPop 1.5s cubic-bezier(0.2, 0.8, 0.2, 1.2) forwards;
+            letter-spacing: 20px;
+        }
+
+        @keyframes goalTextPop {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(-10deg); opacity: 0; }
+            20% { transform: translate(-50%, -50%) scale(1.3) rotate(3deg); opacity: 1; }
+            40% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+            70% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+        }
+
+        /* ===== ENERGY WAVE ===== */
+        .energy-wave {
+            position: fixed;
+            pointer-events: none;
+            z-index: 48;
+            border: 3px solid var(--pitch);
+            border-radius: 50%;
+            animation: waveExpand 1s ease-out forwards;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes waveExpand {
+            0% { width: 10px; height: 10px; opacity: 1; border-color: var(--pitch); }
+            50% { border-color: var(--gold); }
+            100% { width: 400px; height: 400px; opacity: 0; border-color: var(--red); }
+        }
+
+        /* ===== PLAYER KICKER ENHANCED ===== */
         .player-kicker-container {
             position: fixed;
             pointer-events: none;
             z-index: 6;
-            animation: kickerWalk 10s infinite ease-in-out;
+            animation: kickerWalk 12s infinite ease-in-out;
             bottom: 12%;
             left: 5%;
         }
@@ -88,34 +287,39 @@
             position: relative;
             display: inline-block;
             animation: playerKick 1.5s infinite ease-in-out;
-            transform-origin: center;
+            filter: drop-shadow(0 0 12px rgba(0,255,135,0.3));
         }
 
-        .kick-ball {
+        .kick-ball-enhanced {
             position: absolute;
-            width: 18px;
-            height: 18px;
-            background: radial-gradient(circle at 30% 30%, #fff, #f0f0f0, #000);
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
-            box-shadow: 0 0 12px rgba(0, 255, 135, 0.8);
-            animation: ballKicked 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+            background: radial-gradient(circle at 35% 30%, #ffffff 0%, #e8e8e8 30%, #b0b0b0 60%, #707070 85%);
+            box-shadow:
+                inset -3px -3px 6px rgba(0,0,0,0.4),
+                inset 1px 1px 3px rgba(255,255,255,0.6),
+                0 0 15px rgba(0,255,135,0.8),
+                0 0 30px rgba(0,255,135,0.4);
+            animation: ballKickedEnhanced 1s cubic-bezier(0.2, 0.8, 0.3, 1) infinite;
             animation-delay: 0.3s;
         }
 
-        .kick-ball::before {
+        .kick-ball-enhanced::before {
             content: '';
             position: absolute;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             border-radius: 50%;
-            background: 
-                conic-gradient(from 0deg, #000 0deg 60deg, transparent 60deg 120deg, #000 120deg 180deg, transparent 180deg 240deg, #000 240deg 300deg, transparent 300deg 360deg);
-            animation: rotateBallKick 0.3s linear infinite;
+            background:
+                radial-gradient(circle at 50% 20%, rgba(0,0,0,0.6) 3px, transparent 3px),
+                radial-gradient(circle at 25% 50%, rgba(0,0,0,0.5) 2.5px, transparent 2.5px),
+                radial-gradient(circle at 75% 50%, rgba(0,0,0,0.5) 2.5px, transparent 2.5px);
+            animation: kickBallSpin 0.25s linear infinite;
         }
 
-        @keyframes rotateBallKick {
-            0% { transform: rotateZ(0deg); }
-            100% { transform: rotateZ(360deg); }
+        @keyframes kickBallSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         @keyframes playerKick {
@@ -127,31 +331,12 @@
             100% { transform: rotate(-5deg) scaleX(1); }
         }
 
-        @keyframes ballKicked {
-            0% { 
-                right: 25px; 
-                top: 15px; 
-                opacity: 0;
-                transform: scale(0.8);
-            }
-            10% { 
-                opacity: 1;
-            }
-            50% { 
-                right: 200px; 
-                top: -80px; 
-                opacity: 1;
-                transform: scale(0.95) rotateZ(45deg);
-            }
-            80% { 
-                opacity: 1;
-            }
-            100% { 
-                right: 350px; 
-                top: 30px; 
-                opacity: 0;
-                transform: scale(0.6) rotateZ(180deg);
-            }
+        @keyframes ballKickedEnhanced {
+            0% { right: 25px; top: 15px; opacity: 0; transform: scale(0.6) rotate(0deg); }
+            10% { opacity: 1; transform: scale(1) rotate(90deg); }
+            40% { right: 180px; top: -100px; opacity: 1; transform: scale(1.1) rotate(540deg); }
+            70% { opacity: 0.8; transform: scale(0.9) rotate(900deg); }
+            100% { right: 380px; top: 40px; opacity: 0; transform: scale(0.3) rotate(1440deg); }
         }
 
         @keyframes kickerWalk {
@@ -162,116 +347,82 @@
             100% { left: calc(100% + 100px); opacity: 0; }
         }
 
-        /* Kick Dust/Smoke Effect */
-        .kick-dust {
-            position: fixed;
-            pointer-events: none;
-            z-index: 5;
-        }
-
+        /* ===== KICK DUST ===== */
+        .kick-dust { position: fixed; pointer-events: none; z-index: 5; }
         .dust-particle {
             position: absolute;
             border-radius: 50%;
-            opacity: 0.8;
             animation: dustFloat 1.2s ease-out forwards;
         }
-
         @keyframes dustFloat {
-            0% { 
-                transform: translate(0, 0) scale(1);
-                opacity: 0.9;
-            }
-            100% { 
-                transform: translate(var(--dx), var(--dy)) scale(0);
-                opacity: 0;
-            }
+            0% { transform: translate(0, 0) scale(1); opacity: 0.9; }
+            100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
         }
 
-        /* Kick Impact Glow */
+        /* ===== KICK IMPACT ===== */
         .kick-impact {
             position: fixed;
-            width: 70px;
-            height: 70px;
+            width: 70px; height: 70px;
             border: 3px solid var(--pitch);
             border-radius: 50%;
             pointer-events: none;
             z-index: 5;
             animation: impactExpand 0.7s ease-out forwards;
-            box-shadow: 0 0 20px rgba(0, 255, 135, 0.6);
+            box-shadow: 0 0 20px rgba(0,255,135,0.6);
         }
-
         @keyframes impactExpand {
-            0% { 
-                transform: scale(0.05);
-                opacity: 1;
-                box-shadow: 0 0 0 0 rgba(0, 255, 135, 1);
-            }
-            100% { 
-                transform: scale(1);
-                opacity: 0;
-                box-shadow: 0 0 40px 30px rgba(0, 255, 135, 0);
-            }
+            0% { transform: scale(0.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 0; }
         }
 
-        /* Kick Particle Effect */
+        /* ===== KICK PARTICLE ===== */
         .kick-particle {
             position: fixed;
             pointer-events: none;
             z-index: 3;
             animation: particleExpand 1s ease-out forwards;
         }
-        
         @keyframes particleExpand {
             0% { transform: translate(0, 0) scale(1); opacity: 1; }
             100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
         }
 
-        /* Goal Flash Animation */
+        /* ===== GOAL FLASH ===== */
         .goal-flash {
-            position: fixed;
-            inset: 0;
+            position: fixed; inset: 0;
             background: radial-gradient(circle at center, rgba(0, 255, 135, 0.8), transparent);
-            pointer-events: none;
-            z-index: 2;
+            pointer-events: none; z-index: 2;
             animation: goalPulse 0.6s ease-out forwards;
             display: none;
         }
-        
         .goal-flash.show { display: block; }
-        
         @keyframes goalPulse {
             0% { transform: scale(0); opacity: 1; }
             100% { transform: scale(1); opacity: 0; }
         }
 
-        /* Player Running Animation */
-        .player-runner {
+        /* ===== FLOATING MINI BALLS ===== */
+        .floating-ball {
             position: fixed;
-            font-size: 2rem;
             pointer-events: none;
             z-index: 4;
-            animation: playerRun 8s infinite ease-in-out;
-            filter: drop-shadow(0 0 8px rgba(0, 255, 135, 0.3));
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #fff, #ddd, #888);
+            box-shadow: 0 0 8px rgba(0,255,135,0.3);
+            opacity: 0.4;
         }
-        
-        @keyframes playerRun {
-            0% { left: -5%; bottom: 20%; opacity: 0; transform: scaleX(1); }
-            10% { opacity: 1; }
-            50% { left: 50%; bottom: 20%; opacity: 1; }
-            90% { opacity: 1; }
-            100% { left: 105%; bottom: 20%; opacity: 0; transform: scaleX(-1); }
-        }
-        
-        .player-runner.player-2 { animation: playerRun2 9s infinite ease-in-out 2s; bottom: 35%; }
-        @keyframes playerRun2 {
-            0% { right: -5%; top: 30%; opacity: 0; transform: scaleX(-1); }
-            10% { opacity: 1; }
-            50% { right: 45%; top: 30%; opacity: 1; }
-            90% { opacity: 1; }
-            100% { right: 105%; top: 30%; opacity: 0; transform: scaleX(1); }
+        .floating-ball::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at 50% 20%, rgba(0,0,0,0.5) 2px, transparent 2px),
+                radial-gradient(circle at 25% 55%, rgba(0,0,0,0.4) 1.5px, transparent 1.5px),
+                radial-gradient(circle at 75% 55%, rgba(0,0,0,0.4) 1.5px, transparent 1.5px);
         }
 
-        /* Hero Section */
+        /* ===== HERO SECTION ===== */
         .hero-scene { position: relative; z-index: 1; text-align: center; padding: 50px 20px 10px; }
         .hero-text h1 { font-family: 'Oswald', sans-serif; font-size: 3.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #fff; line-height: 1; margin-bottom: 10px; text-shadow: 0 0 20px rgba(0,255,135,0.2); animation: heroGlow 3s infinite alternate; }
         @keyframes heroGlow { 0% { text-shadow: 0 0 20px rgba(0,255,135,0.2), 0 0 40px rgba(0,255,135,0.1); } 100% { text-shadow: 0 0 40px rgba(0,255,135,0.4), 0 0 60px rgba(0,255,135,0.2); } }
@@ -280,34 +431,25 @@
         .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--gold-dim); border: 1px solid var(--gold); padding: 6px 16px; border-radius: 4px; font-size: 0.75rem; color: var(--gold); font-weight: 800; margin-top: 20px; text-transform: uppercase; letter-spacing: 1px; animation: badgePulse 2s infinite; }
         @keyframes badgePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
-        /* Content Layout */
+        /* ===== CONTENT ===== */
         .content { position: relative; z-index: 1; padding: 0 16px 60px; max-width: 1300px; margin: 0 auto; }
-        
-        /* Tabs */
         .tabs { display: flex; justify-content: center; gap: 0; margin: 30px 0; background: rgba(255,255,255,0.05); border-radius: 8px; padding: 4px; max-width: 450px; margin-left: auto; margin-right: auto; border: 1px solid var(--glass-border); }
         .tab { flex: 1; padding: 12px; border-radius: 6px; border: none; background: transparent; color: var(--muted); font-family: 'Oswald'; font-size: 1.1rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: 0.3s; }
         .tab.active { background: var(--pitch); color: #000; box-shadow: 0 4px 15px rgba(0,255,135,0.3); }
         .tab:hover:not(.active) { color: #fff; background: rgba(255,255,255,0.05); }
-
         .panel { display: none; animation: fadeUp 0.4s ease; }
         .panel.active { display: block; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Card */
         .card { background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 30px; position: relative; box-shadow: 0 15px 50px rgba(0,0,0,0.5); }
         .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--pitch), transparent); animation: cardGlow 2s infinite; }
         @keyframes cardGlow { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-        
         .bar { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); padding: 16px 20px; border-radius: 8px; margin-bottom: 25px; }
         .bar label { font-family: 'Oswald'; font-weight: 600; color: var(--pitch); font-size: 0.9rem; white-space: nowrap; text-transform: uppercase; letter-spacing: 1px; }
-        
-        /* Inputs & Selects */
         input, select { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 10px 14px; border-radius: 6px; font-family: 'Inter'; font-weight: 600; transition: 0.3s; font-size: 0.9rem; }
         input:focus, select:focus { border-color: var(--pitch); box-shadow: 0 0 0 3px rgba(0,255,135,0.15); outline: none; background: rgba(255,255,255,0.08); }
         select option { background: #151b23; color: #fff; }
         .spacer { flex: 1; }
-
-        /* Buttons */
         .btn { padding: 10px 20px; border: none; border-radius: 6px; font-weight: 800; font-size: 0.8rem; cursor: pointer; transition: 0.2s; white-space: nowrap; font-family: 'Inter'; text-transform: uppercase; letter-spacing: 0.5px; color: #000; position: relative; overflow: hidden; }
         .btn::before { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,0.1); transform: scaleX(0); transform-origin: left; transition: transform 0.3s; }
         .btn:hover::before { transform: scaleX(1); }
@@ -316,11 +458,9 @@
         .btn-red { background: transparent; border: 1px solid var(--red); color: var(--red); }
         .btn:hover { transform: translateY(-2px); filter: brightness(1.15); }
         .btn:active { transform: translateY(0); }
-
         .warn { background: rgba(255,196,0,0.1); border: 1px solid rgba(255,196,0,0.3); padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; color: var(--gold); font-size: 0.85rem; display: none; font-weight: 700; text-transform: uppercase; animation: warnShake 0.5s ease-in-out; }
         @keyframes warnShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
 
-        /* Table */
         .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 1080px; }
         th { background: rgba(0,255,135,0.05); color: var(--pitch); font-family: 'Oswald'; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; padding: 16px 8px; letter-spacing: 1px; border-bottom: 2px solid rgba(0,255,135,0.2); }
@@ -330,29 +470,22 @@
         td input:focus { border-color: var(--pitch); box-shadow: 0 0 10px rgba(0,255,135,0.2); }
         .small-input { width: 54px; text-align: center; }
         .voor-input { width: 82px; text-align: center; font-weight: 700; color: var(--pitch); }
-
-        /* Badges */
         .badge { display: inline-block; padding: 5px 10px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
         .badge-mf { background: rgba(0,255,135,0.15); color: var(--pitch); border: 1px solid rgba(0,255,135,0.3); animation: pulsePitch 2s infinite; }
         .badge-ms { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
         .badge-ks { background: rgba(255, 196, 0, 0.15); color: var(--gold); border: 1px solid rgba(255, 196, 0, 0.3); }
         .badge-sr { background: rgba(168, 85, 247, 0.15); color: #a78bfa; border: 1px solid rgba(168, 85, 247, 0.3); }
         .badge-kf { background: rgba(255, 51, 85, 0.15); color: var(--red); border: 1px solid rgba(255, 51, 85, 0.3); }
-        
         @keyframes pulsePitch { 0% { box-shadow: 0 0 0 0 rgba(0,255,135,0.7); } 70% { box-shadow: 0 0 0 10px rgba(0,255,135,0); } 100% { box-shadow: 0 0 0 0 rgba(0,255,135,0); } }
-
         .expl-cell { max-width: 320px; text-align: left; font-size: 0.75rem; background: rgba(0,0,0,0.4); border-radius: 6px; padding: 10px; white-space: pre-line; position: relative; line-height: 1.5; color: var(--muted); border: 1px solid rgba(255,255,255,0.05); }
         .copy-btn { position: absolute; bottom: 6px; right: 6px; background: rgba(0,255,135,0.1); border: 1px solid rgba(0,255,135,0.3); border-radius: 4px; padding: 3px 8px; font-size: 0.6rem; cursor: pointer; color: var(--pitch); font-weight: 800; transition: 0.2s; text-transform: uppercase; }
         .copy-btn:hover { background: rgba(0,255,135,0.2); }
         .delete-btn { background: rgba(255,51,85,0.1); border: 1px solid rgba(255,51,85,0.2); color: var(--red); padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 700; transition: 0.2s; font-family: 'Inter'; }
         .delete-btn:hover { background: rgba(255,51,85,0.2); }
-
         .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0; padding: 12px; border-radius: 6px; border: 1px dashed rgba(255,255,255,0.1); animation: chipsGlow 2s infinite; }
         @keyframes chipsGlow { 0%, 100% { border-color: rgba(255,255,255,0.1); } 50% { border-color: rgba(0,255,135,0.3); } }
         .chip { background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; color: var(--muted); transition: 0.3s; }
         .chip:hover { transform: translateY(-2px); color: var(--pitch); }
-
-        /* Dynamic Result Box */
         .result-box { background: linear-gradient(135deg, rgba(0,255,135,0.05), rgba(0,0,0,0.4)); border: 2px solid rgba(0,255,135,0.3); padding: 24px; border-radius: 8px; margin-top: 24px; position: relative; transition: all 0.5s ease; }
         .result-box::before { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 4px; background: var(--pitch); border-radius: 4px 0 0 4px; transition: background 0.5s; animation: resultPulse 1.5s infinite; }
         @keyframes resultPulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
@@ -361,7 +494,6 @@
         .summary-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); font-size: 0.95rem; font-weight: 600; animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .summary-item:last-child { border-bottom: none; }
-        
         .result-win { border-color: var(--gold); box-shadow: 0 0 40px rgba(255,196,0,0.3); }
         .result-win::before { background: var(--gold); }
         .result-win h3 { color: var(--gold); }
@@ -371,8 +503,6 @@
         .result-draw { border-color: var(--blue); box-shadow: 0 0 40px rgba(59,130,246,0.2); }
         .result-draw::before { background: var(--blue); }
         .result-draw h3 { color: var(--blue); }
-
-        /* Menus & Forms */
         .menu-wrap { position: relative; display: inline-block; }
         .menu-btn { background: rgba(255,196,0,0.1); border: 1px solid rgba(255,196,0,0.3); color: var(--gold); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: 800; transition: 0.2s; font-family: 'Inter'; text-transform: uppercase; }
         .menu-btn:hover { background: rgba(255,196,0,0.2); transform: scale(1.05); }
@@ -381,18 +511,14 @@
         .menu-dropdown.show { display: block; }
         .menu-item { padding: 8px 12px; cursor: pointer; border-radius: 4px; font-size: 0.8rem; font-weight: 600; transition: 0.2s; color: var(--muted); display: flex; align-items: center; gap: 8px; }
         .menu-item:hover { background: rgba(0,255,135,0.1); color: #fff; transform: translateX(4px); }
-
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .field { display: flex; flex-direction: column; gap: 6px; animation: fieldFadeIn 0.4s ease; }
         @keyframes fieldFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .field label { font-size: 0.7rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'Oswald'; }
-        
         .eff-cell { font-weight: 800; color: var(--pitch); font-family: 'Oswald', monospace; font-size: 1rem; }
-        
         .toast-container { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 999; display: flex; flex-direction: column; gap: 8px; }
         .toast { padding: 12px 24px; border-radius: 6px; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); border: 1px solid var(--pitch); color: var(--pitch); font-weight: 800; font-size: 0.8rem; box-shadow: 0 0 20px rgba(0,255,135,0.2); animation: toastIn 0.3s ease; text-transform: uppercase; letter-spacing: 1px; }
         @keyframes toastIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-
         .mobile-cards { display: none; }
         .footer { text-align: center; padding: 40px 16px; color: rgba(255,255,255,0.2); font-size: 0.75rem; position: relative; z-index: 1; text-transform: uppercase; letter-spacing: 2px; animation: footerPulse 3s infinite; }
         @keyframes footerPulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
@@ -403,14 +529,14 @@
             .table-wrap { display: none; } .mobile-cards { display: block; }
             .mobile-card { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 8px; padding: 20px; margin-bottom: 16px; position: relative; animation: cardSlideIn 0.4s ease; }
             @keyframes cardSlideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-            .badge-num { position: absolute; top: -10px; left: 18px; background: var(--pitch); color: #000; font-size: 0.7rem; font-weight: 900; padding: 4px 14px; border-radius: 4px; font-family: 'Oswald'; animation: badgeFloat 0.5s ease; }
-            @keyframes badgeFloat { from { transform: translateY(-10px); } to { transform: translateY(0); } }
+            .badge-num { position: absolute; top: -10px; left: 18px; background: var(--pitch); color: #000; font-size: 0.7rem; font-weight: 900; padding: 4px 14px; border-radius: 4px; font-family: 'Oswald'; }
             .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
             .skor-row { display: flex; align-items: center; gap: 8px; }
             .skor-row input { width: 56px; text-align: center; }
             .hero-text h1 { font-size: 2.2rem; }
             .form-grid { grid-template-columns: 1fr; }
             .player-kicker-container { bottom: 8%; left: 2%; }
+            .goal-text-flash { font-size: 4rem; letter-spacing: 10px; }
         }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
@@ -423,20 +549,16 @@
 <div class="spotlight spotlight-1"></div>
 <div class="spotlight spotlight-2"></div>
 
-<!-- Player Kicking Animation -->
+<!-- Player Kicker Enhanced -->
 <div class="player-kicker-container" id="kickerContainer">
     <div class="player-kicker">👤⚽</div>
-    <div class="kick-ball"></div>
+    <div class="kick-ball-enhanced"></div>
 </div>
 
-<!-- Soccer Ball Animation -->
-<div class="soccer-ball"></div>
-<div class="soccer-ball ball-2"></div>
-<div class="player-runner">⚽👤</div>
-<div class="player-runner player-2">👤⚽</div>
+<!-- Goal Flash Overlay -->
 <div class="goal-flash" id="goalFlash"></div>
 
-<!-- ===== HERO TEXT ===== -->
+<!-- Hero -->
 <section class="hero-scene">
     <div class="hero-text">
         <h1>Premium <span>Bet</span></h1>
@@ -445,7 +567,7 @@
     </div>
 </section>
 
-<!-- ===== CONTENT ===== -->
+<!-- Content -->
 <div class="content">
     <div class="tabs">
         <button class="tab active" onclick="switchTab('parlay')"><i class="fa-solid fa-dice"></i> Mix Parlay</button>
@@ -472,9 +594,9 @@
             </div>
             <div class="mobile-cards" id="mobileCards"></div>
             <div class="chips">
-                <span class="chip" style="color: var(--pitch);">✅ Menang Full</span> 
+                <span class="chip" style="color: var(--pitch);">✅ Menang Full</span>
                 <span class="chip" style="color: #60a5fa;">⚡ Menang ½</span>
-                <span class="chip" style="color: var(--gold);">⚠️ Kalah ½</span> 
+                <span class="chip" style="color: var(--gold);">⚠️ Kalah ½</span>
                 <span class="chip" style="color: #a78bfa;">🔄 Seri</span>
                 <span class="chip" style="color: var(--red);">❌ Kalah Full</span>
             </div>
@@ -562,31 +684,208 @@ const parseNum=s=>parseInt((s||'').replace(/\D/g,''))||0;
 const eq=(a,b)=>Math.abs(a-b)<0.001;
 const STATUS={mf:'Menang Full',ms:'Menang Setengah',ks:'Kalah Setengah',sr:'Seri',kf:'Kalah Full'};
 
-// Advanced Kick Animation Functions
+/* ========================================
+   ENHANCED BALL ANIMATION SYSTEM
+   ======================================== */
+
+// Trail system — stores active balls for trail rendering
+const activeBalls = new Map();
+let trailCounter = 0;
+
+// Create 3D soccer ball element
+function createBall3D(size = 28, spinSpeed = '0.8s') {
+    const ball = document.createElement('div');
+    ball.className = 'ball-3d';
+    ball.innerHTML = '<div class="ball-3d-inner"></div>';
+    ball.style.setProperty('--ball-size', size + 'px');
+    ball.style.setProperty('--spin-speed', spinSpeed);
+    return ball;
+}
+
+// Spawn neon trail dot at position
+function spawnTrailDot(x, y, color = 'var(--pitch)') {
+    const dot = document.createElement('div');
+    dot.className = 'neon-trail';
+    dot.style.left = x + 'px';
+    dot.style.top = y + 'px';
+    dot.style.background = color;
+    dot.style.boxShadow = `0 0 6px ${color}, 0 0 12px ${color}, 0 0 24px ${color}`;
+    document.body.appendChild(dot);
+    setTimeout(() => dot.remove(), 600);
+}
+
+// Launch parabolic ball with trail
+function launchParabolicBall(config = {}) {
+    const {
+        startX = 5, startY = 60, endX = 85, endY = 55, peakY = 15,
+        size = 26, duration = 3, spinSpeed = '0.6s', delay = 0,
+        trailColor = 'var(--pitch)', id = 'pb_' + (trailCounter++)
+    } = config;
+
+    const ball = createBall3D(size, spinSpeed);
+    ball.classList.add('ball-flight');
+    ball.style.setProperty('--start-x', startX + '%');
+    ball.style.setProperty('--start-y', startY + '%');
+    ball.style.setProperty('--end-x', endX + '%');
+    ball.style.setProperty('--end-y', endY + '%');
+    ball.style.setProperty('--peak-y', peakY + '%');
+    ball.style.setProperty('--flight-dur', duration + 's');
+    ball.style.animationDelay = delay + 's';
+    ball.dataset.ballId = id;
+
+    document.body.appendChild(ball);
+
+    // Trail system: sample position at intervals
+    const totalFrames = Math.floor(duration * 30);
+    let frame = 0;
+    const trailInterval = setInterval(() => {
+        frame++;
+        if (frame > totalFrames) { clearInterval(trailInterval); activeBalls.delete(id); return; }
+        const rect = ball.getBoundingClientRect();
+        if (rect.width > 0) {
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            if (frame % 3 === 0) spawnTrailDot(cx, cy, trailColor);
+        }
+    }, 33);
+
+    activeBalls.set(id, { ball, interval: trailInterval });
+    setTimeout(() => { ball.remove(); clearInterval(trailInterval); activeBalls.delete(id); }, (duration + delay) * 1000 + 200);
+}
+
+// Bouncing ball with shadow
+function spawnBouncingBall(config = {}) {
+    const {
+        floor = 70, duration = 8, size = 22, delay = 0
+    } = config;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'ball-bounce';
+    wrapper.style.setProperty('--bounce-floor', floor + '%');
+    wrapper.style.setProperty('--bounce-dur', duration + 's');
+    wrapper.style.animationDelay = delay + 's';
+
+    const ball = createBall3D(size, '0.5s');
+    wrapper.appendChild(ball);
+    document.body.appendChild(wrapper);
+    setTimeout(() => wrapper.remove(), (duration + delay) * 1000 + 500);
+}
+
+// Goal celebration with full effects
+function triggerGoalCelebration(x, y) {
+    // 1. Goal explosion
+    const explosion = document.createElement('div');
+    explosion.className = 'goal-explosion';
+    explosion.style.left = x + 'px';
+    explosion.style.top = y + 'px';
+    document.body.appendChild(explosion);
+    setTimeout(() => explosion.remove(), 1000);
+
+    // 2. Sparkle rings
+    for (let i = 0; i < 3; i++) {
+        setTimeout(() => {
+            const ring = document.createElement('div');
+            ring.className = 'sparkle-ring';
+            ring.style.left = x + 'px';
+            ring.style.top = y + 'px';
+            document.body.appendChild(ring);
+            setTimeout(() => ring.remove(), 800);
+        }, i * 200);
+    }
+
+    // 3. Energy wave
+    const wave = document.createElement('div');
+    wave.className = 'energy-wave';
+    wave.style.left = x + 'px';
+    wave.style.top = y + 'px';
+    document.body.appendChild(wave);
+    setTimeout(() => wave.remove(), 1000);
+
+    // 4. Firework burst particles
+    const fwColors = ['var(--pitch)', 'var(--gold)', '#60a5fa', '#a78bfa', '#fff'];
+    for (let i = 0; i < 36; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'firework-particle';
+        const angle = (i / 36) * Math.PI * 2;
+        const dist = 60 + Math.random() * 120;
+        const tx = Math.cos(angle) * dist;
+        const ty = Math.sin(angle) * dist;
+        particle.style.setProperty('--fw-tx', tx + 'px');
+        particle.style.setProperty('--fw-ty', ty + 'px');
+        particle.style.setProperty('--fw-dur', (0.8 + Math.random() * 0.6) + 's');
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.width = (4 + Math.random() * 6) + 'px';
+        particle.style.height = particle.style.width;
+        particle.style.background = fwColors[Math.floor(Math.random() * fwColors.length)];
+        particle.style.boxShadow = `0 0 6px ${particle.style.background}`;
+        document.body.appendChild(particle);
+        setTimeout(() => particle.remove(), 1500);
+    }
+
+    // 5. Confetti rain
+    const confettiColors = ['var(--pitch)', 'var(--gold)', 'var(--red)', '#60a5fa', '#a78bfa', '#fff', '#ff6b9d', '#c084fc'];
+    for (let i = 0; i < 50; i++) {
+        setTimeout(() => {
+            const piece = document.createElement('div');
+            piece.className = 'confetti-piece';
+            const cx = x + (Math.random() - 0.5) * 300;
+            const cy = y - 50;
+            piece.style.left = cx + 'px';
+            piece.style.top = cy + 'px';
+            piece.style.setProperty('--cw', (5 + Math.random() * 8) + 'px');
+            piece.style.setProperty('--ch', (8 + Math.random() * 14) + 'px');
+            piece.style.setProperty('--cc', confettiColors[Math.floor(Math.random() * confettiColors.length)]);
+            piece.style.setProperty('--cf-dur', (2 + Math.random() * 2) + 's');
+            piece.style.setProperty('--cf-dx1', (Math.random() - 0.5) * 80 + 'px');
+            piece.style.setProperty('--cf-dy1', (50 + Math.random() * 80) + 'px');
+            piece.style.setProperty('--cf-dx2', (Math.random() - 0.5) * 120 + 'px');
+            piece.style.setProperty('--cf-dy2', (150 + Math.random() * 120) + 'px');
+            piece.style.setProperty('--cf-dx3', (Math.random() - 0.5) * 160 + 'px');
+            piece.style.setProperty('--cf-dy3', (350 + Math.random() * 200) + 'px');
+            piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+            document.body.appendChild(piece);
+            setTimeout(() => piece.remove(), 4000);
+        }, i * 30);
+    }
+
+    // 6. GOAL text flash
+    const goalText = document.createElement('div');
+    goalText.className = 'goal-text-flash';
+    goalText.textContent = 'GOAL!';
+    document.body.appendChild(goalText);
+    setTimeout(() => goalText.remove(), 1500);
+
+    // 7. Screen flash
+    const flash = $('goalFlash');
+    flash.classList.remove('show');
+    setTimeout(() => flash.classList.add('show'), 10);
+    setTimeout(() => flash.classList.remove('show'), 600);
+}
+
+// Kick dust particles
 function createDustParticles(x, y) {
-    const dustCount = 16;
-    for (let i = 0; i < dustCount; i++) {
+    for (let i = 0; i < 16; i++) {
         const particle = document.createElement('div');
         particle.className = 'dust-particle';
-        const angle = (i / dustCount) * Math.PI * 2;
+        const angle = (i / 16) * Math.PI * 2;
         const distance = 40 + Math.random() * 70;
         const dx = Math.cos(angle) * distance;
         const dy = Math.sin(angle) * distance + (Math.random() - 0.5) * 30;
-        
-        particle.style.setProperty('--dx', `${dx}px`);
-        particle.style.setProperty('--dy', `${dy}px`);
+        particle.style.setProperty('--dx', dx + 'px');
+        particle.style.setProperty('--dy', dy + 'px');
         particle.style.left = x + 'px';
         particle.style.top = y + 'px';
         particle.style.width = (6 + Math.random() * 10) + 'px';
         particle.style.height = particle.style.width;
         particle.style.background = `rgba(0, 255, 135, ${0.6 + Math.random() * 0.4})`;
-        particle.style.boxShadow = `inset 0 0 4px rgba(0, 255, 135, 0.4), 0 0 8px rgba(0, 255, 135, ${0.3 + Math.random() * 0.3})`;
-        
+        particle.style.boxShadow = `0 0 8px rgba(0, 255, 135, 0.4)`;
         document.body.appendChild(particle);
         setTimeout(() => particle.remove(), 1200);
     }
 }
 
+// Kick impact ring
 function createKickImpact(x, y) {
     const impact = document.createElement('div');
     impact.className = 'kick-impact';
@@ -594,47 +893,103 @@ function createKickImpact(x, y) {
     impact.style.top = y + 'px';
     impact.style.marginLeft = '-35px';
     impact.style.marginTop = '-35px';
-    
     document.body.appendChild(impact);
     setTimeout(() => impact.remove(), 700);
 }
 
-function triggerPlayerKick() {
-    const container = $('kickerContainer');
-    const rect = container.getBoundingClientRect();
-    const kickX = rect.left + rect.width + 50;
-    const kickY = rect.top + rect.height / 2 - 30;
-    
-    createDustParticles(kickX, kickY);
-    createKickImpact(kickX, kickY);
-}
-
+// Kick particles
 function triggerKickParticles(x, y) {
     for (let i = 0; i < 12; i++) {
         const particle = document.createElement('div');
         particle.className = 'kick-particle';
         const angle = (i / 12) * Math.PI * 2;
         const distance = 60 + Math.random() * 80;
-        particle.style.setProperty('--tx', `${Math.cos(angle) * distance}px`);
-        particle.style.setProperty('--ty', `${Math.sin(angle) * distance}px`);
+        particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+        particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
         particle.style.left = x + 'px';
         particle.style.top = y + 'px';
         particle.style.width = '10px';
         particle.style.height = '10px';
         particle.style.background = `rgba(0, 255, 135, ${0.7 + Math.random() * 0.3})`;
         particle.style.borderRadius = '50%';
-        particle.style.boxShadow = `0 0 6px rgba(0, 255, 135, 0.6)`;
+        particle.style.boxShadow = '0 0 6px rgba(0, 255, 135, 0.6)';
         document.body.appendChild(particle);
         setTimeout(() => particle.remove(), 1000);
     }
 }
 
-function triggerGoalFlash() {
-    const flash = $('goalFlash');
-    flash.classList.remove('show');
-    setTimeout(() => flash.classList.add('show'), 10);
-    setTimeout(() => flash.classList.remove('show'), 600);
+// Trigger kick from player position
+function triggerPlayerKick() {
+    const container = $('kickerContainer');
+    const rect = container.getBoundingClientRect();
+    const kickX = rect.left + rect.width + 50;
+    const kickY = rect.top + rect.height / 2 - 30;
+    createDustParticles(kickX, kickY);
+    createKickImpact(kickX, kickY);
 }
+
+// Floating background balls
+function spawnFloatingBalls() {
+    const configs = [
+        { x: 10, y: 20, size: 14, dur: 12 },
+        { x: 85, y: 35, size: 10, dur: 15 },
+        { x: 50, y: 80, size: 12, dur: 10 },
+        { x: 25, y: 65, size: 8, dur: 18 },
+        { x: 70, y: 15, size: 16, dur: 14 },
+    ];
+    configs.forEach((c, i) => {
+        const ball = document.createElement('div');
+        ball.className = 'floating-ball';
+        ball.style.width = c.size + 'px';
+        ball.style.height = c.size + 'px';
+        ball.style.left = c.x + '%';
+        ball.style.top = c.y + '%';
+        ball.style.animation = `floatBall${i} ${c.dur}s infinite ease-in-out`;
+        
+        // Create unique keyframes for each floating ball
+        const style = document.createElement('style');
+        const dx1 = (Math.random() - 0.5) * 60;
+        const dy1 = (Math.random() - 0.5) * 40;
+        const dx2 = (Math.random() - 0.5) * 80;
+        const dy2 = (Math.random() - 0.5) * 50;
+        style.textContent = `
+            @keyframes floatBall${i} {
+                0% { transform: translate(0, 0) rotate(0deg); opacity: 0.3; }
+                25% { transform: translate(${dx1}px, ${dy1}px) rotate(180deg); opacity: 0.5; }
+                50% { transform: translate(${dx2}px, ${dy2}px) rotate(360deg); opacity: 0.3; }
+                75% { transform: translate(${-dx1}px, ${-dy1}px) rotate(540deg); opacity: 0.5; }
+                100% { transform: translate(0, 0) rotate(720deg); opacity: 0.3; }
+            }
+        `;
+        document.head.appendChild(style);
+        document.body.appendChild(ball);
+    });
+}
+
+// Auto-spawn flying balls periodically
+function startAutoBallSpawner() {
+    function spawn() {
+        const configs = [
+            { startX: 3, startY: 55 + Math.random() * 20, endX: 90, endY: 40 + Math.random() * 25, peakY: 5 + Math.random() * 20, size: 20 + Math.random() * 14, duration: 2.5 + Math.random() * 2, spin: (0.3 + Math.random() * 0.6) + 's', trailColor: 'var(--pitch)' },
+            { startX: 90, startY: 50 + Math.random() * 20, endX: 5, endY: 35 + Math.random() * 25, peakY: 10 + Math.random() * 15, size: 18 + Math.random() * 12, duration: 3 + Math.random() * 2, spin: (0.4 + Math.random() * 0.5) + 's', trailColor: 'var(--gold)' },
+        ];
+        const cfg = configs[Math.floor(Math.random() * configs.length)];
+        launchParabolicBall(cfg);
+        setTimeout(spawn, 4000 + Math.random() * 6000);
+    }
+    setTimeout(spawn, 2000);
+
+    // Bouncing balls
+    function spawnBounce() {
+        spawnBouncingBall({ floor: 65 + Math.random() * 15, duration: 6 + Math.random() * 4, size: 16 + Math.random() * 10, delay: 0 });
+        setTimeout(spawnBounce, 8000 + Math.random() * 10000);
+    }
+    setTimeout(spawnBounce, 5000);
+}
+
+/* ========================================
+   CORE LOGIC
+   ======================================== */
 
 function getStatus(mk,sh,sa,v,p){
     const d=sh-sa,t=sh+sa;
@@ -706,7 +1061,13 @@ function hitungParlay(){
     
     if(kf) rBox.classList.add('result-lose');
     else if(halfLose || isDraw) rBox.classList.add('result-draw');
-    else if(menang) { rBox.classList.add('result-win'); triggerPlayerKick(); triggerGoalFlash(); }
+    else if(menang) {
+        rBox.classList.add('result-win');
+        triggerPlayerKick();
+        // Trigger goal celebration at center of result box
+        const boxRect = rBox.getBoundingClientRect();
+        triggerGoalCelebration(boxRect.left + boxRect.width / 2, boxRect.top + boxRect.height / 2);
+    }
     
     $('parlayResultText').innerHTML=`<div style="max-height:120px;overflow-y:auto;background:rgba(0,0,0,0.3);padding:10px;border-radius:6px;margin-bottom:10px;border:1px solid var(--glass-border);">${rincian.map(r=>'<div style="font-size:0.85rem;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);">'+r+'</div>').join('')}</div><div class="summary-item"><span>Modal</span><strong>Rp ${fmt(modal)}</strong></div><div class="summary-item"><span>Total Odds</span><strong style="color:var(--pitch);">${total.toFixed(3)}</strong></div><div class="summary-item"><span>Hasil</span><strong style="color:${menang?'var(--gold)':'var(--red)'};">${menang?'MENANG':'KALAH'} Rp ${fmt(Math.abs(hasil))}</strong></div>`;
     window._lastParlay={modal,total,hasil,menang,data:parlayData};
@@ -737,7 +1098,10 @@ function hitungSingle(){
     }
     
     let kembali=0;let hasilText='';
-    if(st==='mf'){kembali=modal+profit;hasilText='MENANG FULL'; rBox.classList.add('result-win'); triggerPlayerKick(); triggerGoalFlash();}
+    if(st==='mf'){kembali=modal+profit;hasilText='MENANG FULL'; rBox.classList.add('result-win'); triggerPlayerKick();
+        const boxRect = rBox.getBoundingClientRect();
+        triggerGoalCelebration(boxRect.left + boxRect.width / 2, boxRect.top + boxRect.height / 2);
+    }
     else if(st==='ms'){kembali=modal+(profit/2);hasilText='MENANG SETENGAH'; rBox.classList.add('result-win');}
     else if(st==='ks'){kembali=modal/2;hasilText='KALAH SETENGAH'; rBox.classList.add('result-lose');}
     else if(st==='sr'){kembali=modal;hasilText='SERI'; rBox.classList.add('result-draw');}
@@ -767,8 +1131,36 @@ window.addEventListener('click',e=>{if(!e.target.closest('.menu-wrap'))document.
 function showToast(msg){const c=$('toastContainer'),t=document.createElement('div');t.className='toast';t.innerHTML=`<i class="fa-solid fa-circle-check"></i> ${msg}`;c.appendChild(t);setTimeout(()=>t.remove(),2200);}
 function escapeAttr(s){return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 
-$('addPartaiBtn').addEventListener('click',()=>{parlayData.push({t:'Tim',l:'Lawan',m:'HDP',v:-0.75,p:'',sh:0,sa:0,odds:1});renderAllParlay();triggerPlayerKick();showToast('Partai ditambahkan');});
-updateSingleForm();hitungSingle();renderAllParlay();
+/* ========================================
+   INITIALIZATION
+   ======================================== */
+ $('addPartaiBtn').addEventListener('click',()=>{
+    parlayData.push({t:'Tim',l:'Lawan',m:'HDP',v:-0.75,p:'',sh:0,sa:0,odds:1});
+    renderAllParlay();
+    triggerPlayerKick();
+    // Launch a ball from left
+    launchParabolicBall({
+        startX: 3, startY: 55, endX: 88, endY: 40, peakY: 12,
+        size: 24, duration: 2.5, spinSpeed: '0.5s'
+    });
+    showToast('Partai ditambahkan');
+});
+
+updateSingleForm();
+hitungSingle();
+renderAllParlay();
+
+// Start ambient animations
+spawnFloatingBalls();
+startAutoBallSpawner();
+
+// Initial dramatic ball launches
+setTimeout(() => {
+    launchParabolicBall({ startX: 2, startY: 60, endX: 90, endY: 45, peakY: 10, size: 30, duration: 3, spinSpeed: '0.5s', trailColor: 'var(--pitch)' });
+}, 1000);
+setTimeout(() => {
+    launchParabolicBall({ startX: 92, startY: 50, endX: 5, endY: 35, peakY: 8, size: 22, duration: 3.5, spinSpeed: '0.4s', trailColor: 'var(--gold)' });
+}, 2500);
 </script>
 </body>
 </html>
