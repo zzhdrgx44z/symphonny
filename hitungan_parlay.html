@@ -73,6 +73,150 @@
             100% { right: 90%; top: 50%; opacity: 0; }
         }
 
+        /* Player Kicking Animation */
+        .player-kicker-container {
+            position: fixed;
+            pointer-events: none;
+            z-index: 6;
+            animation: kickerWalk 10s infinite ease-in-out;
+        }
+
+        .player-kicker {
+            font-size: 3rem;
+            position: relative;
+            display: inline-block;
+            animation: playerKick 2s infinite ease-in-out;
+            transform-origin: center;
+        }
+
+        .kick-ball {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: radial-gradient(circle at 30% 30%, #fff, #f0f0f0, #000);
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(0, 255, 135, 0.6);
+            animation: ballKicked 1.2s ease-in-out;
+            animation-delay: 0.4s;
+            animation-iteration-count: infinite;
+        }
+
+        .kick-ball::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: 
+                conic-gradient(from 0deg, #000 0deg 60deg, transparent 60deg 120deg, #000 120deg 180deg, transparent 180deg 240deg, #000 240deg 300deg, transparent 300deg 360deg);
+            animation: rotateBallKick 0.3s linear infinite;
+        }
+
+        @keyframes rotateBallKick {
+            0% { transform: rotateZ(0deg); }
+            100% { transform: rotateZ(360deg); }
+        }
+
+        @keyframes playerKick {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(-15deg); }
+            50% { transform: rotate(0deg); }
+            75% { transform: rotate(15deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        @keyframes ballKicked {
+            0% { 
+                right: 20px; 
+                top: 10px; 
+                opacity: 0;
+                transform: scale(1);
+            }
+            10% { 
+                opacity: 1;
+            }
+            50% { 
+                right: 150px; 
+                top: -60px; 
+                opacity: 1;
+                transform: scale(0.9);
+            }
+            85% { 
+                opacity: 1;
+            }
+            100% { 
+                right: 280px; 
+                top: 10px; 
+                opacity: 0;
+                transform: scale(0.5);
+            }
+        }
+
+        @keyframes kickerWalk {
+            0% { left: -100px; bottom: 15%; opacity: 0; }
+            5% { opacity: 1; }
+            50% { left: 50%; bottom: 15%; opacity: 1; }
+            95% { opacity: 1; }
+            100% { left: calc(100% + 100px); bottom: 15%; opacity: 0; }
+        }
+
+        /* Kick Dust/Smoke Effect */
+        .kick-dust {
+            position: fixed;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .dust-particle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: dustFloat 1s ease-out forwards;
+        }
+
+        @keyframes dustFloat {
+            0% { 
+                transform: translate(0, 0) scale(1);
+                opacity: 0.8;
+            }
+            100% { 
+                transform: translate(var(--dx), var(--dy)) scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* Kick Impact Glow */
+        .kick-impact {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            border: 3px solid var(--pitch);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 5;
+            animation: impactExpand 0.6s ease-out forwards;
+        }
+
+        @keyframes impactExpand {
+            0% { 
+                transform: scale(0.1);
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(0, 255, 135, 0.8);
+            }
+            100% { 
+                transform: scale(1);
+                opacity: 0;
+                box-shadow: 0 0 30px 20px rgba(0, 255, 135, 0);
+            }
+        }
+
+        /* Trajectory Line */
+        .kick-trajectory {
+            position: fixed;
+            pointer-events: none;
+            z-index: 4;
+        }
+
         /* Player Running Animation */
         .player-runner {
             position: fixed;
@@ -282,7 +426,13 @@
 <div class="spotlight spotlight-1"></div>
 <div class="spotlight spotlight-2"></div>
 
-<!-- Soccer Animations -->
+<!-- Player Kicking Animation -->
+<div class="player-kicker-container" id="kickerContainer">
+    <div class="player-kicker">⚽👤</div>
+    <div class="kick-ball"></div>
+</div>
+
+<!-- Soccer Ball Animation -->
 <div class="soccer-ball"></div>
 <div class="soccer-ball ball-2"></div>
 <div class="player-runner">⚽👤</div>
@@ -415,7 +565,51 @@ const parseNum=s=>parseInt((s||'').replace(/\D/g,''))||0;
 const eq=(a,b)=>Math.abs(a-b)<0.001;
 const STATUS={mf:'Menang Full',ms:'Menang Setengah',ks:'Kalah Setengah',sr:'Seri',kf:'Kalah Full'};
 
-// Animation Functions
+// Advanced Kick Animation Functions
+function createDustParticles(x, y) {
+    const dustCount = 12;
+    for (let i = 0; i < dustCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'dust-particle';
+        const angle = (i / dustCount) * Math.PI * 2;
+        const distance = 30 + Math.random() * 50;
+        const dx = Math.cos(angle) * distance;
+        const dy = Math.sin(angle) * distance + (Math.random() - 0.5) * 20;
+        
+        particle.style.setProperty('--dx', `${dx}px`);
+        particle.style.setProperty('--dy', `${dy}px`);
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.width = (8 + Math.random() * 8) + 'px';
+        particle.style.height = particle.style.width;
+        particle.style.background = `rgba(0, 255, 135, ${0.5 + Math.random() * 0.5})`;
+        particle.style.boxShadow = 'inset 0 0 4px rgba(0, 255, 135, 0.3)';
+        
+        document.body.appendChild(particle);
+        setTimeout(() => particle.remove(), 1000);
+    }
+}
+
+function createKickImpact(x, y) {
+    const impact = document.createElement('div');
+    impact.className = 'kick-impact';
+    impact.style.left = x + 'px';
+    impact.style.top = y + 'px';
+    impact.style.marginLeft = '-30px';
+    impact.style.marginTop = '-30px';
+    
+    document.body.appendChild(impact);
+    setTimeout(() => impact.remove(), 600);
+}
+
+function triggerPlayerKick() {
+    const container = $('kickerContainer');
+    // Create dust at player position
+    const rect = container.getBoundingClientRect();
+    createDustParticles(rect.left + rect.width / 2, rect.top + rect.height / 2 + 20);
+    createKickImpact(rect.left + rect.width / 2 + 40, rect.top + rect.height / 2 - 20);
+}
+
 function triggerKickParticles(x, y) {
     for (let i = 0; i < 8; i++) {
         const particle = document.createElement('div');
@@ -486,7 +680,7 @@ function renderParlayTable(){
 
 function renderVoorHTML(b,i){if(b.m==='HDP'){return`<input type="number" value="${Math.abs(b.v)}" step="0.25" min="0" data-field="v" class="voor-input" placeholder="0.75">`;}if(b.m==='OU')return`<div style="display:flex;gap:4px;"><input type="number" value="${b.v}" step="0.25" data-field="v" style="width:70px;"><select data-field="p"><option value="over" ${b.p==='over'?'selected':''}>OVER</option><option value="under" ${b.p==='under'?'selected':''}>UNDER</option></select></div>`;if(b.m==='1x2')return`<select data-field="p"><option value="home" ${b.p==='home'?'selected':''}>Home</option><option value="draw" ${b.p==='draw'?'selected':''}>Draw</option><option value="away" ${b.p==='away'?'selected':''}>Away</option></select>`;if(b.m==='OE')return`<select data-field="p"><option value="even" ${b.p==='even'?'selected':''}>Even</option><option value="odd" ${b.p==='odd'?'selected':''}>Odd</option></select>`;}
 
-function attachTableEvents(){document.querySelectorAll('#parlayTable tbody tr').forEach(tr=>{const idx=parseInt(tr.dataset.idx);tr.querySelectorAll('input,select').forEach(el=>{el.addEventListener('input',function(){const field=this.dataset.field;if(field==='v'){parlayData[idx].v=-(parseFloat(this.value)||0);}else if(field==='m'){parlayData[idx].m=this.value;renderAllParlay();return;}else{const val=this.type==='number'?(parseFloat(this.value)||0):this.value;parlayData[idx][field]=val;}updateRow(tr,idx);hitungParlay();});});tr.querySelector('.delete-btn').addEventListener('click',()=>{parlayData.splice(idx,1);renderAllParlay();triggerKickParticles(window.innerWidth/2, window.innerHeight/2);showToast('Partai dihapus');});});document.querySelectorAll('.copy-btn').forEach(btn=>btn.addEventListener('click',function(e){e.stopPropagation();navigator.clipboard.writeText(this.dataset.penjelasan).then(()=>showToast('Tersalin'));}));}
+function attachTableEvents(){document.querySelectorAll('#parlayTable tbody tr').forEach(tr=>{const idx=parseInt(tr.dataset.idx);tr.querySelectorAll('input,select').forEach(el=>{el.addEventListener('input',function(){const field=this.dataset.field;if(field==='v'){parlayData[idx].v=-(parseFloat(this.value)||0);}else if(field==='m'){parlayData[idx].m=this.value;renderAllParlay();return;}else{const val=this.type==='number'?(parseFloat(this.value)||0):this.value;parlayData[idx][field]=val;}updateRow(tr,idx);hitungParlay();});});tr.querySelector('.delete-btn').addEventListener('click',()=>{parlayData.splice(idx,1);renderAllParlay();triggerPlayerKick();triggerKickParticles(window.innerWidth/2, window.innerHeight/2);showToast('Partai dihapus');});});document.querySelectorAll('.copy-btn').forEach(btn=>btn.addEventListener('click',function(e){e.stopPropagation();navigator.clipboard.writeText(this.dataset.penjelasan).then(()=>showToast('Tersalin'));}));}
 
 function updateRow(tr,idx){const b=parlayData[idx];const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);const eff=getEff(st,b.odds);tr.querySelector('.status-cell').textContent=`${b.t||'Tim'}: ${STATUS[st]}`;tr.querySelector('.status-cell').className=`badge badge-${st} status-cell`;tr.querySelector('.eff-cell').textContent=eff.toFixed(3);const ec=tr.querySelector('.expl-cell');ec.innerHTML=penjelasan(b,st).replace(/\n/g,'<br>')+`<button class="copy-btn" data-penjelasan="${escapeAttr(penjelasan(b,st))}">Copy</button>`;ec.querySelector('.copy-btn').addEventListener('click',function(e){e.stopPropagation();navigator.clipboard.writeText(this.dataset.penjelasan).then(()=>showToast('Tersalin'));});}
 
@@ -494,7 +688,7 @@ function renderMobileCards(){const cont=$('mobileCards');cont.innerHTML='';parla
 
 function renderMobileVoor(b,i){if(b.m==='HDP')return`<label>Voor (minus)</label><input type="number" value="${Math.abs(b.v)}" step="0.25" min="0" data-field="v" class="voor-input">`;if(b.m==='OU')return`<label>Batas</label><div style="display:flex;gap:4px;"><input type="number" value="${b.v}" step="0.25" data-field="v" style="flex:1;"><select data-field="p"><option value="over" ${b.p==='over'?'selected':''}>OVER</option><option value="under" ${b.p==='under'?'selected':''}>UNDER</option></select></div>`;if(b.m==='1x2')return`<label>Pilihan</label><select data-field="p"><option value="home" ${b.p==='home'?'selected':''}>Home</option><option value="draw" ${b.p==='draw'?'selected':''}>Draw</option><option value="away" ${b.p==='away'?'selected':''}>Away</option></select>`;if(b.m==='OE')return`<label>Pilihan</label><select data-field="p"><option value="even" ${b.p==='even'?'selected':''}>Even</option><option value="odd" ${b.p==='odd'?'selected':''}>Odd</option></select>`;}
 
-function attachMobileEvents(){document.querySelectorAll('#mobileCards .mobile-card').forEach(card=>{const idx=parseInt(card.dataset.idx);card.querySelectorAll('input,select').forEach(el=>{el.addEventListener('input',function(){const field=this.dataset.field;if(field==='v'){parlayData[idx].v=-(parseFloat(this.value)||0);}else if(field==='m'){parlayData[idx].m=this.value;renderAllParlay();return;}else{const val=this.type==='number'?(parseFloat(this.value)||0):this.value;parlayData[idx][field]=val;}updateMobileCard(card,idx);hitungParlay();});});card.querySelector('.delete-btn').addEventListener('click',()=>{parlayData.splice(idx,1);renderAllParlay();triggerKickParticles(window.innerWidth/2, window.innerHeight/2);showToast('Partai dihapus');});});}
+function attachMobileEvents(){document.querySelectorAll('#mobileCards .mobile-card').forEach(card=>{const idx=parseInt(card.dataset.idx);card.querySelectorAll('input,select').forEach(el=>{el.addEventListener('input',function(){const field=this.dataset.field;if(field==='v'){parlayData[idx].v=-(parseFloat(this.value)||0);}else if(field==='m'){parlayData[idx].m=this.value;renderAllParlay();return;}else{const val=this.type==='number'?(parseFloat(this.value)||0):this.value;parlayData[idx][field]=val;}updateMobileCard(card,idx);hitungParlay();});});card.querySelector('.delete-btn').addEventListener('click',()=>{parlayData.splice(idx,1);renderAllParlay();triggerPlayerKick();triggerKickParticles(window.innerWidth/2, window.innerHeight/2);showToast('Partai dihapus');});});}
 
 function updateMobileCard(card,idx){const b=parlayData[idx];const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);card.querySelector('.status-cell').textContent=STATUS[st];card.querySelector('.status-cell').className=`badge badge-${st} status-cell`;card.querySelector('.expl-cell').innerHTML=penjelasan(b,st).replace(/\n/g,'<br>');}
 
@@ -512,13 +706,13 @@ function hitungParlay(){
     
     if(kf) rBox.classList.add('result-lose');
     else if(halfLose || isDraw) rBox.classList.add('result-draw');
-    else if(menang) { rBox.classList.add('result-win'); triggerGoalFlash(); }
+    else if(menang) { rBox.classList.add('result-win'); triggerPlayerKick(); triggerGoalFlash(); }
     
     $('parlayResultText').innerHTML=`<div style="max-height:120px;overflow-y:auto;background:rgba(0,0,0,0.3);padding:10px;border-radius:6px;margin-bottom:10px;border:1px solid var(--glass-border);">${rincian.map(r=>'<div style="font-size:0.85rem;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);">'+r+'</div>').join('')}</div><div class="summary-item"><span>Modal</span><strong>Rp ${fmt(modal)}</strong></div><div class="summary-item"><span>Total Odds</span><strong style="color:var(--pitch);">${total.toFixed(3)}</strong></div><div class="summary-item"><span>Hasil</span><strong style="color:${menang?'var(--gold)':'var(--red)'};">${menang?'MENANG':'KALAH'} Rp ${fmt(Math.abs(hasil))}</strong></div>`;
     window._lastParlay={modal,total,hasil,menang,data:parlayData};
 }
 
-function resetParlay(){parlayData=[];renderAllParlay();$('modalParlay').value='100.000';triggerKickParticles(window.innerWidth/2, window.innerHeight/2);showToast('Reset berhasil');}
+function resetParlay(){parlayData=[];renderAllParlay();$('modalParlay').value='100.000';triggerPlayerKick();triggerKickParticles(window.innerWidth/2, window.innerHeight/2);showToast('Reset berhasil');}
 function copyParlay(mode){const d=window._lastParlay;if(!d)return showToast('Hitung dulu!');let txt='';if(mode==='ringkas')txt=`MIX PARLAY\nModal: Rp ${fmt(d.modal)}\nOdds: ${d.total.toFixed(3)}\nHasil: ${d.menang?'MENANG':'KALAH'} Rp ${fmt(Math.abs(d.hasil))}`;else if(mode==='lengkap'){txt=`MIX PARLAY\nModal: Rp ${fmt(d.modal)}\n`;d.data.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);txt+=`${i+1}. ${b.t} vs ${b.l} → ${STATUS[st]} (${getEff(st,b.odds).toFixed(3)})\n`});txt+=`Odds: ${d.total.toFixed(3)}\nHasil: Rp ${fmt(d.hasil)}`;}else if(mode==='penjelasan'){txt='PENJELASAN\n';d.data.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);txt+=`\n[${i+1}] ${b.t} vs ${b.l}\n${penjelasan(b,st)}\n`});}else{copyParlay('lengkap');copyParlay('penjelasan');return;}navigator.clipboard.writeText(txt).then(()=>showToast('Tersalin!'));closeMenu('parlayMenu');}
 
 function updateSingleForm(){const mk=$('singlePasar').value;$('voorField').style.display=(mk==='HDP'||mk==='OU')?'block':'none';$('opsiField').style.display=(mk!=='HDP')?'block':'none';if(mk==='OU')$('singleOpsi').innerHTML='<option value="over">Over</option><option value="under">Under</option>';else if(mk==='1x2')$('singleOpsi').innerHTML='<option value="home">Home</option><option value="draw">Draw</option><option value="away">Away</option>';else if(mk==='OE')$('singleOpsi').innerHTML='<option value="even">Even</option><option value="odd">Odd</option>';hitungSingle();}
@@ -543,7 +737,7 @@ function hitungSingle(){
     }
     
     let kembali=0;let hasilText='';
-    if(st==='mf'){kembali=modal+profit;hasilText='MENANG FULL'; rBox.classList.add('result-win'); triggerGoalFlash();}
+    if(st==='mf'){kembali=modal+profit;hasilText='MENANG FULL'; rBox.classList.add('result-win'); triggerPlayerKick(); triggerGoalFlash();}
     else if(st==='ms'){kembali=modal+(profit/2);hasilText='MENANG SETENGAH'; rBox.classList.add('result-win');}
     else if(st==='ks'){kembali=modal/2;hasilText='KALAH SETENGAH'; rBox.classList.add('result-lose');}
     else if(st==='sr'){kembali=modal;hasilText='SERI'; rBox.classList.add('result-draw');}
@@ -563,7 +757,7 @@ function hitungSingle(){
     window._lastSingle={modal,profit,kembali,netHasil,penj,tim,lawan,mk,v,p,sh,sa,odds,st,sign,hasilText};
 }
 
-function resetSingle(){$('singleModal').value='100.000';$('singleOdds').value='1.00';$('singleTim').value='E-PSV';$('singleLawan').value='MU';$('singlePasar').value='HDP';$('singleVoor').value='0.75';$('singleSkorTim').value='3';$('singleSkorLawan').value='2';updateSingleForm();triggerKickParticles(window.innerWidth/2, window.innerHeight/2);showToast('Reset berhasil');}
+function resetSingle(){$('singleModal').value='100.000';$('singleOdds').value='1.00';$('singleTim').value='E-PSV';$('singleLawan').value='MU';$('singlePasar').value='HDP';$('singleVoor').value='0.75';$('singleSkorTim').value='3';$('singleSkorLawan').value='2';updateSingleForm();triggerPlayerKick();triggerKickParticles(window.innerWidth/2, window.innerHeight/2);showToast('Reset berhasil');}
 function copySingle(mode){const d=window._lastSingle;if(!d)return showToast('Hitung dulu!');let txt='';if(mode==='ringkas')txt=`SINGLE BET\n${d.tim} vs ${d.lawan} | ${d.mk}\nStake: Rp ${fmt(d.modal)} | Kembali: Rp ${fmt(d.kembali)}`;else if(mode==='lengkap')txt=`SINGLE BET\nTim: ${d.tim} vs ${d.lawan}\nPasaran: ${d.mk}\nVoor/Batas: ${d.mk==='HDP'||d.mk==='OU'?fmtVoor(d.v):d.p}\nSkor: ${d.sh}:${d.sa}\nOdds: ${d.sign}${d.odds}\nStake: Rp ${fmt(d.modal)}\nProfit Full: Rp ${fmt(d.profit)}\nStatus: ${d.hasilText}\nKembali: Rp ${fmt(d.kembali)}\nHasil Bersih: Rp ${fmt(d.netHasil)}`;else if(mode==='penjelasan')txt=d.penj;else txt=copySingle('lengkap')+'\n\n'+d.penj;navigator.clipboard.writeText(txt).then(()=>showToast('Tersalin!'));closeMenu('singleMenu');}
 
 function switchTab(t){$('parlayPanel').classList.toggle('active',t==='parlay');$('singlePanel').classList.toggle('active',t==='single');document.querySelectorAll('.tab').forEach((tb,i)=>tb.classList.toggle('active',i===(t==='parlay'?0:1)));}
@@ -573,7 +767,7 @@ window.addEventListener('click',e=>{if(!e.target.closest('.menu-wrap'))document.
 function showToast(msg){const c=$('toastContainer'),t=document.createElement('div');t.className='toast';t.innerHTML=`<i class="fa-solid fa-circle-check"></i> ${msg}`;c.appendChild(t);setTimeout(()=>t.remove(),2200);}
 function escapeAttr(s){return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 
-$('addPartaiBtn').addEventListener('click',()=>{parlayData.push({t:'Tim',l:'Lawan',m:'HDP',v:-0.75,p:'',sh:0,sa:0,odds:1});renderAllParlay();triggerKickParticles(window.innerWidth/2, window.innerHeight/2);showToast('Partai ditambahkan');});
+$('addPartaiBtn').addEventListener('click',()=>{parlayData.push({t:'Tim',l:'Lawan',m:'HDP',v:-0.75,p:'',sh:0,sa:0,odds:1});renderAllParlay();triggerPlayerKick();showToast('Partai ditambahkan');});
 updateSingleForm();hitungSingle();renderAllParlay();
 </script>
 </body>
