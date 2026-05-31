@@ -79,26 +79,27 @@
             pointer-events: none;
             z-index: 6;
             animation: kickerWalk 10s infinite ease-in-out;
+            bottom: 12%;
+            left: 5%;
         }
 
         .player-kicker {
             font-size: 3rem;
             position: relative;
             display: inline-block;
-            animation: playerKick 2s infinite ease-in-out;
+            animation: playerKick 1.5s infinite ease-in-out;
             transform-origin: center;
         }
 
         .kick-ball {
             position: absolute;
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             background: radial-gradient(circle at 30% 30%, #fff, #f0f0f0, #000);
             border-radius: 50%;
-            box-shadow: 0 0 8px rgba(0, 255, 135, 0.6);
-            animation: ballKicked 1.2s ease-in-out;
-            animation-delay: 0.4s;
-            animation-iteration-count: infinite;
+            box-shadow: 0 0 12px rgba(0, 255, 135, 0.8);
+            animation: ballKicked 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+            animation-delay: 0.3s;
         }
 
         .kick-ball::before {
@@ -118,46 +119,47 @@
         }
 
         @keyframes playerKick {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(-15deg); }
-            50% { transform: rotate(0deg); }
-            75% { transform: rotate(15deg); }
-            100% { transform: rotate(0deg); }
+            0% { transform: rotate(-5deg) scaleX(1); }
+            20% { transform: rotate(-20deg) scaleX(1); }
+            40% { transform: rotate(0deg) scaleX(1); }
+            60% { transform: rotate(15deg) scaleX(1); }
+            80% { transform: rotate(5deg) scaleX(1); }
+            100% { transform: rotate(-5deg) scaleX(1); }
         }
 
         @keyframes ballKicked {
             0% { 
-                right: 20px; 
-                top: 10px; 
+                right: 25px; 
+                top: 15px; 
                 opacity: 0;
-                transform: scale(1);
+                transform: scale(0.8);
             }
             10% { 
                 opacity: 1;
             }
             50% { 
-                right: 150px; 
-                top: -60px; 
+                right: 200px; 
+                top: -80px; 
                 opacity: 1;
-                transform: scale(0.9);
+                transform: scale(0.95) rotateZ(45deg);
             }
-            85% { 
+            80% { 
                 opacity: 1;
             }
             100% { 
-                right: 280px; 
-                top: 10px; 
+                right: 350px; 
+                top: 30px; 
                 opacity: 0;
-                transform: scale(0.5);
+                transform: scale(0.6) rotateZ(180deg);
             }
         }
 
         @keyframes kickerWalk {
-            0% { left: -100px; bottom: 15%; opacity: 0; }
+            0% { left: -100px; opacity: 0; }
             5% { opacity: 1; }
-            50% { left: 50%; bottom: 15%; opacity: 1; }
+            50% { left: 35%; opacity: 1; }
             95% { opacity: 1; }
-            100% { left: calc(100% + 100px); bottom: 15%; opacity: 0; }
+            100% { left: calc(100% + 100px); opacity: 0; }
         }
 
         /* Kick Dust/Smoke Effect */
@@ -170,14 +172,14 @@
         .dust-particle {
             position: absolute;
             border-radius: 50%;
-            opacity: 0.6;
-            animation: dustFloat 1s ease-out forwards;
+            opacity: 0.8;
+            animation: dustFloat 1.2s ease-out forwards;
         }
 
         @keyframes dustFloat {
             0% { 
                 transform: translate(0, 0) scale(1);
-                opacity: 0.8;
+                opacity: 0.9;
             }
             100% { 
                 transform: translate(var(--dx), var(--dy)) scale(0);
@@ -188,33 +190,58 @@
         /* Kick Impact Glow */
         .kick-impact {
             position: fixed;
-            width: 60px;
-            height: 60px;
+            width: 70px;
+            height: 70px;
             border: 3px solid var(--pitch);
             border-radius: 50%;
             pointer-events: none;
             z-index: 5;
-            animation: impactExpand 0.6s ease-out forwards;
+            animation: impactExpand 0.7s ease-out forwards;
+            box-shadow: 0 0 20px rgba(0, 255, 135, 0.6);
         }
 
         @keyframes impactExpand {
             0% { 
-                transform: scale(0.1);
+                transform: scale(0.05);
                 opacity: 1;
-                box-shadow: 0 0 0 0 rgba(0, 255, 135, 0.8);
+                box-shadow: 0 0 0 0 rgba(0, 255, 135, 1);
             }
             100% { 
                 transform: scale(1);
                 opacity: 0;
-                box-shadow: 0 0 30px 20px rgba(0, 255, 135, 0);
+                box-shadow: 0 0 40px 30px rgba(0, 255, 135, 0);
             }
         }
 
-        /* Trajectory Line */
-        .kick-trajectory {
+        /* Kick Particle Effect */
+        .kick-particle {
             position: fixed;
             pointer-events: none;
-            z-index: 4;
+            z-index: 3;
+            animation: particleExpand 1s ease-out forwards;
+        }
+        
+        @keyframes particleExpand {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+
+        /* Goal Flash Animation */
+        .goal-flash {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(0, 255, 135, 0.8), transparent);
+            pointer-events: none;
+            z-index: 2;
+            animation: goalPulse 0.6s ease-out forwards;
+            display: none;
+        }
+        
+        .goal-flash.show { display: block; }
+        
+        @keyframes goalPulse {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(1); opacity: 0; }
         }
 
         /* Player Running Animation */
@@ -242,37 +269,6 @@
             50% { right: 45%; top: 30%; opacity: 1; }
             90% { opacity: 1; }
             100% { right: 105%; top: 30%; opacity: 0; transform: scaleX(1); }
-        }
-
-        /* Kick Particle Effect */
-        .kick-particle {
-            position: fixed;
-            pointer-events: none;
-            z-index: 3;
-            animation: particleExpand 0.8s ease-out forwards;
-        }
-        
-        @keyframes particleExpand {
-            0% { transform: translate(0, 0) scale(1); opacity: 1; }
-            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
-        }
-
-        /* Goal Flash Animation */
-        .goal-flash {
-            position: fixed;
-            inset: 0;
-            background: radial-gradient(circle at center, rgba(0, 255, 135, 0.8), transparent);
-            pointer-events: none;
-            z-index: 2;
-            animation: goalPulse 0.6s ease-out forwards;
-            display: none;
-        }
-        
-        .goal-flash.show { display: block; }
-        
-        @keyframes goalPulse {
-            0% { transform: scale(0); opacity: 1; }
-            100% { transform: scale(1); opacity: 0; }
         }
 
         /* Hero Section */
@@ -414,6 +410,7 @@
             .skor-row input { width: 56px; text-align: center; }
             .hero-text h1 { font-size: 2.2rem; }
             .form-grid { grid-template-columns: 1fr; }
+            .player-kicker-container { bottom: 8%; left: 2%; }
         }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
@@ -428,7 +425,7 @@
 
 <!-- Player Kicking Animation -->
 <div class="player-kicker-container" id="kickerContainer">
-    <div class="player-kicker">⚽👤</div>
+    <div class="player-kicker">👤⚽</div>
     <div class="kick-ball"></div>
 </div>
 
@@ -567,26 +564,26 @@ const STATUS={mf:'Menang Full',ms:'Menang Setengah',ks:'Kalah Setengah',sr:'Seri
 
 // Advanced Kick Animation Functions
 function createDustParticles(x, y) {
-    const dustCount = 12;
+    const dustCount = 16;
     for (let i = 0; i < dustCount; i++) {
         const particle = document.createElement('div');
         particle.className = 'dust-particle';
         const angle = (i / dustCount) * Math.PI * 2;
-        const distance = 30 + Math.random() * 50;
+        const distance = 40 + Math.random() * 70;
         const dx = Math.cos(angle) * distance;
-        const dy = Math.sin(angle) * distance + (Math.random() - 0.5) * 20;
+        const dy = Math.sin(angle) * distance + (Math.random() - 0.5) * 30;
         
         particle.style.setProperty('--dx', `${dx}px`);
         particle.style.setProperty('--dy', `${dy}px`);
         particle.style.left = x + 'px';
         particle.style.top = y + 'px';
-        particle.style.width = (8 + Math.random() * 8) + 'px';
+        particle.style.width = (6 + Math.random() * 10) + 'px';
         particle.style.height = particle.style.width;
-        particle.style.background = `rgba(0, 255, 135, ${0.5 + Math.random() * 0.5})`;
-        particle.style.boxShadow = 'inset 0 0 4px rgba(0, 255, 135, 0.3)';
+        particle.style.background = `rgba(0, 255, 135, ${0.6 + Math.random() * 0.4})`;
+        particle.style.boxShadow = `inset 0 0 4px rgba(0, 255, 135, 0.4), 0 0 8px rgba(0, 255, 135, ${0.3 + Math.random() * 0.3})`;
         
         document.body.appendChild(particle);
-        setTimeout(() => particle.remove(), 1000);
+        setTimeout(() => particle.remove(), 1200);
     }
 }
 
@@ -595,37 +592,40 @@ function createKickImpact(x, y) {
     impact.className = 'kick-impact';
     impact.style.left = x + 'px';
     impact.style.top = y + 'px';
-    impact.style.marginLeft = '-30px';
-    impact.style.marginTop = '-30px';
+    impact.style.marginLeft = '-35px';
+    impact.style.marginTop = '-35px';
     
     document.body.appendChild(impact);
-    setTimeout(() => impact.remove(), 600);
+    setTimeout(() => impact.remove(), 700);
 }
 
 function triggerPlayerKick() {
     const container = $('kickerContainer');
-    // Create dust at player position
     const rect = container.getBoundingClientRect();
-    createDustParticles(rect.left + rect.width / 2, rect.top + rect.height / 2 + 20);
-    createKickImpact(rect.left + rect.width / 2 + 40, rect.top + rect.height / 2 - 20);
+    const kickX = rect.left + rect.width + 50;
+    const kickY = rect.top + rect.height / 2 - 30;
+    
+    createDustParticles(kickX, kickY);
+    createKickImpact(kickX, kickY);
 }
 
 function triggerKickParticles(x, y) {
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 12; i++) {
         const particle = document.createElement('div');
         particle.className = 'kick-particle';
-        const angle = (i / 8) * Math.PI * 2;
-        const distance = 50 + Math.random() * 50;
+        const angle = (i / 12) * Math.PI * 2;
+        const distance = 60 + Math.random() * 80;
         particle.style.setProperty('--tx', `${Math.cos(angle) * distance}px`);
         particle.style.setProperty('--ty', `${Math.sin(angle) * distance}px`);
         particle.style.left = x + 'px';
         particle.style.top = y + 'px';
-        particle.style.width = '8px';
-        particle.style.height = '8px';
-        particle.style.background = 'var(--pitch)';
+        particle.style.width = '10px';
+        particle.style.height = '10px';
+        particle.style.background = `rgba(0, 255, 135, ${0.7 + Math.random() * 0.3})`;
         particle.style.borderRadius = '50%';
+        particle.style.boxShadow = `0 0 6px rgba(0, 255, 135, 0.6)`;
         document.body.appendChild(particle);
-        setTimeout(() => particle.remove(), 800);
+        setTimeout(() => particle.remove(), 1000);
     }
 }
 
