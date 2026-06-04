@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>SYMPHONNY // AMONG US ULTRA REVOLUTION</title>
+    <title>SYMPHONNY // CREWMATE EDITION</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
@@ -130,10 +130,6 @@
         .btn-crew:hover { border-color:transparent; box-shadow:0 0 25px rgba(225,59,59,0.3); }
         .btn-crew span, .btn-crew i { position:relative; z-index:1; }
 
-        /* Canvas Card Special */
-        .impostor-canvas { width:100%; height:120px; background:#080c18; border-radius:16px; margin:8px 0 0; border:1px solid rgba(225,59,59,0.3); cursor:pointer; transition:box-shadow 0.3s; }
-        .impostor-canvas:hover { box-shadow:0 0 20px rgba(225,59,59,0.2); }
-
         /* Footer */
         .among-footer { position:fixed; bottom:0; width:100%; background:rgba(3,6,12,0.95); backdrop-filter:blur(24px); border-top:1px solid rgba(225,59,59,0.2); padding:10px 28px; display:flex; justify-content:space-between; align-items:center; z-index:50; font-size:0.7rem; }
         .walking-crews { display:flex; gap:14px; overflow-x:auto; max-width:70%; }
@@ -203,7 +199,7 @@
 
 <div class="ticker">
     <div class="ticker-label">⚠️ SUS</div>
-    <div class="ticker-text">🚨 IMPOSTOR DILAPORKAN DI KANTOR • CEK CCTV • REACTOR MELEDAK • SELESAIKAN TUGAS 5 MENIT • HATI-HATI DENGAN MERAH 🚨</div>
+    <div class="ticker-text">🚨 IMPOSTOR DILAPORKAN DI KANTOR • CEK CCTV • REAKTOR MELEDAK • SELESAIKAN TUGAS 5 MENIT • HATI-HATI DENGAN MERAH 🚨</div>
 </div>
 
 <div class="cat-bar" id="catBar">
@@ -227,6 +223,7 @@
 </footer>
 
 <script>
+    // Data modules tanpa impostor mode (item id 23 dihapus)
     const MODULES = [
         {id:1,t:"ALL PK",d:"Database pusat seluruh PK akses terintegrasi penuh.",u:"https://symphonny.vercel.app/DATABASE.html",i:"fa-database",cat:"data",tags:["DB","CENTRAL"]},
         {id:2,t:"Pemutar Video",d:"Streaming HD tanpa buffering untuk semua format.",u:"https://symphonny.vercel.app/pemutar_video.html",i:"fa-play",cat:"media",tags:["STREAM","HD"]},
@@ -249,11 +246,10 @@
         {id:19,t:"Hitungan Odds",d:"Kalkulator mix parlay akurat multi-provider.",u:"https://symphonny.vercel.app/hitungan_odds.html",i:"fa-calculator",cat:"tool",tags:["ODDS","MIX"]},
         {id:20,t:"Hitungan Parlay",d:"Perhitungan parlay presisi konversi odds otomatis.",u:"https://symphonny.vercel.app/hitungan_parlay.html",i:"fa-chart-line",cat:"tool",tags:["PARLAY","CALC"]},
         {id:21,t:"Storange Video",d:"Penyimpanan video pribadi enkripsi akses kilat.",u:"https://symphonny.vercel.app/STORANGE_VIDEO.html",i:"fa-hard-drive",cat:"media",tags:["STORE","ENCRYPT"]},
-        {id:22,t:"Generator Password",d:"Buat kata sandi super kuat enkripsi militer instan.",u:"https://symphonny.vercel.app/GENERATOR_PASSWORD.html",i:"fa-key",cat:"tool",tags:["SECURE","GEN"]},
-        {id:23,t:"IMP0STOR MODE",d:"Animasi impostor interaktif — KLIK UNTUK SABOTAGE!",u:"#",i:"fa-mask",cat:"game",tags:["ANIMATION","SUS","KILL"]}
+        {id:22,t:"Generator Password",d:"Buat kata sandi super kuat enkripsi militer instan.",u:"https://symphonny.vercel.app/GENERATOR_PASSWORD.html",i:"fa-key",cat:"tool",tags:["SECURE","GEN"]}
     ];
 
-    // HD Canvas Helper
+    // HD Canvas Helper (tetap ada untuk background)
     function setupHDCanvas(canvas, w, h) { const d=window.devicePixelRatio||1; canvas.width=w*d; canvas.height=h*d; canvas.style.width=w+'px'; canvas.style.height=h+'px'; const ctx=canvas.getContext('2d'); ctx.scale(d,d); return ctx; }
 
     // Background Particles
@@ -271,88 +267,22 @@
     // Toast
     function showToast(msg, type='info') { const d=document.createElement('div');d.className='toast';d.innerHTML=`<i class="fas ${type==='kill'?'fa-skull-crossbones':'fa-bell'}" style="color:${type==='kill'?'#e13b3b':'#5dade2'}; margin-right:8px"></i> ${msg}`;document.getElementById('toastArea').appendChild(d);setTimeout(()=>d.remove(),4500) }
 
-    // Render Cards
+    // Render Cards (tanpa logic khusus impostor)
     const gridContainer=document.getElementById('grid');const allCards=[];
 
     MODULES.forEach(mod=>{
         const card=document.createElement('div');card.className='crew-card';card.dataset.cat=mod.cat;
         const randUptime=Math.floor(Math.random()*20+80);
         
-        if(mod.id===23){
-            card.innerHTML=`<div class="card-inner">
-                <div class="c-top"><div class="c-info"><h3>${mod.t}</h3><span class="status sus">SUSPECT</span></div><div class="crew-icon"><i class="fas ${mod.i}"></i></div></div>
-                <div class="c-body"><p class="desc">${mod.d}</p><div class="tags">${mod.tags.map(t=>`<span class="tag">#${t}</span>`).join('')}</div>
-                <canvas id="impCanvas" class="impostor-canvas"></canvas>
-                <div class="meta"><span><i class="fas fa-fire"></i> 99% DANGER</span><span><i class="fas fa-mask"></i> IMPOSTOR</span></div></div>
-                <div class="c-foot"><button class="btn-crew" id="killBtn"><span>💀 SABOTAGE 💀</span> <i class="fas fa-biohazard"></i></button></div>
-            </div>`;
-            gridContainer.appendChild(card);allCards.push(card);
-
-            const canvas=card.querySelector('#impCanvas');const ctx=setupHDCanvas(canvas,400,120);
-            let killActive=false,killProgress=0,killDir=1,bloods=[],t=0;
-            
-            function addBlood(x,y,i){for(let j=0;j<Math.floor(8*i);j++)bloods.push({x:x+(Math.random()-.5)*40,y:y+(Math.random()-.5)*30,vx:(Math.random()-.5)*3,vy:(Math.random()-.5)*2,life:1})}
-            
-            function animate(){
-                if(!canvas.isConnected)return;t+=0.08;
-                ctx.clearRect(0,0,400,120);
-                // Draw BG
-                ctx.fillStyle='#080c18';ctx.fillRect(0,0,400,120);
-                ctx.strokeStyle='rgba(225,59,59,0.1)';ctx.lineWidth=1;
-                for(let i=0;i<400;i+=40){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,120);ctx.stroke()}
-                for(let i=0;i<120;i+=40){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(400,i);ctx.stroke()}
-
-                if(killActive){
-                    killProgress+=0.04*killDir;
-                    if(killProgress>=1){killDir=-1;addBlood(100,60,1.5);showToast("⚠️ IMPOSTOR MEMBUNUH! DARAH BERCECERAN ⚠️","kill")}
-                    if(killProgress<=0){killActive=false;killProgress=0;killDir=1}
-                }
-                let f=killActive?(killDir===1?killProgress:1-killProgress):0;
-                let leg=Math.sin(t*8)*0.8;
-                
-                ctx.save();ctx.translate(90,65);
-                // Backpack
-                ctx.beginPath();ctx.ellipse(-18,0,10,18,-0.2,0,Math.PI*2);ctx.fillStyle="#a93226";ctx.fill();
-                // Body
-                ctx.beginPath();ctx.ellipse(0,0,24,32,0,0,Math.PI*2);ctx.fillStyle="#c0392b";ctx.fill();
-                // Legs
-                ctx.lineWidth=8;ctx.strokeStyle="#9a2a1f";ctx.lineCap='round';
-                ctx.beginPath();ctx.moveTo(-8,28);ctx.lineTo(-12+Math.sin(leg)*8,42);ctx.stroke();
-                ctx.beginPath();ctx.moveTo(8,28);ctx.lineTo(12-Math.sin(leg)*8,42);ctx.stroke();
-                // Visor
-                ctx.beginPath();ctx.ellipse(-4,-6,10,12,-0.1,0,Math.PI*2);ctx.fillStyle=killActive?`rgba(255,50,50,${0.8+f*0.2})`:"#5dade2";ctx.fill();
-                ctx.beginPath();ctx.ellipse(-7,-9,3,4,-0.1,0,Math.PI*2);ctx.fillStyle="rgba(255,255,255,0.8)";ctx.fill();
-                // Knife
-                if(f>0.2){
-                    ctx.save();ctx.translate(16,-5);ctx.rotate(-0.5+f*1.2);
-                    ctx.beginPath();ctx.moveTo(0,-2);ctx.lineTo(20,0);ctx.lineTo(0,2);ctx.closePath();ctx.fillStyle="#e0e0e0";ctx.fill();
-                    ctx.fillRect(-4,-2,8,4);ctx.fillStyle="#8e9aaf";ctx.fill();ctx.restore();
-                }
-                // Blood
-                for(let i=0;i<bloods.length;i++){
-                    let b=bloods[i];b.x+=b.vx;b.y+=b.vy;b.vy+=0.1;b.life-=0.02;
-                    if(b.life<=0){bloods.splice(i,1);i--}
-                    else{ctx.beginPath();ctx.arc(b.x,b.y,3*b.life,0,Math.PI*2);ctx.fillStyle=`rgba(200,30,30,${b.life})`;ctx.fill()}
-                }
-                ctx.restore();
-                requestAnimationFrame(animate);
-            }
-            animate();
-            
-            const triggerKill=()=>{if(!killActive){killActive=true;killProgress=0;killDir=1;bloods=[];addBlood(90,60,0.5)}};
-            card.querySelector('#killBtn').addEventListener('click',triggerKill);
-            canvas.addEventListener('click',triggerKill);
-
-        } else {
-            card.innerHTML=`<div class="card-inner">
-                <div class="c-top"><div class="c-info"><h3>${mod.t}</h3><span class="status">ONLINE</span></div><div class="crew-icon"><i class="fas ${mod.i}"></i></div></div>
-                <div class="c-body"><p class="desc">${mod.d}</p><div class="tags">${mod.tags.map(t=>`<span class="tag">#${t}</span>`).join('')}</div>
-                <div class="meta"><span><i class="fas fa-signal"></i> ${randUptime}%</span><span><i class="fas fa-clock"></i> TASK OK</span></div></div>
-                <div class="c-foot"><button class="btn-crew" data-url="${mod.u}"><span>AKSES TASK</span> <i class="fas fa-arrow-right"></i></button></div>
-            </div>`;
-            gridContainer.appendChild(card);allCards.push(card);
-            card.querySelector('.btn-crew').addEventListener('click',function(){window.open(this.dataset.url,'_blank')});
-        }
+        // Semua card adalah module normal
+        card.innerHTML=`<div class="card-inner">
+            <div class="c-top"><div class="c-info"><h3>${mod.t}</h3><span class="status">ONLINE</span></div><div class="crew-icon"><i class="fas ${mod.i}"></i></div></div>
+            <div class="c-body"><p class="desc">${mod.d}</p><div class="tags">${mod.tags.map(t=>`<span class="tag">#${t}</span>`).join('')}</div>
+            <div class="meta"><span><i class="fas fa-signal"></i> ${randUptime}%</span><span><i class="fas fa-clock"></i> TASK OK</span></div></div>
+            <div class="c-foot"><button class="btn-crew" data-url="${mod.u}"><span>AKSES TASK</span> <i class="fas fa-arrow-right"></i></button></div>
+        </div>`;
+        gridContainer.appendChild(card);allCards.push(card);
+        card.querySelector('.btn-crew').addEventListener('click',function(){window.open(this.dataset.url,'_blank')});
 
         // 3D Tilt Hover
         card.addEventListener('mousemove',e=>{const r=card.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;card.style.transform=`perspective(800px) rotateX(${(y/r.height-.5)*-6}deg) rotateY(${(x/r.width-.5)*6}deg) translateY(-8px)`});
@@ -382,7 +312,7 @@
     // Time
     setInterval(()=>document.getElementById('liveTime').innerText=new Date().toLocaleTimeString('en-GB'),1000);
 
-    // Random Alerts
+    // Random Alerts (tetap ada untuk suasana)
     setInterval(()=>{if(Math.random()<0.15)showToast("⚠️ ALIHPASANGAN TERDETEKSI DI REAKTOR ⚠️","kill")},15000);
 
     // Protect
