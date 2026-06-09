@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>VORTEX Player X | Zero Lag Turbo</title>
+    <title>VORTEX Player X | Low Buffer Edition</title>
     <style>
         * {
             margin: 0;
@@ -104,7 +104,7 @@
         .buffer-progress {
             position: absolute;
             height: 100%;
-            background: rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.25);
             width: 0%;
             border-radius: 10px;
             pointer-events: none;
@@ -290,55 +290,40 @@
             .time-text { font-size: 0.7rem; }
             .volume-slider { width: 55px; }
         }
-        .perf-badge {
-            background: #1a8f5c;
-            border-radius: 20px;
-            padding: 2px 10px;
-            font-size: 0.65rem;
-            margin-left: 8px;
-        }
-        .stats-row {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-        /* Tooltip notifikasi */
-        .toast-notif {
+        .vortex-toast {
             position: fixed;
-            bottom: 90px;
+            bottom: 80px;
             left: 50%;
             transform: translateX(-50%);
             background: #1e1e2ecc;
             backdrop-filter: blur(12px);
             color: #ffd966;
-            padding: 6px 18px;
+            padding: 6px 20px;
             border-radius: 40px;
             font-size: 0.75rem;
             font-weight: 500;
             z-index: 1000;
             border: 1px solid #ffd966;
-            pointer-events: none;
             white-space: nowrap;
-            animation: fadeInOut 2s ease forwards;
+            pointer-events: none;
+            animation: fadeToast 0.2s ease;
         }
-        @keyframes fadeInOut {
-            0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
-            15% { opacity: 1; transform: translateX(-50%) translateY(0); }
-            85% { opacity: 1; transform: translateX(-50%) translateY(0); }
-            100% { opacity: 0; transform: translateX(-50%) translateY(-8px); visibility: hidden; }
+        @keyframes fadeToast {
+            from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="hero">
-        <h1>VORTEX Zero Lag Turbo</h1>
-        <div class="badge">⚡ ANTI-LAG ENGINE | PREDICTIVE BUFFER ⚡</div>
+        <h1>VORTEX Zero Lag</h1>
+        <div class="badge">⚡ LOW BUFFER MODE | HEMAT BANDWIDTH ⚡</div>
     </div>
 
     <div class="player-card">
         <div class="player-container">
-            <video id="videoPlayer" preload="auto" crossorigin="anonymous">
+            <video id="videoPlayer" preload="metadata" crossorigin="anonymous">
                 <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
             </video>
             <div class="controls">
@@ -349,7 +334,7 @@
                     </div>
                     <div class="time-stats">
                         <span id="currentTimeLabel">00:00</span>
-                        <span id="bufferPercent">● buffer 0%</span>
+                        <span id="bufferPercent" style="display:none;">● buffer 0%</span> <!-- Disembunyikan agar tidak mengganggu -->
                         <span id="durationLabel">00:00</span>
                     </div>
                 </div>
@@ -374,446 +359,398 @@
                         <button class="ctrl-btn" id="fullscreenBtn">⛶</button>
                     </div>
                 </div>
-                <div id="stutterWarning" class="warning-banner" style="display: none;">⚡ Optimasi anti-lag aktif</div>
+                <div id="stutterWarning" class="warning-banner" style="display: none;">⚡ Optimasi low buffer</div>
             </div>
         </div>
     </div>
 
     <div class="source-panel">
         <div class="input-row">
-            <input type="text" id="videoUrlInput" class="url-input" placeholder="URL video (mp4, webm, m3u8 live support)">
+            <input type="text" id="videoUrlInput" class="url-input" placeholder="URL video (mp4, webm)">
             <button id="loadUrlButton" class="btn-grad">🚀 Muat URL</button>
             <input type="file" id="localFile" accept="video/*" style="display:none">
             <label for="localFile" class="file-label">📂 File Lokal</label>
         </div>
         <div class="info-status">
-            <span>🎬 <span id="fileStatus">BigBuckBunny (demo turbo)</span></span>
-            <span class="stats-row">⚡ <span id="perfStatus">Mode: Ultra Lancar</span></span>
+            <span>🎬 <span id="fileStatus">BigBuckBunny (demo)</span></span>
+            <span class="stats-row">⚡ <span id="perfStatus">Mode: Low Buffer</span></span>
         </div>
     </div>
     <div class="footer">
-        <p>🔧 Zero Lag: preload agresif + deteksi lag otomatis + buffer prediktif | Pengalaman mulus tanpa stutter</p>
+        <p>🔧 Mode Low Buffer: preload 'metadata' + buffer minimal | Video tetap lancar tanpa konsumsi data berlebih</p>
     </div>
 </div>
 
 <script>
-    (function() {
-        // ========== DOM Elements ==========
-        const video = document.getElementById('videoPlayer');
-        const playBtn = document.getElementById('playPauseBtn');
-        const playIcon = document.getElementById('playIcon');
-        const rewind10 = document.getElementById('rewind10');
-        const forward10 = document.getElementById('forward10');
-        const currentSpan = document.getElementById('currentTime');
-        const durationSpan = document.getElementById('duration');
-        const currentLabel = document.getElementById('currentTimeLabel');
-        const durationLabel = document.getElementById('durationLabel');
-        const playProgress = document.getElementById('playProgress');
-        const bufferProgress = document.getElementById('bufferProgress');
-        const progressWrapper = document.getElementById('progressWrapper');
-        const muteBtn = document.getElementById('muteBtn');
-        const volumeSlider = document.getElementById('volumeSlider');
-        const speedSelect = document.getElementById('speedSelect');
-        const loopBtn = document.getElementById('loopBtn');
-        const fullscreenBtn = document.getElementById('fullscreenBtn');
-        const videoUrlInput = document.getElementById('videoUrlInput');
-        const loadUrlButton = document.getElementById('loadUrlButton');
-        const localFileInput = document.getElementById('localFile');
-        const fileStatusSpan = document.getElementById('fileStatus');
-        const stutterWarning = document.getElementById('stutterWarning');
-        const bufferPercentSpan = document.getElementById('bufferPercent');
-        const perfStatusSpan = document.getElementById('perfStatus');
+    // ========== DOM Elements ==========
+    const video = document.getElementById('videoPlayer');
+    const playBtn = document.getElementById('playPauseBtn');
+    const playIcon = document.getElementById('playIcon');
+    const rewind10 = document.getElementById('rewind10');
+    const forward10 = document.getElementById('forward10');
+    const currentSpan = document.getElementById('currentTime');
+    const durationSpan = document.getElementById('duration');
+    const currentLabel = document.getElementById('currentTimeLabel');
+    const durationLabel = document.getElementById('durationLabel');
+    const playProgress = document.getElementById('playProgress');
+    const bufferProgress = document.getElementById('bufferProgress');
+    const progressWrapper = document.getElementById('progressWrapper');
+    const muteBtn = document.getElementById('muteBtn');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const speedSelect = document.getElementById('speedSelect');
+    const loopBtn = document.getElementById('loopBtn');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const videoUrlInput = document.getElementById('videoUrlInput');
+    const loadUrlButton = document.getElementById('loadUrlButton');
+    const localFileInput = document.getElementById('localFile');
+    const fileStatusSpan = document.getElementById('fileStatus');
+    const stutterWarning = document.getElementById('stutterWarning');
+    const perfStatusSpan = document.getElementById('perfStatus');
+    
+    // ========== ANTI-LAG & LOW BUFFER ==========
+    let lagDetectionCount = 0;
+    let lastTimeUpdate = 0;
+    let lastVideoTime = 0;
+    let frameDropCount = 0;
+    let warningTimeout = null;
+    let activeToast = null;
+    
+    function formatTime(sec) {
+        if (isNaN(sec) || !isFinite(sec) || sec < 0) return "00:00";
+        let m = Math.floor(sec / 60);
+        let s = Math.floor(sec % 60);
+        return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    }
+    
+    function showToast(msg, duration = 1800) {
+        if (activeToast) activeToast.remove();
+        const toast = document.createElement('div');
+        toast.className = 'vortex-toast';
+        toast.innerText = msg;
+        document.body.appendChild(toast);
+        activeToast = toast;
+        setTimeout(() => { if (activeToast === toast) toast.remove(); }, duration);
+    }
+    
+    function resetLagDetector() {
+        lagDetectionCount = 0;
+        frameDropCount = 0;
+        lastTimeUpdate = 0;
+        lastVideoTime = 0;
+        if (stutterWarning) stutterWarning.style.display = 'none';
+        if (warningTimeout) clearTimeout(warningTimeout);
+    }
+    
+    function updateProgress() {
+        if (!video.duration || isNaN(video.duration) || video.duration === 0) return;
+        const percent = (video.currentTime / video.duration) * 100;
+        playProgress.style.width = `${percent}%`;
         
-        // ========== ANTI-LAG CORE VARIABLES ==========
-        let lagScore = 0;               // Semakin tinggi semakin lemot
-        let lastTimestamp = 0;
-        let lastVideoTime = 0;
-        let frameDropAcc = 0;
-        let warningHideTimeout = null;
-        let adaptiveSpeedFlag = false;   // cegah spam notif kecepatan
-        
-        // Notifikasi cepat
-        function showToast(message, duration = 1800) {
-            const toast = document.createElement('div');
-            toast.className = 'toast-notif';
-            toast.innerText = message;
-            document.body.appendChild(toast);
-            setTimeout(() => { if(toast && toast.remove) toast.remove(); }, duration);
+        if (video.buffered.length > 0) {
+            const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+            const bufferPercentVal = (bufferedEnd / video.duration) * 100;
+            bufferProgress.style.width = `${bufferPercentVal}%`;
+            // Tidak menampilkan persentase buffer di UI (low buffer mode)
         }
-        
-        // Format waktu
-        function formatTime(sec) {
-            if (isNaN(sec) || !isFinite(sec) || sec < 0) return "00:00";
-            let m = Math.floor(sec / 60);
-            let s = Math.floor(sec % 60);
-            return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    }
+    
+    function updateTimeDisplay() {
+        if (!video.duration || isNaN(video.duration)) return;
+        currentSpan.innerText = formatTime(video.currentTime);
+        durationSpan.innerText = formatTime(video.duration);
+        currentLabel.innerText = formatTime(video.currentTime);
+        durationLabel.innerText = formatTime(video.duration);
+    }
+    
+    function updatePlayPauseIcon() {
+        playIcon.innerText = video.paused ? '▶' : '⏸';
+    }
+    
+    function updateLoopUI() {
+        if (video.loop) {
+            loopBtn.style.background = "#ff4757";
+            loopBtn.style.color = "white";
+        } else {
+            loopBtn.style.background = "rgba(30,30,45,0.75)";
+            loopBtn.style.color = "white";
         }
+        loopBtn.innerText = "🔁";
+    }
+    
+    // Deteksi lag minimal (tidak agresif)
+    function detectLagAndOptimize() {
+        if (video.paused || video.ended || video.seeking || video.readyState < 2) return;
         
-        // Update progress bar & buffer
-        function updateProgressAndBuffer() {
-            if (!video.duration || isNaN(video.duration) || video.duration === 0) return;
-            const percent = (video.currentTime / video.duration) * 100;
-            playProgress.style.width = `${percent}%`;
+        const now = performance.now();
+        const currentVidTime = video.currentTime;
+        
+        if (lastTimeUpdate > 0 && lastVideoTime !== undefined && !video.seeking) {
+            const realElapsed = now - lastTimeUpdate;
+            const videoElapsed = currentVidTime - lastVideoTime;
             
-            let bufferWidth = 0;
-            if (video.buffered.length > 0) {
-                const bufferedEnd = video.buffered.end(video.buffered.length - 1);
-                bufferWidth = (bufferedEnd / video.duration) * 100;
-                bufferProgress.style.width = `${bufferWidth}%`;
-                bufferPercentSpan.innerText = `● buffer ${Math.floor(bufferWidth)}%`;
-            } else {
-                bufferPercentSpan.innerText = `● buffer 0%`;
-            }
-        }
-        
-        function updateTimeTexts() {
-            if (!video.duration || isNaN(video.duration)) return;
-            currentSpan.innerText = formatTime(video.currentTime);
-            durationSpan.innerText = formatTime(video.duration);
-            currentLabel.innerText = formatTime(video.currentTime);
-            durationLabel.innerText = formatTime(video.duration);
-        }
-        
-        function updatePlayIcon() {
-            playIcon.innerText = video.paused ? '▶' : '⏸';
-        }
-        
-        function updateLoopStyle() {
-            loopBtn.style.opacity = video.loop ? '1' : '0.6';
-            loopBtn.style.color = video.loop ? '#ff4757' : '#fff';
-        }
-        
-        // ========== CORE ANTI-LAG DETECTOR (super responsif) ==========
-        function analyzePerformanceAndFix() {
-            if (video.paused || video.ended || video.readyState < 1) return;
-            
-            const now = performance.now();
-            const currentVid = video.currentTime;
-            
-            if (lastTimestamp > 0 && lastVideoTime !== undefined && !video.seeking) {
-                const realDelta = now - lastTimestamp;
-                const videoDelta = currentVid - lastVideoTime;
+            // Hanya deteksi lag yang parah
+            if (realElapsed > 180 && videoElapsed < 0.02 && video.readyState >= 2) {
+                lagDetectionCount++;
+                frameDropCount++;
                 
-                // Kondisi lag: video tidak bergerak atau bergerak sangat lambat saat seharusnya play
-                if (realDelta > 120 && videoDelta < 0.03 && video.readyState >= 2 && !video.paused) {
-                    lagScore = Math.min(lagScore + 0.7, 12);
-                    frameDropAcc++;
-                    
-                    // Jika lagScore melewati threshold, aktifkan peringatan dan optimasi
-                    if (lagScore >= 2.5) {
-                        if (stutterWarning && stutterWarning.style.display !== 'inline-flex') {
-                            stutterWarning.style.display = 'inline-flex';
-                            stutterWarning.innerText = video.playbackRate > 1.2 ? '⚠️ Lag karena kecepatan tinggi! Turunkan rate.' : '🔄 Mengoptimalkan buffer...';
-                            if (warningHideTimeout) clearTimeout(warningHideTimeout);
-                            warningHideTimeout = setTimeout(() => {
-                                if (stutterWarning && lagScore < 1.5) stutterWarning.style.display = 'none';
-                            }, 2800);
-                        }
-                        
-                        // Saran pintar hanya sekali tiap sesi
-                        if (video.playbackRate > 1.4 && frameDropAcc > 4 && !adaptiveSpeedFlag) {
-                            adaptiveSpeedFlag = true;
-                            showToast('💡 Turunkan kecepatan ke 1x untuk pengalaman bebas lag', 3500);
-                            setTimeout(() => { adaptiveSpeedFlag = false; }, 10000);
-                        }
-                        
-                        // Optimasi paksa: pastikan preload auto & load lebih agresif
-                        if (video.preload !== 'auto') video.preload = 'auto';
-                        
-                        // Jika buffer tipis, panggil load()
-                        if (video.buffered.length > 0) {
-                            const bufferLeft = video.buffered.end(video.buffered.length-1) - video.currentTime;
-                            if (bufferLeft < 2.0 && video.networkState === video.NETWORK_IDLE) {
-                                video.load(); // refresh buffer
-                            }
-                        }
-                    }
-                } else if (videoDelta > 0.04) {
-                    // Lancar, kurangi skor lag secara bertahap
-                    lagScore = Math.max(0, lagScore - 0.3);
-                    frameDropAcc = Math.max(0, frameDropAcc - 0.4);
-                } else if (video.readyState >= 3 && lagScore > 0) {
-                    lagScore = Math.max(0, lagScore - 0.2);
+                if (lagDetectionCount >= 2 && stutterWarning && stutterWarning.style.display !== 'inline-flex') {
+                    stutterWarning.style.display = 'inline-flex';
+                    stutterWarning.innerText = video.playbackRate > 1.3 ? '⚠️ Turunkan kecepatan' : '⚡ Menyesuaikan buffer...';
+                    if (warningTimeout) clearTimeout(warningTimeout);
+                    warningTimeout = setTimeout(() => {
+                        if (stutterWarning) stutterWarning.style.display = 'none';
+                    }, 2000);
                 }
-            }
-            
-            lastTimestamp = now;
-            lastVideoTime = currentVid;
-            
-            // Update status UI berdasarkan kondisi
-            let statusMsg = '', statusColor = '';
-            if (lagScore < 1.2 && video.readyState >= 3) {
-                statusMsg = '✅ Mode: Zero Lag';
-                statusColor = '#88ffaa';
-            } else if (video.buffered.length > 0) {
-                const bufferAdv = video.buffered.end(video.buffered.length-1) - video.currentTime;
-                if (bufferAdv > 5) {
-                    statusMsg = '⚡ Streaming Super Lancar';
-                    statusColor = '#aaffdd';
-                } else if (bufferAdv > 2) {
-                    statusMsg = '🟢 Buffer Aman';
-                    statusColor = '#ffd966';
-                } else {
-                    statusMsg = '⚠️ Buffer Tipis, Loading...';
-                    statusColor = '#ffaa66';
-                }
-            } else {
-                statusMsg = '🔄 Menyiapkan...';
-                statusColor = '#aaa';
-            }
-            if (perfStatusSpan) {
-                perfStatusSpan.innerText = statusMsg;
-                perfStatusSpan.style.color = statusColor;
+                
+                if (video.preload !== 'metadata') video.preload = 'metadata'; // tetap hemat buffer
+            } else if (videoElapsed > 0.05) {
+                lagDetectionCount = Math.max(0, lagDetectionCount - 0.5);
+                frameDropCount = Math.max(0, frameDropCount - 0.5);
             }
         }
         
-        // Pemantau kesehatan buffer (prediktif)
-        function checkBufferHealthAndPreventLag() {
-            if (!video.duration || video.paused || video.ended || video.readyState < 1) return;
-            if (video.buffered.length === 0) return;
-            
+        lastTimeUpdate = now;
+        lastVideoTime = currentVidTime;
+        
+        // Status performa disederhanakan
+        if (lagDetectionCount < 1 && video.readyState >= 3) {
+            perfStatusSpan.innerText = '✅ Lancar & Hemat Buffer';
+            perfStatusSpan.style.color = '#88ffaa';
+        } else if (video.buffered.length > 0 && (video.buffered.end(video.buffered.length-1) - video.currentTime) > 3) {
+            perfStatusSpan.innerText = '⚡ Buffer Cukup';
+            perfStatusSpan.style.color = '#ffd966';
+        } else {
+            perfStatusSpan.innerText = '🎬 Mode Low Buffer';
+            perfStatusSpan.style.color = '#ccc';
+        }
+    }
+    
+    // Pemeriksaan buffer minimal (tidak terlalu sering warning)
+    function checkBufferHealth() {
+        if (!video.duration || video.paused || video.ended || video.seeking) return;
+        if (video.buffered.length > 0) {
             const bufferedUntil = video.buffered.end(video.buffered.length - 1);
             const bufferAhead = bufferedUntil - video.currentTime;
-            const playbackRate = video.playbackRate;
             
-            // Jika buffer sangat rendah dan kecepatan tinggi -> adaptif
-            if (bufferAhead < 2.5 && playbackRate > 1.2 && !video.seeking && video.readyState >= 2) {
-                if (stutterWarning && stutterWarning.innerText !== '⚠️ Buffer rendah! Menurunkan kecepatan...') {
-                    stutterWarning.innerText = '⚠️ Buffer rendah! Menurunkan kecepatan...';
+            // Hanya warning jika buffer sangat kritis (kurang dari 1 detik)
+            if (bufferAhead < 1.0 && !video.seeking && video.playbackRate <= 1.2) {
+                if (stutterWarning && stutterWarning.style.display !== 'inline-flex') {
+                    stutterWarning.innerText = '⚠️ Buffer hampir habis';
                     stutterWarning.style.display = 'inline-flex';
-                    if (warningHideTimeout) clearTimeout(warningHideTimeout);
-                    warningHideTimeout = setTimeout(() => {
-                        if (stutterWarning && lagScore < 1) stutterWarning.style.display = 'none';
-                    }, 4000);
+                    setTimeout(() => {
+                        if (stutterWarning) stutterWarning.style.display = 'none';
+                    }, 2000);
                 }
-                // Rekomendasi tanpa paksa (user tetap bisa kontrol)
-                if (!adaptiveSpeedFlag && playbackRate > 1.3) {
-                    showToast('📉 Buffer menipis, turunkan speed agar tetap mulus', 2500);
-                    adaptiveSpeedFlag = true;
-                    setTimeout(() => adaptiveSpeedFlag = false, 8000);
-                }
-            } 
-            else if (bufferAhead > 7 && stutterWarning && stutterWarning.style.display === 'inline-flex') {
-                // Sembunyikan warning kalau sudah aman
+            } else if (bufferAhead > 4 && stutterWarning && stutterWarning.style.display === 'inline-flex' && lagDetectionCount < 1) {
                 setTimeout(() => {
-                    if (stutterWarning && lagScore < 0.8) stutterWarning.style.display = 'none';
+                    if (stutterWarning && lagDetectionCount < 1) stutterWarning.style.display = 'none';
                 }, 1000);
             }
-            
-            // Jika buffer hampir habis dan video berjalan, lakukan preload ekstra
-            if (bufferAhead < 1.2 && !video.paused && video.readyState < 3 && !video.seeking) {
-                if (video.preload !== 'auto') video.preload = 'auto';
-                // Memaksa browser memuat lebih banyak
-                if (video.networkState === video.NETWORK_IDLE) {
-                    video.load();
-                }
-            }
         }
-        
-        // ========== EVENT HANDLER ANTI-LAG ==========
-        function onWaitingEvent() {
-            lagScore = Math.min(lagScore + 1.2, 10);
-            if (stutterWarning) {
-                stutterWarning.innerText = '⏳ Memuat buffer cerdas...';
-                stutterWarning.style.display = 'inline-flex';
-                if (warningHideTimeout) clearTimeout(warningHideTimeout);
-                warningHideTimeout = setTimeout(() => {
-                    if (stutterWarning && video.readyState >= 3) stutterWarning.style.display = 'none';
-                }, 4500);
-            }
+    }
+    
+    // Event handlers
+    function onWaiting() {
+        lagDetectionCount = Math.min(lagDetectionCount + 1, 4);
+        if (stutterWarning) {
+            stutterWarning.innerText = '⏳ Mengisi buffer minimal...';
+            stutterWarning.style.display = 'inline-flex';
+            setTimeout(() => {
+                if (stutterWarning && video.readyState >= 3) stutterWarning.style.display = 'none';
+            }, 3000);
         }
-        
-        function onPlayingEvent() {
-            lagScore = Math.max(0, lagScore - 0.9);
-            if (stutterWarning && video.readyState >= 3 && lagScore < 1) {
-                setTimeout(() => {
-                    if (stutterWarning && lagScore < 1) stutterWarning.style.display = 'none';
-                }, 1200);
-            }
+    }
+    
+    function onPlaying() {
+        lagDetectionCount = Math.max(0, lagDetectionCount - 1);
+        if (stutterWarning && video.readyState >= 3) {
+            setTimeout(() => {
+                if (stutterWarning && lagDetectionCount < 1) stutterWarning.style.display = 'none';
+            }, 1200);
         }
-        
-        function onSeekingEvent() {
-            lagScore = 0;
-            frameDropAcc = 0;
-            if (stutterWarning) stutterWarning.style.display = 'none';
+    }
+    
+    function onSeekingStart() {
+        resetLagDetector();
+        if (stutterWarning) stutterWarning.style.display = 'none';
+    }
+    
+    let updateScheduled = false;
+    function throttledUpdate() {
+        if (!updateScheduled) {
+            requestAnimationFrame(() => {
+                updateProgress();
+                updateTimeDisplay();
+                detectLagAndOptimize();
+                checkBufferHealth();
+                updateScheduled = false;
+            });
+            updateScheduled = true;
         }
-        
-        let rafScheduled = false;
-        function scheduleUIUpdate() {
-            if (!rafScheduled) {
-                requestAnimationFrame(() => {
-                    updateProgressAndBuffer();
-                    updateTimeTexts();
-                    analyzePerformanceAndFix();
-                    checkBufferHealthAndPreventLag();
-                    rafScheduled = false;
-                });
-                rafScheduled = true;
-            }
+    }
+    
+    // Event binding
+    video.addEventListener('waiting', onWaiting);
+    video.addEventListener('playing', onPlaying);
+    video.addEventListener('seeking', onSeekingStart);
+    video.addEventListener('timeupdate', throttledUpdate);
+    video.addEventListener('progress', throttledUpdate);
+    video.addEventListener('loadedmetadata', () => {
+        updateTimeDisplay();
+        updateProgress();
+        video.preload = 'metadata';   // Low buffer: hanya muat metadata
+        perfStatusSpan.innerText = '✅ Mode Low Buffer Aktif';
+        resetLagDetector();
+        updateLoopUI();
+        if (stutterWarning) stutterWarning.style.display = 'none';
+    });
+    video.addEventListener('play', updatePlayPauseIcon);
+    video.addEventListener('pause', updatePlayPauseIcon);
+    video.addEventListener('ended', updatePlayPauseIcon);
+    video.addEventListener('ratechange', () => {
+        if (video.playbackRate > 1.5 && video.buffered.length) {
+            const ahead = video.buffered.end(video.buffered.length-1) - video.currentTime;
+            if (ahead < 2.5) showToast('⚠️ Kecepatan tinggi, buffer minimal bisa menyebabkan lag', 2000);
         }
-        
-        // ========== Attach Events ==========
-        video.addEventListener('waiting', onWaitingEvent);
-        video.addEventListener('playing', onPlayingEvent);
-        video.addEventListener('seeked', onSeekingEvent);
-        video.addEventListener('seeking', onSeekingEvent);
-        video.addEventListener('timeupdate', scheduleUIUpdate);
-        video.addEventListener('progress', scheduleUIUpdate);
-        video.addEventListener('loadedmetadata', () => {
-            updateTimeTexts();
-            updateProgressAndBuffer();
-            video.preload = 'auto';
-            lagScore = 0;
-            frameDropAcc = 0;
-            if (stutterWarning) stutterWarning.style.display = 'none';
-            perfStatusSpan.innerText = '✅ Siap Putar';
-            fileStatusSpan.innerText = fileStatusSpan.innerText || 'Video siap';
-            showToast('VORTEX Engine aktif - anti lag siap', 1200);
-        });
-        video.addEventListener('play', updatePlayIcon);
-        video.addEventListener('pause', updatePlayIcon);
-        video.addEventListener('ended', updatePlayIcon);
-        video.addEventListener('ratechange', () => {
-            checkBufferHealthAndPreventLag();
-            if (video.playbackRate > 1.4 && video.buffered.length) {
-                const ahead = video.buffered.end(video.buffered.length-1) - video.currentTime;
-                if (ahead < 3.5) {
-                    showToast('⚠️ Kecepatan tinggi & buffer rendah → potensi lag', 2200);
-                } else {
-                    showToast(`⚡ Kecepatan ${video.playbackRate}x`, 800);
-                }
-            } else {
-                showToast(`Kecepatan ${video.playbackRate}x`, 700);
-            }
-        });
-        
-        // ========== CONTROL BUTTONS ==========
-        playBtn.addEventListener('click', () => video.paused ? video.play() : video.pause());
-        rewind10.addEventListener('click', () => {
-            video.currentTime = Math.max(0, video.currentTime - 10);
-            showToast('⏪ Mundur 10 detik', 700);
-        });
-        forward10.addEventListener('click', () => {
-            video.currentTime = Math.min(video.duration, video.currentTime + 10);
-            showToast('⏩ Maju 10 detik', 700);
-        });
-        progressWrapper.addEventListener('click', (e) => {
-            if (!video.duration) return;
-            const rect = progressWrapper.getBoundingClientRect();
-            const percent = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
-            video.currentTime = percent * video.duration;
-        });
-        muteBtn.addEventListener('click', () => {
-            video.muted = !video.muted;
-            muteBtn.innerText = video.muted ? '🔇' : '🔊';
-            if (!video.muted) volumeSlider.value = video.volume;
-            else volumeSlider.value = 0;
-        });
-        volumeSlider.addEventListener('input', (e) => {
-            const val = parseFloat(e.target.value);
-            video.volume = val;
-            if (val === 0) {
-                video.muted = true;
-                muteBtn.innerText = '🔇';
-            } else {
-                video.muted = false;
-                muteBtn.innerText = val < 0.3 ? '🔉' : '🔊';
-            }
-        });
-        speedSelect.addEventListener('change', (e) => {
-            video.playbackRate = parseFloat(e.target.value);
-        });
-        loopBtn.addEventListener('click', () => {
-            video.loop = !video.loop;
-            updateLoopStyle();
-            showToast(video.loop ? '🔁 Loop aktif' : 'Loop nonaktif', 800);
-        });
-        fullscreenBtn.addEventListener('click', () => {
-            const container = document.querySelector('.player-container');
-            if (!document.fullscreenElement) {
-                container.requestFullscreen().catch(e => console.warn(e));
-                fullscreenBtn.innerText = '✖';
-            } else {
-                document.exitFullscreen();
-                fullscreenBtn.innerText = '⛶';
-            }
-        });
-        document.addEventListener('fullscreenchange', () => {
-            fullscreenBtn.innerText = document.fullscreenElement ? '✖' : '⛶';
-        });
-        
-        // ========== LOAD URL / FILE ==========
-        function loadVideoFromURL(url) {
-            if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                showToast('URL harus http:// atau https://', 1500);
-                return false;
-            }
-            const wasPlaying = !video.paused;
+    });
+    video.addEventListener('error', (e) => {
+        let errorMsg = "Gagal memuat video. Cek URL atau format.";
+        if (video.error) {
+            if (video.error.code === 4) errorMsg = "Format tidak didukung atau server error.";
+            else errorMsg = `Error: ${video.error.message || "Tidak diketahui"}`;
+        }
+        showToast(errorMsg, 3000);
+        fileStatusSpan.innerText = "Gagal load video";
+        perfStatusSpan.innerText = "❌ Error video";
+    });
+    
+    // ========== KONTROL PLAYER ==========
+    playBtn.addEventListener('click', () => {
+        if (video.paused) {
+            video.play().catch(err => showToast("Autoplay diblokir. Klik play lagi", 1500));
+        } else {
             video.pause();
-            // Revoke blob sebelumnya jika ada
-            if (video.src && video.src.startsWith('blob:')) URL.revokeObjectURL(video.src);
-            video.src = url;
-            video.load();
-            video.preload = 'auto';
-            try {
-                const path = new URL(url).pathname;
-                const fname = path.split('/').pop() || 'Video Online';
-                fileStatusSpan.innerText = fname.substring(0, 48);
-            } catch(e) { fileStatusSpan.innerText = 'Stream Online'; }
-            if (wasPlaying) video.play().catch(() => showToast('Klik play untuk mulai', 1000));
-            lagScore = 0;
-            frameDropAcc = 0;
-            if (stutterWarning) stutterWarning.style.display = 'none';
-            showToast('🚀 Memuat dengan engine turbo...', 1800);
-            return true;
         }
-        
-        loadUrlButton.addEventListener('click', () => {
-            let url = videoUrlInput.value.trim();
-            if (!url) { showToast('Masukkan URL video', 1200); return; }
-            loadVideoFromURL(url);
-        });
-        
-        localFileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file || !file.type.startsWith('video/')) {
-                showToast('Pilih file video yang valid', 1500);
-                return;
-            }
-            if (video.src && video.src.startsWith('blob:')) URL.revokeObjectURL(video.src);
-            const blobUrl = URL.createObjectURL(file);
-            const wasPlaying = !video.paused;
-            video.pause();
-            video.src = blobUrl;
-            video.load();
-            video.preload = 'auto';
-            fileStatusSpan.innerText = file.name.substring(0, 48);
-            if (wasPlaying) video.play().catch(() => {});
-            videoUrlInput.value = file.name;
-            localFileInput.value = '';
-            lagScore = 0;
-            if (stutterWarning) stutterWarning.style.display = 'none';
-            showToast(`📂 ${file.name} dimuat zero lag`, 1800);
-        });
-        
-        // ========== INITIAL SETUP ==========
+    });
+    rewind10.addEventListener('click', () => {
+        video.currentTime = Math.max(0, video.currentTime - 10);
+        showToast('⏪ Mundur 10 detik', 800);
+    });
+    forward10.addEventListener('click', () => {
+        video.currentTime = Math.min(video.duration, video.currentTime + 10);
+        showToast('⏩ Maju 10 detik', 800);
+    });
+    progressWrapper.addEventListener('click', (e) => {
+        if (!video.duration) return;
+        const rect = progressWrapper.getBoundingClientRect();
+        const percent = (e.clientX - rect.left) / rect.width;
+        video.currentTime = percent * video.duration;
+        resetLagDetector();
+    });
+    muteBtn.addEventListener('click', () => {
+        video.muted = !video.muted;
+        muteBtn.innerText = video.muted ? '🔇' : (video.volume === 0 ? '🔇' : '🔊');
+        if (!video.muted) volumeSlider.value = video.volume;
+        else volumeSlider.value = 0;
+    });
+    volumeSlider.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        video.volume = val;
+        video.muted = (val === 0);
+        muteBtn.innerText = val === 0 ? '🔇' : (val < 0.3 ? '🔉' : '🔊');
+    });
+    speedSelect.addEventListener('change', (e) => {
+        const newRate = parseFloat(e.target.value);
+        video.playbackRate = newRate;
+        showToast(`Kecepatan ${newRate}x`, 800);
+    });
+    loopBtn.addEventListener('click', () => {
+        video.loop = !video.loop;
+        updateLoopUI();
+        showToast(video.loop ? '🔁 Loop aktif' : 'Loop nonaktif', 800);
+    });
+    fullscreenBtn.addEventListener('click', () => {
+        const container = document.querySelector('.player-container');
+        if (!document.fullscreenElement) {
+            container.requestFullscreen().catch(err => showToast("Fullscreen tidak didukung", 1000));
+        } else {
+            document.exitFullscreen();
+        }
+    });
+    document.addEventListener('fullscreenchange', () => {
+        fullscreenBtn.innerText = document.fullscreenElement ? '✖' : '⛶';
+    });
+    
+    // ========== LOAD VIDEO (dengan preload metadata) ==========
+    function loadVideoFromURL(url) {
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            showToast("URL harus http:// atau https://", 2000);
+            return false;
+        }
+        if (video.src && video.src.startsWith('blob:')) URL.revokeObjectURL(video.src);
+        const wasPlaying = !video.paused;
+        video.pause();
+        resetLagDetector();
+        video.src = url;
+        video.load();
+        video.preload = 'metadata';   // hemat buffer
+        try {
+            const pathname = new URL(url).pathname;
+            const filename = pathname.split('/').pop() || 'Video Online';
+            fileStatusSpan.innerText = filename.substring(0, 50);
+        } catch(e) { fileStatusSpan.innerText = 'Video Online'; }
+        if (wasPlaying) {
+            video.play().catch(() => showToast('Klik play untuk mulai', 1000));
+        }
+        showToast('🔄 Memuat video (mode low buffer)...', 1500);
+        return true;
+    }
+    
+    loadUrlButton.addEventListener('click', () => {
+        let url = videoUrlInput.value.trim();
+        if (!url) return showToast("Masukkan URL video", 1500);
+        loadVideoFromURL(url);
+    });
+    
+    localFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file || !file.type.startsWith('video/')) return showToast("Pilih file video valid", 2000);
+        if (video.src && video.src.startsWith('blob:')) URL.revokeObjectURL(video.src);
+        const blobUrl = URL.createObjectURL(file);
+        const wasPlaying = !video.paused;
+        video.pause();
+        resetLagDetector();
+        video.src = blobUrl;
+        video.load();
+        video.preload = 'metadata';
+        fileStatusSpan.innerText = file.name.substring(0, 48);
+        if (wasPlaying) video.play().catch(() => {});
+        videoUrlInput.value = '';
+        localFileInput.value = '';
+        showToast(`📁 ${file.name} dimuat (buffer minimal)`, 1800);
+    });
+    
+    // ========== INIT ==========
+    function init() {
         video.volume = 0.7;
         volumeSlider.value = 0.7;
         video.playbackRate = 1;
         speedSelect.value = '1';
-        video.preload = 'auto';
-        updatePlayIcon();
-        updateLoopStyle();
-        fileStatusSpan.innerText = 'BigBuckBunny (demo turbo)';
+        video.preload = 'metadata';  // kunci utama: mengurangi buffer awal
+        updatePlayPauseIcon();
+        updateLoopUI();
+        fileStatusSpan.innerText = 'BigBuckBunny (demo low buffer)';
+        resetLagDetector();
+        // Interval pemantau buffer ringan
         setInterval(() => {
-            if (!video.paused && video.readyState >= 2) {
-                checkBufferHealthAndPreventLag();
+            if (!video.paused && video.readyState >= 2 && !video.seeking) {
+                checkBufferHealth();
             }
-        }, 750);
-        
-        window.addEventListener('resize', () => updateProgressAndBuffer());
-        console.log('VORTEX Zero Lag Turbo Engine — performa maksimal tanpa gangguan');
-    })();
+        }, 1500);
+        window.addEventListener('resize', () => updateProgress());
+        console.log('VORTEX Low Buffer Mode aktif - buffering minimal, hemat bandwidth');
+    }
+    init();
 </script>
 </body>
 </html>
