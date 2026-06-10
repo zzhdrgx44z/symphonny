@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        /* (styles sama seperti sebelumnya, tidak berubah) */
+        /* (semua style sama seperti sebelumnya, tidak berubah - disingkat agar tidak terlalu panjang) */
         :root {
             --bg: #0b0f14; --glass: rgba(12, 18, 26, 0.88); --glass-border: rgba(255, 255, 255, 0.08);
             --pitch: #00ff87; --pitch-dim: rgba(0, 255, 135, 0.15); --gold: #ffc400; --gold-dim: rgba(255, 196, 0, 0.15);
@@ -16,395 +16,53 @@
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
-
         .stadium-bg { position: fixed; inset: 0; z-index: -2; background-image: url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80'); background-size: cover; background-position: center; background-attachment: fixed; }
         .stadium-overlay { position: fixed; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(11,15,20,0.95) 50%, rgba(0,0,0,0.9) 100%); }
-        
         .spotlight { position: fixed; border-radius: 50%; pointer-events: none; z-index: -1; filter: blur(120px); opacity: 0.3; }
         .spotlight-1 { width: 600px; height: 600px; background: var(--pitch); top: -200px; left: -200px; animation: moveLight1 20s infinite alternate ease-in-out; }
         .spotlight-2 { width: 500px; height: 500px; background: var(--gold); bottom: -200px; right: -200px; animation: moveLight2 25s infinite alternate ease-in-out; }
-        
         @keyframes moveLight1 { 0% { transform: translate(0, 0); } 100% { transform: translate(40vw, 40vh); } }
         @keyframes moveLight2 { 0% { transform: translate(0, 0); } 100% { transform: translate(-30vw, -30vh); } }
-
-        .ball-3d {
-            position: fixed;
-            pointer-events: none;
-            z-index: 10;
-            perspective: 200px;
-        }
-
-        .ball-3d-inner {
-            width: var(--ball-size, 28px);
-            height: var(--ball-size, 28px);
-            position: relative;
-            transform-style: preserve-3d;
-            border-radius: 50%;
-            background: radial-gradient(circle at 35% 30%, #ffffff 0%, #e8e8e8 30%, #b0b0b0 60%, #707070 85%, #404040 100%);
-            box-shadow:
-                inset -4px -4px 8px rgba(0,0,0,0.4),
-                inset 2px 2px 4px rgba(255,255,255,0.6),
-                0 0 20px rgba(0, 255, 135, 0.5),
-                0 0 40px rgba(0, 255, 135, 0.2);
-            animation: ball3dSpin var(--spin-speed, 0.8s) linear infinite;
-        }
-
-        .ball-3d-inner::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            background:
-                radial-gradient(circle at 50% 20%, rgba(0,0,0,0.7) 6px, transparent 6px),
-                radial-gradient(circle at 25% 45%, rgba(0,0,0,0.6) 5px, transparent 5px),
-                radial-gradient(circle at 75% 45%, rgba(0,0,0,0.6) 5px, transparent 5px),
-                radial-gradient(circle at 35% 72%, rgba(0,0,0,0.5) 4px, transparent 4px),
-                radial-gradient(circle at 65% 72%, rgba(0,0,0,0.5) 4px, transparent 4px);
-            animation: ballPatternSpin var(--spin-speed, 0.8s) linear infinite reverse;
-        }
-
-        .ball-3d-inner::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.7) 0%, transparent 50%);
-        }
-
-        @keyframes ball3dSpin {
-            0% { transform: rotateY(0deg) rotateX(10deg); }
-            100% { transform: rotateY(360deg) rotateX(10deg); }
-        }
-
-        @keyframes ballPatternSpin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .neon-trail {
-            position: fixed;
-            pointer-events: none;
-            z-index: 9;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--pitch);
-            box-shadow: 0 0 6px var(--pitch), 0 0 12px var(--pitch), 0 0 24px rgba(0,255,135,0.5);
-            animation: trailFade 0.6s ease-out forwards;
-        }
-
-        @keyframes trailFade {
-            0% { opacity: 0.8; transform: scale(1); }
-            100% { opacity: 0; transform: scale(0.1); }
-        }
-
-        .ball-flight {
-            position: fixed;
-            pointer-events: none;
-            z-index: 10;
-            animation: parabola var(--flight-dur, 3s) cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
-        }
-
-        @keyframes parabola {
-            0% {
-                left: var(--start-x, 5%);
-                top: var(--start-y, 60%);
-                opacity: 0;
-                transform: scale(0.5) rotate(0deg);
-            }
-            10% { opacity: 1; transform: scale(1) rotate(90deg); }
-            50% {
-                top: var(--peak-y, 15%);
-                opacity: 1;
-                transform: scale(1.1) rotate(540deg);
-            }
-            90% { opacity: 1; transform: scale(0.9) rotate(900deg); }
-            100% {
-                left: var(--end-x, 85%);
-                top: var(--end-y, 55%);
-                opacity: 0;
-                transform: scale(0.3) rotate(1080deg);
-            }
-        }
-
-        .ball-bounce {
-            position: fixed;
-            pointer-events: none;
-            z-index: 10;
-            animation: bounceX var(--bounce-dur, 6s) linear infinite,
-                       bounceY 0.6s ease-in-out infinite alternate;
-        }
-
-        @keyframes bounceX {
-            0% { left: -40px; }
-            100% { left: calc(100% + 40px); }
-        }
-
-        @keyframes bounceY {
-            0% { top: var(--bounce-floor, 70%); transform: scaleY(0.8) scaleX(1.2); }
-            30% { transform: scaleY(1) scaleX(1); }
-            100% { top: calc(var(--bounce-floor, 70%) - 120px); transform: scaleY(1.1) scaleX(0.9); }
-        }
-
-        .goal-explosion {
-            position: fixed;
-            pointer-events: none;
-            z-index: 50;
-            width: 300px;
-            height: 300px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(0,255,135,0.9) 0%, rgba(0,255,135,0.3) 30%, transparent 70%);
-            animation: explodeGoal 1s ease-out forwards;
-            transform: translate(-50%, -50%);
-        }
-
-        @keyframes explodeGoal {
-            0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
-            50% { opacity: 0.8; }
-            100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
-        }
-
-        .confetti-piece {
-            position: fixed;
-            pointer-events: none;
-            z-index: 55;
-            width: var(--cw, 8px);
-            height: var(--ch, 14px);
-            background: var(--cc, var(--pitch));
-            border-radius: 2px;
-            animation: confettiFall var(--cf-dur, 2.5s) ease-out forwards;
-            transform-origin: center;
-        }
-
-        @keyframes confettiFall {
-            0% {
-                opacity: 1;
-                transform: translate(0, 0) rotate(0deg) scale(1);
-            }
-            25% { transform: translate(var(--cf-dx1, 30px), var(--cf-dy1, 80px)) rotate(360deg) scale(1); }
-            50% { transform: translate(var(--cf-dx2, -20px), var(--cf-dy2, 200px)) rotate(720deg) scale(0.8); }
-            100% {
-                opacity: 0;
-                transform: translate(var(--cf-dx3, 50px), var(--cf-dy3, 500px)) rotate(1440deg) scale(0.2);
-            }
-        }
-
-        .firework-particle {
-            position: fixed;
-            pointer-events: none;
-            z-index: 52;
-            border-radius: 50%;
-            animation: fireworkBurst var(--fw-dur, 1.2s) ease-out forwards;
-        }
-
-        @keyframes fireworkBurst {
-            0% { transform: translate(0, 0) scale(1); opacity: 1; }
-            100% { transform: translate(var(--fw-tx, 50px), var(--fw-ty, -50px)) scale(0); opacity: 0; }
-        }
-
-        .sparkle-ring {
-            position: fixed;
-            pointer-events: none;
-            z-index: 51;
-            border: 2px solid var(--pitch);
-            border-radius: 50%;
-            animation: sparkleExpand 0.8s ease-out forwards;
-            transform: translate(-50%, -50%);
-        }
-
-        @keyframes sparkleExpand {
-            0% { width: 0; height: 0; opacity: 1; border-width: 4px; }
-            100% { width: 250px; height: 250px; opacity: 0; border-width: 1px; }
-        }
-
-        .goal-text-flash {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            z-index: 60;
-            font-family: 'Oswald', sans-serif;
-            font-size: 8rem;
-            font-weight: 700;
-            color: var(--pitch);
-            text-shadow:
-                0 0 20px var(--pitch),
-                0 0 40px var(--pitch),
-                0 0 80px rgba(0,255,135,0.5),
-                0 0 120px rgba(0,255,135,0.3);
-            pointer-events: none;
-            animation: goalTextPop 1.5s cubic-bezier(0.2, 0.8, 0.2, 1.2) forwards;
-            letter-spacing: 20px;
-        }
-
-        @keyframes goalTextPop {
-            0% { transform: translate(-50%, -50%) scale(0) rotate(-10deg); opacity: 0; }
-            20% { transform: translate(-50%, -50%) scale(1.3) rotate(3deg); opacity: 1; }
-            40% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
-            70% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
-        }
-
-        .energy-wave {
-            position: fixed;
-            pointer-events: none;
-            z-index: 48;
-            border: 3px solid var(--pitch);
-            border-radius: 50%;
-            animation: waveExpand 1s ease-out forwards;
-            transform: translate(-50%, -50%);
-        }
-
-        @keyframes waveExpand {
-            0% { width: 10px; height: 10px; opacity: 1; border-color: var(--pitch); }
-            50% { border-color: var(--gold); }
-            100% { width: 400px; height: 400px; opacity: 0; border-color: var(--red); }
-        }
-
-        .player-kicker-container {
-            position: fixed;
-            pointer-events: none;
-            z-index: 6;
-            animation: kickerWalk 12s infinite ease-in-out;
-            bottom: 12%;
-            left: 5%;
-        }
-
-        .player-kicker {
-            font-size: 3rem;
-            position: relative;
-            display: inline-block;
-            animation: playerKick 1.5s infinite ease-in-out;
-            filter: drop-shadow(0 0 12px rgba(0,255,135,0.3));
-        }
-
-        .kick-ball-enhanced {
-            position: absolute;
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 35% 30%, #ffffff 0%, #e8e8e8 30%, #b0b0b0 60%, #707070 85%);
-            box-shadow:
-                inset -3px -3px 6px rgba(0,0,0,0.4),
-                inset 1px 1px 3px rgba(255,255,255,0.6),
-                0 0 15px rgba(0,255,135,0.8),
-                0 0 30px rgba(0,255,135,0.4);
-            animation: ballKickedEnhanced 1s cubic-bezier(0.2, 0.8, 0.3, 1) infinite;
-            animation-delay: 0.3s;
-        }
-
-        .kick-ball-enhanced::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            background:
-                radial-gradient(circle at 50% 20%, rgba(0,0,0,0.6) 3px, transparent 3px),
-                radial-gradient(circle at 25% 50%, rgba(0,0,0,0.5) 2.5px, transparent 2.5px),
-                radial-gradient(circle at 75% 50%, rgba(0,0,0,0.5) 2.5px, transparent 2.5px);
-            animation: kickBallSpin 0.25s linear infinite;
-        }
-
-        @keyframes kickBallSpin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @keyframes playerKick {
-            0% { transform: rotate(-5deg) scaleX(1); }
-            20% { transform: rotate(-20deg) scaleX(1); }
-            40% { transform: rotate(0deg) scaleX(1); }
-            60% { transform: rotate(15deg) scaleX(1); }
-            80% { transform: rotate(5deg) scaleX(1); }
-            100% { transform: rotate(-5deg) scaleX(1); }
-        }
-
-        @keyframes ballKickedEnhanced {
-            0% { right: 25px; top: 15px; opacity: 0; transform: scale(0.6) rotate(0deg); }
-            10% { opacity: 1; transform: scale(1) rotate(90deg); }
-            40% { right: 180px; top: -100px; opacity: 1; transform: scale(1.1) rotate(540deg); }
-            70% { opacity: 0.8; transform: scale(0.9) rotate(900deg); }
-            100% { right: 380px; top: 40px; opacity: 0; transform: scale(0.3) rotate(1440deg); }
-        }
-
-        @keyframes kickerWalk {
-            0% { left: -100px; opacity: 0; }
-            5% { opacity: 1; }
-            50% { left: 35%; opacity: 1; }
-            95% { opacity: 1; }
-            100% { left: calc(100% + 100px); opacity: 0; }
-        }
-
-        .kick-dust { position: fixed; pointer-events: none; z-index: 5; }
-        .dust-particle {
-            position: absolute;
-            border-radius: 50%;
-            animation: dustFloat 1.2s ease-out forwards;
-        }
-        @keyframes dustFloat {
-            0% { transform: translate(0, 0) scale(1); opacity: 0.9; }
-            100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
-        }
-
-        .kick-impact {
-            position: fixed;
-            width: 70px; height: 70px;
-            border: 3px solid var(--pitch);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 5;
-            animation: impactExpand 0.7s ease-out forwards;
-            box-shadow: 0 0 20px rgba(0,255,135,0.6);
-        }
-        @keyframes impactExpand {
-            0% { transform: scale(0.05); opacity: 1; }
-            100% { transform: scale(1); opacity: 0; }
-        }
-
-        .kick-particle {
-            position: fixed;
-            pointer-events: none;
-            z-index: 3;
-            animation: particleExpand 1s ease-out forwards;
-        }
-        @keyframes particleExpand {
-            0% { transform: translate(0, 0) scale(1); opacity: 1; }
-            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
-        }
-
-        .goal-flash {
-            position: fixed; inset: 0;
-            background: radial-gradient(circle at center, rgba(0, 255, 135, 0.8), transparent);
-            pointer-events: none; z-index: 2;
-            animation: goalPulse 0.6s ease-out forwards;
-            display: none;
-        }
+        .ball-3d { position: fixed; pointer-events: none; z-index: 10; perspective: 200px; }
+        .ball-3d-inner { width: var(--ball-size, 28px); height: var(--ball-size, 28px); position: relative; transform-style: preserve-3d; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffffff 0%, #e8e8e8 30%, #b0b0b0 60%, #707070 85%, #404040 100%); box-shadow: inset -4px -4px 8px rgba(0,0,0,0.4), inset 2px 2px 4px rgba(255,255,255,0.6), 0 0 20px rgba(0, 255, 135, 0.5), 0 0 40px rgba(0, 255, 135, 0.2); animation: ball3dSpin var(--spin-speed, 0.8s) linear infinite; }
+        .ball-3d-inner::before { content: ''; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 50% 20%, rgba(0,0,0,0.7) 6px, transparent 6px), radial-gradient(circle at 25% 45%, rgba(0,0,0,0.6) 5px, transparent 5px), radial-gradient(circle at 75% 45%, rgba(0,0,0,0.6) 5px, transparent 5px), radial-gradient(circle at 35% 72%, rgba(0,0,0,0.5) 4px, transparent 4px), radial-gradient(circle at 65% 72%, rgba(0,0,0,0.5) 4px, transparent 4px); animation: ballPatternSpin var(--spin-speed, 0.8s) linear infinite reverse; }
+        .ball-3d-inner::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.7) 0%, transparent 50%); }
+        @keyframes ball3dSpin { 0% { transform: rotateY(0deg) rotateX(10deg); } 100% { transform: rotateY(360deg) rotateX(10deg); } }
+        @keyframes ballPatternSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .neon-trail { position: fixed; pointer-events: none; z-index: 9; width: 12px; height: 12px; border-radius: 50%; background: var(--pitch); box-shadow: 0 0 6px var(--pitch), 0 0 12px var(--pitch), 0 0 24px rgba(0,255,135,0.5); animation: trailFade 0.6s ease-out forwards; }
+        @keyframes trailFade { 0% { opacity: 0.8; transform: scale(1); } 100% { opacity: 0; transform: scale(0.1); } }
+        .ball-flight { position: fixed; pointer-events: none; z-index: 10; animation: parabola var(--flight-dur, 3s) cubic-bezier(0.2, 0.8, 0.3, 1) forwards; }
+        @keyframes parabola { 0% { left: var(--start-x, 5%); top: var(--start-y, 60%); opacity: 0; transform: scale(0.5) rotate(0deg); } 10% { opacity: 1; transform: scale(1) rotate(90deg); } 50% { top: var(--peak-y, 15%); opacity: 1; transform: scale(1.1) rotate(540deg); } 90% { opacity: 1; transform: scale(0.9) rotate(900deg); } 100% { left: var(--end-x, 85%); top: var(--end-y, 55%); opacity: 0; transform: scale(0.3) rotate(1080deg); } }
+        .ball-bounce { position: fixed; pointer-events: none; z-index: 10; animation: bounceX var(--bounce-dur, 6s) linear infinite, bounceY 0.6s ease-in-out infinite alternate; }
+        @keyframes bounceX { 0% { left: -40px; } 100% { left: calc(100% + 40px); } }
+        @keyframes bounceY { 0% { top: var(--bounce-floor, 70%); transform: scaleY(0.8) scaleX(1.2); } 30% { transform: scaleY(1) scaleX(1); } 100% { top: calc(var(--bounce-floor, 70%) - 120px); transform: scaleY(1.1) scaleX(0.9); } }
+        .goal-explosion { position: fixed; pointer-events: none; z-index: 50; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, rgba(0,255,135,0.9) 0%, rgba(0,255,135,0.3) 30%, transparent 70%); animation: explodeGoal 1s ease-out forwards; transform: translate(-50%, -50%); }
+        @keyframes explodeGoal { 0% { transform: translate(-50%, -50%) scale(0); opacity: 1; } 50% { opacity: 0.8; } 100% { transform: translate(-50%, -50%) scale(3); opacity: 0; } }
+        .confetti-piece { position: fixed; pointer-events: none; z-index: 55; width: var(--cw, 8px); height: var(--ch, 14px); background: var(--cc, var(--pitch)); border-radius: 2px; animation: confettiFall var(--cf-dur, 2.5s) ease-out forwards; transform-origin: center; }
+        @keyframes confettiFall { 0% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(1); } 25% { transform: translate(var(--cf-dx1, 30px), var(--cf-dy1, 80px)) rotate(360deg) scale(1); } 50% { transform: translate(var(--cf-dx2, -20px), var(--cf-dy2, 200px)) rotate(720deg) scale(0.8); } 100% { opacity: 0; transform: translate(var(--cf-dx3, 50px), var(--cf-dy3, 500px)) rotate(1440deg) scale(0.2); } }
+        .firework-particle { position: fixed; pointer-events: none; z-index: 52; border-radius: 50%; animation: fireworkBurst var(--fw-dur, 1.2s) ease-out forwards; }
+        @keyframes fireworkBurst { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--fw-tx, 50px), var(--fw-ty, -50px)) scale(0); opacity: 0; } }
+        .sparkle-ring { position: fixed; pointer-events: none; z-index: 51; border: 2px solid var(--pitch); border-radius: 50%; animation: sparkleExpand 0.8s ease-out forwards; transform: translate(-50%, -50%); }
+        @keyframes sparkleExpand { 0% { width: 0; height: 0; opacity: 1; border-width: 4px; } 100% { width: 250px; height: 250px; opacity: 0; border-width: 1px; } }
+        .goal-text-flash { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); z-index: 60; font-family: 'Oswald', sans-serif; font-size: 8rem; font-weight: 700; color: var(--pitch); text-shadow: 0 0 20px var(--pitch), 0 0 40px var(--pitch), 0 0 80px rgba(0,255,135,0.5), 0 0 120px rgba(0,255,135,0.3); pointer-events: none; animation: goalTextPop 1.5s cubic-bezier(0.2, 0.8, 0.2, 1.2) forwards; letter-spacing: 20px; }
+        @keyframes goalTextPop { 0% { transform: translate(-50%, -50%) scale(0) rotate(-10deg); opacity: 0; } 20% { transform: translate(-50%, -50%) scale(1.3) rotate(3deg); opacity: 1; } 40% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; } 70% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(2); opacity: 0; } }
+        .energy-wave { position: fixed; pointer-events: none; z-index: 48; border: 3px solid var(--pitch); border-radius: 50%; animation: waveExpand 1s ease-out forwards; transform: translate(-50%, -50%); }
+        @keyframes waveExpand { 0% { width: 10px; height: 10px; opacity: 1; border-color: var(--pitch); } 50% { border-color: var(--gold); } 100% { width: 400px; height: 400px; opacity: 0; border-color: var(--red); } }
+        .player-kicker-container { position: fixed; pointer-events: none; z-index: 6; animation: kickerWalk 12s infinite ease-in-out; bottom: 12%; left: 5%; }
+        .player-kicker { font-size: 3rem; position: relative; display: inline-block; animation: playerKick 1.5s infinite ease-in-out; filter: drop-shadow(0 0 12px rgba(0,255,135,0.3)); }
+        .kick-ball-enhanced { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffffff 0%, #e8e8e8 30%, #b0b0b0 60%, #707070 85%); box-shadow: inset -3px -3px 6px rgba(0,0,0,0.4), inset 1px 1px 3px rgba(255,255,255,0.6), 0 0 15px rgba(0,255,135,0.8), 0 0 30px rgba(0,255,135,0.4); animation: ballKickedEnhanced 1s cubic-bezier(0.2, 0.8, 0.3, 1) infinite; animation-delay: 0.3s; }
+        .kick-ball-enhanced::before { content: ''; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 50% 20%, rgba(0,0,0,0.6) 3px, transparent 3px), radial-gradient(circle at 25% 50%, rgba(0,0,0,0.5) 2.5px, transparent 2.5px), radial-gradient(circle at 75% 50%, rgba(0,0,0,0.5) 2.5px, transparent 2.5px); animation: kickBallSpin 0.25s linear infinite; }
+        @keyframes kickBallSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes playerKick { 0% { transform: rotate(-5deg) scaleX(1); } 20% { transform: rotate(-20deg) scaleX(1); } 40% { transform: rotate(0deg) scaleX(1); } 60% { transform: rotate(15deg) scaleX(1); } 80% { transform: rotate(5deg) scaleX(1); } 100% { transform: rotate(-5deg) scaleX(1); } }
+        @keyframes ballKickedEnhanced { 0% { right: 25px; top: 15px; opacity: 0; transform: scale(0.6) rotate(0deg); } 10% { opacity: 1; transform: scale(1) rotate(90deg); } 40% { right: 180px; top: -100px; opacity: 1; transform: scale(1.1) rotate(540deg); } 70% { opacity: 0.8; transform: scale(0.9) rotate(900deg); } 100% { right: 380px; top: 40px; opacity: 0; transform: scale(0.3) rotate(1440deg); } }
+        @keyframes kickerWalk { 0% { left: -100px; opacity: 0; } 5% { opacity: 1; } 50% { left: 35%; opacity: 1; } 95% { opacity: 1; } 100% { left: calc(100% + 100px); opacity: 0; } }
+        .kick-impact { position: fixed; width: 70px; height: 70px; border: 3px solid var(--pitch); border-radius: 50%; pointer-events: none; z-index: 5; animation: impactExpand 0.7s ease-out forwards; box-shadow: 0 0 20px rgba(0,255,135,0.6); }
+        @keyframes impactExpand { 0% { transform: scale(0.05); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+        .goal-flash { position: fixed; inset: 0; background: radial-gradient(circle at center, rgba(0, 255, 135, 0.8), transparent); pointer-events: none; z-index: 2; animation: goalPulse 0.6s ease-out forwards; display: none; }
         .goal-flash.show { display: block; }
-        @keyframes goalPulse {
-            0% { transform: scale(0); opacity: 1; }
-            100% { transform: scale(1); opacity: 0; }
-        }
-
-        .floating-ball {
-            position: fixed;
-            pointer-events: none;
-            z-index: 4;
-            border-radius: 50%;
-            background: radial-gradient(circle at 35% 30%, #fff, #ddd, #888);
-            box-shadow: 0 0 8px rgba(0,255,135,0.3);
-            opacity: 0.4;
-        }
-        .floating-ball::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            background:
-                radial-gradient(circle at 50% 20%, rgba(0,0,0,0.5) 2px, transparent 2px),
-                radial-gradient(circle at 25% 55%, rgba(0,0,0,0.4) 1.5px, transparent 1.5px),
-                radial-gradient(circle at 75% 55%, rgba(0,0,0,0.4) 1.5px, transparent 1.5px);
-        }
-
+        @keyframes goalPulse { 0% { transform: scale(0); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+        .floating-ball { position: fixed; pointer-events: none; z-index: 4; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #ddd, #888); box-shadow: 0 0 8px rgba(0,255,135,0.3); opacity: 0.4; }
+        .floating-ball::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 50% 20%, rgba(0,0,0,0.5) 2px, transparent 2px), radial-gradient(circle at 25% 55%, rgba(0,0,0,0.4) 1.5px, transparent 1.5px), radial-gradient(circle at 75% 55%, rgba(0,0,0,0.4) 1.5px, transparent 1.5px); }
         .hero-scene { position: relative; z-index: 1; text-align: center; padding: 50px 20px 10px; }
         .hero-text h1 { font-family: 'Oswald', sans-serif; font-size: 3.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #fff; line-height: 1; margin-bottom: 10px; text-shadow: 0 0 20px rgba(0,255,135,0.2); animation: heroGlow 3s infinite alternate; }
         @keyframes heroGlow { 0% { text-shadow: 0 0 20px rgba(0,255,135,0.2), 0 0 40px rgba(0,255,135,0.1); } 100% { text-shadow: 0 0 40px rgba(0,255,135,0.4), 0 0 60px rgba(0,255,135,0.2); } }
@@ -412,7 +70,6 @@
         .hero-text p { color: var(--muted); font-size: 1rem; max-width: 500px; margin: 0 auto; font-weight: 500; }
         .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--gold-dim); border: 1px solid var(--gold); padding: 6px 16px; border-radius: 4px; font-size: 0.75rem; color: var(--gold); font-weight: 800; margin-top: 20px; text-transform: uppercase; letter-spacing: 1px; animation: badgePulse 2s infinite; }
         @keyframes badgePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-
         .content { position: relative; z-index: 1; padding: 0 16px 60px; max-width: 1300px; margin: 0 auto; }
         .tabs { display: flex; justify-content: center; gap: 0; margin: 30px 0; background: rgba(255,255,255,0.05); border-radius: 8px; padding: 4px; max-width: 450px; margin-left: auto; margin-right: auto; border: 1px solid var(--glass-border); }
         .tab { flex: 1; padding: 12px; border-radius: 6px; border: none; background: transparent; color: var(--muted); font-family: 'Oswald'; font-size: 1.1rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: 0.3s; }
@@ -421,7 +78,6 @@
         .panel { display: none; animation: fadeUp 0.4s ease; }
         .panel.active { display: block; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-
         .card { background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 30px; position: relative; box-shadow: 0 15px 50px rgba(0,0,0,0.5); }
         .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--pitch), transparent); animation: cardGlow 2s infinite; }
         @keyframes cardGlow { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
@@ -441,7 +97,6 @@
         .btn:active { transform: translateY(0); }
         .warn { background: rgba(255,196,0,0.1); border: 1px solid rgba(255,196,0,0.3); padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; color: var(--gold); font-size: 0.85rem; display: none; font-weight: 700; text-transform: uppercase; animation: warnShake 0.5s ease-in-out; }
         @keyframes warnShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
-
         .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 1080px; }
         th { background: rgba(0,255,135,0.05); color: var(--pitch); font-family: 'Oswald'; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; padding: 16px 8px; letter-spacing: 1px; border-bottom: 2px solid rgba(0,255,135,0.2); }
@@ -504,7 +159,6 @@
         .footer { text-align: center; padding: 40px 16px; color: rgba(255,255,255,0.2); font-size: 0.75rem; position: relative; z-index: 1; text-transform: uppercase; letter-spacing: 2px; animation: footerPulse 3s infinite; }
         @keyframes footerPulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
         .footer span { color: var(--pitch); }
-
         @media(max-width:900px) { .hero-text h1 { font-size: 2.8rem; } }
         @media(max-width:768px) {
             .table-wrap { display: none; } .mobile-cards { display: block; }
@@ -659,13 +313,12 @@ const parseNum=s=>parseInt((s||'').replace(/\D/g,''))||0;
 const eq=(a,b)=>Math.abs(a-b)<0.001;
 const STATUS={mf:'Menang Full',ms:'Menang Setengah',ks:'Kalah Setengah',sr:'Seri',kf:'Kalah Full'};
 
-// Hilangkan semua emoticon dari teks
 function stripEmoji(text) {
     return text.replace(/[\p{Emoji}\u{FE0F}]/gu, '').replace(/[⚠️✅❌⚡🔄📌💡]/g, '').replace(/[^\x20-\x7E\s\w\.\,\:\;\-\+\=\/\|]/g, '');
 }
 
 /* ========================================
-   ENHANCED BALL ANIMATION SYSTEM (disingkat karena panjang)
+   BALL ANIMATIONS (ringkas - sama seperti sebelumnya)
    ======================================== */
 const activeBalls = new Map();
 let trailCounter = 0;
@@ -802,7 +455,6 @@ function triggerPlayerKick() {
     const rect = container.getBoundingClientRect();
     const kickX = rect.left + rect.width + 50;
     const kickY = rect.top + rect.height / 2 - 30;
-    // dust & impact
     for (let i = 0; i < 16; i++) {
         const particle = document.createElement('div');
         particle.className = 'dust-particle';
@@ -891,18 +543,46 @@ function getStatus(mk,sh,sa,v,p){
     if(mk==='OE'){if((p==='even'&&t%2===0)||(p==='odd'&&t%2===1))return'mf';return'kf';}
     return'mf';
 }
-function getEff(st,odds){if(st==='mf')return odds;if(st==='ms')return(odds-1)/2+1;if(st==='ks')return 0.5;if(st==='sr')return 1;return 0;}
+function getEff(st,odds){
+    if(st==='mf') return odds;
+    if(st==='ms') return (odds-1)/2+1;
+    if(st==='ks') return 0.5;
+    if(st==='sr') return 1;
+    return 0;
+}
 function fmtVoor(v){return v===0?'0':(v>0?`+${v}`:`${v}`);}
 
+// Fungsi penjelasan yang sudah diperbaiki dengan contoh perhitungan yang rapi
 function penjelasan(b,st){
     const{t,l,m,v,p,sh,sa,odds}=b;const d=sh-sa,tot=sh+sa;
     let txt='';
+    // Fungsi untuk membuat contoh perhitungan parlay (3 partai)
+    function contohParlay(judul, effOdds, oddsPartai, modalContoh = 100000) {
+        const oddsLain1 = 1.70;
+        const oddsLain2 = 1.85;
+        const totalOdds = effOdds * oddsLain1 * oddsLain2;
+        const totalHasil = totalOdds * modalContoh;
+        const kemenangan = totalHasil - modalContoh;
+        const profitPersen = (kemenangan / modalContoh) * 100;
+        return `\n\n--- CONTOH PERHITUNGAN (${judul}) DALAM PARLAY 3 PARTAI ---\nModal: Rp ${fmt(modalContoh)}\n\nPartai ini: odds ${oddsPartai} (${judul})\nPartai 2: odds 1.70 (Menang Full)\nPartai 3: odds 1.85 (Menang Full)\n\nEffective odds partai ini = ((${oddsPartai}-1)/2)+1 = ${effOdds.toFixed(3)}\nTotal odds = ${effOdds.toFixed(3)} x 1.70 x 1.85 = ${totalOdds.toFixed(4)}\n\nTotal hasil = ${totalOdds.toFixed(4)} x ${fmt(modalContoh)} = Rp ${fmt(totalHasil)}\nKemenangan bersih = Rp ${fmt(totalHasil)} - Rp ${fmt(modalContoh)} = Rp ${fmt(kemenangan)}\nProfit = ${profitPersen.toFixed(2)}% dari modal\n-----------------------------------`;
+    }
+
     if(m==='HDP'){
         txt=`[HDP] ${t} vs ${l} | Skor: ${sh} - ${sa} (Selisih = ${d}) | Voor: ${fmtVoor(v)}\n`;
         if(Math.abs(v)%0.5===0){const hasil=d+v;txt+=`Perhitungan: ${d} + (${v}) = ${hasil}\n`;if(hasil>0.25)txt+=`${t} MENANG FULL (${odds})`;else if(eq(hasil,0))txt+=`SERI (1)`;else txt+=`${t} KALAH FULL (0)`;
         }else{const lo=Math.floor(Math.abs(v)*2)/2*(v>0?1:-1);const hi=lo+(v>0?0.5:-0.5);const ev=(vp)=>d+vp>0.25?'W':(eq(d+vp,0.25)?'MS':(eq(d+vp,0)?'V':(eq(d+vp,-0.25)?'KS':'L')));const lbl=(r)=>r==='W'?'MENANG':r==='MS'?'MENANG SETENGAH':r==='V'?'VOID':r==='KS'?'KALAH SETENGAH':'KALAH';
         txt+=`Voor terbelah: 50% ${fmtVoor(lo)} -> ${lbl(ev(lo))}, 50% ${fmtVoor(hi)} -> ${lbl(ev(hi))}\n`;const ef=getEff(st,odds);
-        if(st==='mf')txt+=`MENANG FULL -> ${odds}`;else if(st==='ms')txt+=`MENANG SETENGAH -> (${odds}-1)/2+1 = ${ef.toFixed(3)}`;else if(st==='ks')txt+=`KALAH SETENGAH -> 0.5`;else if(st==='sr')txt+=`SERI -> 1`;else txt+=`KALAH FULL -> 0`;}
+        if(st==='mf')txt+=`MENANG FULL -> ${odds}`;
+        else if(st==='ms'){
+            txt+=`MENANG SETENGAH -> (${odds}-1)/2+1 = ${ef.toFixed(3)}`;
+            txt += contohParlay('MENANG 1/2', ef, odds);
+        }
+        else if(st==='ks')txt+=`KALAH SETENGAH -> 0.5`;
+        else if(st==='sr'){
+            txt+=`SERI -> 1.00 (tidak mempengaruhi perkalian)`;
+            txt += contohParlay('SERI', 1.00, odds);
+        }
+        else txt+=`KALAH FULL -> 0`;}
         return stripEmoji(txt);
     }
     if(m==='OU'){
@@ -910,28 +590,27 @@ function penjelasan(b,st){
         txt=`[OU] ${t} vs ${l} | Total Gol: ${tot} (${sh}-${sa}) | Batas: ${v} | Pilih: ${lb}\n`;
         if(v%0.5===0){if(p==='over'){if(tot>v)txt+=`MENANG FULL (${odds})`;else if(eq(tot,v))txt+=`SERI (1)`;else txt+=`KALAH FULL (0)`;}else{if(tot<v)txt+=`MENANG FULL (${odds})`;else if(eq(tot,v))txt+=`SERI (1)`;else txt+=`KALAH FULL (0)`;}
         }else{const lo=p==='over'?Math.floor(v*2)/2:Math.ceil(v*2)/2;const hi=p==='over'?lo+0.5:lo-0.5;txt+=`Terbelah: ${lb} ${lo} & ${lb} ${hi}\n`;const ef=getEff(st,odds);
-        if(st==='mf')txt+=`MENANG FULL -> ${odds}`;else if(st==='ms')txt+=`MENANG SETENGAH -> (${odds}-1)/2+1 = ${ef.toFixed(3)}`;else if(st==='ks')txt+=`KALAH SETENGAH -> 0.5`;else if(st==='sr')txt+=`SERI -> 1`;else txt+=`KALAH FULL -> 0`;}
+        if(st==='mf')txt+=`MENANG FULL -> ${odds}`;
+        else if(st==='ms'){
+            txt+=`MENANG SETENGAH -> (${odds}-1)/2+1 = ${ef.toFixed(3)}`;
+            txt += contohParlay('MENANG 1/2', ef, odds);
+        }
+        else if(st==='ks')txt+=`KALAH SETENGAH -> 0.5`;
+        else if(st==='sr'){
+            txt+=`SERI -> 1.00 (tidak mempengaruhi perkalian)`;
+            txt += contohParlay('SERI', 1.00, odds);
+        }
+        else txt+=`KALAH FULL -> 0`;}
         return stripEmoji(txt);
     }
     if(m==='1x2'){
-        let hasil = '';
-        if((p==='home'&&d>0)||(p==='away'&&d<0)||(p==='draw'&&d===0)){
-            hasil = `MENANG FULL (${odds})`;
-        } else {
-            hasil = `KALAH FULL (0)`;
-        }
-        txt = `[1X2] ${t} vs ${l} | Pilih: ${p} | Skor: ${sh}-${sa}\n${hasil}`;
-        return stripEmoji(txt);
+        let statusText = ((p==='home'&&d>0)||(p==='away'&&d<0)||(p==='draw'&&d===0)) ? `MENANG FULL (${odds})` : `KALAH FULL (0)`;
+        if(st==='sr') statusText = `SERI (1.00) - odds tidak mempengaruhi perkalian`;
+        return stripEmoji(`[1X2] ${t} vs ${l} | Pilih: ${p} | Skor: ${sh}-${sa}\n${statusText}`);
     }
     if(m==='OE'){
-        let hasil = '';
-        if((p==='even'&&tot%2===0)||(p==='odd'&&tot%2===1)){
-            hasil = `MENANG FULL (${odds})`;
-        } else {
-            hasil = `KALAH FULL (0)`;
-        }
-        txt = `[OE] ${t} vs ${l} | Pilih: ${p} | Total Gol: ${tot}\n${hasil}`;
-        return stripEmoji(txt);
+        let statusText = ((p==='even'&&tot%2===0)||(p==='odd'&&tot%2===1)) ? `MENANG FULL (${odds})` : `KALAH FULL (0)`;
+        return stripEmoji(`[OE] ${t} vs ${l} | Pilih: ${p} | Total Gol: ${tot}\n${statusText}`);
     }
     return stripEmoji(txt);
 }
@@ -947,7 +626,7 @@ function updateTeamCount(){$('teamCount').textContent=parlayData.length;$('parla
 
 function renderParlayTable(){
     const tbody=document.querySelector('#parlayTable tbody');tbody.innerHTML='';
-    if(!parlayData.length){tbody.innerHTML='<tr><td colspan="11" style="color:var(--muted);padding:30px;">Tambahkan partai untuk mulai</td></tr>';return;}
+    if(!parlayData.length){tbody.innerHTML='<tr><td colspan="11" style="color:var(--muted);padding:30px;">Tambahkan partai untuk mulai</td></table>';return;}
     parlayData.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);const eff=getEff(st,b.odds);const tr=document.createElement('tr');tr.setAttribute('data-idx',i);
         tr.innerHTML=`<td style="font-weight:800;color:var(--pitch);font-family:Oswald;">${i+1}</td>
         <td><input type="text" value="${b.t}" data-field="t"></td>
@@ -1066,17 +745,23 @@ function hitungParlay(){
     if(parlayData.length<3){$('parlayResultText').innerHTML='<div class="warn" style="display:block;">Minimal 3 tim!</div>';return;}
     const modal=parseNum($('modalParlay').value); if(modal<=0)return;
     let total=1, kf=false, halfLose=false, isDraw=false; const rincian=[];
-    parlayData.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p); const eff=getEff(st,b.odds); if(st==='kf')kf=true; if(st==='ks')halfLose=true; if(st==='sr')isDraw=true; total*=eff; rincian.push(`${i+1}. ${b.t} vs ${b.l} -> ${STATUS[st]} (${eff.toFixed(3)})`);});
+    parlayData.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p); const eff=getEff(st,b.odds); if(st==='kf')kf=true; if(st==='ks')halfLose=true; if(st==='sr')isDraw=true; total*=eff; rincian.push(`${i+1}. ${b.t} vs ${b.l} -> ${STATUS[st]} (eff: ${eff.toFixed(3)})`);});
     total=Math.round(total*1000)/1000; let hasil=kf?-modal:Math.round(total*modal-modal); let menang=hasil>0;
+    let profitPersen = ((hasil/modal)*100).toFixed(2);
     if(kf) rBox.classList.add('result-lose');
     else if(halfLose || isDraw) rBox.classList.add('result-draw');
     else if(menang) { rBox.classList.add('result-win'); triggerPlayerKick(); const boxRect = rBox.getBoundingClientRect(); triggerGoalCelebration(boxRect.left + boxRect.width / 2, boxRect.top + boxRect.height / 2); }
-    $('parlayResultText').innerHTML=`<div style="max-height:120px;overflow-y:auto;background:rgba(0,0,0,0.3);padding:10px;border-radius:6px;margin-bottom:10px;border:1px solid var(--glass-border);">${rincian.map(r=>'<div style="font-size:0.85rem;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);">'+r+'</div>').join('')}</div><div class="summary-item"><span>Modal</span><strong>Rp ${fmt(modal)}</strong></div><div class="summary-item"><span>Total Odds</span><strong style="color:var(--pitch);">${total.toFixed(3)}</strong></div><div class="summary-item"><span>Hasil</span><strong style="color:${menang?'var(--gold)':'var(--red)'};">${menang?'MENANG':'KALAH'} Rp ${fmt(Math.abs(hasil))}</strong></div>`;
+    $('parlayResultText').innerHTML=`<div style="max-height:120px;overflow-y:auto;background:rgba(0,0,0,0.3);padding:10px;border-radius:6px;margin-bottom:10px;border:1px solid var(--glass-border);">${rincian.map(r=>'<div style="font-size:0.85rem;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);">'+r+'</div>').join('')}</div>
+    <div class="summary-item"><span>Modal</span><strong>Rp ${fmt(modal)}</strong></div>
+    <div class="summary-item"><span>Total Odds</span><strong style="color:var(--pitch);">${total.toFixed(4)}</strong></div>
+    <div class="summary-item"><span>Hasil Kotor</span><strong>Rp ${fmt(total*modal)}</strong></div>
+    <div class="summary-item"><span>Kemenangan Bersih</span><strong style="color:${menang?'var(--gold)':'var(--red)'};">${menang?'+':'-'} Rp ${fmt(Math.abs(hasil))}</strong></div>
+    <div class="summary-item"><span>Profit Persen</span><strong>${menang?profitPersen:'-'+Math.abs(profitPersen)}%</strong></div>`;
     window._lastParlay={modal,total,hasil,menang,data:parlayData};
 }
 
 function resetParlay(){parlayData=[];renderAllParlay();$('modalParlay').value='100.000';triggerPlayerKick();showToast('Reset berhasil');}
-function copyParlay(mode){const d=window._lastParlay;if(!d)return showToast('Hitung dulu!');let txt='';if(mode==='ringkas')txt=`MIX PARLAY\nModal: Rp ${fmt(d.modal)}\nOdds: ${d.total.toFixed(3)}\nHasil: ${d.menang?'MENANG':'KALAH'} Rp ${fmt(Math.abs(d.hasil))}`;else if(mode==='lengkap'){txt=`MIX PARLAY\nModal: Rp ${fmt(d.modal)}\n`;d.data.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);txt+=`${i+1}. ${b.t} vs ${b.l} -> ${STATUS[st]} (${getEff(st,b.odds).toFixed(3)})\n`});txt+=`Odds: ${d.total.toFixed(3)}\nHasil: Rp ${fmt(d.hasil)}`;}else if(mode==='penjelasan'){txt='PENJELASAN\n';d.data.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);txt+=`\n[${i+1}] ${b.t} vs ${b.l}\n${penjelasan(b,st)}\n`});}else{copyParlay('lengkap');copyParlay('penjelasan');return;}navigator.clipboard.writeText(txt).then(()=>showToast('Tersalin!'));closeMenu('parlayMenu');}
+function copyParlay(mode){const d=window._lastParlay;if(!d)return showToast('Hitung dulu!');let txt='';if(mode==='ringkas')txt=`MIX PARLAY\nModal: Rp ${fmt(d.modal)}\nOdds: ${d.total.toFixed(4)}\nHasil: ${d.menang?'MENANG':'KALAH'} Rp ${fmt(Math.abs(d.hasil))}`;else if(mode==='lengkap'){txt=`MIX PARLAY\nModal: Rp ${fmt(d.modal)}\n`;d.data.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);txt+=`${i+1}. ${b.t} vs ${b.l} -> ${STATUS[st]} (eff: ${getEff(st,b.odds).toFixed(3)})\n`});txt+=`Total Odds: ${d.total.toFixed(4)}\nHasil Kotor: Rp ${fmt(d.total*d.modal)}\nKemenangan Bersih: Rp ${fmt(d.hasil)}`;}else if(mode==='penjelasan'){txt='PENJELASAN\n';d.data.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);txt+=`\n[${i+1}] ${b.t} vs ${b.l}\n${penjelasan(b,st)}\n`});}else{copyParlay('lengkap');copyParlay('penjelasan');return;}navigator.clipboard.writeText(txt).then(()=>showToast('Tersalin!'));closeMenu('parlayMenu');}
 
 function updateSingleForm(){const mk=$('singlePasar').value;$('voorField').style.display=(mk==='HDP'||mk==='OU')?'block':'none';$('opsiField').style.display=(mk!=='HDP')?'block':'none';if(mk==='OU')$('singleOpsi').innerHTML='<option value="over">Over</option><option value="under">Under</option>';else if(mk==='1x2')$('singleOpsi').innerHTML='<option value="home">Home</option><option value="draw">Draw</option><option value="away">Away</option>';else if(mk==='OE')$('singleOpsi').innerHTML='<option value="even">Even</option><option value="odd">Odd</option>';hitungSingle();}
 
@@ -1115,6 +800,7 @@ function hitungSingle(){
         <div class="summary-item"><span>Status Taruhan</span><strong class="badge badge-${st}">${hasilText}</strong></div>
         <div class="summary-item"><span>Total Kembali</span><strong style="color:var(--pitch)">Rp ${fmt(kembali)}</strong></div>
         <div class="summary-item"><span>Hasil Bersih</span><strong style="color:${isProfit?'var(--gold)':'var(--red)'};">${isProfit?'+':'-'} Rp ${fmt(Math.abs(netHasil))}</strong></div>
+        <div class="summary-item"><span>Profit Persen</span><strong>${isProfit?((netHasil/modal)*100).toFixed(2):'-'+Math.abs((netHasil/modal)*100).toFixed(2)}%</strong></div>
         <div class="expl-cell" style="margin-top:10px;">${penj.replace(/\n/g,'<br>')}</div>`;
     window._lastSingle={modal,profit,kembali,netHasil,penj,tim,lawan,mk,v,p,sh,sa,odds,st,sign,hasilText};
 }
