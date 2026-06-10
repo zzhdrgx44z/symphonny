@@ -1,387 +1,447 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>VORTEX Player X | Low Buffer Edition</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>VORTEX Player X | Low Buffer Edition</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-        body {
-            background: radial-gradient(circle at 10% 20%, #0a0f1e, #03050a);
-            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+    body {
+      background: radial-gradient(circle at 10% 20%, #0a0f1e, #03050a);
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
 
-        .container {
-            width: 100%;
-            max-width: 1300px;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-            animation: fadeUp 0.4s ease;
-        }
+    .container {
+      width: 100%;
+      max-width: 1300px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      animation: fadeUp 0.4s ease;
+    }
 
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-        .hero {
-            text-align: center;
-        }
-        .hero h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #fff, #ffb6c1);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            letter-spacing: -0.5px;
-        }
-        .hero .badge {
-            background: rgba(255,71,87,0.2);
-            backdrop-filter: blur(8px);
-            border-radius: 100px;
-            padding: 5px 14px;
-            font-size: 0.7rem;
-            display: inline-block;
-            margin-top: 8px;
-            border: 1px solid rgba(255,71,87,0.4);
-            color: #ff8f9f;
-        }
+    .hero {
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #fff, #ffb6c1);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      letter-spacing: -0.5px;
+    }
+    .hero .badge {
+      background: rgba(255,71,87,0.2);
+      backdrop-filter: blur(8px);
+      border-radius: 100px;
+      padding: 5px 14px;
+      font-size: 0.7rem;
+      display: inline-block;
+      margin-top: 8px;
+      border: 1px solid rgba(255,71,87,0.4);
+      color: #ff8f9f;
+    }
 
-        .player-card {
-            background: rgba(10, 14, 23, 0.7);
-            backdrop-filter: blur(18px);
-            border-radius: 32px;
-            padding: 16px;
-            box-shadow: 0 25px 35px -20px black, 0 0 0 1px rgba(255,255,255,0.05);
-        }
+    .player-card {
+      background: rgba(10, 14, 23, 0.7);
+      backdrop-filter: blur(18px);
+      border-radius: 32px;
+      padding: 16px;
+      box-shadow: 0 25px 35px -20px black, 0 0 0 1px rgba(255,255,255,0.05);
+    }
 
-        .player-container {
-            position: relative;
-            border-radius: 24px;
-            overflow: hidden;
-            background: #000;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.5);
-        }
+    .player-container {
+      position: relative;
+      border-radius: 24px;
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+    }
 
-        video {
-            width: 100%;
-            display: block;
-            cursor: pointer;
-            will-change: transform;
-        }
+    video {
+      width: 100%;
+      display: block;
+      cursor: pointer;
+      will-change: transform;
+    }
 
-        .controls {
-            background: linear-gradient(to top, rgba(0,0,0,0.92), rgba(0,0,0,0.5) 70%, transparent);
-            padding: 14px 20px 16px;
-            transition: opacity 0.2s;
-        }
+    .controls {
+      background: linear-gradient(to top, rgba(0,0,0,0.92), rgba(0,0,0,0.5) 70%, transparent);
+      padding: 14px 20px 16px;
+      transition: opacity 0.2s;
+    }
 
-        .progress-area {
-            margin-bottom: 10px;
-        }
+    .progress-area {
+      margin-bottom: 10px;
+      position: relative;
+    }
 
-        .progress-wrapper {
-            position: relative;
-            width: 100%;
-            height: 4px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 10px;
-            cursor: pointer;
-        }
-        .buffer-progress {
-            position: absolute;
-            height: 100%;
-            background: rgba(255,255,255,0.25);
-            width: 0%;
-            border-radius: 10px;
-            pointer-events: none;
-            transition: width 0.1s ease;
-        }
-        .play-progress {
-            position: absolute;
-            height: 100%;
-            background: linear-gradient(90deg, #ff4757, #ff8a5c);
-            width: 0%;
-            border-radius: 10px;
-            z-index: 2;
-            transition: width 0.05s linear;
-        }
-        .progress-wrapper:hover {
-            height: 6px;
-        }
-        .time-stats {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 6px;
-            font-size: 0.65rem;
-            font-weight: 500;
-            color: #ccc;
-            letter-spacing: 0.3px;
-        }
+    /* TAMPILAN MENIT BESAR DENGAN LABEL NOMINAL */
+    .big-time-panel {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      margin-bottom: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      padding: 12px 5px;
+      backdrop-filter: blur(4px);
+    }
+    .time-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .time-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: rgba(255, 182, 193, 0.9);
+      background: rgba(0,0,0,0.4);
+      padding: 2px 12px;
+      border-radius: 20px;
+    }
+    .time-value {
+      font-family: 'Inter', monospace;
+      font-weight: 700;
+      font-size: 2.4rem;
+      color: #ffffff;
+      text-shadow: 0 0 15px rgba(255,71,87,0.6);
+      line-height: 1;
+    }
+    .time-separator {
+      font-size: 2rem;
+      color: rgba(255,255,255,0.5);
+      margin: 0 5px;
+      align-self: center;
+      font-weight: 300;
+    }
 
-        .button-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .ctrl-group {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-        .ctrl-btn {
-            background: rgba(30,30,45,0.75);
-            border: none;
-            color: white;
-            font-size: 1.1rem;
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: 0.1s;
-            backdrop-filter: blur(5px);
-        }
-        .ctrl-btn:active {
-            transform: scale(0.94);
-        }
-        .play-big {
-            background: #ff4757;
-            width: 48px;
-            height: 48px;
-            font-size: 1.5rem;
-            box-shadow: 0 4px 10px rgba(255,71,87,0.4);
-        }
-        .time-text {
-            background: rgba(0,0,0,0.5);
-            padding: 4px 10px;
-            border-radius: 40px;
-            font-family: monospace;
-            font-weight: 500;
-            font-size: 0.8rem;
-        }
-        .volume-box {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(0,0,0,0.4);
-            padding: 0 8px;
-            border-radius: 50px;
-        }
-        .volume-slider {
-            width: 70px;
-            height: 3px;
-            -webkit-appearance: none;
-            background: #555;
-            border-radius: 5px;
-        }
-        .volume-slider::-webkit-slider-thumb {
-            width: 10px;
-            height: 10px;
-            background: #ff4757;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-        .speed-selector {
-            background: #1e1e2e;
-            border: 1px solid #444;
-            border-radius: 40px;
-            padding: 5px 10px;
-            color: white;
-            font-weight: bold;
-            font-size: 0.75rem;
-            cursor: pointer;
-            outline: none;
-        }
-        .warning-banner {
-            font-size: 0.65rem;
-            background: rgba(0,0,0,0.8);
-            padding: 4px 10px;
-            border-radius: 30px;
-            color: #ffaa66;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .source-panel {
-            background: rgba(18, 22, 35, 0.5);
-            backdrop-filter: blur(18px);
-            border-radius: 28px;
-            padding: 18px 22px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .input-row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 16px;
-        }
-        .url-input {
-            flex: 1;
-            background: #0b0e16;
-            border: 1px solid #2a2e3f;
-            border-radius: 60px;
-            padding: 10px 18px;
-            color: white;
-            font-size: 0.8rem;
-            outline: none;
-        }
-        .url-input:focus {
-            border-color: #ff4757;
-        }
-        .btn-grad {
-            background: linear-gradient(100deg, #ff4757, #ff6f5e);
-            border: none;
-            border-radius: 60px;
-            padding: 0 24px;
-            font-weight: 600;
-            color: white;
-            cursor: pointer;
-            transition: 0.1s;
-        }
-        .btn-grad:active {
-            transform: scale(0.97);
-        }
-        .file-label {
-            background: #2c3e66;
-            border-radius: 60px;
-            padding: 10px 24px;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-flex;
-            gap: 8px;
-            font-size: 0.8rem;
-        }
-        .info-status {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.7rem;
-            color: #aaa;
-            margin-top: 10px;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .footer {
-            text-align: center;
-            font-size: 0.65rem;
-            color: #4a5568;
-        }
-        @media (max-width: 700px) {
-            .ctrl-btn { width: 34px; height: 34px; font-size: 1rem; }
-            .play-big { width: 44px; height: 44px; }
-            .time-text { font-size: 0.7rem; }
-            .volume-slider { width: 55px; }
-        }
-        .vortex-toast {
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1e1e2ecc;
-            backdrop-filter: blur(12px);
-            color: #ffd966;
-            padding: 6px 20px;
-            border-radius: 40px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            z-index: 1000;
-            border: 1px solid #ffd966;
-            white-space: nowrap;
-            pointer-events: none;
-            animation: fadeToast 0.2s ease;
-        }
-        @keyframes fadeToast {
-            from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-            to { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-    </style>
+    .progress-wrapper {
+      position: relative;
+      width: 100%;
+      height: 4px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .buffer-progress {
+      position: absolute;
+      height: 100%;
+      background: rgba(255,255,255,0.25);
+      width: 0%;
+      border-radius: 10px;
+      pointer-events: none;
+      transition: width 0.1s ease;
+    }
+    .play-progress {
+      position: absolute;
+      height: 100%;
+      background: linear-gradient(90deg, #ff4757, #ff8a5c);
+      width: 0%;
+      border-radius: 10px;
+      z-index: 2;
+      transition: width 0.05s linear;
+    }
+    .progress-wrapper:hover {
+      height: 6px;
+    }
+    .time-stats {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+      font-size: 0.65rem;
+      font-weight: 500;
+      color: #ccc;
+      letter-spacing: 0.3px;
+    }
+
+    .button-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .ctrl-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .ctrl-btn {
+      background: rgba(30,30,45,0.75);
+      border: none;
+      color: white;
+      font-size: 1.1rem;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.1s;
+      backdrop-filter: blur(5px);
+    }
+    .ctrl-btn:active {
+      transform: scale(0.94);
+    }
+    .play-big {
+      background: #ff4757;
+      width: 48px;
+      height: 48px;
+      font-size: 1.5rem;
+      box-shadow: 0 4px 10px rgba(255,71,87,0.4);
+    }
+    .time-text {
+      background: rgba(0,0,0,0.5);
+      padding: 4px 10px;
+      border-radius: 40px;
+      font-family: monospace;
+      font-weight: 500;
+      font-size: 0.8rem;
+    }
+    .volume-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,0,0,0.4);
+      padding: 0 8px;
+      border-radius: 50px;
+    }
+    .volume-slider {
+      width: 70px;
+      height: 3px;
+      -webkit-appearance: none;
+      background: #555;
+      border-radius: 5px;
+    }
+    .volume-slider::-webkit-slider-thumb {
+      width: 10px;
+      height: 10px;
+      background: #ff4757;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .speed-selector {
+      background: #1e1e2e;
+      border: 1px solid #444;
+      border-radius: 40px;
+      padding: 5px 10px;
+      color: white;
+      font-weight: bold;
+      font-size: 0.75rem;
+      cursor: pointer;
+      outline: none;
+    }
+    .warning-banner {
+      font-size: 0.65rem;
+      background: rgba(0,0,0,0.8);
+      padding: 4px 10px;
+      border-radius: 30px;
+      color: #ffaa66;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .source-panel {
+      background: rgba(18, 22, 35, 0.5);
+      backdrop-filter: blur(18px);
+      border-radius: 28px;
+      padding: 18px 22px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .input-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .url-input {
+      flex: 1;
+      background: #0b0e16;
+      border: 1px solid #2a2e3f;
+      border-radius: 60px;
+      padding: 10px 18px;
+      color: white;
+      font-size: 0.8rem;
+      outline: none;
+    }
+    .url-input:focus {
+      border-color: #ff4757;
+    }
+    .btn-grad {
+      background: linear-gradient(100deg, #ff4757, #ff6f5e);
+      border: none;
+      border-radius: 60px;
+      padding: 0 24px;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+      transition: 0.1s;
+    }
+    .btn-grad:active {
+      transform: scale(0.97);
+    }
+    .file-label {
+      background: #2c3e66;
+      border-radius: 60px;
+      padding: 10px 24px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      gap: 8px;
+      font-size: 0.8rem;
+    }
+    .info-status {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: #aaa;
+      margin-top: 10px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .footer {
+      text-align: center;
+      font-size: 0.65rem;
+      color: #4a5568;
+    }
+    @media (max-width: 700px) {
+      .ctrl-btn { width: 34px; height: 34px; font-size: 1rem; }
+      .play-big { width: 44px; height: 44px; }
+      .time-text { font-size: 0.7rem; }
+      .volume-slider { width: 55px; }
+      .time-value { font-size: 1.8rem; }
+      .time-separator { font-size: 1.5rem; }
+    }
+    .vortex-toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e1e2ecc;
+      backdrop-filter: blur(12px);
+      color: #ffd966;
+      padding: 6px 20px;
+      border-radius: 40px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      z-index: 1000;
+      border: 1px solid #ffd966;
+      white-space: nowrap;
+      pointer-events: none;
+      animation: fadeToast 0.2s ease;
+    }
+    @keyframes fadeToast {
+      from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+  </style>
 </head>
 <body>
 <div class="container">
-    <div class="hero">
-        <h1>VORTEX Zero Lag</h1>
-        <div class="badge">⚡ LOW BUFFER MODE | HEMAT BANDWIDTH ⚡</div>
-    </div>
+  <div class="hero">
+    <h1>VORTEX Zero Lag</h1>
+    <div class="badge">⚡ LOW BUFFER MODE | NOMINAL MENIT TERLIHAT ⚡</div>
+  </div>
 
-    <div class="player-card">
-        <div class="player-container">
-            <video id="videoPlayer" preload="metadata" crossorigin="anonymous">
-                <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
-            </video>
-            <div class="controls">
-                <div class="progress-area">
-                    <div class="progress-wrapper" id="progressWrapper">
-                        <div class="buffer-progress" id="bufferProgress"></div>
-                        <div class="play-progress" id="playProgress"></div>
-                    </div>
-                    <div class="time-stats">
-                        <span id="currentTimeLabel">00:00</span>
-                        <span id="bufferPercent" style="display:none;">● buffer 0%</span> <!-- Disembunyikan agar tidak mengganggu -->
-                        <span id="durationLabel">00:00</span>
-                    </div>
-                </div>
-                <div class="button-bar">
-                    <div class="ctrl-group">
-                        <button class="ctrl-btn play-big" id="playPauseBtn"><span id="playIcon">▶</span></button>
-                        <button class="ctrl-btn" id="rewind10">⏪10</button>
-                        <button class="ctrl-btn" id="forward10">⏩10</button>
-                        <div class="time-text"><span id="currentTime">00:00</span> / <span id="duration">00:00</span></div>
-                    </div>
-                    <div class="ctrl-group">
-                        <div class="volume-box">
-                            <button class="ctrl-btn" id="muteBtn" style="width:34px;">🔊</button>
-                            <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.01" value="0.7">
-                        </div>
-                        <select id="speedSelect" class="speed-selector">
-                            <option value="0.5">0.5x</option><option value="0.75">0.75x</option>
-                            <option value="1" selected>1x</option><option value="1.25">1.25x</option>
-                            <option value="1.5">1.5x</option><option value="2">2x</option>
-                        </select>
-                        <button class="ctrl-btn" id="loopBtn" title="Loop">🔁</button>
-                        <button class="ctrl-btn" id="fullscreenBtn">⛶</button>
-                    </div>
-                </div>
-                <div id="stutterWarning" class="warning-banner" style="display: none;">⚡ Optimasi low buffer</div>
+  <div class="player-card">
+    <div class="player-container">
+      <video id="videoPlayer" preload="metadata" crossorigin="anonymous">
+        <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+      </video>
+      <div class="controls">
+        <div class="progress-area">
+          <!-- PANEL NOMINAL MENIT BARU -->
+          <div class="big-time-panel">
+            <div class="time-block">
+              <span class="time-label">MENIT SEKARANG</span>
+              <span id="bigCurrentMinutes" class="time-value">00:00</span>
             </div>
-        </div>
-    </div>
+            <span class="time-separator">⏳</span>
+            <div class="time-block">
+              <span class="time-label">TOTAL DURASI</span>
+              <span id="bigDurationMinutes" class="time-value">00:00</span>
+            </div>
+          </div>
 
-    <div class="source-panel">
-        <div class="input-row">
-            <input type="text" id="videoUrlInput" class="url-input" placeholder="URL video (mp4, webm)">
-            <button id="loadUrlButton" class="btn-grad">🚀 Muat URL</button>
-            <input type="file" id="localFile" accept="video/*" style="display:none">
-            <label for="localFile" class="file-label">📂 File Lokal</label>
+          <div class="progress-wrapper" id="progressWrapper">
+            <div class="buffer-progress" id="bufferProgress"></div>
+            <div class="play-progress" id="playProgress"></div>
+          </div>
+          <div class="time-stats">
+            <span id="currentTimeLabel">00:00</span>
+            <span id="durationLabel">00:00</span>
+          </div>
         </div>
-        <div class="info-status">
-            <span>🎬 <span id="fileStatus">BigBuckBunny (demo)</span></span>
-            <span class="stats-row">⚡ <span id="perfStatus">Mode: Low Buffer</span></span>
+        <div class="button-bar">
+          <div class="ctrl-group">
+            <button class="ctrl-btn play-big" id="playPauseBtn"><span id="playIcon">▶</span></button>
+            <button class="ctrl-btn" id="rewind10">⏪10</button>
+            <button class="ctrl-btn" id="forward10">⏩10</button>
+            <div class="time-text"><span id="currentTime">00:00</span> / <span id="duration">00:00</span></div>
+          </div>
+          <div class="ctrl-group">
+            <div class="volume-box">
+              <button class="ctrl-btn" id="muteBtn" style="width:34px;">🔊</button>
+              <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.01" value="0.7">
+            </div>
+            <select id="speedSelect" class="speed-selector">
+              <option value="0.5">0.5x</option><option value="0.75">0.75x</option>
+              <option value="1" selected>1x</option><option value="1.25">1.25x</option>
+              <option value="1.5">1.5x</option><option value="2">2x</option>
+            </select>
+            <button class="ctrl-btn" id="loopBtn" title="Loop">🔁</button>
+            <button class="ctrl-btn" id="fullscreenBtn">⛶</button>
+          </div>
         </div>
+        <div id="stutterWarning" class="warning-banner" style="display: none;">⚡ Optimasi low buffer</div>
+      </div>
     </div>
-    <div class="footer">
-        <p>🔧 Mode Low Buffer: preload 'metadata' + buffer minimal | Video tetap lancar tanpa konsumsi data berlebih</p>
+  </div>
+
+  <div class="source-panel">
+    <div class="input-row">
+      <input type="text" id="videoUrlInput" class="url-input" placeholder="URL video (mp4, webm)">
+      <button id="loadUrlButton" class="btn-grad">🚀 Muat URL</button>
+      <input type="file" id="localFile" accept="video/*" style="display:none">
+      <label for="localFile" class="file-label">📂 File Lokal</label>
     </div>
+    <div class="info-status">
+      <span>🎬 <span id="fileStatus">BigBuckBunny (demo)</span></span>
+      <span class="stats-row">⚡ <span id="perfStatus">Mode: Low Buffer</span></span>
+    </div>
+  </div>
+  <div class="footer">
+    <p>🔧 Mode Low Buffer: preload 'metadata' + buffer minimal | Menit berjalan ditampilkan jelas</p>
+  </div>
 </div>
 
 <script>
+  (function() {
     // ========== DOM Elements ==========
     const video = document.getElementById('videoPlayer');
     const playBtn = document.getElementById('playPauseBtn');
@@ -392,6 +452,10 @@
     const durationSpan = document.getElementById('duration');
     const currentLabel = document.getElementById('currentTimeLabel');
     const durationLabel = document.getElementById('durationLabel');
+    // Elemen baru untuk nominal menit
+    const bigCurrentMinutes = document.getElementById('bigCurrentMinutes');
+    const bigDurationMinutes = document.getElementById('bigDurationMinutes');
+    
     const playProgress = document.getElementById('playProgress');
     const bufferProgress = document.getElementById('bufferProgress');
     const progressWrapper = document.getElementById('progressWrapper');
@@ -406,7 +470,7 @@
     const fileStatusSpan = document.getElementById('fileStatus');
     const stutterWarning = document.getElementById('stutterWarning');
     const perfStatusSpan = document.getElementById('perfStatus');
-    
+
     // ========== ANTI-LAG & LOW BUFFER ==========
     let lagDetectionCount = 0;
     let lastTimeUpdate = 0;
@@ -414,343 +478,351 @@
     let frameDropCount = 0;
     let warningTimeout = null;
     let activeToast = null;
-    
+
     function formatTime(sec) {
-        if (isNaN(sec) || !isFinite(sec) || sec < 0) return "00:00";
-        let m = Math.floor(sec / 60);
-        let s = Math.floor(sec % 60);
-        return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+      if (isNaN(sec) || !isFinite(sec) || sec < 0) return "00:00";
+      let m = Math.floor(sec / 60);
+      let s = Math.floor(sec % 60);
+      return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
     }
-    
+
     function showToast(msg, duration = 1800) {
-        if (activeToast) activeToast.remove();
-        const toast = document.createElement('div');
-        toast.className = 'vortex-toast';
-        toast.innerText = msg;
-        document.body.appendChild(toast);
-        activeToast = toast;
-        setTimeout(() => { if (activeToast === toast) toast.remove(); }, duration);
+      if (activeToast) activeToast.remove();
+      const toast = document.createElement('div');
+      toast.className = 'vortex-toast';
+      toast.innerText = msg;
+      document.body.appendChild(toast);
+      activeToast = toast;
+      setTimeout(() => { if (activeToast === toast) toast.remove(); }, duration);
     }
-    
+
     function resetLagDetector() {
-        lagDetectionCount = 0;
-        frameDropCount = 0;
-        lastTimeUpdate = 0;
-        lastVideoTime = 0;
-        if (stutterWarning) stutterWarning.style.display = 'none';
-        if (warningTimeout) clearTimeout(warningTimeout);
+      lagDetectionCount = 0;
+      frameDropCount = 0;
+      lastTimeUpdate = 0;
+      lastVideoTime = 0;
+      if (stutterWarning) stutterWarning.style.display = 'none';
+      if (warningTimeout) clearTimeout(warningTimeout);
     }
-    
+
     function updateProgress() {
-        if (!video.duration || isNaN(video.duration) || video.duration === 0) return;
-        const percent = (video.currentTime / video.duration) * 100;
-        playProgress.style.width = `${percent}%`;
-        
-        if (video.buffered.length > 0) {
-            const bufferedEnd = video.buffered.end(video.buffered.length - 1);
-            const bufferPercentVal = (bufferedEnd / video.duration) * 100;
-            bufferProgress.style.width = `${bufferPercentVal}%`;
-            // Tidak menampilkan persentase buffer di UI (low buffer mode)
-        }
+      if (!video.duration || isNaN(video.duration) || video.duration === 0) return;
+      const percent = (video.currentTime / video.duration) * 100;
+      playProgress.style.width = `${percent}%`;
+
+      if (video.buffered.length > 0) {
+        const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+        const bufferPercentVal = (bufferedEnd / video.duration) * 100;
+        bufferProgress.style.width = `${bufferPercentVal}%`;
+      }
     }
-    
+
     function updateTimeDisplay() {
-        if (!video.duration || isNaN(video.duration)) return;
-        currentSpan.innerText = formatTime(video.currentTime);
-        durationSpan.innerText = formatTime(video.duration);
-        currentLabel.innerText = formatTime(video.currentTime);
-        durationLabel.innerText = formatTime(video.duration);
+      if (!video.duration || isNaN(video.duration)) {
+        bigCurrentMinutes.innerText = "00:00";
+        bigDurationMinutes.innerText = "00:00";
+        currentSpan.innerText = "00:00";
+        durationSpan.innerText = "00:00";
+        currentLabel.innerText = "00:00";
+        durationLabel.innerText = "00:00";
+        return;
+      }
+      const currentFormatted = formatTime(video.currentTime);
+      const durationFormatted = formatTime(video.duration);
+
+      // Update tampilan MENIT SEKARANG dan TOTAL DURASI
+      bigCurrentMinutes.innerText = currentFormatted;
+      bigDurationMinutes.innerText = durationFormatted;
+
+      // Update teks kecil lainnya
+      currentSpan.innerText = currentFormatted;
+      durationSpan.innerText = durationFormatted;
+      currentLabel.innerText = currentFormatted;
+      durationLabel.innerText = durationFormatted;
     }
-    
+
     function updatePlayPauseIcon() {
-        playIcon.innerText = video.paused ? '▶' : '⏸';
+      playIcon.innerText = video.paused ? '▶' : '⏸';
     }
-    
+
     function updateLoopUI() {
-        if (video.loop) {
-            loopBtn.style.background = "#ff4757";
-            loopBtn.style.color = "white";
-        } else {
-            loopBtn.style.background = "rgba(30,30,45,0.75)";
-            loopBtn.style.color = "white";
-        }
-        loopBtn.innerText = "🔁";
+      if (video.loop) {
+        loopBtn.style.background = "#ff4757";
+        loopBtn.style.color = "white";
+      } else {
+        loopBtn.style.background = "rgba(30,30,45,0.75)";
+        loopBtn.style.color = "white";
+      }
+      loopBtn.innerText = "🔁";
     }
-    
-    // Deteksi lag minimal (tidak agresif)
+
     function detectLagAndOptimize() {
-        if (video.paused || video.ended || video.seeking || video.readyState < 2) return;
-        
-        const now = performance.now();
-        const currentVidTime = video.currentTime;
-        
-        if (lastTimeUpdate > 0 && lastVideoTime !== undefined && !video.seeking) {
-            const realElapsed = now - lastTimeUpdate;
-            const videoElapsed = currentVidTime - lastVideoTime;
-            
-            // Hanya deteksi lag yang parah
-            if (realElapsed > 180 && videoElapsed < 0.02 && video.readyState >= 2) {
-                lagDetectionCount++;
-                frameDropCount++;
-                
-                if (lagDetectionCount >= 2 && stutterWarning && stutterWarning.style.display !== 'inline-flex') {
-                    stutterWarning.style.display = 'inline-flex';
-                    stutterWarning.innerText = video.playbackRate > 1.3 ? '⚠️ Turunkan kecepatan' : '⚡ Menyesuaikan buffer...';
-                    if (warningTimeout) clearTimeout(warningTimeout);
-                    warningTimeout = setTimeout(() => {
-                        if (stutterWarning) stutterWarning.style.display = 'none';
-                    }, 2000);
-                }
-                
-                if (video.preload !== 'metadata') video.preload = 'metadata'; // tetap hemat buffer
-            } else if (videoElapsed > 0.05) {
-                lagDetectionCount = Math.max(0, lagDetectionCount - 0.5);
-                frameDropCount = Math.max(0, frameDropCount - 0.5);
-            }
+      if (video.paused || video.ended || video.seeking || video.readyState < 2) return;
+
+      const now = performance.now();
+      const currentVidTime = video.currentTime;
+
+      if (lastTimeUpdate > 0 && lastVideoTime !== undefined && !video.seeking) {
+        const realElapsed = now - lastTimeUpdate;
+        const videoElapsed = currentVidTime - lastVideoTime;
+
+        if (realElapsed > 180 && videoElapsed < 0.02 && video.readyState >= 2) {
+          lagDetectionCount++;
+          frameDropCount++;
+
+          if (lagDetectionCount >= 2 && stutterWarning && stutterWarning.style.display !== 'inline-flex') {
+            stutterWarning.style.display = 'inline-flex';
+            stutterWarning.innerText = video.playbackRate > 1.3 ? '⚠️ Turunkan kecepatan' : '⚡ Menyesuaikan buffer...';
+            if (warningTimeout) clearTimeout(warningTimeout);
+            warningTimeout = setTimeout(() => {
+              if (stutterWarning) stutterWarning.style.display = 'none';
+            }, 2000);
+          }
+        } else if (videoElapsed > 0.05) {
+          lagDetectionCount = Math.max(0, lagDetectionCount - 0.5);
+          frameDropCount = Math.max(0, frameDropCount - 0.5);
         }
-        
-        lastTimeUpdate = now;
-        lastVideoTime = currentVidTime;
-        
-        // Status performa disederhanakan
-        if (lagDetectionCount < 1 && video.readyState >= 3) {
-            perfStatusSpan.innerText = '✅ Lancar & Hemat Buffer';
-            perfStatusSpan.style.color = '#88ffaa';
-        } else if (video.buffered.length > 0 && (video.buffered.end(video.buffered.length-1) - video.currentTime) > 3) {
-            perfStatusSpan.innerText = '⚡ Buffer Cukup';
-            perfStatusSpan.style.color = '#ffd966';
-        } else {
-            perfStatusSpan.innerText = '🎬 Mode Low Buffer';
-            perfStatusSpan.style.color = '#ccc';
-        }
+      }
+
+      lastTimeUpdate = now;
+      lastVideoTime = currentVidTime;
+
+      if (lagDetectionCount < 1 && video.readyState >= 3) {
+        perfStatusSpan.innerText = '✅ Lancar & Hemat Buffer';
+        perfStatusSpan.style.color = '#88ffaa';
+      } else if (video.buffered.length > 0 && (video.buffered.end(video.buffered.length-1) - video.currentTime) > 3) {
+        perfStatusSpan.innerText = '⚡ Buffer Cukup';
+        perfStatusSpan.style.color = '#ffd966';
+      } else {
+        perfStatusSpan.innerText = '🎬 Mode Low Buffer';
+        perfStatusSpan.style.color = '#ccc';
+      }
     }
-    
-    // Pemeriksaan buffer minimal (tidak terlalu sering warning)
+
     function checkBufferHealth() {
-        if (!video.duration || video.paused || video.ended || video.seeking) return;
-        if (video.buffered.length > 0) {
-            const bufferedUntil = video.buffered.end(video.buffered.length - 1);
-            const bufferAhead = bufferedUntil - video.currentTime;
-            
-            // Hanya warning jika buffer sangat kritis (kurang dari 1 detik)
-            if (bufferAhead < 1.0 && !video.seeking && video.playbackRate <= 1.2) {
-                if (stutterWarning && stutterWarning.style.display !== 'inline-flex') {
-                    stutterWarning.innerText = '⚠️ Buffer hampir habis';
-                    stutterWarning.style.display = 'inline-flex';
-                    setTimeout(() => {
-                        if (stutterWarning) stutterWarning.style.display = 'none';
-                    }, 2000);
-                }
-            } else if (bufferAhead > 4 && stutterWarning && stutterWarning.style.display === 'inline-flex' && lagDetectionCount < 1) {
-                setTimeout(() => {
-                    if (stutterWarning && lagDetectionCount < 1) stutterWarning.style.display = 'none';
-                }, 1000);
-            }
-        }
-    }
-    
-    // Event handlers
-    function onWaiting() {
-        lagDetectionCount = Math.min(lagDetectionCount + 1, 4);
-        if (stutterWarning) {
-            stutterWarning.innerText = '⏳ Mengisi buffer minimal...';
+      if (!video.duration || video.paused || video.ended || video.seeking) return;
+      if (video.buffered.length > 0) {
+        const bufferedUntil = video.buffered.end(video.buffered.length - 1);
+        const bufferAhead = bufferedUntil - video.currentTime;
+
+        if (bufferAhead < 1.0 && !video.seeking && video.playbackRate <= 1.2) {
+          if (stutterWarning && stutterWarning.style.display !== 'inline-flex') {
+            stutterWarning.innerText = '⚠️ Buffer hampir habis';
             stutterWarning.style.display = 'inline-flex';
             setTimeout(() => {
-                if (stutterWarning && video.readyState >= 3) stutterWarning.style.display = 'none';
-            }, 3000);
+              if (stutterWarning) stutterWarning.style.display = 'none';
+            }, 2000);
+          }
+        } else if (bufferAhead > 4 && stutterWarning && stutterWarning.style.display === 'inline-flex' && lagDetectionCount < 1) {
+          setTimeout(() => {
+            if (stutterWarning && lagDetectionCount < 1) stutterWarning.style.display = 'none';
+          }, 1000);
         }
+      }
     }
-    
+
+    function onWaiting() {
+      lagDetectionCount = Math.min(lagDetectionCount + 1, 4);
+      if (stutterWarning) {
+        stutterWarning.innerText = '⏳ Mengisi buffer minimal...';
+        stutterWarning.style.display = 'inline-flex';
+        setTimeout(() => {
+          if (stutterWarning && video.readyState >= 3) stutterWarning.style.display = 'none';
+        }, 3000);
+      }
+    }
+
     function onPlaying() {
-        lagDetectionCount = Math.max(0, lagDetectionCount - 1);
-        if (stutterWarning && video.readyState >= 3) {
-            setTimeout(() => {
-                if (stutterWarning && lagDetectionCount < 1) stutterWarning.style.display = 'none';
-            }, 1200);
-        }
+      lagDetectionCount = Math.max(0, lagDetectionCount - 1);
+      if (stutterWarning && video.readyState >= 3) {
+        setTimeout(() => {
+          if (stutterWarning && lagDetectionCount < 1) stutterWarning.style.display = 'none';
+        }, 1200);
+      }
     }
-    
+
     function onSeekingStart() {
-        resetLagDetector();
-        if (stutterWarning) stutterWarning.style.display = 'none';
+      resetLagDetector();
+      if (stutterWarning) stutterWarning.style.display = 'none';
     }
-    
+
     let updateScheduled = false;
     function throttledUpdate() {
-        if (!updateScheduled) {
-            requestAnimationFrame(() => {
-                updateProgress();
-                updateTimeDisplay();
-                detectLagAndOptimize();
-                checkBufferHealth();
-                updateScheduled = false;
-            });
-            updateScheduled = true;
-        }
+      if (!updateScheduled) {
+        requestAnimationFrame(() => {
+          updateProgress();
+          updateTimeDisplay();
+          detectLagAndOptimize();
+          checkBufferHealth();
+          updateScheduled = false;
+        });
+        updateScheduled = true;
+      }
     }
-    
-    // Event binding
+
+    // Event binding video
     video.addEventListener('waiting', onWaiting);
     video.addEventListener('playing', onPlaying);
     video.addEventListener('seeking', onSeekingStart);
     video.addEventListener('timeupdate', throttledUpdate);
     video.addEventListener('progress', throttledUpdate);
     video.addEventListener('loadedmetadata', () => {
-        updateTimeDisplay();
-        updateProgress();
-        video.preload = 'metadata';   // Low buffer: hanya muat metadata
-        perfStatusSpan.innerText = '✅ Mode Low Buffer Aktif';
-        resetLagDetector();
-        updateLoopUI();
-        if (stutterWarning) stutterWarning.style.display = 'none';
+      updateTimeDisplay();
+      updateProgress();
+      video.preload = 'metadata';
+      perfStatusSpan.innerText = '✅ Mode Low Buffer Aktif';
+      resetLagDetector();
+      updateLoopUI();
+      if (stutterWarning) stutterWarning.style.display = 'none';
     });
     video.addEventListener('play', updatePlayPauseIcon);
     video.addEventListener('pause', updatePlayPauseIcon);
     video.addEventListener('ended', updatePlayPauseIcon);
     video.addEventListener('ratechange', () => {
-        if (video.playbackRate > 1.5 && video.buffered.length) {
-            const ahead = video.buffered.end(video.buffered.length-1) - video.currentTime;
-            if (ahead < 2.5) showToast('⚠️ Kecepatan tinggi, buffer minimal bisa menyebabkan lag', 2000);
-        }
+      if (video.playbackRate > 1.5 && video.buffered.length) {
+        const ahead = video.buffered.end(video.buffered.length-1) - video.currentTime;
+        if (ahead < 2.5) showToast('⚠️ Kecepatan tinggi, buffer minimal bisa menyebabkan lag', 2000);
+      }
     });
     video.addEventListener('error', (e) => {
-        let errorMsg = "Gagal memuat video. Cek URL atau format.";
-        if (video.error) {
-            if (video.error.code === 4) errorMsg = "Format tidak didukung atau server error.";
-            else errorMsg = `Error: ${video.error.message || "Tidak diketahui"}`;
-        }
-        showToast(errorMsg, 3000);
-        fileStatusSpan.innerText = "Gagal load video";
-        perfStatusSpan.innerText = "❌ Error video";
+      let errorMsg = "Gagal memuat video. Cek URL atau format.";
+      if (video.error) {
+        if (video.error.code === 4) errorMsg = "Format tidak didukung atau server error.";
+        else errorMsg = `Error: ${video.error.message || "Tidak diketahui"}`;
+      }
+      showToast(errorMsg, 3000);
+      fileStatusSpan.innerText = "Gagal load video";
+      perfStatusSpan.innerText = "❌ Error video";
     });
-    
+
     // ========== KONTROL PLAYER ==========
     playBtn.addEventListener('click', () => {
-        if (video.paused) {
-            video.play().catch(err => showToast("Autoplay diblokir. Klik play lagi", 1500));
-        } else {
-            video.pause();
-        }
+      if (video.paused) {
+        video.play().catch(err => showToast("Autoplay diblokir. Klik play lagi", 1500));
+      } else {
+        video.pause();
+      }
     });
     rewind10.addEventListener('click', () => {
-        video.currentTime = Math.max(0, video.currentTime - 10);
-        showToast('⏪ Mundur 10 detik', 800);
+      video.currentTime = Math.max(0, video.currentTime - 10);
+      showToast('⏪ Mundur 10 detik', 800);
     });
     forward10.addEventListener('click', () => {
-        video.currentTime = Math.min(video.duration, video.currentTime + 10);
-        showToast('⏩ Maju 10 detik', 800);
+      video.currentTime = Math.min(video.duration, video.currentTime + 10);
+      showToast('⏩ Maju 10 detik', 800);
     });
     progressWrapper.addEventListener('click', (e) => {
-        if (!video.duration) return;
-        const rect = progressWrapper.getBoundingClientRect();
-        const percent = (e.clientX - rect.left) / rect.width;
-        video.currentTime = percent * video.duration;
-        resetLagDetector();
+      if (!video.duration) return;
+      const rect = progressWrapper.getBoundingClientRect();
+      const percent = (e.clientX - rect.left) / rect.width;
+      video.currentTime = percent * video.duration;
+      resetLagDetector();
     });
     muteBtn.addEventListener('click', () => {
-        video.muted = !video.muted;
-        muteBtn.innerText = video.muted ? '🔇' : (video.volume === 0 ? '🔇' : '🔊');
-        if (!video.muted) volumeSlider.value = video.volume;
-        else volumeSlider.value = 0;
+      video.muted = !video.muted;
+      muteBtn.innerText = video.muted ? '🔇' : (video.volume === 0 ? '🔇' : '🔊');
+      if (!video.muted) volumeSlider.value = video.volume;
+      else volumeSlider.value = 0;
     });
     volumeSlider.addEventListener('input', (e) => {
-        const val = parseFloat(e.target.value);
-        video.volume = val;
-        video.muted = (val === 0);
-        muteBtn.innerText = val === 0 ? '🔇' : (val < 0.3 ? '🔉' : '🔊');
+      const val = parseFloat(e.target.value);
+      video.volume = val;
+      video.muted = (val === 0);
+      muteBtn.innerText = val === 0 ? '🔇' : (val < 0.3 ? '🔉' : '🔊');
     });
     speedSelect.addEventListener('change', (e) => {
-        const newRate = parseFloat(e.target.value);
-        video.playbackRate = newRate;
-        showToast(`Kecepatan ${newRate}x`, 800);
+      const newRate = parseFloat(e.target.value);
+      video.playbackRate = newRate;
+      showToast(`Kecepatan ${newRate}x`, 800);
     });
     loopBtn.addEventListener('click', () => {
-        video.loop = !video.loop;
-        updateLoopUI();
-        showToast(video.loop ? '🔁 Loop aktif' : 'Loop nonaktif', 800);
+      video.loop = !video.loop;
+      updateLoopUI();
+      showToast(video.loop ? '🔁 Loop aktif' : 'Loop nonaktif', 800);
     });
     fullscreenBtn.addEventListener('click', () => {
-        const container = document.querySelector('.player-container');
-        if (!document.fullscreenElement) {
-            container.requestFullscreen().catch(err => showToast("Fullscreen tidak didukung", 1000));
-        } else {
-            document.exitFullscreen();
-        }
+      const container = document.querySelector('.player-container');
+      if (!document.fullscreenElement) {
+        container.requestFullscreen().catch(err => showToast("Fullscreen tidak didukung", 1000));
+      } else {
+        document.exitFullscreen();
+      }
     });
     document.addEventListener('fullscreenchange', () => {
-        fullscreenBtn.innerText = document.fullscreenElement ? '✖' : '⛶';
+      fullscreenBtn.innerText = document.fullscreenElement ? '✖' : '⛶';
     });
-    
-    // ========== LOAD VIDEO (dengan preload metadata) ==========
+
+    // ========== LOAD VIDEO ==========
     function loadVideoFromURL(url) {
-        if (!url.startsWith('http://') && !url.startsWith('https://')) {
-            showToast("URL harus http:// atau https://", 2000);
-            return false;
-        }
-        if (video.src && video.src.startsWith('blob:')) URL.revokeObjectURL(video.src);
-        const wasPlaying = !video.paused;
-        video.pause();
-        resetLagDetector();
-        video.src = url;
-        video.load();
-        video.preload = 'metadata';   // hemat buffer
-        try {
-            const pathname = new URL(url).pathname;
-            const filename = pathname.split('/').pop() || 'Video Online';
-            fileStatusSpan.innerText = filename.substring(0, 50);
-        } catch(e) { fileStatusSpan.innerText = 'Video Online'; }
-        if (wasPlaying) {
-            video.play().catch(() => showToast('Klik play untuk mulai', 1000));
-        }
-        showToast('🔄 Memuat video (mode low buffer)...', 1500);
-        return true;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        showToast("URL harus http:// atau https://", 2000);
+        return false;
+      }
+      if (video.src && video.src.startsWith('blob:')) URL.revokeObjectURL(video.src);
+      const wasPlaying = !video.paused;
+      video.pause();
+      resetLagDetector();
+      video.src = url;
+      video.load();
+      video.preload = 'metadata';
+      try {
+        const pathname = new URL(url).pathname;
+        const filename = pathname.split('/').pop() || 'Video Online';
+        fileStatusSpan.innerText = filename.substring(0, 50);
+      } catch(e) { fileStatusSpan.innerText = 'Video Online'; }
+      if (wasPlaying) {
+        video.play().catch(() => showToast('Klik play untuk mulai', 1000));
+      }
+      showToast('🔄 Memuat video (mode low buffer)...', 1500);
+      return true;
     }
-    
+
     loadUrlButton.addEventListener('click', () => {
-        let url = videoUrlInput.value.trim();
-        if (!url) return showToast("Masukkan URL video", 1500);
-        loadVideoFromURL(url);
+      let url = videoUrlInput.value.trim();
+      if (!url) return showToast("Masukkan URL video", 1500);
+      loadVideoFromURL(url);
     });
-    
+
     localFileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file || !file.type.startsWith('video/')) return showToast("Pilih file video valid", 2000);
-        if (video.src && video.src.startsWith('blob:')) URL.revokeObjectURL(video.src);
-        const blobUrl = URL.createObjectURL(file);
-        const wasPlaying = !video.paused;
-        video.pause();
-        resetLagDetector();
-        video.src = blobUrl;
-        video.load();
-        video.preload = 'metadata';
-        fileStatusSpan.innerText = file.name.substring(0, 48);
-        if (wasPlaying) video.play().catch(() => {});
-        videoUrlInput.value = '';
-        localFileInput.value = '';
-        showToast(`📁 ${file.name} dimuat (buffer minimal)`, 1800);
+      const file = e.target.files[0];
+      if (!file || !file.type.startsWith('video/')) return showToast("Pilih file video valid", 2000);
+      if (video.src && video.src.startsWith('blob:')) URL.revokeObjectURL(video.src);
+      const blobUrl = URL.createObjectURL(file);
+      const wasPlaying = !video.paused;
+      video.pause();
+      resetLagDetector();
+      video.src = blobUrl;
+      video.load();
+      video.preload = 'metadata';
+      fileStatusSpan.innerText = file.name.substring(0, 48);
+      if (wasPlaying) video.play().catch(() => {});
+      videoUrlInput.value = '';
+      localFileInput.value = '';
+      showToast(`📁 ${file.name} dimuat (buffer minimal)`, 1800);
     });
-    
+
     // ========== INIT ==========
     function init() {
-        video.volume = 0.7;
-        volumeSlider.value = 0.7;
-        video.playbackRate = 1;
-        speedSelect.value = '1';
-        video.preload = 'metadata';  // kunci utama: mengurangi buffer awal
-        updatePlayPauseIcon();
-        updateLoopUI();
-        fileStatusSpan.innerText = 'BigBuckBunny (demo low buffer)';
-        resetLagDetector();
-        // Interval pemantau buffer ringan
-        setInterval(() => {
-            if (!video.paused && video.readyState >= 2 && !video.seeking) {
-                checkBufferHealth();
-            }
-        }, 1500);
-        window.addEventListener('resize', () => updateProgress());
-        console.log('VORTEX Low Buffer Mode aktif - buffering minimal, hemat bandwidth');
+      video.volume = 0.7;
+      volumeSlider.value = 0.7;
+      video.playbackRate = 1;
+      speedSelect.value = '1';
+      video.preload = 'metadata';
+      updatePlayPauseIcon();
+      updateLoopUI();
+      fileStatusSpan.innerText = 'BigBuckBunny (demo low buffer)';
+      resetLagDetector();
+      updateTimeDisplay();
+      setInterval(() => {
+        if (!video.paused && video.readyState >= 2 && !video.seeking) {
+          checkBufferHealth();
+        }
+      }, 1500);
+      window.addEventListener('resize', () => updateProgress());
+      console.log('VORTEX Low Buffer aktif - MENIT SEKARANG & TOTAL DURASI terpampang jelas');
     }
     init();
+  })();
 </script>
 </body>
 </html>
