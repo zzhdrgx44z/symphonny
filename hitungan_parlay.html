@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
+        /* (styles sama seperti sebelumnya, tidak berubah) */
         :root {
             --bg: #0b0f14; --glass: rgba(12, 18, 26, 0.88); --glass-border: rgba(255, 255, 255, 0.08);
             --pitch: #00ff87; --pitch-dim: rgba(0, 255, 135, 0.15); --gold: #ffc400; --gold-dim: rgba(255, 196, 0, 0.15);
@@ -909,11 +910,29 @@ function penjelasan(b,st){
         txt=`[OU] ${t} vs ${l} | Total Gol: ${tot} (${sh}-${sa}) | Batas: ${v} | Pilih: ${lb}\n`;
         if(v%0.5===0){if(p==='over'){if(tot>v)txt+=`MENANG FULL (${odds})`;else if(eq(tot,v))txt+=`SERI (1)`;else txt+=`KALAH FULL (0)`;}else{if(tot<v)txt+=`MENANG FULL (${odds})`;else if(eq(tot,v))txt+=`SERI (1)`;else txt+=`KALAH FULL (0)`;}
         }else{const lo=p==='over'?Math.floor(v*2)/2:Math.ceil(v*2)/2;const hi=p==='over'?lo+0.5:lo-0.5;txt+=`Terbelah: ${lb} ${lo} & ${lb} ${hi}\n`;const ef=getEff(st,odds);
-        if(st==='mf')txt+=`MENANG FULL -> ${odds}`;else if(st==='ms')txt+=`MENANG SETENGAH -> ${ef.toFixed(3)}`;else if(st==='ks')txt+=`KALAH SETENGAH -> 0.5`;else if(st==='sr')txt+=`SERI -> 1`;else txt+=`KALAH FULL -> 0`;}
+        if(st==='mf')txt+=`MENANG FULL -> ${odds}`;else if(st==='ms')txt+=`MENANG SETENGAH -> (${odds}-1)/2+1 = ${ef.toFixed(3)}`;else if(st==='ks')txt+=`KALAH SETENGAH -> 0.5`;else if(st==='sr')txt+=`SERI -> 1`;else txt+=`KALAH FULL -> 0`;}
         return stripEmoji(txt);
     }
-    if(m==='1x2') return stripEmoji(`[1X2] ${t} vs ${l} | Pilih: ${p} | Skor: ${sh}-${sa}\n${((p==='home'&&d>0)||(p==='away'&&d<0)||(p==='draw'&&d===0))?'MENANG FULL ('+odds+')':'KALAH FULL (0)'}`);
-    if(m==='OE') return stripEmoji(`[OE] ${t} vs ${l} | Pilih: ${p} | Total Gol: ${tot}\n${((p==='even'&&tot%2===0)||(p==='odd'&&tot%2===1))?'MENANG FULL ('+odds+')':'KALAH FULL (0)'}`);
+    if(m==='1x2'){
+        let hasil = '';
+        if((p==='home'&&d>0)||(p==='away'&&d<0)||(p==='draw'&&d===0)){
+            hasil = `MENANG FULL (${odds})`;
+        } else {
+            hasil = `KALAH FULL (0)`;
+        }
+        txt = `[1X2] ${t} vs ${l} | Pilih: ${p} | Skor: ${sh}-${sa}\n${hasil}`;
+        return stripEmoji(txt);
+    }
+    if(m==='OE'){
+        let hasil = '';
+        if((p==='even'&&tot%2===0)||(p==='odd'&&tot%2===1)){
+            hasil = `MENANG FULL (${odds})`;
+        } else {
+            hasil = `KALAH FULL (0)`;
+        }
+        txt = `[OE] ${t} vs ${l} | Pilih: ${p} | Total Gol: ${tot}\n${hasil}`;
+        return stripEmoji(txt);
+    }
     return stripEmoji(txt);
 }
 
