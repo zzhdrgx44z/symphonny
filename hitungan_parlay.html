@@ -26,7 +26,6 @@
         @keyframes moveLight1 { 0% { transform: translate(0, 0); } 100% { transform: translate(40vw, 40vh); } }
         @keyframes moveLight2 { 0% { transform: translate(0, 0); } 100% { transform: translate(-30vw, -30vh); } }
 
-        /* ===== ENHANCED SOCCER BALL 3D ===== */
         .ball-3d {
             position: fixed;
             pointer-events: none;
@@ -450,7 +449,7 @@
         td input, td select { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 8px; font-size: 0.85rem; width: 100%; transition: 0.2s; }
         td input:focus { border-color: var(--pitch); box-shadow: 0 0 10px rgba(0,255,135,0.2); }
         .small-input { width: 54px; text-align: center; }
-        .voor-input { width: 82px; text-align: center; font-weight: 700; color: var(--pitch); }
+        .voor-input { width: 70px; text-align: center; font-weight: 700; color: var(--pitch); }
         .badge { display: inline-block; padding: 5px 10px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
         .badge-mf { background: rgba(0,255,135,0.15); color: var(--pitch); border: 1px solid rgba(0,255,135,0.3); animation: pulsePitch 2s infinite; }
         .badge-ms { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
@@ -540,7 +539,7 @@
 <section class="hero-scene">
     <div class="hero-text">
         <h1>Premium <span>Bet</span></h1>
-        <p>Mix Parlay & Single Bet — Voor plus/minus, Odds plus/minus, tanpa emoji</p>
+        <p>Mix Parlay & Single Bet — Voor plus/minus & tanpa emoticon</p>
         <div class="hero-badge"><i class="fa-solid fa-futbol"></i> Official Matchday Calculator</div>
     </div>
 </section>
@@ -564,15 +563,15 @@
             <div id="parlayWarn" class="warn"><i class="fa-solid fa-triangle-exclamation"></i> Minimal 3 tim! Saat ini: <b id="teamCount">0</b></div>
             <div class="table-wrap">
                 <table id="parlayTable">
-                    <thead><tr><th>No</th><th>Tim Anda</th><th>Lawan</th><th>Pasaran</th><th>Voor (tanda & angka)</th><th>Skor</th><th>Status</th><th>Odds</th><th>Eff</th><th>Penjelasan</th><th></th></tr></thead>
+                    <thead><tr><th>No</th><th>Tim Anda</th><th>Lawan</th><th>Pasaran</th><th>Voor (plus/minus)</th><th>Skor</th><th>Status</th><th>Odds</th><th>Eff</th><th>Penjelasan</th><th></th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
             <div class="mobile-cards" id="mobileCards"></div>
             <div class="chips">
                 <span class="chip" style="color: var(--pitch);">Menang Full</span>
-                <span class="chip" style="color: #60a5fa;">Menang Setengah</span>
-                <span class="chip" style="color: var(--gold);">Kalah Setengah</span>
+                <span class="chip" style="color: #60a5fa;">Menang 1/2</span>
+                <span class="chip" style="color: var(--gold);">Kalah 1/2</span>
                 <span class="chip" style="color: #a78bfa;">Seri</span>
                 <span class="chip" style="color: var(--red);">Kalah Full</span>
             </div>
@@ -615,12 +614,7 @@
             </div>
             <div class="form-grid" style="margin-top:16px;">
                 <div class="field"><label><i class="fa-solid fa-tag"></i> Pasaran</label><select id="singlePasar" onchange="updateSingleForm();hitungSingle();"><option value="HDP">Handicap</option><option value="OU">Over/Under</option><option value="1x2">1x2</option><option value="OE">Odd/Even</option></select></div>
-                <div class="field" id="voorField"><label><i class="fa-solid fa-arrow-down-short-wide"></i> Voor (tanda & angka)</label>
-                    <div style="display:flex; gap:6px;">
-                        <select id="singleVoorSign" style="width:64px;" onchange="hitungSingle()"><option value="-">-</option><option value="+">+</option></select>
-                        <input type="number" id="singleVoorValue" step="0.25" value="0.75" min="0" oninput="hitungSingle()" style="flex:1;">
-                    </div>
-                </div>
+                <div class="field" id="voorField"><label><i class="fa-solid fa-arrow-down-short-wide"></i> Voor (plus/minus)</label><div style="display:flex;gap:6px;"><select id="singleVoorSign" onchange="hitungSingle()"><option value="-">-</option><option value="+">+</option></select><input type="number" id="singleVoor" step="0.25" value="0.75" min="0" style="flex:1;" oninput="hitungSingle()"></div></div>
                 <div class="field" id="opsiField" style="display:none;"><label><i class="fa-solid fa-hand-pointer"></i> Pilihan</label><select id="singleOpsi" onchange="hitungSingle()"></select></div>
             </div>
             <div class="field" style="margin-top:16px;">
@@ -664,17 +658,13 @@ const parseNum=s=>parseInt((s||'').replace(/\D/g,''))||0;
 const eq=(a,b)=>Math.abs(a-b)<0.001;
 const STATUS={mf:'Menang Full',ms:'Menang Setengah',ks:'Kalah Setengah',sr:'Seri',kf:'Kalah Full'};
 
-// Helper: remove emojis and special symbols from explanation text
+// Hilangkan semua emoticon dari teks
 function stripEmoji(text) {
-    // Remove common emoji ranges and specific symbols
-    return text.replace(/[\p{Emoji}\u{1F300}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}✅❌⚡🔄⚠️📌💡❕❗🔹🔸➖➕]/gu, '')
-               .replace(/[•▪▫►→←↑↓★☆]/g, '')
-               .replace(/\s+/g, ' ')
-               .trim();
+    return text.replace(/[\p{Emoji}\u{FE0F}]/gu, '').replace(/[⚠️✅❌⚡🔄📌💡]/g, '').replace(/[^\x20-\x7E\s\w\.\,\:\;\-\+\=\/\|]/g, '');
 }
 
 /* ========================================
-   ENHANCED BALL ANIMATION SYSTEM (unchanged)
+   ENHANCED BALL ANIMATION SYSTEM (disingkat karena panjang)
    ======================================== */
 const activeBalls = new Map();
 let trailCounter = 0;
@@ -726,19 +716,6 @@ function launchParabolicBall(config = {}) {
     }, 33);
     activeBalls.set(id, { ball, interval: trailInterval });
     setTimeout(() => { ball.remove(); clearInterval(trailInterval); activeBalls.delete(id); }, (duration + delay) * 1000 + 200);
-}
-
-function spawnBouncingBall(config = {}) {
-    const { floor = 70, duration = 8, size = 22, delay = 0 } = config;
-    const wrapper = document.createElement('div');
-    wrapper.className = 'ball-bounce';
-    wrapper.style.setProperty('--bounce-floor', floor + '%');
-    wrapper.style.setProperty('--bounce-dur', duration + 's');
-    wrapper.style.animationDelay = delay + 's';
-    const ball = createBall3D(size, '0.5s');
-    wrapper.appendChild(ball);
-    document.body.appendChild(wrapper);
-    setTimeout(() => wrapper.remove(), (duration + delay) * 1000 + 500);
 }
 
 function triggerGoalCelebration(x, y) {
@@ -819,7 +796,12 @@ function triggerGoalCelebration(x, y) {
     setTimeout(() => flash.classList.remove('show'), 600);
 }
 
-function createDustParticles(x, y) {
+function triggerPlayerKick() {
+    const container = $('kickerContainer');
+    const rect = container.getBoundingClientRect();
+    const kickX = rect.left + rect.width + 50;
+    const kickY = rect.top + rect.height / 2 - 30;
+    // dust & impact
     for (let i = 0; i < 16; i++) {
         const particle = document.createElement('div');
         particle.className = 'dust-particle';
@@ -829,8 +811,8 @@ function createDustParticles(x, y) {
         const dy = Math.sin(angle) * distance + (Math.random() - 0.5) * 30;
         particle.style.setProperty('--dx', dx + 'px');
         particle.style.setProperty('--dy', dy + 'px');
-        particle.style.left = x + 'px';
-        particle.style.top = y + 'px';
+        particle.style.left = kickX + 'px';
+        particle.style.top = kickY + 'px';
         particle.style.width = (6 + Math.random() * 10) + 'px';
         particle.style.height = particle.style.width;
         particle.style.background = `rgba(0, 255, 135, ${0.6 + Math.random() * 0.4})`;
@@ -838,46 +820,14 @@ function createDustParticles(x, y) {
         document.body.appendChild(particle);
         setTimeout(() => particle.remove(), 1200);
     }
-}
-
-function createKickImpact(x, y) {
     const impact = document.createElement('div');
     impact.className = 'kick-impact';
-    impact.style.left = x + 'px';
-    impact.style.top = y + 'px';
+    impact.style.left = kickX + 'px';
+    impact.style.top = kickY + 'px';
     impact.style.marginLeft = '-35px';
     impact.style.marginTop = '-35px';
     document.body.appendChild(impact);
     setTimeout(() => impact.remove(), 700);
-}
-
-function triggerKickParticles(x, y) {
-    for (let i = 0; i < 12; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'kick-particle';
-        const angle = (i / 12) * Math.PI * 2;
-        const distance = 60 + Math.random() * 80;
-        particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
-        particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
-        particle.style.left = x + 'px';
-        particle.style.top = y + 'px';
-        particle.style.width = '10px';
-        particle.style.height = '10px';
-        particle.style.background = `rgba(0, 255, 135, ${0.7 + Math.random() * 0.3})`;
-        particle.style.borderRadius = '50%';
-        particle.style.boxShadow = '0 0 6px rgba(0, 255, 135, 0.6)';
-        document.body.appendChild(particle);
-        setTimeout(() => particle.remove(), 1000);
-    }
-}
-
-function triggerPlayerKick() {
-    const container = $('kickerContainer');
-    const rect = container.getBoundingClientRect();
-    const kickX = rect.left + rect.width + 50;
-    const kickY = rect.top + rect.height / 2 - 30;
-    createDustParticles(kickX, kickY);
-    createKickImpact(kickX, kickY);
 }
 
 function spawnFloatingBalls() {
@@ -926,15 +876,10 @@ function startAutoBallSpawner() {
         setTimeout(spawn, 4000 + Math.random() * 6000);
     }
     setTimeout(spawn, 2000);
-    function spawnBounce() {
-        spawnBouncingBall({ floor: 65 + Math.random() * 15, duration: 6 + Math.random() * 4, size: 16 + Math.random() * 10, delay: 0 });
-        setTimeout(spawnBounce, 8000 + Math.random() * 10000);
-    }
-    setTimeout(spawnBounce, 5000);
 }
 
 /* ========================================
-   CORE LOGIC (with voor sign handling)
+   CORE LOGIC
    ======================================== */
 
 function getStatus(mk,sh,sa,v,p){
@@ -949,62 +894,26 @@ function getEff(st,odds){if(st==='mf')return odds;if(st==='ms')return(odds-1)/2+
 function fmtVoor(v){return v===0?'0':(v>0?`+${v}`:`${v}`);}
 
 function penjelasan(b,st){
-    let {t,l,m,v,p,sh,sa,odds}=b; const d=sh-sa,tot=sh+sa;
+    const{t,l,m,v,p,sh,sa,odds}=b;const d=sh-sa,tot=sh+sa;
     let txt='';
     if(m==='HDP'){
-        txt=`Handicap | ${t} vs ${l}\nSkor: ${sh} - ${sa} (Selisih = ${d})\nVoor: ${fmtVoor(v)}\n`;
-        if(Math.abs(v)%0.5===0){
-            const hasil=d+v;
-            txt+=`Perhitungan: ${d} + (${v}) = ${hasil}\n`;
-            if(hasil>0.25) txt+=`${t} MENANG FULL (${odds})`;
-            else if(eq(hasil,0)) txt+=`SERI (1)`;
-            else txt+=`${t} KALAH FULL (0)`;
-        }else{
-            const lo=Math.floor(Math.abs(v)*2)/2*(v>0?1:-1);
-            const hi=lo+(v>0?0.5:-0.5);
-            const ev=(vp)=>d+vp>0.25?'W':(eq(d+vp,0.25)?'MS':(eq(d+vp,0)?'V':(eq(d+vp,-0.25)?'KS':'L')));
-            const lbl=(r)=>r==='W'?'MENANG':r==='MS'?'MENANG SETENGAH':r==='V'?'VOID':r==='KS'?'KALAH SETENGAH':'KALAH';
-            txt+=`Voor terbelah: 50% ${fmtVoor(lo)} -> ${lbl(ev(lo))}, 50% ${fmtVoor(hi)} -> ${lbl(ev(hi))}\n`;
-            const ef=getEff(st,odds);
-            if(st==='mf') txt+=`MENANG FULL -> ${odds}`;
-            else if(st==='ms') txt+=`MENANG SETENGAH -> (${odds}-1)/2+1 = ${ef.toFixed(3)}`;
-            else if(st==='ks') txt+=`KALAH SETENGAH -> 0.5`;
-            else if(st==='sr') txt+=`SERI -> 1`;
-            else txt+=`KALAH FULL -> 0`;
-        }
+        txt=`[HDP] ${t} vs ${l} | Skor: ${sh} - ${sa} (Selisih = ${d}) | Voor: ${fmtVoor(v)}\n`;
+        if(Math.abs(v)%0.5===0){const hasil=d+v;txt+=`Perhitungan: ${d} + (${v}) = ${hasil}\n`;if(hasil>0.25)txt+=`${t} MENANG FULL (${odds})`;else if(eq(hasil,0))txt+=`SERI (1)`;else txt+=`${t} KALAH FULL (0)`;
+        }else{const lo=Math.floor(Math.abs(v)*2)/2*(v>0?1:-1);const hi=lo+(v>0?0.5:-0.5);const ev=(vp)=>d+vp>0.25?'W':(eq(d+vp,0.25)?'MS':(eq(d+vp,0)?'V':(eq(d+vp,-0.25)?'KS':'L')));const lbl=(r)=>r==='W'?'MENANG':r==='MS'?'MENANG SETENGAH':r==='V'?'VOID':r==='KS'?'KALAH SETENGAH':'KALAH';
+        txt+=`Voor terbelah: 50% ${fmtVoor(lo)} -> ${lbl(ev(lo))}, 50% ${fmtVoor(hi)} -> ${lbl(ev(hi))}\n`;const ef=getEff(st,odds);
+        if(st==='mf')txt+=`MENANG FULL -> ${odds}`;else if(st==='ms')txt+=`MENANG SETENGAH -> (${odds}-1)/2+1 = ${ef.toFixed(3)}`;else if(st==='ks')txt+=`KALAH SETENGAH -> 0.5`;else if(st==='sr')txt+=`SERI -> 1`;else txt+=`KALAH FULL -> 0`;}
+        return stripEmoji(txt);
     }
-    else if(m==='OU'){
+    if(m==='OU'){
         const lb=p==='over'?'OVER':'UNDER';
-        txt=`Over/Under | ${t} vs ${l}\nTotal Gol: ${tot} (${sh}-${sa})\nBatas: ${v} | Pilih: ${lb}\n`;
-        if(v%0.5===0){
-            if(p==='over'){
-                if(tot>v) txt+=`MENANG FULL (${odds})`;
-                else if(eq(tot,v)) txt+=`SERI (1)`;
-                else txt+=`KALAH FULL (0)`;
-            }else{
-                if(tot<v) txt+=`MENANG FULL (${odds})`;
-                else if(eq(tot,v)) txt+=`SERI (1)`;
-                else txt+=`KALAH FULL (0)`;
-            }
-        }else{
-            const lo=p==='over'?Math.floor(v*2)/2:Math.ceil(v*2)/2;
-            const hi=p==='over'?lo+0.5:lo-0.5;
-            txt+=`Terbelah: ${lb} ${lo} & ${lb} ${hi}\n`;
-            const ef=getEff(st,odds);
-            if(st==='mf') txt+=`MENANG FULL -> ${odds}`;
-            else if(st==='ms') txt+=`MENANG SETENGAH -> ${ef.toFixed(3)}`;
-            else if(st==='ks') txt+=`KALAH SETENGAH -> 0.5`;
-            else if(st==='sr') txt+=`SERI -> 1`;
-            else txt+=`KALAH FULL -> 0`;
-        }
+        txt=`[OU] ${t} vs ${l} | Total Gol: ${tot} (${sh}-${sa}) | Batas: ${v} | Pilih: ${lb}\n`;
+        if(v%0.5===0){if(p==='over'){if(tot>v)txt+=`MENANG FULL (${odds})`;else if(eq(tot,v))txt+=`SERI (1)`;else txt+=`KALAH FULL (0)`;}else{if(tot<v)txt+=`MENANG FULL (${odds})`;else if(eq(tot,v))txt+=`SERI (1)`;else txt+=`KALAH FULL (0)`;}
+        }else{const lo=p==='over'?Math.floor(v*2)/2:Math.ceil(v*2)/2;const hi=p==='over'?lo+0.5:lo-0.5;txt+=`Terbelah: ${lb} ${lo} & ${lb} ${hi}\n`;const ef=getEff(st,odds);
+        if(st==='mf')txt+=`MENANG FULL -> ${odds}`;else if(st==='ms')txt+=`MENANG SETENGAH -> ${ef.toFixed(3)}`;else if(st==='ks')txt+=`KALAH SETENGAH -> 0.5`;else if(st==='sr')txt+=`SERI -> 1`;else txt+=`KALAH FULL -> 0`;}
+        return stripEmoji(txt);
     }
-    else if(m==='1x2'){
-        txt=`1x2 | ${t} vs ${l} | Pilih: ${p}\nSkor: ${sh}-${sa}\n${((p==='home'&&d>0)||(p==='away'&&d<0)||(p==='draw'&&d===0))?'MENANG FULL ('+odds+')':'KALAH FULL (0)'}`;
-    }
-    else if(m==='OE'){
-        txt=`Odd/Even | ${t} vs ${l} | Pilih: ${p}\nTotal Gol: ${tot}\n${((p==='even'&&tot%2===0)||(p==='odd'&&tot%2===1))?'MENANG FULL ('+odds+')':'KALAH FULL (0)'}`;
-    }
-    // Remove any leftover emoji/symbols
+    if(m==='1x2') return stripEmoji(`[1X2] ${t} vs ${l} | Pilih: ${p} | Skor: ${sh}-${sa}\n${((p==='home'&&d>0)||(p==='away'&&d<0)||(p==='draw'&&d===0))?'MENANG FULL ('+odds+')':'KALAH FULL (0)'}`);
+    if(m==='OE') return stripEmoji(`[OE] ${t} vs ${l} | Pilih: ${p} | Total Gol: ${tot}\n${((p==='even'&&tot%2===0)||(p==='odd'&&tot%2===1))?'MENANG FULL ('+odds+')':'KALAH FULL (0)'}`);
     return stripEmoji(txt);
 }
 
@@ -1019,7 +928,7 @@ function updateTeamCount(){$('teamCount').textContent=parlayData.length;$('parla
 
 function renderParlayTable(){
     const tbody=document.querySelector('#parlayTable tbody');tbody.innerHTML='';
-    if(!parlayData.length){tbody.innerHTML='<tr><td colspan="11" style="color:var(--muted);padding:30px;">Tambahkan partai untuk memulai</td></tr>';return;}
+    if(!parlayData.length){tbody.innerHTML='<tr><td colspan="11" style="color:var(--muted);padding:30px;">Tambahkan partai untuk mulai</td></tr>';return;}
     parlayData.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);const eff=getEff(st,b.odds);const tr=document.createElement('tr');tr.setAttribute('data-idx',i);
         tr.innerHTML=`<td style="font-weight:800;color:var(--pitch);font-family:Oswald;">${i+1}</td>
         <td><input type="text" value="${b.t}" data-field="t"></td>
@@ -1032,21 +941,17 @@ function renderParlayTable(){
         <td class="eff-cell">${eff.toFixed(3)}</td>
         <td class="expl-cell">${penjelasan(b,st).replace(/\n/g,'<br>')}<button class="copy-btn" data-penjelasan="${escapeAttr(penjelasan(b,st))}">Copy</button></td>
         <td><button class="delete-btn"><i class="fa-solid fa-xmark"></i></button></td>`;
-        tbody.appendChild(tr);
-    });
-    attachTableEvents();
-}
+        tbody.appendChild(tr);});attachTableEvents();}
 
 function renderVoorHTML(b,i){
     if(b.m==='HDP'){
-        const absV = Math.abs(b.v);
         const sign = b.v < 0 ? '-' : '+';
-        return `<div style="display:flex;gap:6px;"><select data-field="vSign" class="voor-sign" style="width:60px;"><option value="-" ${sign==='-'?'selected':''}>-</option><option value="+" ${sign==='+'?'selected':''}>+</option></select><input type="number" value="${absV}" step="0.25" min="0" data-field="vValue" class="voor-input" style="width:80px;"></div>`;
+        const absVal = Math.abs(b.v);
+        return `<div style="display:flex;gap:4px;"><select data-field="vSign" class="voor-sign"><option value="-" ${sign==='-'?'selected':''}>-</option><option value="+" ${sign==='+'?'selected':''}>+</option></select><input type="number" value="${absVal}" step="0.25" min="0" data-field="vAbs" class="voor-input" style="width:70px;"></div>`;
     }
     if(b.m==='OU') return `<div style="display:flex;gap:4px;"><input type="number" value="${b.v}" step="0.25" data-field="v" style="width:70px;"><select data-field="p"><option value="over" ${b.p==='over'?'selected':''}>OVER</option><option value="under" ${b.p==='under'?'selected':''}>UNDER</option></select></div>`;
     if(b.m==='1x2') return `<select data-field="p"><option value="home" ${b.p==='home'?'selected':''}>Home</option><option value="draw" ${b.p==='draw'?'selected':''}>Draw</option><option value="away" ${b.p==='away'?'selected':''}>Away</option></select>`;
     if(b.m==='OE') return `<select data-field="p"><option value="even" ${b.p==='even'?'selected':''}>Even</option><option value="odd" ${b.p==='odd'?'selected':''}>Odd</option></select>`;
-    return '';
 }
 
 function attachTableEvents(){
@@ -1055,45 +960,30 @@ function attachTableEvents(){
         tr.querySelectorAll('input,select').forEach(el=>{
             el.addEventListener('input',function(){
                 const field=this.dataset.field;
-                if(field==='vSign' || field==='vValue'){
-                    const signSel = tr.querySelector('[data-field="vSign"]');
-                    const valInp = tr.querySelector('[data-field="vValue"]');
-                    if(signSel && valInp){
-                        const sign = signSel.value; // '-' or '+'
-                        const val = parseFloat(valInp.value) || 0;
-                        parlayData[idx].v = sign === '-' ? -val : val;
+                if(field==='vSign' || field==='vAbs'){
+                    const signEl = tr.querySelector('[data-field="vSign"]');
+                    const absEl = tr.querySelector('[data-field="vAbs"]');
+                    if(signEl && absEl){
+                        const sign = signEl.value;
+                        const absVal = parseFloat(absEl.value)||0;
+                        parlayData[idx].v = (sign === '-' ? -absVal : absVal);
                     }
-                    renderAllParlay(); // re-render to update sign display
-                    return;
+                    renderAllParlay(); return;
                 }
-                else if(field==='m'){
-                    parlayData[idx].m=this.value;
-                    renderAllParlay();
-                    return;
-                }
-                else{
-                    const val=this.type==='number'?(parseFloat(this.value)||0):this.value;
-                    parlayData[idx][field]=val;
-                }
-                updateRow(tr,idx);
-                hitungParlay();
+                if(field==='m'){ parlayData[idx].m=this.value; renderAllParlay(); return; }
+                if(field==='v'){ parlayData[idx].v=parseFloat(this.value)||0; }
+                else if(field==='p'){ parlayData[idx].p=this.value; }
+                else { const val=this.type==='number'?(parseFloat(this.value)||0):this.value; parlayData[idx][field]=val; }
+                updateRow(tr,idx); hitungParlay();
             });
         });
-        tr.querySelector('.delete-btn').addEventListener('click',()=>{
-            parlayData.splice(idx,1);
-            renderAllParlay();
-            triggerPlayerKick();
-            triggerKickParticles(window.innerWidth/2, window.innerHeight/2);
-            showToast('Partai dihapus');
-        });
+        tr.querySelector('.delete-btn').addEventListener('click',()=>{parlayData.splice(idx,1);renderAllParlay();triggerPlayerKick();showToast('Partai dihapus');});
     });
     document.querySelectorAll('.copy-btn').forEach(btn=>btn.addEventListener('click',function(e){e.stopPropagation();navigator.clipboard.writeText(this.dataset.penjelasan).then(()=>showToast('Tersalin'));}));
 }
 
 function updateRow(tr,idx){
-    const b=parlayData[idx];
-    const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);
-    const eff=getEff(st,b.odds);
+    const b=parlayData[idx]; const st=getStatus(b.m,b.sh,b.sa,b.v,b.p); const eff=getEff(st,b.odds);
     tr.querySelector('.status-cell').textContent=`${b.t||'Tim'}: ${STATUS[st]}`;
     tr.querySelector('.status-cell').className=`badge badge-${st} status-cell`;
     tr.querySelector('.eff-cell').textContent=eff.toFixed(3);
@@ -1103,19 +993,9 @@ function updateRow(tr,idx){
 }
 
 function renderMobileCards(){
-    const cont=$('mobileCards');cont.innerHTML='';
-    parlayData.forEach((b,i)=>{
-        const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);
-        const eff=getEff(st,b.odds);
-        const card=document.createElement('div');card.className='mobile-card';card.setAttribute('data-idx',i);
-        card.innerHTML=`<div class="badge-num">#${i+1}</div>
-        <div class="grid-2"><div class="field"><label>Tim Anda</label><input type="text" value="${b.t}" data-field="t"></div><div class="field"><label>Lawan</label><input type="text" value="${b.l}" data-field="l"></div></div>
-        <div class="grid-2"><div class="field"><label>Pasaran</label><select data-field="m">${['HDP','OU','1x2','OE'].map(m=>`<option value="${m}" ${b.m===m?'selected':''}>${m}</option>`).join('')}</select></div><div class="field">${renderMobileVoor(b,i)}</div></div>
-        <div class="field"><label>Skor</label><div class="skor-row"><div><span style="font-size:0.55rem;color:var(--muted);">Tim</span><input type="number" value="${b.sh}" data-field="sh"></div><span style="font-weight:700;color:var(--pitch);">:</span><div><span style="font-size:0.55rem;color:var(--muted);">Lawan</span><input type="number" value="${b.sa}" data-field="sa"></div></div></div>
-        <div class="field"><label>Odds</label><input type="number" value="${b.odds}" step="0.01" data-field="odds" style="width:80px;"></div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0;"><span class="badge badge-${st} status-cell">${STATUS[st]}</span><span class="eff-cell">Eff: ${eff.toFixed(3)}</span></div>
-        <div class="expl-cell" style="font-size:0.7rem;">${penjelasan(b,st).replace(/\n/g,'<br>')}</div>
-        <button class="delete-btn" style="width:100%;margin-top:12px;"><i class="fa-solid fa-xmark"></i> Hapus</button>`;
+    const cont=$('mobileCards'); cont.innerHTML='';
+    parlayData.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p); const eff=getEff(st,b.odds); const card=document.createElement('div'); card.className='mobile-card'; card.setAttribute('data-idx',i);
+        card.innerHTML=`<div class="badge-num">#${i+1}</div><div class="grid-2"><div class="field"><label>Tim Anda</label><input type="text" value="${b.t}" data-field="t"></div><div class="field"><label>Lawan</label><input type="text" value="${b.l}" data-field="l"></div></div><div class="grid-2"><div class="field"><label>Pasaran</label><select data-field="m">${['HDP','OU','1x2','OE'].map(m=>`<option value="${m}" ${b.m===m?'selected':''}>${m}</option>`).join('')}</select></div><div class="field">${renderMobileVoor(b,i)}</div></div><div class="field"><label>Skor</label><div class="skor-row"><div><span style="font-size:0.55rem;color:var(--muted);">Tim</span><input type="number" value="${b.sh}" data-field="sh"></div><span style="font-weight:700;color:var(--pitch);">:</span><div><span style="font-size:0.55rem;color:var(--muted);">Lawan</span><input type="number" value="${b.sa}" data-field="sa"></div></div></div><div class="field"><label>Odds</label><input type="number" value="${b.odds}" step="0.01" data-field="odds" style="width:80px;"></div><div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0;"><span class="badge badge-${st} status-cell">${STATUS[st]}</span><span class="eff-cell">Eff: ${eff.toFixed(3)}</span></div><div class="expl-cell" style="font-size:0.7rem;">${penjelasan(b,st).replace(/\n/g,'<br>')}</div><button class="delete-btn" style="width:100%;margin-top:12px;"><i class="fa-solid fa-xmark"></i> Hapus</button>`;
         cont.appendChild(card);
     });
     attachMobileEvents();
@@ -1123,14 +1003,13 @@ function renderMobileCards(){
 
 function renderMobileVoor(b,i){
     if(b.m==='HDP'){
-        const absV = Math.abs(b.v);
         const sign = b.v < 0 ? '-' : '+';
-        return `<label>Voor (tanda & angka)</label><div style="display:flex;gap:6px;"><select data-field="vSign" style="width:60px;"><option value="-" ${sign==='-'?'selected':''}>-</option><option value="+" ${sign==='+'?'selected':''}>+</option></select><input type="number" value="${absV}" step="0.25" min="0" data-field="vValue" style="flex:1;"></div>`;
+        const absVal = Math.abs(b.v);
+        return `<label>Voor (plus/minus)</label><div style="display:flex;gap:4px;"><select data-field="vSign"><option value="-" ${sign==='-'?'selected':''}>-</option><option value="+" ${sign==='+'?'selected':''}>+</option></select><input type="number" value="${absVal}" step="0.25" min="0" data-field="vAbs" style="flex:1;"></div>`;
     }
     if(b.m==='OU') return `<label>Batas</label><div style="display:flex;gap:4px;"><input type="number" value="${b.v}" step="0.25" data-field="v" style="flex:1;"><select data-field="p"><option value="over" ${b.p==='over'?'selected':''}>OVER</option><option value="under" ${b.p==='under'?'selected':''}>UNDER</option></select></div>`;
     if(b.m==='1x2') return `<label>Pilihan</label><select data-field="p"><option value="home" ${b.p==='home'?'selected':''}>Home</option><option value="draw" ${b.p==='draw'?'selected':''}>Draw</option><option value="away" ${b.p==='away'?'selected':''}>Away</option></select>`;
     if(b.m==='OE') return `<label>Pilihan</label><select data-field="p"><option value="even" ${b.p==='even'?'selected':''}>Even</option><option value="odd" ${b.p==='odd'?'selected':''}>Odd</option></select>`;
-    return '';
 }
 
 function attachMobileEvents(){
@@ -1139,80 +1018,48 @@ function attachMobileEvents(){
         card.querySelectorAll('input,select').forEach(el=>{
             el.addEventListener('input',function(){
                 const field=this.dataset.field;
-                if(field==='vSign' || field==='vValue'){
-                    const signSel = card.querySelector('[data-field="vSign"]');
-                    const valInp = card.querySelector('[data-field="vValue"]');
-                    if(signSel && valInp){
-                        const sign = signSel.value;
-                        const val = parseFloat(valInp.value) || 0;
-                        parlayData[idx].v = sign === '-' ? -val : val;
+                if(field==='vSign' || field==='vAbs'){
+                    const signEl = card.querySelector('[data-field="vSign"]');
+                    const absEl = card.querySelector('[data-field="vAbs"]');
+                    if(signEl && absEl){
+                        const sign = signEl.value;
+                        const absVal = parseFloat(absEl.value)||0;
+                        parlayData[idx].v = (sign === '-' ? -absVal : absVal);
                     }
-                    renderAllParlay();
-                    return;
+                    renderAllParlay(); return;
                 }
-                else if(field==='m'){
-                    parlayData[idx].m=this.value;
-                    renderAllParlay();
-                    return;
-                }
-                else{
-                    const val=this.type==='number'?(parseFloat(this.value)||0):this.value;
-                    parlayData[idx][field]=val;
-                }
-                updateMobileCard(card,idx);
-                hitungParlay();
+                if(field==='m'){ parlayData[idx].m=this.value; renderAllParlay(); return; }
+                if(field==='v'){ parlayData[idx].v=parseFloat(this.value)||0; }
+                else if(field==='p'){ parlayData[idx].p=this.value; }
+                else { const val=this.type==='number'?(parseFloat(this.value)||0):this.value; parlayData[idx][field]=val; }
+                updateMobileCard(card,idx); hitungParlay();
             });
         });
-        card.querySelector('.delete-btn').addEventListener('click',()=>{
-            parlayData.splice(idx,1);
-            renderAllParlay();
-            triggerPlayerKick();
-            triggerKickParticles(window.innerWidth/2, window.innerHeight/2);
-            showToast('Partai dihapus');
-        });
+        card.querySelector('.delete-btn').addEventListener('click',()=>{parlayData.splice(idx,1);renderAllParlay();triggerPlayerKick();showToast('Partai dihapus');});
     });
 }
 
-function updateMobileCard(card,idx){
-    const b=parlayData[idx];
-    const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);
-    card.querySelector('.status-cell').textContent=STATUS[st];
-    card.querySelector('.status-cell').className=`badge badge-${st} status-cell`;
-    card.querySelector('.expl-cell').innerHTML=penjelasan(b,st).replace(/\n/g,'<br>');
-}
+function updateMobileCard(card,idx){ const b=parlayData[idx]; const st=getStatus(b.m,b.sh,b.sa,b.v,b.p); card.querySelector('.status-cell').textContent=STATUS[st]; card.querySelector('.status-cell').className=`badge badge-${st} status-cell`; card.querySelector('.expl-cell').innerHTML=penjelasan(b,st).replace(/\n/g,'<br>'); }
 
 function hitungParlay(){
     const rBox = $('parlayResultBox');
     rBox.className = 'result-box';
     if(parlayData.length<3){$('parlayResultText').innerHTML='<div class="warn" style="display:block;">Minimal 3 tim!</div>';return;}
-    const modal=parseNum($('modalParlay').value);if(modal<=0)return;
-    let total=1,kf=false,halfLose=false,isDraw=false;const rincian=[];
-    parlayData.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);const eff=getEff(st,b.odds);if(st==='kf')kf=true;if(st==='ks')halfLose=true;if(st==='sr')isDraw=true;total*=eff;rincian.push(`${i+1}. ${b.t} vs ${b.l} -> ${STATUS[st]} (${eff.toFixed(3)})`);});
-    total=Math.round(total*1000)/1000;let hasil=kf?-modal:Math.round(total*modal-modal);let menang=hasil>0;
+    const modal=parseNum($('modalParlay').value); if(modal<=0)return;
+    let total=1, kf=false, halfLose=false, isDraw=false; const rincian=[];
+    parlayData.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p); const eff=getEff(st,b.odds); if(st==='kf')kf=true; if(st==='ks')halfLose=true; if(st==='sr')isDraw=true; total*=eff; rincian.push(`${i+1}. ${b.t} vs ${b.l} -> ${STATUS[st]} (${eff.toFixed(3)})`);});
+    total=Math.round(total*1000)/1000; let hasil=kf?-modal:Math.round(total*modal-modal); let menang=hasil>0;
     if(kf) rBox.classList.add('result-lose');
     else if(halfLose || isDraw) rBox.classList.add('result-draw');
-    else if(menang) {
-        rBox.classList.add('result-win');
-        triggerPlayerKick();
-        const boxRect = rBox.getBoundingClientRect();
-        triggerGoalCelebration(boxRect.left + boxRect.width / 2, boxRect.top + boxRect.height / 2);
-    }
+    else if(menang) { rBox.classList.add('result-win'); triggerPlayerKick(); const boxRect = rBox.getBoundingClientRect(); triggerGoalCelebration(boxRect.left + boxRect.width / 2, boxRect.top + boxRect.height / 2); }
     $('parlayResultText').innerHTML=`<div style="max-height:120px;overflow-y:auto;background:rgba(0,0,0,0.3);padding:10px;border-radius:6px;margin-bottom:10px;border:1px solid var(--glass-border);">${rincian.map(r=>'<div style="font-size:0.85rem;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);">'+r+'</div>').join('')}</div><div class="summary-item"><span>Modal</span><strong>Rp ${fmt(modal)}</strong></div><div class="summary-item"><span>Total Odds</span><strong style="color:var(--pitch);">${total.toFixed(3)}</strong></div><div class="summary-item"><span>Hasil</span><strong style="color:${menang?'var(--gold)':'var(--red)'};">${menang?'MENANG':'KALAH'} Rp ${fmt(Math.abs(hasil))}</strong></div>`;
     window._lastParlay={modal,total,hasil,menang,data:parlayData};
 }
 
-function resetParlay(){parlayData=[];renderAllParlay();$('modalParlay').value='100.000';triggerPlayerKick();triggerKickParticles(window.innerWidth/2, window.innerHeight/2);showToast('Reset berhasil');}
+function resetParlay(){parlayData=[];renderAllParlay();$('modalParlay').value='100.000';triggerPlayerKick();showToast('Reset berhasil');}
 function copyParlay(mode){const d=window._lastParlay;if(!d)return showToast('Hitung dulu!');let txt='';if(mode==='ringkas')txt=`MIX PARLAY\nModal: Rp ${fmt(d.modal)}\nOdds: ${d.total.toFixed(3)}\nHasil: ${d.menang?'MENANG':'KALAH'} Rp ${fmt(Math.abs(d.hasil))}`;else if(mode==='lengkap'){txt=`MIX PARLAY\nModal: Rp ${fmt(d.modal)}\n`;d.data.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);txt+=`${i+1}. ${b.t} vs ${b.l} -> ${STATUS[st]} (${getEff(st,b.odds).toFixed(3)})\n`});txt+=`Odds: ${d.total.toFixed(3)}\nHasil: Rp ${fmt(d.hasil)}`;}else if(mode==='penjelasan'){txt='PENJELASAN\n';d.data.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);txt+=`\n[${i+1}] ${b.t} vs ${b.l}\n${penjelasan(b,st)}\n`});}else{copyParlay('lengkap');copyParlay('penjelasan');return;}navigator.clipboard.writeText(txt).then(()=>showToast('Tersalin!'));closeMenu('parlayMenu');}
 
-function updateSingleForm(){
-    const mk=$('singlePasar').value;
-    $('voorField').style.display=(mk==='HDP'||mk==='OU')?'block':'none';
-    $('opsiField').style.display=(mk!=='HDP')?'block':'none';
-    if(mk==='OU') $('singleOpsi').innerHTML='<option value="over">Over</option><option value="under">Under</option>';
-    else if(mk==='1x2') $('singleOpsi').innerHTML='<option value="home">Home</option><option value="draw">Draw</option><option value="away">Away</option>';
-    else if(mk==='OE') $('singleOpsi').innerHTML='<option value="even">Even</option><option value="odd">Odd</option>';
-    hitungSingle();
-}
+function updateSingleForm(){const mk=$('singlePasar').value;$('voorField').style.display=(mk==='HDP'||mk==='OU')?'block':'none';$('opsiField').style.display=(mk!=='HDP')?'block':'none';if(mk==='OU')$('singleOpsi').innerHTML='<option value="over">Over</option><option value="under">Under</option>';else if(mk==='1x2')$('singleOpsi').innerHTML='<option value="home">Home</option><option value="draw">Draw</option><option value="away">Away</option>';else if(mk==='OE')$('singleOpsi').innerHTML='<option value="even">Even</option><option value="odd">Odd</option>';hitungSingle();}
 
 function hitungSingle(){
     const rBox = $('singleResultBox');
@@ -1220,29 +1067,28 @@ function hitungSingle(){
     const sign=$('singleOddsSign').value;
     const odds=Math.abs(parseFloat($('singleOdds').value))||0;
     const modal=parseNum($('singleModal').value);
-    const tim=$('singleTim').value||'Tim';const lawan=$('singleLawan').value||'Lawan';const mk=$('singlePasar').value;
+    const tim=$('singleTim').value||'Tim'; const lawan=$('singleLawan').value||'Lawan'; const mk=$('singlePasar').value;
     let v=0;
     if(mk==='HDP'){
-        const signVoor = $('singleVoorSign').value;
-        const valVoor = parseFloat($('singleVoorValue').value)||0;
-        v = signVoor === '-' ? -valVoor : valVoor;
+        const voorSign = $('singleVoorSign').value;
+        const voorAbs = parseFloat($('singleVoor').value)||0;
+        v = (voorSign === '-' ? -voorAbs : voorAbs);
     } else {
-        v = parseFloat($('singleVoorValue').value)||0;
+        v = parseFloat($('singleVoor').value)||0;
     }
-    const p=$('singleOpsi').value;const sh=parseInt($('singleSkorTim').value)||0;const sa=parseInt($('singleSkorLawan').value)||0;
+    const p=$('singleOpsi').value; const sh=parseInt($('singleSkorTim').value)||0; const sa=parseInt($('singleSkorLawan').value)||0;
     const st=getStatus(mk,sh,sa,v,p);
     let profit=0;
     if(odds>0){
-        if(sign==='-') profit=modal/odds;
-        else profit=modal*odds;
+        if(sign==='-'){profit=modal/odds;} else {profit=modal*odds;}
     }
-    let kembali=0;let hasilText='';
-    if(st==='mf'){kembali=modal+profit;hasilText='MENANG FULL'; rBox.classList.add('result-win'); triggerPlayerKick(); const boxRect = rBox.getBoundingClientRect(); triggerGoalCelebration(boxRect.left + boxRect.width / 2, boxRect.top + boxRect.height / 2);}
-    else if(st==='ms'){kembali=modal+(profit/2);hasilText='MENANG SETENGAH'; rBox.classList.add('result-win');}
-    else if(st==='ks'){kembali=modal/2;hasilText='KALAH SETENGAH'; rBox.classList.add('result-lose');}
-    else if(st==='sr'){kembali=modal;hasilText='SERI'; rBox.classList.add('result-draw');}
-    else {kembali=0;hasilText='KALAH FULL'; rBox.classList.add('result-lose');}
-    let netHasil=kembali-modal;let isProfit=netHasil>=0;
+    let kembali=0; let hasilText='';
+    if(st==='mf'){kembali=modal+profit; hasilText='MENANG FULL'; rBox.classList.add('result-win'); triggerPlayerKick(); const boxRect = rBox.getBoundingClientRect(); triggerGoalCelebration(boxRect.left + boxRect.width / 2, boxRect.top + boxRect.height / 2);}
+    else if(st==='ms'){kembali=modal+(profit/2); hasilText='MENANG SETENGAH'; rBox.classList.add('result-win');}
+    else if(st==='ks'){kembali=modal/2; hasilText='KALAH SETENGAH'; rBox.classList.add('result-lose');}
+    else if(st==='sr'){kembali=modal; hasilText='SERI'; rBox.classList.add('result-draw');}
+    else {kembali=0; hasilText='KALAH FULL'; rBox.classList.add('result-lose');}
+    let netHasil=kembali-modal; let isProfit=netHasil>=0;
     const penj=penjelasan({t:tim,l:lawan,m:mk,v,p,sh,sa,odds},st);
     $('singleResultText').innerHTML=`
         <div class="summary-item"><span>Modal (Stake)</span><strong>Rp ${fmt(modal)}</strong></div>
@@ -1254,22 +1100,7 @@ function hitungSingle(){
     window._lastSingle={modal,profit,kembali,netHasil,penj,tim,lawan,mk,v,p,sh,sa,odds,st,sign,hasilText};
 }
 
-function resetSingle(){
-    $('singleModal').value='100.000';
-    $('singleOdds').value='1.00';
-    $('singleTim').value='E-PSV';
-    $('singleLawan').value='MU';
-    $('singlePasar').value='HDP';
-    $('singleVoorSign').value='-';
-    $('singleVoorValue').value='0.75';
-    $('singleSkorTim').value='3';
-    $('singleSkorLawan').value='2';
-    updateSingleForm();
-    triggerPlayerKick();
-    triggerKickParticles(window.innerWidth/2, window.innerHeight/2);
-    showToast('Reset berhasil');
-}
-
+function resetSingle(){$('singleModal').value='100.000';$('singleOdds').value='1.00';$('singleOddsSign').value='-';$('singleTim').value='E-PSV';$('singleLawan').value='MU';$('singlePasar').value='HDP';$('singleVoorSign').value='-';$('singleVoor').value='0.75';$('singleSkorTim').value='3';$('singleSkorLawan').value='2';updateSingleForm();triggerPlayerKick();showToast('Reset berhasil');}
 function copySingle(mode){const d=window._lastSingle;if(!d)return showToast('Hitung dulu!');let txt='';if(mode==='ringkas')txt=`SINGLE BET\n${d.tim} vs ${d.lawan} | ${d.mk}\nStake: Rp ${fmt(d.modal)} | Kembali: Rp ${fmt(d.kembali)}`;else if(mode==='lengkap')txt=`SINGLE BET\nTim: ${d.tim} vs ${d.lawan}\nPasaran: ${d.mk}\nVoor/Batas: ${d.mk==='HDP'||d.mk==='OU'?fmtVoor(d.v):d.p}\nSkor: ${d.sh}:${d.sa}\nOdds: ${d.sign}${d.odds}\nStake: Rp ${fmt(d.modal)}\nProfit Full: Rp ${fmt(d.profit)}\nStatus: ${d.hasilText}\nKembali: Rp ${fmt(d.kembali)}\nHasil Bersih: Rp ${fmt(d.netHasil)}`;else if(mode==='penjelasan')txt=d.penj;else txt=copySingle('lengkap')+'\n\n'+d.penj;navigator.clipboard.writeText(txt).then(()=>showToast('Tersalin!'));closeMenu('singleMenu');}
 
 function switchTab(t){$('parlayPanel').classList.toggle('active',t==='parlay');$('singlePanel').classList.toggle('active',t==='single');document.querySelectorAll('.tab').forEach((tb,i)=>tb.classList.toggle('active',i===(t==='parlay'?0:1)));}
@@ -1283,7 +1114,7 @@ $('addPartaiBtn').addEventListener('click',()=>{
     parlayData.push({t:'Tim',l:'Lawan',m:'HDP',v:-0.75,p:'',sh:0,sa:0,odds:1});
     renderAllParlay();
     triggerPlayerKick();
-    launchParabolicBall({startX:3, startY:55, endX:88, endY:40, peakY:12, size:24, duration:2.5, spinSpeed:'0.5s'});
+    launchParabolicBall({startX:3,startY:55,endX:88,endY:40,peakY:12,size:24,duration:2.5,spinSpeed:'0.5s'});
     showToast('Partai ditambahkan');
 });
 
@@ -1292,8 +1123,8 @@ hitungSingle();
 renderAllParlay();
 spawnFloatingBalls();
 startAutoBallSpawner();
-setTimeout(()=>{launchParabolicBall({startX:2, startY:60, endX:90, endY:45, peakY:10, size:30, duration:3, spinSpeed:'0.5s', trailColor:'var(--pitch)'});},1000);
-setTimeout(()=>{launchParabolicBall({startX:92, startY:50, endX:5, endY:35, peakY:8, size:22, duration:3.5, spinSpeed:'0.4s', trailColor:'var(--gold)'});},2500);
+setTimeout(() => { launchParabolicBall({ startX: 2, startY: 60, endX: 90, endY: 45, peakY: 10, size: 30, duration: 3, spinSpeed: '0.5s', trailColor: 'var(--pitch)' }); }, 1000);
+setTimeout(() => { launchParabolicBall({ startX: 92, startY: 50, endX: 5, endY: 35, peakY: 8, size: 22, duration: 3.5, spinSpeed: '0.4s', trailColor: 'var(--gold)' }); }, 2500);
 </script>
 </body>
 </html>
