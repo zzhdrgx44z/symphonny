@@ -209,7 +209,7 @@
         <div class="card">
             <div class="bar">
                 <label><i class="fa-solid fa-wallet"></i> Modal</label>
-                <input type="text" id="modalParlay" value="100.000" oninput="hitungParlay()">
+                <input type="text" id="modalParlay" value="100.000" oninput="hitungParlay(); refreshPenjelasan()">
                 <div class="spacer"></div>
                 <button class="btn btn-green" id="addPartaiBtn"><i class="fa-solid fa-plus"></i> Tambah</button>
                 <button class="btn btn-orange" onclick="hitungParlay()"><i class="fa-solid fa-calculator"></i> Hitung</button>
@@ -552,19 +552,23 @@ function getEff(st,odds){
 }
 function fmtVoor(v){return v===0?'0':(v>0?`+${v}`:`${v}`);}
 
-// Fungsi penjelasan yang sudah diperbaiki dengan contoh perhitungan yang rapi
+// Fungsi penjelasan yang sudah disinkronkan dengan modal dinamis
 function penjelasan(b,st){
     const{t,l,m,v,p,sh,sa,odds}=b;const d=sh-sa,tot=sh+sa;
     let txt='';
-    // Fungsi untuk membuat contoh perhitungan parlay (3 partai)
-    function contohParlay(judul, effOdds, oddsPartai, modalContoh = 100000) {
+    // Ambil modal dari input (untuk contoh)
+    const modalContoh = parseNum($('modalParlay').value);
+    const modalValid = modalContoh > 0 ? modalContoh : 100000;
+    
+    // Fungsi untuk membuat contoh perhitungan parlay (3 partai) dengan modal dinamis
+    function contohParlay(judul, effOdds, oddsPartai) {
         const oddsLain1 = 1.70;
         const oddsLain2 = 1.85;
         const totalOdds = effOdds * oddsLain1 * oddsLain2;
-        const totalHasil = totalOdds * modalContoh;
-        const kemenangan = totalHasil - modalContoh;
-        const profitPersen = (kemenangan / modalContoh) * 100;
-        return `\n\n--- CONTOH PERHITUNGAN (${judul}) DALAM PARLAY 3 PARTAI ---\nModal: Rp ${fmt(modalContoh)}\n\nPartai ini: odds ${oddsPartai} (${judul})\nPartai 2: odds 1.70 (Menang Full)\nPartai 3: odds 1.85 (Menang Full)\n\nEffective odds partai ini = ((${oddsPartai}-1)/2)+1 = ${effOdds.toFixed(3)}\nTotal odds = ${effOdds.toFixed(3)} x 1.70 x 1.85 = ${totalOdds.toFixed(4)}\n\nTotal hasil = ${totalOdds.toFixed(4)} x ${fmt(modalContoh)} = Rp ${fmt(totalHasil)}\nKemenangan bersih = Rp ${fmt(totalHasil)} - Rp ${fmt(modalContoh)} = Rp ${fmt(kemenangan)}\nProfit = ${profitPersen.toFixed(2)}% dari modal\n-----------------------------------`;
+        const totalHasil = totalOdds * modalValid;
+        const kemenangan = totalHasil - modalValid;
+        const profitPersen = (kemenangan / modalValid) * 100;
+        return `\n\n--- CONTOH PERHITUNGAN (${judul}) DALAM PARLAY 3 PARTAI ---\nModal: Rp ${fmt(modalValid)}\n\nPartai ini: odds ${oddsPartai} (${judul})\nPartai 2: odds 1.70 (Menang Full)\nPartai 3: odds 1.85 (Menang Full)\n\nEffective odds partai ini = ((${oddsPartai}-1)/2)+1 = ${effOdds.toFixed(3)}\nTotal odds = ${effOdds.toFixed(3)} x 1.70 x 1.85 = ${totalOdds.toFixed(4)}\n\nTotal hasil = ${totalOdds.toFixed(4)} x ${fmt(modalValid)} = Rp ${fmt(totalHasil)}\nKemenangan bersih = Rp ${fmt(totalHasil)} - Rp ${fmt(modalValid)} = Rp ${fmt(kemenangan)}\nProfit = ${profitPersen.toFixed(2)}% dari modal\n-----------------------------------`;
     }
 
     if(m==='HDP'){
@@ -626,7 +630,7 @@ function updateTeamCount(){$('teamCount').textContent=parlayData.length;$('parla
 
 function renderParlayTable(){
     const tbody=document.querySelector('#parlayTable tbody');tbody.innerHTML='';
-    if(!parlayData.length){tbody.innerHTML='<tr><td colspan="11" style="color:var(--muted);padding:30px;">Tambahkan partai untuk mulai</td></table>';return;}
+    if(!parlayData.length){tbody.innerHTML='<tr><td colspan="11" style="color:var(--muted);padding:30px;">Tambahkan partai untuk mulai</td></tr>';return;}
     parlayData.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);const eff=getEff(st,b.odds);const tr=document.createElement('tr');tr.setAttribute('data-idx',i);
         tr.innerHTML=`<td style="font-weight:800;color:var(--pitch);font-family:Oswald;">${i+1}</td>
         <td><input type="text" value="${b.t}" data-field="t"></td>
@@ -758,6 +762,11 @@ function hitungParlay(){
     <div class="summary-item"><span>Kemenangan Bersih</span><strong style="color:${menang?'var(--gold)':'var(--red)'};">${menang?'+':'-'} Rp ${fmt(Math.abs(hasil))}</strong></div>
     <div class="summary-item"><span>Profit Persen</span><strong>${menang?profitPersen:'-'+Math.abs(profitPersen)}%</strong></div>`;
     window._lastParlay={modal,total,hasil,menang,data:parlayData};
+}
+
+function refreshPenjelasan(){
+    // Refresh semua penjelasan saat modal berubah
+    renderAllParlay();
 }
 
 function resetParlay(){parlayData=[];renderAllParlay();$('modalParlay').value='100.000';triggerPlayerKick();showToast('Reset berhasil');}
