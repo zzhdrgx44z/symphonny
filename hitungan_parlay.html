@@ -196,7 +196,7 @@
 <section class="hero-scene">
     <div class="hero-text">
         <h1>Premium <span>Bet</span></h1>
-        <p>Mix Parlay & Single Bet — Voor hanya angka dengan Minus Otomatis</p>
+        <p>Mix Parlay & Single Bet — Voor fleksibel (+/-) untuk tim Anda</p>
         <div class="hero-badge"><i class="fa-solid fa-futbol"></i> Official Matchday Calculator</div>
     </div>
 </section>
@@ -262,7 +262,7 @@
             </div>
             <div class="form-grid" style="margin-top:16px;">
                 <div class="field"><label><i class="fa-solid fa-tag"></i> Pasaran</label><select id="singlePasar" onchange="updateSingleForm();hitungSingle();"><option value="HDP">Handicap</option><option value="OU">Over/Under</option><option value="1x2">1x2</option><option value="OE">Odd/Even</option></select></div>
-                <div class="field" id="voorField"><label><i class="fa-solid fa-arrow-down-short-wide"></i> Voor / Batas</label><input type="number" id="singleVoor" step="0.25" value="0.75" min="0" oninput="hitungSingle()"></div>
+                <div class="field" id="voorField"><label><i class="fa-solid fa-arrow-down-short-wide"></i> Voor / Batas</label><input type="number" id="singleVoor" step="0.25" value="0.75" oninput="hitungSingle()"></div>
                 <div class="field" id="opsiField" style="display:none;"><label><i class="fa-solid fa-hand-pointer"></i> Pilihan</label><select id="singleOpsi" onchange="hitungSingle()"></select></div>
             </div>
             <div class="field" style="margin-top:16px;">
@@ -421,16 +421,125 @@ function renderParlayTable(){
     attachTableEvents();
 }
 
-function renderVoorHTML(b,i){if(b.m==='HDP'){return`<input type="number" value="${Math.abs(b.v)}" step="0.25" min="0" data-field="v" class="voor-input" placeholder="0.75">`;}if(b.m==='OU')return`<div style="display:flex;gap:4px;"><input type="number" value="${b.v}" step="0.25" data-field="v" style="width:70px;"><select data-field="p"><option value="over" ${b.p==='over'?'selected':''}>OVER</option><option value="under" ${b.p==='under'?'selected':''}>UNDER</option></select></div>`;if(b.m==='1x2')return`<select data-field="p"><option value="home" ${b.p==='home'?'selected':''}>Home</option><option value="draw" ${b.p==='draw'?'selected':''}>Draw</option><option value="away" ${b.p==='away'?'selected':''}>Away</option></select>`;if(b.m==='OE')return`<select data-field="p"><option value="even" ${b.p==='even'?'selected':''}>Even</option><option value="odd" ${b.p==='odd'?'selected':''}>Odd</option></select>`;}
+function renderVoorHTML(b,i){
+    if(b.m==='HDP'){
+        return `<input type="number" value="${b.v}" step="0.25" data-field="v" class="voor-input" placeholder="-0.75">`;
+    }
+    if(b.m==='OU')return `<div style="display:flex;gap:4px;"><input type="number" value="${b.v}" step="0.25" data-field="v" style="width:70px;"><select data-field="p"><option value="over" ${b.p==='over'?'selected':''}>OVER</option><option value="under" ${b.p==='under'?'selected':''}>UNDER</option></select></div>`;
+    if(b.m==='1x2')return `<select data-field="p"><option value="home" ${b.p==='home'?'selected':''}>Home</option><option value="draw" ${b.p==='draw'?'selected':''}>Draw</option><option value="away" ${b.p==='away'?'selected':''}>Away</option></select>`;
+    if(b.m==='OE')return `<select data-field="p"><option value="even" ${b.p==='even'?'selected':''}>Even</option><option value="odd" ${b.p==='odd'?'selected':''}>Odd</option></select>`;
+}
 
-function attachTableEvents(){document.querySelectorAll('#parlayTable tbody tr').forEach(tr=>{const idx=parseInt(tr.dataset.idx);tr.querySelectorAll('input,select').forEach(el=>{el.addEventListener('input',function(){const field=this.dataset.field;if(field==='v'){const val=parseFloat(this.value)||0;parlayData[idx].v=parlayData[idx].m==='HDP'?-Math.abs(val):Math.abs(val);}else if(field==='m'){parlayData[idx].m=this.value;if(this.value==='OU'){parlayData[idx].v=Math.abs(parlayData[idx].v)||2.5;parlayData[idx].p=parlayData[idx].p||'over';}else if(this.value==='HDP'){parlayData[idx].v=-(Math.abs(parlayData[idx].v)||0.75);}renderAllParlay();return;}else if(field==='totalSkor'){const total=parseInt(this.value)||0;parlayData[idx].sh=total;parlayData[idx].sa=0;}else{const val=this.type==='number'?(parseFloat(this.value)||0):this.value;parlayData[idx][field]=val;}updateRow(tr,idx);hitungParlay();});});tr.querySelector('.delete-btn').addEventListener('click',()=>{parlayData.splice(idx,1);renderAllParlay();triggerPlayerKick();triggerKickParticles(window.innerWidth/2, window.innerHeight/2);showToast('Partai dihapus');});});document.querySelectorAll('.copy-btn').forEach(btn=>btn.addEventListener('click',function(e){e.stopPropagation();navigator.clipboard.writeText(this.dataset.penjelasan).then(()=>showToast('Tersalin'));}));}
+function attachTableEvents(){
+    document.querySelectorAll('#parlayTable tbody tr').forEach(tr=>{
+        const idx=parseInt(tr.dataset.idx);
+        tr.querySelectorAll('input,select').forEach(el=>{
+            el.addEventListener('input',function(){
+                const field=this.dataset.field;
+                if(field==='v'){
+                    const val=parseFloat(this.value)||0;
+                    parlayData[idx].v = val;
+                } else if(field==='m'){
+                    parlayData[idx].m=this.value;
+                    if(this.value==='OU'){
+                        parlayData[idx].v=Math.abs(parlayData[idx].v)||2.5;
+                        parlayData[idx].p=parlayData[idx].p||'over';
+                    }
+                    renderAllParlay();
+                    return;
+                } else if(field==='totalSkor'){
+                    const total=parseInt(this.value)||0;
+                    parlayData[idx].sh=total;
+                    parlayData[idx].sa=0;
+                } else {
+                    const val=this.type==='number'?(parseFloat(this.value)||0):this.value;
+                    parlayData[idx][field]=val;
+                }
+                updateRow(tr,idx);
+                hitungParlay();
+            });
+        });
+        tr.querySelector('.delete-btn').addEventListener('click',()=>{
+            parlayData.splice(idx,1);
+            renderAllParlay();
+            triggerPlayerKick();triggerKickParticles(window.innerWidth/2, window.innerHeight/2);
+            showToast('Partai dihapus');
+        });
+    });
+    document.querySelectorAll('.copy-btn').forEach(btn=>btn.addEventListener('click',function(e){
+        e.stopPropagation();
+        navigator.clipboard.writeText(this.dataset.penjelasan).then(()=>showToast('Tersalin'));
+    }));
+}
 
-function updateRow(tr,idx){const b=parlayData[idx];const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);const eff=getEff(st,b.odds);tr.querySelector('.status-cell').textContent=`${b.t||'Tim'}: ${STATUS[st]}`;tr.querySelector('.status-cell').className=`badge badge-${st} status-cell`;tr.querySelector('.eff-cell').textContent=eff.toFixed(3);const ec=tr.querySelector('.expl-cell');ec.innerHTML=penjelasan(b,st).replace(/\n/g,'<br>')+`<button class="copy-btn" data-penjelasan="${escapeAttr(penjelasan(b,st))}">Copy</button>`;ec.querySelector('.copy-btn').addEventListener('click',function(e){e.stopPropagation();navigator.clipboard.writeText(this.dataset.penjelasan).then(()=>showToast('Tersalin'));});}
+function updateRow(tr,idx){
+    const b=parlayData[idx];const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);const eff=getEff(st,b.odds);
+    tr.querySelector('.status-cell').textContent=`${b.t||'Tim'}: ${STATUS[st]}`;
+    tr.querySelector('.status-cell').className=`badge badge-${st} status-cell`;
+    tr.querySelector('.eff-cell').textContent=eff.toFixed(3);
+    const ec=tr.querySelector('.expl-cell');
+    ec.innerHTML=penjelasan(b,st).replace(/\n/g,'<br>')+`<button class="copy-btn" data-penjelasan="${escapeAttr(penjelasan(b,st))}">Copy</button>`;
+    ec.querySelector('.copy-btn').addEventListener('click',function(e){
+        e.stopPropagation();
+        navigator.clipboard.writeText(this.dataset.penjelasan).then(()=>showToast('Tersalin'));
+    });
+}
 
-function renderMobileCards(){const cont=$('mobileCards');cont.innerHTML='';parlayData.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);const eff=getEff(st,b.odds);const card=document.createElement('div');card.className='mobile-card';card.setAttribute('data-idx',i);card.innerHTML=`<div class="badge-num">#${i+1}</div><div class="grid-2"><div class="field"><label>Tim Anda</label><input type="text" value="${b.t}" data-field="t"></div><div class="field"><label>Lawan</label><input type="text" value="${b.l}" data-field="l"></div></div><div class="grid-2"><div class="field"><label>Pasaran</label><select data-field="m">${['HDP','OU','1x2','OE'].map(m=>`<option value="${m}" ${b.m===m?'selected':''}>${m}</option>`).join('')}</select></div><div class="field">${renderMobileVoor(b,i)}</div></div><div class="field"><label>Skor</label><div class="skor-row"><div><span style="font-size:0.55rem;color:var(--muted);">Tim</span><input type="number" value="${b.sh}" data-field="sh"></div><span style="font-weight:700;color:var(--pitch);">:</span><div><span style="font-size:0.55rem;color:var(--muted);">Lawan</span><input type="number" value="${b.sa}" data-field="sa"></div></div></div><div class="field"><label>Odds</label><input type="number" value="${b.odds}" step="0.01" data-field="odds" style="width:80px;"></div><div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0;"><span class="badge badge-${st} status-cell">${STATUS[st]}</span><span class="eff-cell">Eff: ${eff.toFixed(3)}</span></div><div class="expl-cell" style="font-size:0.7rem;">${penjelasan(b,st).replace(/\n/g,'<br>')}</div><button class="delete-btn" style="width:100%;margin-top:12px;"><i class="fa-solid fa-xmark"></i> Hapus</button>`;cont.appendChild(card);});attachMobileEvents();}
-function renderMobileVoor(b,i){if(b.m==='HDP')return`<label>Voor (minus)</label><input type="number" value="${Math.abs(b.v)}" step="0.25" min="0" data-field="v" class="voor-input">`;if(b.m==='OU')return`<label>Batas</label><div style="display:flex;gap:4px;"><input type="number" value="${b.v}" step="0.25" data-field="v" style="flex:1;"><select data-field="p"><option value="over" ${b.p==='over'?'selected':''}>OVER</option><option value="under" ${b.p==='under'?'selected':''}>UNDER</option></select></div>`;if(b.m==='1x2')return`<label>Pilihan</label><select data-field="p"><option value="home" ${b.p==='home'?'selected':''}>Home</option><option value="draw" ${b.p==='draw'?'selected':''}>Draw</option><option value="away" ${b.p==='away'?'selected':''}>Away</option></select>`;if(b.m==='OE')return`<label>Pilihan</label><select data-field="p"><option value="even" ${b.p==='even'?'selected':''}>Even</option><option value="odd" ${b.p==='odd'?'selected':''}>Odd</option></select>`;}
-function attachMobileEvents(){document.querySelectorAll('#mobileCards .mobile-card').forEach(card=>{const idx=parseInt(card.dataset.idx);card.querySelectorAll('input,select').forEach(el=>{el.addEventListener('input',function(){const field=this.dataset.field;if(field==='v'){parlayData[idx].v=-(parseFloat(this.value)||0);}else if(field==='m'){parlayData[idx].m=this.value;renderAllParlay();return;}else{const val=this.type==='number'?(parseFloat(this.value)||0):this.value;parlayData[idx][field]=val;}updateMobileCard(card,idx);hitungParlay();});});card.querySelector('.delete-btn').addEventListener('click',()=>{parlayData.splice(idx,1);renderAllParlay();triggerPlayerKick();triggerKickParticles(window.innerWidth/2, window.innerHeight/2);showToast('Partai dihapus');});});}
-function updateMobileCard(card,idx){const b=parlayData[idx];const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);card.querySelector('.status-cell').textContent=STATUS[st];card.querySelector('.status-cell').className=`badge badge-${st} status-cell`;card.querySelector('.expl-cell').innerHTML=penjelasan(b,st).replace(/\n/g,'<br>');}
+function renderMobileCards(){
+    const cont=$('mobileCards');cont.innerHTML='';
+    parlayData.forEach((b,i)=>{
+        const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);const eff=getEff(st,b.odds);
+        const card=document.createElement('div');card.className='mobile-card';card.setAttribute('data-idx',i);
+        card.innerHTML=`<div class="badge-num">#${i+1}</div><div class="grid-2"><div class="field"><label>Tim Anda</label><input type="text" value="${b.t}" data-field="t"></div><div class="field"><label>Lawan</label><input type="text" value="${b.l}" data-field="l"></div></div><div class="grid-2"><div class="field"><label>Pasaran</label><select data-field="m">${['HDP','OU','1x2','OE'].map(m=>`<option value="${m}" ${b.m===m?'selected':''}>${m}</option>`).join('')}</select></div><div class="field">${renderMobileVoor(b,i)}</div></div><div class="field"><label>Skor</label><div class="skor-row"><div><span style="font-size:0.55rem;color:var(--muted);">Tim</span><input type="number" value="${b.sh}" data-field="sh"></div><span style="font-weight:700;color:var(--pitch);">:</span><div><span style="font-size:0.55rem;color:var(--muted);">Lawan</span><input type="number" value="${b.sa}" data-field="sa"></div></div></div><div class="field"><label>Odds</label><input type="number" value="${b.odds}" step="0.01" data-field="odds" style="width:80px;"></div><div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0;"><span class="badge badge-${st} status-cell">${STATUS[st]}</span><span class="eff-cell">Eff: ${eff.toFixed(3)}</span></div><div class="expl-cell" style="font-size:0.7rem;">${penjelasan(b,st).replace(/\n/g,'<br>')}</div><button class="delete-btn" style="width:100%;margin-top:12px;"><i class="fa-solid fa-xmark"></i> Hapus</button>`;
+        cont.appendChild(card);
+    });
+    attachMobileEvents();
+}
+
+function renderMobileVoor(b,i){
+    if(b.m==='HDP'){
+        return `<label>Voor (+/-)</label><input type="number" value="${b.v}" step="0.25" data-field="v" class="voor-input">`;
+    }
+    if(b.m==='OU')return `<label>Batas</label><div style="display:flex;gap:4px;"><input type="number" value="${b.v}" step="0.25" data-field="v" style="flex:1;"><select data-field="p"><option value="over" ${b.p==='over'?'selected':''}>OVER</option><option value="under" ${b.p==='under'?'selected':''}>UNDER</option></select></div>`;
+    if(b.m==='1x2')return `<label>Pilihan</label><select data-field="p"><option value="home" ${b.p==='home'?'selected':''}>Home</option><option value="draw" ${b.p==='draw'?'selected':''}>Draw</option><option value="away" ${b.p==='away'?'selected':''}>Away</option></select>`;
+    if(b.m==='OE')return `<label>Pilihan</label><select data-field="p"><option value="even" ${b.p==='even'?'selected':''}>Even</option><option value="odd" ${b.p==='odd'?'selected':''}>Odd</option></select>`;
+}
+
+function attachMobileEvents(){
+    document.querySelectorAll('#mobileCards .mobile-card').forEach(card=>{
+        const idx=parseInt(card.dataset.idx);
+        card.querySelectorAll('input,select').forEach(el=>{
+            el.addEventListener('input',function(){
+                const field=this.dataset.field;
+                if(field==='v'){
+                    parlayData[idx].v = parseFloat(this.value)||0;
+                } else if(field==='m'){
+                    parlayData[idx].m=this.value;
+                    renderAllParlay();
+                    return;
+                } else {
+                    const val=this.type==='number'?(parseFloat(this.value)||0):this.value;
+                    parlayData[idx][field]=val;
+                }
+                updateMobileCard(card,idx);
+                hitungParlay();
+            });
+        });
+        card.querySelector('.delete-btn').addEventListener('click',()=>{
+            parlayData.splice(idx,1);
+            renderAllParlay();
+            triggerPlayerKick();triggerKickParticles(window.innerWidth/2, window.innerHeight/2);
+            showToast('Partai dihapus');
+        });
+    });
+}
+
+function updateMobileCard(card,idx){
+    const b=parlayData[idx];const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);
+    card.querySelector('.status-cell').textContent=STATUS[st];
+    card.querySelector('.status-cell').className=`badge badge-${st} status-cell`;
+    card.querySelector('.expl-cell').innerHTML=penjelasan(b,st).replace(/\n/g,'<br>');
+}
 
 function hitungParlay(){
     const rBox = $('parlayResultBox'); rBox.className = 'result-box';
@@ -445,7 +554,23 @@ function hitungParlay(){
 }
 
 function resetParlay(){parlayData=[];renderAllParlay();$('modalParlay').value='100.000';triggerPlayerKick();triggerKickParticles(window.innerWidth/2, window.innerHeight/2);showToast('Reset berhasil');}
-function copyParlay(mode){const d=window._lastParlay;if(!d)return showToast('Hitung dulu!');let txt='';if(mode==='ringkas')txt=`MIX PARLAY\nModal: Rp ${fmt(d.modal)}\nOdds: ${d.total.toFixed(3)}\nHasil: ${d.menang?'MENANG':'KALAH'} Rp ${fmt(Math.abs(d.hasil))}`;else if(mode==='lengkap'){txt=`MIX PARLAY\nModal: Rp ${fmt(d.modal)}\n`;d.data.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);txt+=`${i+1}. ${b.t} vs ${b.l} → ${STATUS[st]} (${getEff(st,b.odds).toFixed(3)})\n`});txt+=`Odds: ${d.total.toFixed(3)}\nHasil: Rp ${fmt(d.hasil)}`;}else if(mode==='penjelasan'){txt='PENJELASAN\n';d.data.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);txt+=`\n[${i+1}] ${b.t} vs ${b.l}\n${penjelasan(b,st)}\n`});}else{copyParlay('lengkap');copyParlay('penjelasan');return;}navigator.clipboard.writeText(txt).then(()=>showToast('Tersalin!'));closeMenu('parlayMenu');}
+
+function copyParlay(mode){
+    const d=window._lastParlay;if(!d)return showToast('Hitung dulu!');
+    let txt='';
+    if(mode==='ringkas')txt=`MIX PARLAY\nModal: Rp ${fmt(d.modal)}\nOdds: ${d.total.toFixed(3)}\nHasil: ${d.menang?'MENANG':'KALAH'} Rp ${fmt(Math.abs(d.hasil))}`;
+    else if(mode==='lengkap'){
+        txt=`MIX PARLAY\nModal: Rp ${fmt(d.modal)}\n`;
+        d.data.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);txt+=`${i+1}. ${b.t} vs ${b.l} → ${STATUS[st]} (${getEff(st,b.odds).toFixed(3)})\n`});
+        txt+=`Odds: ${d.total.toFixed(3)}\nHasil: Rp ${fmt(d.hasil)}`;
+    } else if(mode==='penjelasan'){
+        txt='PENJELASAN\n';
+        d.data.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);txt+=`\n[${i+1}] ${b.t} vs ${b.l}\n${penjelasan(b,st)}\n`});
+    } else {
+        copyParlay('lengkap');copyParlay('penjelasan');return;
+    }
+    navigator.clipboard.writeText(txt).then(()=>showToast('Tersalin!'));closeMenu('parlayMenu');
+}
 
 function updateSingleForm(){
     const mk=$('singlePasar').value;
@@ -466,7 +591,7 @@ function hitungSingle(){
     const sign=$('singleOddsSign').value; const odds=Math.abs(parseFloat($('singleOdds').value))||0;
     const modal=parseNum($('singleModal').value);
     const tim=$('singleTim').value||'Tim'; const lawan=$('singleLawan').value||'Lawan'; const mk=$('singlePasar').value;
-    let v=(mk==='HDP')?-(parseFloat($('singleVoor').value)||0):(parseFloat($('singleVoor').value)||0);
+    let v = parseFloat($('singleVoor').value) || 0;
     const p=$('singleOpsi').value; const sh=parseInt($('singleSkorTim').value)||0;
     const sa=(mk==='OU')?0:(parseInt($('singleSkorLawan').value)||0);
     const st=getStatus(mk,sh,sa,v,p);
@@ -484,7 +609,15 @@ function hitungSingle(){
 }
 
 function resetSingle(){$('singleModal').value='100.000';$('singleOdds').value='1.00';$('singleTim').value='E-PSV';$('singleLawan').value='MU';$('singlePasar').value='HDP';$('singleVoor').value='0.75';$('singleSkorTim').value='3';$('singleSkorLawan').value='2';updateSingleForm();triggerPlayerKick();triggerKickParticles(window.innerWidth/2, window.innerHeight/2);showToast('Reset berhasil');}
-function copySingle(mode){const d=window._lastSingle;if(!d)return showToast('Hitung dulu!');let txt='';if(mode==='ringkas')txt=`SINGLE BET\n${d.tim} vs ${d.lawan} | ${d.mk}\nStake: Rp ${fmt(d.modal)} | Kembali: Rp ${fmt(d.kembali)}`;else if(mode==='lengkap')txt=`SINGLE BET\nTim: ${d.tim} vs ${d.lawan}\nPasaran: ${d.mk}\nVoor/Batas: ${d.mk==='HDP'||d.mk==='OU'?fmtVoor(d.v):d.p}\nSkor: ${d.sh}:${d.sa}\nOdds: ${d.sign}${d.odds}\nStake: Rp ${fmt(d.modal)}\nProfit Full: Rp ${fmt(d.profit)}\nStatus: ${d.hasilText}\nKembali: Rp ${fmt(d.kembali)}\nHasil Bersih: Rp ${fmt(d.netHasil)}`;else if(mode==='penjelasan')txt=d.penj;else txt=copySingle('lengkap')+'\n\n'+d.penj;navigator.clipboard.writeText(txt).then(()=>showToast('Tersalin!'));closeMenu('singleMenu');}
+function copySingle(mode){
+    const d=window._lastSingle;if(!d)return showToast('Hitung dulu!');
+    let txt='';
+    if(mode==='ringkas')txt=`SINGLE BET\n${d.tim} vs ${d.lawan} | ${d.mk}\nStake: Rp ${fmt(d.modal)} | Kembali: Rp ${fmt(d.kembali)}`;
+    else if(mode==='lengkap')txt=`SINGLE BET\nTim: ${d.tim} vs ${d.lawan}\nPasaran: ${d.mk}\nVoor/Batas: ${d.mk==='HDP'||d.mk==='OU'?fmtVoor(d.v):d.p}\nSkor: ${d.sh}:${d.sa}\nOdds: ${d.sign}${d.odds}\nStake: Rp ${fmt(d.modal)}\nProfit Full: Rp ${fmt(d.profit)}\nStatus: ${d.hasilText}\nKembali: Rp ${fmt(d.kembali)}\nHasil Bersih: Rp ${fmt(d.netHasil)}`;
+    else if(mode==='penjelasan')txt=d.penj;
+    else txt=copySingle('lengkap')+'\n\n'+d.penj;
+    navigator.clipboard.writeText(txt).then(()=>showToast('Tersalin!'));closeMenu('singleMenu');
+}
 
 function switchTab(t){$('parlayPanel').classList.toggle('active',t==='parlay');$('singlePanel').classList.toggle('active',t==='single');document.querySelectorAll('.tab').forEach((tb,i)=>tb.classList.toggle('active',i===(t==='parlay'?0:1)));}
 function toggleMenu(id){document.getElementById(id).classList.toggle('show');}
