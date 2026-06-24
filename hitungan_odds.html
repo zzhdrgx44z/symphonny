@@ -1,985 +1,498 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kalkulator Mix Parlay</title>
-    <script src="https://cdn.tailwindcss.com">
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        display: ['Space Grotesk', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    }
-                }
-            }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kalkulator Mix Parlay | Detail Hitungan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Space Grotesk', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
         }
-    </script>
-    <style>
-        :root {
-            --bg: #faf8f4;
-            --bg-secondary: #f3efe8;
-            --card: #ffffff;
-            --card-hover: #fffdf9;
-            --border: rgba(180, 140, 60, 0.12);
-            --border-active: rgba(180, 140, 60, 0.4);
-            --accent: #d97706;
-            --accent-light: #f59e0b;
-            --accent-dim: rgba(217, 119, 6, 0.08);
-            --win: #059669;
-            --win-bg: rgba(5, 150, 105, 0.06);
-            --lose: #dc2626;
-            --lose-bg: rgba(220, 38, 38, 0.06);
-            --draw: #d97706;
-            --draw-bg: rgba(217, 119, 6, 0.06);
-            --half: #2563eb;
-            --half-bg: rgba(37, 99, 235, 0.06);
-            --fg: #1c1917;
-            --fg-muted: #57534e;
-            --fg-dim: #a8a29e;
-        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --bg: #faf8f4;
+      --card: #ffffff;
+      --border: rgba(180, 140, 60, 0.12);
+      --accent: #d97706;
+      --win: #059669;
+      --lose: #dc2626;
+      --half: #2563eb;
+      --draw: #d97706;
+      --fg: #1c1917;
+      --fg-muted: #57534e;
+    }
 
-        * {
-            box-sizing: border-box;
-        }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
 
-        body {
-            margin: 0;
-            background: var(--bg);
-            color: var(--fg);
-            font-family: 'Space Grotesk', sans-serif;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
+    .bg-scene {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .bg-scene::before {
+      content: '';
+      position: absolute;
+      top: -30%;
+      left: -10%;
+      width: 70vw;
+      height: 70vw;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(245,158,11,0.07) 0%, transparent 65%);
+      animation: floatBlob1 22s ease-in-out infinite;
+    }
+    .bg-scene::after {
+      content: '';
+      position: absolute;
+      bottom: -25%;
+      right: -10%;
+      width: 55vw;
+      height: 55vw;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(5,150,105,0.05) 0%, transparent 65%);
+      animation: floatBlob2 28s ease-in-out infinite;
+    }
+    @keyframes floatBlob1 {
+      0%, 100% { transform: translate(0,0) scale(1); }
+      33% { transform: translate(8%,4%) scale(1.08); }
+      66% { transform: translate(-4%,8%) scale(0.96); }
+    }
+    @keyframes floatBlob2 {
+      0%, 100% { transform: translate(0,0) scale(1); }
+      50% { transform: translate(-6%,-5%) scale(1.06); }
+    }
 
-        /* === Animated Background === */
-        .bg-scene {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-            overflow: hidden;
-        }
-        .bg-scene::before {
-            content: '';
-            position: absolute;
-            top: -30%;
-            left: -10%;
-            width: 70vw;
-            height: 70vw;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(245, 158, 11, 0.07) 0%, transparent 65%);
-            animation: floatBlob1 22s ease-in-out infinite;
-        }
-        .bg-scene::after {
-            content: '';
-            position: absolute;
-            bottom: -25%;
-            right: -10%;
-            width: 55vw;
-            height: 55vw;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(5, 150, 105, 0.05) 0%, transparent 65%);
-            animation: floatBlob2 28s ease-in-out infinite;
-        }
-        @keyframes floatBlob1 {
-            0%,
-            100% {
-                transform: translate(0, 0) scale(1);
-            }
-            33% {
-                transform: translate(8%, 4%) scale(1.08);
-            }
-            66% {
-                transform: translate(-4%, 8%) scale(0.96);
-            }
-        }
-        @keyframes floatBlob2 {
-            0%,
-            100% {
-                transform: translate(0, 0) scale(1);
-            }
-            50% {
-                transform: translate(-6%, -5%) scale(1.06);
-            }
-        }
+    .grid-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(180,140,60,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(180,140,60,0.035) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
 
-        /* === Grid Pattern Overlay === */
-        .grid-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-            background-image:
-                linear-gradient(rgba(180, 140, 60, 0.035) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(180, 140, 60, 0.035) 1px, transparent 1px);
-            background-size: 60px 60px;
-        }
+    .glass-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+      transition: all 0.3s ease;
+    }
+    .glass-card:hover {
+      border-color: rgba(180,140,60,0.4);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+    }
 
-        /* === Card === */
-        .glass-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .glass-card:hover {
-            border-color: var(--border-active);
-            box-shadow: 0 2px 8px rgba(217, 119, 6, 0.06), 0 8px 24px rgba(0, 0, 0, 0.04);
-            background: var(--card-hover);
-        }
+    .input-field {
+      background: #f3efe8;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 10px 14px;
+      width: 100%;
+      outline: none;
+      transition: 0.2s;
+    }
+    .input-field:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(217,119,6,0.08);
+      background: white;
+    }
+    .input-error {
+      border-color: #dc2626;
+      box-shadow: 0 0 0 3px rgba(220,38,38,0.06);
+      background: #fff5f5;
+    }
 
-        /* === Inputs === */
-        .input-field {
-            background: var(--bg);
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            color: var(--fg);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.95rem;
-            padding: 10px 14px;
-            width: 100%;
-            transition: all 0.25s ease;
-            outline: none;
-        }
-        .input-field:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-dim);
-            background: #fff;
-        }
-        .input-field::placeholder {
-            color: var(--fg-dim);
-        }
-        .input-field::-webkit-outer-spin-button,
-        .input-field::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        .input-field[type=number] {
-            -moz-appearance: textfield;
-        }
-        .input-field.input-error {
-            border-color: #dc2626;
-            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.06);
-            background: #fff5f5;
-        }
+    .radio-group { display: flex; flex-wrap: wrap; gap: 6px; }
+    .radio-option { position: relative; cursor: pointer; }
+    .radio-option input { position: absolute; opacity: 0; pointer-events: none; }
+    .radio-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 13px;
+      border-radius: 9px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      border: 1.5px solid var(--border);
+      background: #f3efe8;
+      color: var(--fg-muted);
+      transition: 0.2s;
+      white-space: nowrap;
+    }
+    .radio-label:hover { border-color: rgba(180,140,60,0.4); }
+    .radio-option input[value="1"]:checked + .radio-label { background: rgba(5,150,105,0.06); border-color: var(--win); color: var(--win); }
+    .radio-option input[value="0.5"]:checked + .radio-label { background: rgba(37,99,235,0.06); border-color: var(--half); color: var(--half); }
+    .radio-option input[value="-0.5"]:checked + .radio-label { background: rgba(220,38,38,0.06); border-color: var(--lose); color: var(--lose); }
+    .radio-option input[value="0"]:checked + .radio-label { background: rgba(217,119,6,0.06); border-color: var(--draw); color: var(--draw); }
 
-        /* === Radio Buttons Custom === */
-        .radio-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-        .radio-option {
-            position: relative;
-            cursor: pointer;
-        }
-        .radio-option input[type="radio"] {
-            position: absolute;
-            opacity: 0;
-            pointer-events: none;
-        }
-        .radio-label {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 7px 13px;
-            border-radius: 9px;
-            font-size: 0.78rem;
-            font-weight: 500;
-            border: 1.5px solid var(--border);
-            background: var(--bg);
-            color: var(--fg-muted);
-            transition: all 0.2s ease;
-            user-select: none;
-            white-space: nowrap;
-        }
-        .radio-label:hover {
-            border-color: var(--border-active);
-            color: var(--fg);
-            background: #fff;
-        }
-        .radio-option input[value="1"]:checked+.radio-label {
-            background: var(--win-bg);
-            border-color: var(--win);
-            color: var(--win);
-            box-shadow: 0 0 12px rgba(5, 150, 105, 0.1);
-        }
-        .radio-option input[value="0.5"]:checked+.radio-label {
-            background: var(--half-bg);
-            border-color: var(--half);
-            color: var(--half);
-            box-shadow: 0 0 12px rgba(37, 99, 235, 0.1);
-        }
-        .radio-option input[value="-0.5"]:checked+.radio-label {
-            background: var(--lose-bg);
-            border-color: var(--lose);
-            color: var(--lose);
-            box-shadow: 0 0 12px rgba(220, 38, 38, 0.1);
-        }
-        .radio-option input[value="0"]:checked+.radio-label {
-            background: var(--draw-bg);
-            border-color: var(--draw);
-            color: var(--draw);
-            box-shadow: 0 0 12px rgba(217, 119, 6, 0.1);
-        }
+    .btn-add {
+      background: linear-gradient(135deg, #059669, #047857);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 24px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(5,150,105,0.2);
+      transition: 0.2s;
+    }
+    .btn-add:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(5,150,105,0.3); }
 
-        /* === Buttons === */
-        .btn-add {
-            background: linear-gradient(135deg, #059669, #047857);
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            padding: 12px 24px;
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 2px 8px rgba(5, 150, 105, 0.2);
-        }
-        .btn-add:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.3);
-        }
-        .btn-add:active {
-            transform: translateY(0);
-        }
+    .btn-remove {
+      background: transparent;
+      border: 1.5px solid rgba(220,38,38,0.2);
+      color: var(--lose);
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.2s;
+    }
+    .btn-remove:hover { background: rgba(220,38,38,0.06); border-color: var(--lose); }
 
-        .btn-remove {
-            background: transparent;
-            border: 1.5px solid rgba(220, 38, 38, 0.2);
-            color: var(--lose);
-            border-radius: 10px;
-            padding: 10px 16px;
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 500;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .btn-remove:hover {
-            background: var(--lose-bg);
-            border-color: var(--lose);
-            transform: translateY(-1px);
-        }
+    .stat-card {
+      border-radius: 14px;
+      padding: 18px 20px;
+      background: var(--card);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+      border: 1px solid var(--border);
+      position: relative;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+    }
+    .stat-odds::before { background: linear-gradient(90deg, #2563eb, #60a5fa); }
+    .stat-payout::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+    .stat-result::before { background: linear-gradient(90deg, #d97706, #f59e0b); }
+    .stat-result.win::before { background: linear-gradient(90deg, #059669, #34d399); }
+    .stat-result.lose::before { background: linear-gradient(90deg, #dc2626, #f87171); }
+    .stat-result.breakeven::before { background: linear-gradient(90deg, #d97706, #fbbf24); }
 
-        /* === Stat Cards === */
-        .stat-card {
-            border-radius: 14px;
-            padding: 20px 24px;
-            position: relative;
-            overflow: hidden;
-            background: var(--card);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02);
-        }
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-        }
-        .stat-odds {
-            border: 1px solid rgba(37, 99, 235, 0.1);
-        }
-        .stat-odds::before {
-            background: linear-gradient(90deg, #2563eb, #60a5fa);
-        }
-        .stat-result {
-            border: 1px solid rgba(217, 119, 6, 0.15);
-        }
-        .stat-result::before {
-            background: linear-gradient(90deg, #d97706, #f59e0b);
-        }
-        .stat-result.win {
-            border-color: rgba(5, 150, 105, 0.2);
-            box-shadow: 0 0 20px rgba(5, 150, 105, 0.06);
-        }
-        .stat-result.win::before {
-            background: linear-gradient(90deg, #059669, #34d399);
-        }
-        .stat-result.lose {
-            border-color: rgba(220, 38, 38, 0.2);
-            box-shadow: 0 0 20px rgba(220, 38, 38, 0.06);
-        }
-        .stat-result.lose::before {
-            background: linear-gradient(90deg, #dc2626, #f87171);
-        }
-        .stat-result.breakeven {
-            border-color: rgba(217, 119, 6, 0.2);
-        }
-        .stat-result.breakeven::before {
-            background: linear-gradient(90deg, #d97706, #fbbf24);
-        }
+    .odds-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 8px;
+      display: inline-block;
+      min-width: 60px;
+      text-align: center;
+    }
+    .odds-badge.win { background: rgba(5,150,105,0.06); color: var(--win); border: 1px solid rgba(5,150,105,0.2); }
+    .odds-badge.half-win { background: rgba(37,99,235,0.06); color: var(--half); border: 1px solid rgba(37,99,235,0.2); }
+    .odds-badge.half-lose { background: rgba(220,38,38,0.06); color: var(--lose); border: 1px solid rgba(220,38,38,0.2); }
+    .odds-badge.draw { background: rgba(217,119,6,0.06); color: var(--draw); border: 1px solid rgba(217,119,6,0.2); }
+    .odds-badge.invalid { background: rgba(220,38,38,0.08); color: #dc2626; border-color: rgba(220,38,38,0.3); }
 
-        /* === Parlay Row Animation === */
-        .parlay-row {
-            animation: slideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(16px) scale(0.98);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
+    .result-highlight { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
 
-        /* === Odds Badge === */
-        .odds-badge {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700;
-            font-size: 0.95rem;
-            padding: 6px 14px;
-            border-radius: 8px;
-            display: inline-block;
-            min-width: 60px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-        .odds-badge.win {
-            background: var(--win-bg);
-            color: var(--win);
-            border: 1px solid rgba(5, 150, 105, 0.2);
-        }
-        .odds-badge.half-win {
-            background: var(--half-bg);
-            color: var(--half);
-            border: 1px solid rgba(37, 99, 235, 0.2);
-        }
-        .odds-badge.half-lose {
-            background: var(--lose-bg);
-            color: var(--lose);
-            border: 1px solid rgba(220, 38, 38, 0.2);
-        }
-        .odds-badge.draw {
-            background: var(--draw-bg);
-            color: var(--draw);
-            border: 1px solid rgba(217, 119, 6, 0.2);
-        }
-        .odds-badge.invalid {
-            background: rgba(220, 38, 38, 0.08);
-            color: #dc2626;
-            border: 1px solid rgba(220, 38, 38, 0.25);
-            animation: shake 0.5s ease;
-        }
-        @keyframes shake {
-            0%,
-            100% {
-                transform: translateX(0);
-            }
-            25% {
-                transform: translateX(-4px);
-            }
-            75% {
-                transform: translateX(4px);
-            }
-        }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: #fdfcf8;
+      border-radius: 10px;
+      margin-bottom: 6px;
+      border: 1px solid rgba(180,140,60,0.1);
+      transition: 0.2s;
+    }
+    .detail-row:hover {
+      background: #fff;
+      border-color: rgba(180,140,60,0.25);
+    }
 
-        /* === Label === */
-        .field-label {
-            font-size: 0.72rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--fg-dim);
-            margin-bottom: 6px;
-            display: block;
-        }
-
-        /* === Scrollbar === */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #d6d3d1;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a8a29e;
-        }
-
-        /* === Note Card === */
-        .note-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 22px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-            transition: all 0.3s ease;
-        }
-        .note-card:hover {
-            border-color: var(--border-active);
-            box-shadow: 0 2px 8px rgba(217, 119, 6, 0.04);
-        }
-
-        /* === Pulse dot === */
-        .pulse-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-            animation: pulse 2s ease-in-out infinite;
-        }
-        @keyframes pulse {
-            0%,
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-            50% {
-                opacity: 0.4;
-                transform: scale(0.75);
-            }
-        }
-
-        .stat-value {
-            transition: all 0.3s ease;
-        }
-
-        /* === Partikel === */
-        .particle {
-            position: fixed;
-            width: 3px;
-            height: 3px;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 0;
-            opacity: 0;
-            animation: particleFloat linear infinite;
-        }
-        @keyframes particleFloat {
-            0% {
-                opacity: 0;
-                transform: translateY(100vh) scale(0);
-            }
-            10% {
-                opacity: 0.5;
-            }
-            90% {
-                opacity: 0.15;
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(-10vh) scale(1);
-            }
-        }
-
-        /* === Header badge === */
-        .header-badge {
-            background: linear-gradient(135deg, rgba(217, 119, 6, 0.08), rgba(217, 119, 6, 0.03));
-            border: 1px solid rgba(217, 119, 6, 0.15);
-        }
-
-        /* === Partai Number Badge === */
-        .partai-num {
-            background: linear-gradient(135deg, rgba(217, 119, 6, 0.1), rgba(217, 119, 6, 0.04));
-            color: var(--accent);
-            border: 1px solid rgba(217, 119, 6, 0.15);
-        }
-
-        /* === Result highlight === */
-        .result-highlight {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-        }
-        .result-label-badge {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 6px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            margin-top: 4px;
-        }
-        .result-label-badge.profit {
-            background: var(--win-bg);
-            color: var(--win);
-            border: 1px solid rgba(5, 150, 105, 0.2);
-        }
-        .result-label-badge.loss {
-            background: var(--lose-bg);
-            color: var(--lose);
-            border: 1px solid rgba(220, 38, 38, 0.2);
-        }
-        .result-label-badge.breakeven {
-            background: var(--draw-bg);
-            color: var(--draw);
-            border: 1px solid rgba(217, 119, 6, 0.2);
-        }
-
-        @media (max-width: 640px) {
-            .stat-card {
-                padding: 14px 16px;
-            }
-            .radio-label {
-                font-size: 0.7rem;
-                padding: 5px 8px;
-            }
-            .odds-badge {
-                font-size: 0.8rem;
-                padding: 4px 10px;
-            }
-        }
-    </style>
+    @media (max-width: 640px) {
+      .stat-card { padding: 14px; }
+      .radio-label { font-size: 0.7rem; padding: 5px 8px; }
+    }
+  </style>
 </head>
 <body>
-    <!-- Background layers -->
-    <div class="bg-scene"></div>
-    <div class="grid-overlay"></div>
-    <div id="particles"></div>
+<div class="bg-scene"></div>
+<div class="grid-overlay"></div>
 
-    <main class="relative z-10 max-w-4xl mx-auto px-4 py-8 sm:py-12">
-        <form id="app" class="space-y-6" onsubmit="return false;">
+<main class="relative z-10 max-w-4xl mx-auto px-4 py-8">
+  <form id="app" class="space-y-6" onsubmit="return false;">
 
-            <!-- Header -->
-            <header class="text-center mb-10">
-                <div class="inline-flex items-center gap-2 mb-4 px-4 py-1.5 rounded-full header-badge text-xs font-semibold tracking-wider uppercase" style="color: var(--accent);">
-                    <span class="pulse-dot" style="background: var(--accent);"></span>
-                    Mix Parlay Calculator
-                </div>
-                <h1 class="font-display text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight" style="color: var(--fg);">
-                    Kalkulator <span style="background: linear-gradient(135deg, #d97706, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Parlay</span>
-                </h1>
-                <p class="mt-3 text-sm sm:text-base" style="color: var(--fg-muted);">
-                    Hitung keuntungan mix parlay dengan akurat — menang full, setengah, kalah setengah, atau seri
-                </p>
-            </header>
+    <header class="text-center mb-10">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase" style="background: rgba(217,119,6,0.08); color: var(--accent);">
+        <span class="w-2 h-2 rounded-full animate-pulse" style="background: var(--accent);"></span>
+        Mix Parlay Calculator
+      </div>
+      <h1 class="text-4xl lg:text-5xl font-bold mt-4">Kalkulator <span style="background: linear-gradient(135deg,#d97706,#f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Parlay</span></h1>
+      <p class="text-sm text-gray-500 mt-2">Detail perhitungan odds & keuntungan ditampilkan secara transparan</p>
+    </header>
 
-            <!-- Controls Row: Bet + Add -->
-            <div class="flex flex-wrap gap-4 items-end">
-                <div class="flex-1 min-w-[180px] max-w-[240px]">
-                    <label class="field-label">
-                        <i class="fa-solid fa-coins mr-1"></i> Nilai Bet (Rp)
-                    </label>
-                    <input type="number" name="nilaibet" v-model.number="nilaibet"
-                    class="input-field text-lg font-bold" min="1" max="100000000" step="1000"
-                    @input="onBetChange">
-            </div>
-            <button type="button" v-on:click="addNewParlay" class="btn-add">
-                <i class="fa-solid fa-plus"></i>
-                Tambah Partai
-            </button>
+    <!-- Input Bet & Tombol Tambah -->
+    <div class="flex flex-wrap gap-4 items-end">
+      <div class="flex-1 min-w-[180px] max-w-[240px]">
+        <label class="text-xs font-semibold uppercase tracking-wider text-gray-400 block mb-2">💰 Nilai Bet (Rp)</label>
+        <input type="number" v-model.number="nilaibet" class="input-field text-lg font-bold" min="1000" step="1000" @input="onBetChange">
+      </div>
+      <button type="button" @click="addNewParlay" class="btn-add">
+        <i class="fa-solid fa-plus"></i> Tambah Partai
+      </button>
+    </div>
+
+    <!-- Statistik Utama: 4 Kartu -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div class="stat-card stat-odds">
+        <div class="text-xs text-gray-400 uppercase tracking-wider">Total Partai</div>
+        <div class="text-2xl font-bold mt-1" style="color:#2563eb;">{{ totalbet }}</div>
+      </div>
+      <div class="stat-card stat-odds">
+        <div class="text-xs text-gray-400 uppercase tracking-wider">Total Odds</div>
+        <div class="text-2xl font-bold mt-1" style="color:#2563eb;">{{ totalodds }}x</div>
+      </div>
+      <div class="stat-card stat-payout" style="border-color: rgba(139,92,246,0.15);">
+        <div class="text-xs text-gray-400 uppercase tracking-wider">💰 Total Menang</div>
+        <div class="text-xl font-bold result-highlight mt-1" style="color:#7c3aed;">{{ totalPayoutFormatted }}</div>
+      </div>
+      <div class="stat-card stat-result" :class="{ win: isWin, lose: isLose, breakeven: isBreakeven }">
+        <div class="text-xs text-gray-400 uppercase tracking-wider">🏆 Keuntungan Bersih</div>
+        <div class="text-xl font-bold result-highlight mt-1" :style="{ color: resultColor }">{{ totalResultFormatted }}</div>
+        <span class="text-xs px-2 py-0.5 rounded mt-1 inline-block"
+          :class="{ 'bg-green-50 text-green-700 border border-green-200': isWin, 'bg-red-50 text-red-700 border border-red-200': isLose, 'bg-orange-50 text-orange-700 border border-orange-200': isBreakeven }">
+          {{ resultLabel }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Daftar Partai -->
+    <div class="space-y-4">
+      <div v-for="(parlay, index) in parlays" :key="index" class="glass-card p-5">
+        <div class="flex justify-between items-center mb-4">
+          <div class="flex items-center gap-3">
+            <span class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold" style="background: rgba(217,119,6,0.1); color: var(--accent);">#{{ index+1 }}</span>
+            <span class="font-semibold text-gray-600">Partai {{ index+1 }}</span>
+          </div>
+          <button @click="removeParlay(index)" class="btn-remove" v-show="parlays.length > 1">
+            <i class="fa-solid fa-trash"></i> Hapus
+          </button>
         </div>
 
-        <!-- Stat Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="stat-card stat-odds">
-                <div class="field-label" style="margin-bottom:2px;">Total Partai</div>
-                <div class="stat-value text-2xl font-bold font-mono" style="color: #2563eb;">
-                    {{ totalbet }}
-                </div>
-            </div>
-            <div class="stat-card stat-odds">
-                <div class="field-label" style="margin-bottom:2px;">Total Odds</div>
-                <div class="stat-value text-2xl font-bold font-mono" style="color: #2563eb;">
-                    {{ totalodds }}x
-                </div>
-                <div class="text-xs mt-1" style="color: var(--fg-dim);">
-                    Perkalian odds efektif
-                </div>
-            </div>
-            <div class="stat-card stat-result"
-            :class="{ win: isWin, lose: isLose, breakeven: isBreakeven }">
-            <div class="field-label" style="margin-bottom:2px;">Hasil Bersih</div>
-            <div class="stat-value text-2xl font-bold result-highlight" :style="{ color: resultColor }">
-                {{ totalResultFormatted }}
-            </div>
-            <span class="result-label-badge"
-            :class="{ profit: isWin, loss: isLose, breakeven: isBreakeven }">
-            {{ resultLabel }}
-        </span>
-    </div>
-</div>
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+          <div class="sm:col-span-3">
+            <label class="text-xs uppercase text-gray-400 block mb-1">Odds</label>
+            <input v-model="parlay.odds" type="number" step="0.01" class="input-field" :class="{'input-error': !isOddsValid(parlay)}" placeholder="1.75" @change="onOddsChange">
+            <span v-if="!isOddsValid(parlay)" class="text-xs text-red-500 block mt-1"><i class="fa-solid fa-triangle-exclamation"></i> Harus > 0</span>
+          </div>
 
-<!-- Parlay Rows -->
-<div class="space-y-4">
-    <div v-for="(parlay, index) in parlays" :key="index"
-    class="parlay-row glass-card p-5">
+          <div class="sm:col-span-6">
+            <label class="text-xs uppercase text-gray-400 block mb-1">Hasil</label>
+            <div class="radio-group">
+              <label class="radio-option"><input type="radio" v-model="parlay.hasil" value="1" @change="onOddsChange"><span class="radio-label"><i class="fa-solid fa-check-circle"></i> Menang Full</span></label>
+              <label class="radio-option"><input type="radio" v-model="parlay.hasil" value="0.5" @change="onOddsChange"><span class="radio-label"><i class="fa-solid fa-circle-half-stroke"></i> Menang ½</span></label>
+              <label class="radio-option"><input type="radio" v-model="parlay.hasil" value="-0.5" @change="onOddsChange"><span class="radio-label"><i class="fa-solid fa-xmark-circle"></i> Kalah ½</span></label>
+              <label class="radio-option"><input type="radio" v-model="parlay.hasil" value="0" @change="onOddsChange"><span class="radio-label"><i class="fa-solid fa-circle"></i> Seri</span></label>
+            </div>
+          </div>
 
-    <!-- Row Header -->
-    <div class="flex items-center justify-between mb-4">
-        <div class="flex items-center gap-3">
-            <span class="partai-num w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold font-mono">
-                {{ index + 1 }}
+          <div class="sm:col-span-3 flex flex-col items-end justify-end">
+            <span class="text-xs text-gray-400 uppercase">Odds Efektif</span>
+            <span class="odds-badge mt-1" :class="[oddsBadgeClass(parlay), { invalid: !isOddsValid(parlay) }]">
+              {{ getEffectiveOddsDisplay(parlay) }}
             </span>
-            <span class="text-sm font-semibold" style="color: var(--fg-muted);">Partai {{ index + 1 }}</span>
+          </div>
         </div>
-        <button type="button" v-on:click="removeParlay(index)" class="btn-remove"
-        v-show="parlays.length > 1">
-        <i class="fa-solid fa-trash-can text-xs"></i>
-        Hapus
-    </button>
-</div>
-
-<!-- Odds Input + Radio + Result -->
-<div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-start">
-    <!-- Odds -->
-    <div class="sm:col-span-3">
-        <label class="field-label">Odds</label>
-        <input @change="onOddsChange" v-model="parlay.odds"
-        type="number" step="0.01" name="parlays[][odds]"
-        class="input-field"
-        :class="{ 'input-error': !isOddsValid(parlay) }"
-        placeholder="1.75" min="0.01">
-        <span v-if="!isOddsValid(parlay)" class="text-xs block mt-1" style="color: #dc2626;">
-            <i class="fa-solid fa-triangle-exclamation"></i> Odds harus > 0
-        </span>
+      </div>
     </div>
 
-    <!-- Radio Group -->
-    <div class="sm:col-span-6">
-        <label class="field-label">Hasil Partai</label>
-        <div class="radio-group">
-            <label class="radio-option">
-                <input type="radio" @change="onOddsChange" v-model="parlay.hasil" value="1">
-                <span class="radio-label">
-                    <i class="fa-solid fa-circle-check text-xs"></i> Menang Full
-                </span>
-            </label>
-            <label class="radio-option">
-                <input type="radio" @change="onOddsChange" v-model="parlay.hasil" value="0.5">
-                <span class="radio-label">
-                    <i class="fa-solid fa-circle-half-stroke text-xs"></i> Menang ½
-                </span>
-            </label>
-            <label class="radio-option">
-                <input type="radio" @change="onOddsChange" v-model="parlay.hasil" value="-0.5">
-                <span class="radio-label">
-                    <i class="fa-solid fa-circle-xmark text-xs"></i> Kalah ½
-                </span>
-            </label>
-            <label class="radio-option">
-                <input type="radio" @change="onOddsChange" v-model="parlay.hasil" value="0">
-                <span class="radio-label">
-                    <i class="fa-solid fa-circle-minus text-xs"></i> Seri
-                </span>
-            </label>
+    <!-- 🧮 DETAIL HITUNGAN TOTAL (Menu baru) -->
+    <div class="glass-card p-5 mt-4">
+      <h3 class="text-sm font-bold mb-4 flex items-center gap-2" style="color: var(--accent);">
+        <i class="fa-solid fa-magnifying-glass-chart"></i> Detail Hitungan Total
+      </h3>
+      <div v-if="parlays.length > 0 && allOddsValid" class="space-y-1">
+        <div class="detail-row" v-for="(parlay, idx) in parlays" :key="'d-'+idx">
+          <div class="flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-gray-100 text-xs flex items-center justify-center font-bold text-gray-500">{{ idx+1 }}</span>
+            <span class="text-sm font-medium text-gray-600">Partai {{ idx+1 }}</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-gray-400">Odds {{ parlay.odds }} → Efektif</span>
+            <span class="font-mono font-bold text-sm" style="color: #2563eb;">{{ getEffectiveOddsDisplay(parlay) }}</span>
+          </div>
         </div>
+        <div class="mt-4 pt-3 border-t border-gray-100">
+          <div class="flex justify-between items-center px-2">
+            <span class="text-sm font-semibold text-gray-600">Total Odds =</span>
+            <span class="text-lg font-bold font-mono" style="color: #2563eb;">{{ totalodds }}x</span>
+          </div>
+          <div class="flex justify-between items-center px-2 mt-2">
+            <span class="text-sm font-semibold text-gray-600">Total Kemenangan ({{ totalodds }} × Rp{{ nilaibet.toLocaleString() }}) =</span>
+            <span class="text-lg font-bold font-mono" style="color: #7c3aed;">{{ totalPayoutFormatted }}</span>
+          </div>
+          <div class="flex justify-between items-center px-2 mt-2">
+            <span class="text-sm font-semibold text-gray-600">Keuntungan Bersih ({{ totalPayoutFormatted }} − Rp{{ nilaibet.toLocaleString() }}) =</span>
+            <span class="text-lg font-bold font-mono" :style="{ color: resultColor }">{{ totalResultFormatted }}</span>
+          </div>
+        </div>
+      </div>
+      <div v-else class="text-center text-sm text-gray-400 py-4">
+        <i class="fa-solid fa-circle-exclamation"></i> Lengkapi semua odds (harus > 0) untuk melihat detail hitungan.
+      </div>
     </div>
 
-    <!-- Result Badge -->
-    <div class="sm:col-span-3 flex items-end justify-end">
-        <div class="text-right">
-            <div class="field-label text-right">Odds Efektif</div>
-            <span class="odds-badge"
-            :class="[oddsBadgeClass(parlay), { 'invalid': !isOddsValid(parlay) }]">
-            {{ getEffectiveOddsDisplay(parlay) }}
-        </span>
-    </div>
-</div>
-</div>
-</div>
-</div>
-
-<!-- Notes -->
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
-    <div class="note-card">
-        <h3 class="text-sm font-bold mb-3 flex items-center gap-2" style="color: var(--accent);">
-            <i class="fa-solid fa-book-open text-xs"></i> Catatan Perhitungan
-        </h3>
-        <ul class="space-y-2.5 text-xs" style="color: var(--fg-muted); line-height: 1.7;">
-            <li class="flex items-start gap-2.5">
-                <span class="mt-1.5 w-2 h-2 rounded-full flex-shrink-0" style="background: var(--win);"></span>
-                <span><strong style="color: var(--win);">Menang Full</strong> — Odds tetap sesuai nilai</span>
-            </li>
-            <li class="flex items-start gap-2.5">
-                <span class="mt-1.5 w-2 h-2 rounded-full flex-shrink-0" style="background: var(--half);"></span>
-                <span><strong style="color: var(--half);">Menang Setengah</strong> — (Odds + 1) ÷ 2</span>
-            </li>
-            <li class="flex items-start gap-2.5">
-                <span class="mt-1.5 w-2 h-2 rounded-full flex-shrink-0" style="background: var(--lose);"></span>
-                <span><strong style="color: var(--lose);">Kalah Setengah</strong> — Odds menjadi 0.5</span>
-            </li>
-            <li class="flex items-start gap-2.5">
-                <span class="mt-1.5 w-2 h-2 rounded-full flex-shrink-0" style="background: var(--draw);"></span>
-                <span><strong style="color: var(--draw);">Seri</strong> — Odds menjadi 1 (tidak mempengaruhi)</span>
-            </li>
+    <!-- Catatan -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+      <div class="glass-card p-5">
+        <h3 class="text-sm font-bold text-yellow-700 mb-3"><i class="fa-solid fa-book"></i> Rumus</h3>
+        <ul class="text-xs space-y-2 text-gray-600">
+          <li><span class="w-2 h-2 inline-block rounded-full bg-green-600 mr-2"></span> <strong>Menang Full:</strong> Odds tetap</li>
+          <li><span class="w-2 h-2 inline-block rounded-full bg-blue-600 mr-2"></span> <strong>Menang ½:</strong> (Odds + 1) ÷ 2</li>
+          <li><span class="w-2 h-2 inline-block rounded-full bg-red-600 mr-2"></span> <strong>Kalah ½:</strong> Odds = 0.5</li>
+          <li><span class="w-2 h-2 inline-block rounded-full bg-yellow-600 mr-2"></span> <strong>Seri:</strong> Odds = 1</li>
         </ul>
-    </div>
-    <div class="note-card">
-        <h3 class="text-sm font-bold mb-3 flex items-center gap-2" style="color: var(--accent);">
-            <i class="fa-solid fa-calculator text-xs"></i> Rumus & Hasil
-        </h3>
-        <div class="text-xs space-y-3" style="color: var(--fg-muted); line-height: 1.7;">
-            <div class="p-3 rounded-lg font-mono text-center text-sm"
-            style="background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(217,119,6,0.12);">
-            <strong>Hasil Bersih = (Total Odds × Bet) − Bet</strong>
+      </div>
+      <div class="glass-card p-5">
+        <h3 class="text-sm font-bold text-yellow-700 mb-3"><i class="fa-solid fa-calculator"></i> Perhitungan</h3>
+        <div class="bg-orange-50 p-3 rounded-lg text-center font-mono text-sm text-orange-700 border border-orange-200 mb-3">
+          <strong>Total Menang = Total Odds × Bet</strong><br>
+          <strong>Keuntungan Bersih = Total Menang − Bet</strong>
         </div>
-        <p><i class="fa-solid fa-circle-plus mr-1" style="color: var(--win);"></i>
-            Hasil <strong style="color: var(--win);">positif (+)</strong> = Anda untung sejumlah itu
-        </p>
-        <p><i class="fa-solid fa-circle-minus mr-1" style="color: var(--lose);"></i>
-            Hasil <strong style="color: var(--lose);">negatif (−)</strong> = Anda rugi sejumlah itu
-        </p>
-        <p><i class="fa-solid fa-circle mr-1" style="color: var(--draw);"></i>
-            Hasil <strong style="color: var(--draw);">Rp 0</strong> = Balik modal (tidak untung/tidak rugi)
-        </p>
-        <p class="text-xs opacity-70 mt-2">
-            <i class="fa-solid fa-info-circle"></i> Odds efektif dihitung otomatis berdasarkan hasil tiap partai.
-        </p>
+        <p class="text-xs text-gray-500">Hasil positif berarti untung. Negatif berarti rugi.</p>
+      </div>
     </div>
-</div>
-</div>
 
-<!-- Footer -->
-<footer class="text-center mt-10 pb-6">
-    <p class="text-xs" style="color: var(--fg-dim);">
-        Dibuat untuk membantu perhitungan mix parlay. Gunakan dengan bijak.
-    </p>
-</footer>
-</form>
+    <footer class="text-center text-xs text-gray-400 mt-8">Gunakan dengan bijak. Kalkulator ini hanya alat bantu.</footer>
+  </form>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js">
-</script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
 <script>
-    // === Partikel latar belakang ===
-    (function createParticles() {
-        const container = document.getElementById('particles');
-        const count = 14;
-        for (let i = 0; i < count; i++) {
-            const p = document.createElement('div');
-            p.className = 'particle';
-            p.style.left = Math.random() * 100 + '%';
-            p.style.animationDuration = (15 + Math.random() * 22) + 's';
-            p.style.animationDelay = (Math.random() * 18) + 's';
-            p.style.width = p.style.height = (2 + Math.random() * 3) + 'px';
-            const colors = [
-                'rgba(217,119,6,0.35)',
-                'rgba(5,150,105,0.3)',
-                'rgba(37,99,235,0.25)',
-                'rgba(245,158,11,0.3)'
-            ];
-            p.style.background = colors[Math.floor(Math.random() * colors.length)];
-            container.appendChild(p);
+  new Vue({
+    el: '#app',
+    data: {
+      nilaibet: 10000,
+      parlays: [
+        { odds: 1.75, hasil: '1' }
+      ]
+    },
+    computed: {
+      totalbet() {
+        return this.parlays.length;
+      },
+      totalodds() {
+        let total = 1;
+        for (let p of this.parlays) {
+          total *= this.getEffectiveOdds(p);
         }
-    })();
-
-    // === Vue App ===
-    new Vue({
-        el: '#app',
-        data: {
-            nilaibet: 10000,
-            parlays: [
-                { odds: 1.75, hasil: '1' }
-            ]
-        },
-        computed: {
-            /** Jumlah total partai */
-            totalbet() {
-                return this.parlays.length;
-            },
-
-            /** Total perkalian odds efektif semua partai */
-            totalodds() {
-                let total = 1;
-                let hasValidOdds = false;
-                for (let i = 0; i < this.parlays.length; i++) {
-                    const eff = this.getEffectiveOdds(this.parlays[i]);
-                    if (eff > 0) hasValidOdds = true;
-                    total *= eff;
-                }
-                // Jika tidak ada odds valid sama sekali, kembalikan 0
-                if (!hasValidOdds && this.parlays.length > 0) {
-                    // Cek: apakah semua odds = 0? Jika ya, total = 0
-                    const allZero = this.parlays.every(p => {
-                        const o = parseFloat(p.odds);
-                        return isNaN(o) || o <= 0;
-                    });
-                    if (allZero) return 0;
-                }
-                return parseFloat(total.toFixed(4));
-            },
-
-            /** Hasil bersih dalam angka (bisa negatif) */
-            totalResult() {
-                const totalOdds = this.totalodds;
-                const nilaiBet = parseFloat(this.nilaibet) || 0;
-                if (nilaiBet <= 0 || totalOdds < 0) return 0;
-                return Math.round((totalOdds * nilaiBet) - nilaiBet);
-            },
-
-            /** Hasil bersih diformat dengan tanda +/- */
-            totalResultFormatted() {
-                const val = this.totalResult;
-                const absVal = Math.abs(val);
-                const formatted = absVal.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-                if (val > 0) return '+Rp ' + formatted;
-                if (val < 0) return '−Rp ' + formatted;
-                return 'Rp 0';
-            },
-
-            /** Label hasil: Keuntungan / Kerugian / Balik Modal */
-            resultLabel() {
-                const val = this.totalResult;
-                if (val > 0) return 'Keuntungan';
-                if (val < 0) return 'Kerugian';
-                return 'Balik Modal';
-            },
-
-            /** Apakah hasil akhir untung (total odds > 1) */
-            isWin() {
-                return this.totalodds > 1 && this.totalResult > 0;
-            },
-
-            /** Apakah hasil akhir rugi (total odds < 1) */
-            isLose() {
-                return this.totalodds < 1 || this.totalResult < 0;
-            },
-
-            /** Apakah balik modal */
-            isBreakeven() {
-                return this.totalodds === 1 || this.totalResult === 0;
-            },
-
-            /** Warna untuk hasil akhir */
-            resultColor() {
-                if (this.isWin) return '#059669';
-                if (this.isLose) return '#dc2626';
-                return '#d97706'; // breakeven
-            }
-        },
-        methods: {
-            /**
-             * Menghitung odds efektif untuk satu partai
-             * @param {Object} parlay - objek partai { odds, hasil }
-             * @returns {number} odds efektif
-             */
-            getEffectiveOdds(parlay) {
-                const odds = parseFloat(parlay.odds);
-                // Jika odds tidak valid (NaN, <= 0), anggap 0
-                if (isNaN(odds) || odds <= 0) return 0;
-                const hasil = parlay.hasil;
-
-                if (hasil === '1') {
-                    // Menang Full: odds tetap
-                    return odds;
-                } else if (hasil === '0.5') {
-                    // Menang Setengah: (odds + 1) / 2
-                    return (odds + 1) / 2;
-                } else if (hasil === '-0.5') {
-                    // Kalah Setengah: odds = 0.5
-                    return 0.5;
-                } else if (hasil === '0') {
-                    // Seri: odds = 1 (partai diabaikan)
-                    return 1;
-                }
-                // Fallback (seharusnya tidak terjadi)
-                return odds;
-            },
-
-            /**
-             * Mengembalikan tampilan odds efektif (string)
-             * Menampilkan "?" jika odds tidak valid
-             */
-            getEffectiveOddsDisplay(parlay) {
-                const eff = this.getEffectiveOdds(parlay);
-                if (eff === 0 && (isNaN(parseFloat(parlay.odds)) || parseFloat(parlay.odds) <= 0)) {
-                    return '?';
-                }
-                return parseFloat(eff.toFixed(3));
-            },
-
-            /**
-             * Memeriksa apakah odds partai valid (> 0)
-             */
-            isOddsValid(parlay) {
-                const odds = parseFloat(parlay.odds);
-                return !isNaN(odds) && odds > 0;
-            },
-
-            /**
-             * Menentukan class CSS untuk badge odds efektif
-             */
-            oddsBadgeClass(parlay) {
-                if (!this.isOddsValid(parlay)) return 'invalid';
-                const hasil = parlay.hasil;
-                if (hasil === '1') return 'win';
-                if (hasil === '0.5') return 'half-win';
-                if (hasil === '-0.5') return 'half-lose';
-                if (hasil === '0') return 'draw';
-                return '';
-            },
-
-            /** Menambah partai baru */
-            addNewParlay() {
-                this.parlays.push({ odds: 1.75, hasil: '1' });
-                // Trigger update
-                this.$forceUpdate();
-            },
-
-            /** Menghapus partai (minimal 1) */
-            removeParlay(index) {
-                if (this.parlays.length > 1) {
-                    this.parlays.splice(index, 1);
-                    this.$forceUpdate();
-                }
-            },
-
-            /** Dipanggil saat odds atau hasil berubah */
-            onOddsChange() {
-                // Validasi: jika odds negatif, set ke 0
-                this.parlays.forEach(p => {
-                    const odds = parseFloat(p.odds);
-                    if (!isNaN(odds) && odds < 0) {
-                        p.odds = 0.01;
-                    }
-                });
-                this.$forceUpdate();
-            },
-
-            /** Dipanggil saat nilai bet berubah */
-            onBetChange() {
-                const bet = parseFloat(this.nilaibet);
-                if (isNaN(bet) || bet < 1) {
-                    this.nilaibet = 1000;
-                }
-                if (bet > 100000000) {
-                    this.nilaibet = 100000000;
-                }
-            },
-
-            /** Force update (digunakan untuk kompatibilitas) */
-            oddstotal() {
-                this.$forceUpdate();
-            }
-        },
-        mounted() {
-            // Inisialisasi: pastikan semua partai memiliki odds default yang valid
-            this.parlays.forEach(p => {
-                const odds = parseFloat(p.odds);
-                if (isNaN(odds) || odds <= 0) {
-                    p.odds = 1.75;
-                }
-                if (!p.hasil || !['1', '0.5', '-0.5', '0'].includes(p.hasil)) {
-                    p.hasil = '1';
-                }
-            });
-            this.$forceUpdate();
-        }
-    });
+        return parseFloat(total.toFixed(4)) || 0;
+      },
+      totalPayout() {
+        return Math.round(this.totalodds * (parseFloat(this.nilaibet) || 0));
+      },
+      totalPayoutFormatted() {
+        const val = this.totalPayout;
+        return 'Rp ' + val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      },
+      totalResult() {
+        return this.totalPayout - (parseFloat(this.nilaibet) || 0);
+      },
+      totalResultFormatted() {
+        const val = this.totalResult;
+        const sign = val > 0 ? '+' : val < 0 ? '−' : '';
+        return sign + 'Rp ' + Math.abs(val).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      },
+      resultLabel() {
+        if (this.totalResult > 0) return 'Keuntungan';
+        if (this.totalResult < 0) return 'Kerugian';
+        return 'Balik Modal';
+      },
+      isWin() { return this.totalResult > 0; },
+      isLose() { return this.totalResult < 0; },
+      isBreakeven() { return this.totalResult === 0; },
+      resultColor() {
+        if (this.isWin) return '#059669';
+        if (this.isLose) return '#dc2626';
+        return '#d97706';
+      },
+      allOddsValid() {
+        return this.parlays.every(p => this.isOddsValid(p));
+      }
+    },
+    methods: {
+      getEffectiveOdds(parlay) {
+        const odds = parseFloat(parlay.odds);
+        if (isNaN(odds) || odds <= 0) return 0;
+        const hasil = parlay.hasil;
+        if (hasil === '1') return odds;
+        if (hasil === '0.5') return (odds + 1) / 2;
+        if (hasil === '-0.5') return 0.5;
+        if (hasil === '0') return 1;
+        return odds;
+      },
+      getEffectiveOddsDisplay(parlay) {
+        const eff = this.getEffectiveOdds(parlay);
+        if (eff === 0 && (isNaN(parlay.odds) || parlay.odds <= 0)) return '?';
+        return parseFloat(eff.toFixed(3));
+      },
+      isOddsValid(parlay) {
+        const odds = parseFloat(parlay.odds);
+        return !isNaN(odds) && odds > 0;
+      },
+      oddsBadgeClass(parlay) {
+        if (!this.isOddsValid(parlay)) return 'invalid';
+        const map = { '1': 'win', '0.5': 'half-win', '-0.5': 'half-lose', '0': 'draw' };
+        return map[parlay.hasil] || '';
+      },
+      addNewParlay() {
+        this.parlays.push({ odds: 1.75, hasil: '1' });
+      },
+      removeParlay(index) {
+        if (this.parlays.length > 1) this.parlays.splice(index, 1);
+      },
+      onOddsChange() {
+        this.parlays.forEach(p => {
+          if (parseFloat(p.odds) < 0) p.odds = 0.01;
+        });
+      },
+      onBetChange() {
+        if (this.nilaibet < 1000) this.nilaibet = 1000;
+        if (this.nilaibet > 100000000) this.nilaibet = 100000000;
+      }
+    },
+    mounted() {
+      this.parlays.forEach(p => {
+        if (isNaN(p.odds) || p.odds <= 0) p.odds = 1.75;
+        if (!['1','0.5','-0.5','0'].includes(p.hasil)) p.hasil = '1';
+      });
+    }
+  });
 </script>
 </body>
 </html>
