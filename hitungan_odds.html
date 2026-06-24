@@ -260,7 +260,9 @@
     <div class="flex flex-wrap gap-4 items-end">
       <div class="flex-1 min-w-[180px] max-w-[240px]">
         <label class="text-xs font-semibold uppercase tracking-wider text-gray-400 block mb-2">💰 Nilai Bet (Rp)</label>
-        <input type="number" v-model.number="nilaibet" class="input-field text-lg font-bold" min="1000" step="1000" @input="onBetChange">
+        <!-- PERBAIKAN: v-model biasa, tanpa step, validasi hanya saat change -->
+        <input type="number" v-model="nilaibet" class="input-field text-lg font-bold" 
+               placeholder="10000" min="1" @change="onBetChange">
       </div>
       <button type="button" @click="addNewParlay" class="btn-add">
         <i class="fa-solid fa-plus"></i> Tambah Partai
@@ -331,7 +333,7 @@
       </div>
     </div>
 
-    <!-- 🧮 DETAIL HITUNGAN TOTAL (Menu baru) -->
+    <!-- 🧮 DETAIL HITUNGAN TOTAL -->
     <div class="glass-card p-5 mt-4">
       <h3 class="text-sm font-bold mb-4 flex items-center gap-2" style="color: var(--accent);">
         <i class="fa-solid fa-magnifying-glass-chart"></i> Detail Hitungan Total
@@ -353,11 +355,11 @@
             <span class="text-lg font-bold font-mono" style="color: #2563eb;">{{ totalodds }}x</span>
           </div>
           <div class="flex justify-between items-center px-2 mt-2">
-            <span class="text-sm font-semibold text-gray-600">Total Kemenangan ({{ totalodds }} × Rp{{ nilaibet.toLocaleString() }}) =</span>
+            <span class="text-sm font-semibold text-gray-600">Total Kemenangan ({{ totalodds }} × Rp{{ formatNumber(nilaibet) }}) =</span>
             <span class="text-lg font-bold font-mono" style="color: #7c3aed;">{{ totalPayoutFormatted }}</span>
           </div>
           <div class="flex justify-between items-center px-2 mt-2">
-            <span class="text-sm font-semibold text-gray-600">Keuntungan Bersih ({{ totalPayoutFormatted }} − Rp{{ nilaibet.toLocaleString() }}) =</span>
+            <span class="text-sm font-semibold text-gray-600">Keuntungan Bersih ({{ totalPayoutFormatted }} − Rp{{ formatNumber(nilaibet) }}) =</span>
             <span class="text-lg font-bold font-mono" :style="{ color: resultColor }">{{ totalResultFormatted }}</span>
           </div>
         </div>
@@ -397,7 +399,7 @@
   new Vue({
     el: '#app',
     data: {
-      nilaibet: 10000,
+      nilaibet: 10000,  // sekarang pakai number biasa tanpa .number modifier
       parlays: [
         { odds: 1.75, hasil: '1' }
       ]
@@ -414,14 +416,16 @@
         return parseFloat(total.toFixed(4)) || 0;
       },
       totalPayout() {
-        return Math.round(this.totalodds * (parseFloat(this.nilaibet) || 0));
+        const bet = parseFloat(this.nilaibet) || 0;
+        return Math.round(this.totalodds * bet);
       },
       totalPayoutFormatted() {
         const val = this.totalPayout;
         return 'Rp ' + val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
       },
       totalResult() {
-        return this.totalPayout - (parseFloat(this.nilaibet) || 0);
+        const bet = parseFloat(this.nilaibet) || 0;
+        return this.totalPayout - bet;
       },
       totalResultFormatted() {
         const val = this.totalResult;
@@ -470,6 +474,10 @@
         const map = { '1': 'win', '0.5': 'half-win', '-0.5': 'half-lose', '0': 'draw' };
         return map[parlay.hasil] || '';
       },
+      formatNumber(value) {
+        const num = parseFloat(value) || 0;
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      },
       addNewParlay() {
         this.parlays.push({ odds: 1.75, hasil: '1' });
       },
@@ -478,12 +486,18 @@
       },
       onOddsChange() {
         this.parlays.forEach(p => {
-          if (parseFloat(p.odds) < 0) p.odds = 0.01;
+          const odds = parseFloat(p.odds);
+          if (!isNaN(odds) && odds < 0) p.odds = 0.01;
         });
       },
       onBetChange() {
-        if (this.nilaibet < 1000) this.nilaibet = 1000;
-        if (this.nilaibet > 100000000) this.nilaibet = 100000000;
+        // Validasi ringan setelah selesai mengedit
+        let bet = parseFloat(this.nilaibet);
+        if (isNaN(bet) || bet < 1) {
+          this.nilaibet = 10000; // reset ke default jika tidak valid
+        } else if (bet > 100000000) {
+          this.nilaibet = 100000000;
+        }
       }
     },
     mounted() {
