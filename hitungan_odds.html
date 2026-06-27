@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kalkulator Mix Parlay | Salin & Detail Hitungan</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Kalkulator Mix Parlay | Salin & Detail Hitungan + Pembulatan</title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script>
@@ -117,6 +118,16 @@
       border-color: #dc2626;
       box-shadow: 0 0 0 3px rgba(220,38,38,0.06);
       background: #fff5f5;
+    }
+    select.input-field {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2357534e' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 12px;
+      padding-right: 30px;
     }
     .radio-group { display: flex; flex-wrap: wrap; gap: 6px; }
     .radio-option { position: relative; cursor: pointer; }
@@ -277,7 +288,7 @@
         Mix Parlay Calculator
       </div>
       <h1 class="text-4xl lg:text-5xl font-bold mt-4">Kalkulator <span style="background: linear-gradient(135deg,#d97706,#f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Parlay</span></h1>
-      <p class="text-sm text-gray-500 mt-2">Detail perhitungan odds & keuntungan + Salin hasil</p>
+      <p class="text-sm text-gray-500 mt-2">Detail perhitungan odds & keuntungan + Salin hasil + Pembulatan</p>
     </header>
 
     <!-- Input Bet & Tombol Tambah -->
@@ -300,7 +311,7 @@
       </div>
       <div class="stat-card stat-odds">
         <div class="text-xs text-gray-400 uppercase tracking-wider">Total Odds</div>
-        <div class="text-2xl font-bold mt-1" style="color:#2563eb;">{{ totalodds }}x</div>
+        <div class="text-2xl font-bold mt-1" style="color:#2563eb;">{{ totalodds.toFixed(oddsDecimals) }}x</div>
       </div>
       <div class="stat-card stat-payout" style="border-color: rgba(139,92,246,0.15);">
         <div class="text-xs text-gray-400 uppercase tracking-wider">💰 Total Menang</div>
@@ -314,6 +325,33 @@
           {{ resultLabel }}
         </span>
       </div>
+    </div>
+
+    <!-- Pengaturan Pembulatan -->
+    <div class="glass-card p-5">
+      <h3 class="text-sm font-bold mb-4 flex items-center gap-2" style="color: var(--accent);">
+        <i class="fa-solid fa-sliders"></i> Pengaturan Pembulatan
+      </h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs uppercase text-gray-400 block mb-1">Desimal Odds</label>
+          <select v-model="oddsDecimals" class="input-field">
+            <option :value="2">2 desimal</option>
+            <option :value="3">3 desimal</option>
+            <option :value="4">4 desimal</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs uppercase text-gray-400 block mb-1">Pembulatan Rupiah</label>
+          <select v-model="payoutRound" class="input-field">
+            <option value="1">Rupiah Penuh (Rp1)</option>
+            <option value="10">Puluhan (Rp10)</option>
+            <option value="100">Ratusan (Rp100)</option>
+            <option value="1000">Ribuan (Rp1.000)</option>
+          </select>
+        </div>
+      </div>
+      <p class="text-xs text-gray-400 mt-3">Hasil kemenangan akan dibulatkan sesuai pengaturan.</p>
     </div>
 
     <!-- Tombol Salin Hasil -->
@@ -395,13 +433,13 @@
         <div class="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
           <div class="flex justify-between items-center text-sm font-semibold mb-2">
             <span>Perkalian semua odds efektif:</span>
-            <span class="font-mono text-base" style="color: #2563eb;">{{ totalodds }}x</span>
+            <span class="font-mono text-base" style="color: #2563eb;">{{ totalodds.toFixed(oddsDecimals) }}x</span>
           </div>
           <div class="text-xs text-gray-500 mb-3" v-if="parlays.length > 1">
-            {{ parlays.map((p, i) => getEffectiveOddsDisplay(p)).join(' × ') }} = {{ totalodds }}
+            {{ parlays.map((p, i) => getEffectiveOddsDisplay(p)).join(' × ') }} = {{ totalodds.toFixed(oddsDecimals) }}
           </div>
           <div class="flex justify-between items-center text-sm font-semibold mb-2">
-            <span>Total Kemenangan ({{ totalodds }} × Rp{{ formatNumber(nilaibet) }}):</span>
+            <span>Total Kemenangan ({{ totalodds.toFixed(oddsDecimals) }} × Rp{{ formatNumber(nilaibet) }}):</span>
             <span class="font-mono text-base" style="color: #7c3aed;">{{ totalPayoutFormatted }}</span>
           </div>
           <div class="flex justify-between items-center text-sm font-semibold">
@@ -432,7 +470,7 @@
           <strong>Total Menang = Total Odds × Bet</strong><br>
           <strong>Keuntungan Bersih = Total Menang − Bet</strong>
         </div>
-        <p class="text-xs text-gray-500">Hasil positif berarti untung. Negatif berarti rugi.</p>
+        <p class="text-xs text-gray-500">Hasil positif berarti untung. Negatif berarti rugi. Pembulatan rupiah diterapkan pada Total Menang.</p>
       </div>
     </div>
 
@@ -445,7 +483,8 @@
   </div>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js">
+</script>
 <script>
   new Vue({
     el: '#app',
@@ -454,6 +493,8 @@
       parlays: [
         { oddsRaw: '1.75', hasil: '1' }
       ],
+      oddsDecimals: 2,
+      payoutRound: '1',
       showToast: false,
       toastTimer: null
     },
@@ -471,10 +512,13 @@
         for (let p of this.parlays) {
           total *= this.getEffectiveOdds(p);
         }
-        return parseFloat(total.toFixed(4)) || 0;
+        // bulatkan sesuai desimal yang dipilih
+        return parseFloat(total.toFixed(this.oddsDecimals)) || 0;
       },
       totalPayout() {
-        return Math.round(this.totalodds * this.nilaibet);
+        let raw = this.totalodds * this.nilaibet;
+        let r = parseInt(this.payoutRound) || 1;
+        return Math.round(raw / r) * r;
       },
       totalPayoutFormatted() {
         return 'Rp ' + this.totalPayout.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -564,13 +608,14 @@
       },
       copyResult() {
         if (!this.allOddsValid || this.parlays.length === 0) {
-          this.showTemporaryToast('Lengkapi data terlebih dahulu');
+          this.showTemporaryToast('Lengkapi data & pilih pembulatan terlebih dahulu');
           return;
         }
         let text = '🎯 HASIL MIX PARLAY\n';
         text += `Nilai Bet: Rp${this.formatNumber(this.nilaibet)}\n`;
         text += `Total Partai: ${this.totalbet}\n`;
-        text += `Total Odds: ${this.totalodds}x\n`;
+        text += `Total Odds (${this.oddsDecimals} desimal): ${this.totalodds.toFixed(this.oddsDecimals)}x\n`;
+        text += `Pembulatan Rupiah: ${this.payoutRound === '1' ? 'Rupiah Penuh' : this.payoutRound === '10' ? 'Puluhan' : this.payoutRound === '100' ? 'Ratusan' : 'Ribuan'}\n`;
         text += `Total Menang: ${this.totalPayoutFormatted}\n`;
         text += `Keuntungan Bersih: ${this.totalResultFormatted}\n\n`;
         text += '📋 RINCIAN PER PARTAI:\n';
