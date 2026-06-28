@@ -335,7 +335,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="text-xs uppercase text-gray-400 block mb-1">Desimal Odds</label>
-          <select v-model.number="oddsDecimals" class="input-field">
+          <select v-model="oddsDecimals" class="input-field">
             <option :value="2">2 desimal</option>
             <option :value="3">3 desimal</option>
             <option :value="4">4 desimal</option>
@@ -343,13 +343,11 @@
         </div>
         <div>
           <label class="text-xs uppercase text-gray-400 block mb-1">Pembulatan Rupiah</label>
-          <select v-model.number="payoutRound" class="input-field">
-            <option :value="1">Rupiah Penuh (Rp1)</option>
-            <option :value="10">Puluhan (Rp10)</option>
-            <option :value="50">Lima Puluhan (Rp50)</option>
-            <option :value="100">Ratusan (Rp100)</option>
-            <option :value="500">Lima Ratusan (Rp500)</option>
-            <option :value="1000">Ribuan (Rp1.000)</option>
+          <select v-model="payoutRound" class="input-field">
+            <option value="1">Rupiah Penuh (Rp1)</option>
+            <option value="10">Puluhan (Rp10)</option>
+            <option value="100">Ratusan (Rp100)</option>
+            <option value="1000">Ribuan (Rp1.000)</option>
           </select>
         </div>
       </div>
@@ -438,15 +436,11 @@
             <span class="font-mono text-base" style="color: #2563eb;">{{ totalodds.toFixed(oddsDecimals) }}x</span>
           </div>
           <div class="text-xs text-gray-500 mb-3" v-if="parlays.length > 1">
-            {{ parlays.map(p => getEffectiveOddsDisplay(p)).join(' × ') }} = {{ totalodds.toFixed(oddsDecimals) }}
+            {{ parlays.map((p, i) => getEffectiveOddsDisplay(p)).join(' × ') }} = {{ totalodds.toFixed(oddsDecimals) }}
           </div>
           <div class="flex justify-between items-center text-sm font-semibold mb-2">
             <span>Total Kemenangan ({{ totalodds.toFixed(oddsDecimals) }} × Rp{{ formatNumber(nilaibet) }}):</span>
             <span class="font-mono text-base" style="color: #7c3aed;">{{ totalPayoutFormatted }}</span>
-          </div>
-          <div class="text-xs text-gray-500 mb-2" v-if="payoutRound > 1">
-            <i class="fa-solid fa-circle-info"></i> 
-            Dibulatkan ke {{ payoutRoundLabel }}
           </div>
           <div class="flex justify-between items-center text-sm font-semibold">
             <span>Keuntungan Bersih ({{ totalPayoutFormatted }} − Rp{{ formatNumber(nilaibet) }}):</span>
@@ -482,9 +476,9 @@
 
     <footer class="text-center text-xs text-gray-400 mt-8">Gunakan dengan bijak. Kalkulator ini hanya alat bantu.</footer>
 
-    <!-- Toast Notifikasi -->
+    <!-- Toast Notifikasi Salin -->
     <div v-if="showToast" class="toast">
-      <i class="fa-solid" :class="toastIcon"></i> {{ toastMessage }}
+      <i class="fa-solid fa-circle-check text-green-400"></i> Hasil berhasil disalin!
     </div>
   </div>
 </main>
@@ -500,10 +494,8 @@
         { oddsRaw: '1.75', hasil: '1' }
       ],
       oddsDecimals: 2,
-      payoutRound: 1,
+      payoutRound: '1',
       showToast: false,
-      toastMessage: '',
-      toastIcon: 'fa-circle-check',
       toastTimer: null
     },
     computed: {
@@ -520,16 +512,16 @@
         for (let p of this.parlays) {
           total *= this.getEffectiveOdds(p);
         }
-        // Bulatkan sesuai desimal yang dipilih
+        // bulatkan sesuai desimal yang dipilih
         return parseFloat(total.toFixed(this.oddsDecimals)) || 0;
       },
       totalPayout() {
         let raw = this.totalodds * this.nilaibet;
-        let r = Number(this.payoutRound) || 1;
+        let r = parseInt(this.payoutRound) || 1;
         return Math.round(raw / r) * r;
       },
       totalPayoutFormatted() {
-        return 'Rp ' + this.formatNumber(this.totalPayout);
+        return 'Rp ' + this.totalPayout.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
       },
       totalResult() {
         return this.totalPayout - this.nilaibet;
@@ -537,7 +529,7 @@
       totalResultFormatted() {
         const val = this.totalResult;
         const sign = val > 0 ? '+' : val < 0 ? '−' : '';
-        return sign + 'Rp ' + this.formatNumber(Math.abs(val));
+        return sign + 'Rp ' + Math.abs(val).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
       },
       resultLabel() {
         if (this.totalResult > 0) return 'Keuntungan';
@@ -554,17 +546,6 @@
       },
       allOddsValid() {
         return this.parlays.every(p => this.isOddsValid(p));
-      },
-      payoutRoundLabel() {
-        const labels = {
-          1: 'Rupiah Penuh (Rp1)',
-          10: 'Puluhan (Rp10)',
-          50: 'Lima Puluhan (Rp50)',
-          100: 'Ratusan (Rp100)',
-          500: 'Lima Ratusan (Rp500)',
-          1000: 'Ribuan (Rp1.000)'
-        };
-        return labels[this.payoutRound] || 'Rp' + this.payoutRound;
       }
     },
     methods: {
@@ -595,7 +576,7 @@
         return map[parlay.hasil] || '';
       },
       formatNumber(value) {
-        const num = Math.round(parseFloat(value)) || 0;
+        const num = parseFloat(value) || 0;
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
       },
       onBetInput() {
@@ -605,7 +586,7 @@
         let val = this.nilaibetRaw.replace(/\./g, '').replace(/,/g, '.');
         let num = parseFloat(val);
         if (isNaN(num) || num < 1) num = 10000;
-        this.nilaibetRaw = this.formatNumber(num);
+        this.nilaibetRaw = num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
       },
       onOddsInput(parlay) {
         parlay.oddsRaw = parlay.oddsRaw.replace(/[^\d.,]/g, '');
@@ -627,14 +608,14 @@
       },
       copyResult() {
         if (!this.allOddsValid || this.parlays.length === 0) {
-          this.showTemporaryToast('Lengkapi data & pilih pembulatan terlebih dahulu', 'fa-circle-exclamation');
+          this.showTemporaryToast('Lengkapi data & pilih pembulatan terlebih dahulu');
           return;
         }
         let text = '🎯 HASIL MIX PARLAY\n';
         text += `Nilai Bet: Rp${this.formatNumber(this.nilaibet)}\n`;
         text += `Total Partai: ${this.totalbet}\n`;
         text += `Total Odds (${this.oddsDecimals} desimal): ${this.totalodds.toFixed(this.oddsDecimals)}x\n`;
-        text += `Pembulatan Rupiah: ${this.payoutRoundLabel}\n`;
+        text += `Pembulatan Rupiah: ${this.payoutRound === '1' ? 'Rupiah Penuh' : this.payoutRound === '10' ? 'Puluhan' : this.payoutRound === '100' ? 'Ratusan' : 'Ribuan'}\n`;
         text += `Total Menang: ${this.totalPayoutFormatted}\n`;
         text += `Keuntungan Bersih: ${this.totalResultFormatted}\n\n`;
         text += '📋 RINCIAN PER PARTAI:\n';
@@ -643,15 +624,13 @@
           text += `Partai ${i+1}: Odds ${this.getOddsNumber(p)} → ${statusMap[p.hasil]} → Odds Efektif ${this.getEffectiveOddsDisplay(p)}\n`;
         });
         navigator.clipboard.writeText(text).then(() => {
-          this.showTemporaryToast('Hasil berhasil disalin!', 'fa-circle-check');
+          this.showTemporaryToast('Hasil berhasil disalin!');
         }).catch(() => {
-          this.showTemporaryToast('Gagal menyalin, coba lagi.', 'fa-circle-exclamation');
+          alert('Gagal menyalin, coba lagi.');
         });
       },
-      showTemporaryToast(msg, icon = 'fa-circle-check') {
+      showTemporaryToast(msg) {
         if (this.toastTimer) clearTimeout(this.toastTimer);
-        this.toastMessage = msg;
-        this.toastIcon = icon;
         this.showToast = true;
         this.toastTimer = setTimeout(() => {
           this.showToast = false;
