@@ -8,102 +8,459 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         :root {
-            --bg: #0b0f14; --glass: rgba(12, 18, 26, 0.88); --glass-border: rgba(255, 255, 255, 0.08);
-            --pitch: #00ff87; --pitch-dim: rgba(0, 255, 135, 0.15); --gold: #ffc400; --gold-dim: rgba(255, 196, 0, 0.15);
-            --red: #ff3355; --blue: #3b82f6; --purple: #a855f7;
-            --text: #ffffff; --muted: #8899a6; --radius: 12px;
+            --bg: #0b0f14;
+            --glass: rgba(12, 18, 26, 0.88);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --pitch: #00ff87;
+            --pitch-dim: rgba(0, 255, 135, 0.15);
+            --gold: #ffc400;
+            --gold-dim: rgba(255, 196, 0, 0.15);
+            --red: #ff3355;
+            --blue: #3b82f6;
+            --purple: #a855f7;
+            --text: #ffffff;
+            --muted: #8899a6;
+            --radius: 12px;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
-        .stadium-bg { position: fixed; inset: 0; z-index: -2; background-image: url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80'); background-size: cover; background-position: center; background-attachment: fixed; }
-        .stadium-overlay { position: fixed; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(11,15,20,0.95) 50%, rgba(0,0,0,0.9) 100%); }
-        .spotlight { position: fixed; border-radius: 50%; pointer-events: none; z-index: -1; filter: blur(120px); opacity: 0.3; }
-        .spotlight-1 { width: 600px; height: 600px; background: var(--pitch); top: -200px; left: -200px; animation: moveLight1 20s infinite alternate ease-in-out; }
-        .spotlight-2 { width: 500px; height: 500px; background: var(--gold); bottom: -200px; right: -200px; animation: moveLight2 25s infinite alternate ease-in-out; }
-        @keyframes moveLight1 { 0% { transform: translate(0, 0); } 100% { transform: translate(40vw, 40vh); } }
-        @keyframes moveLight2 { 0% { transform: translate(0, 0); } 100% { transform: translate(-30vw, -30vh); } }
-        .ball-3d { position: fixed; pointer-events: none; z-index: 10; perspective: 200px; }
-        .ball-3d-inner { width: var(--ball-size, 28px); height: var(--ball-size, 28px); position: relative; transform-style: preserve-3d; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffffff 0%, #e8e8e8 30%, #b0b0b0 60%, #707070 85%, #404040 100%); box-shadow: inset -4px -4px 8px rgba(0,0,0,0.4), inset 2px 2px 4px rgba(255,255,255,0.6), 0 0 20px rgba(0, 255, 135, 0.5), 0 0 40px rgba(0, 255, 135, 0.2); animation: ball3dSpin var(--spin-speed, 0.8s) linear infinite; }
-        .ball-3d-inner::before { content: ''; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 50% 20%, rgba(0,0,0,0.7) 6px, transparent 6px), radial-gradient(circle at 25% 45%, rgba(0,0,0,0.6) 5px, transparent 5px), radial-gradient(circle at 75% 45%, rgba(0,0,0,0.6) 5px, transparent 5px), radial-gradient(circle at 35% 72%, rgba(0,0,0,0.5) 4px, transparent 4px), radial-gradient(circle at 65% 72%, rgba(0,0,0,0.5) 4px, transparent 4px); animation: ballPatternSpin var(--spin-speed, 0.8s) linear infinite reverse; }
-        .ball-3d-inner::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.7) 0%, transparent 50%); }
-        @keyframes ball3dSpin { 0% { transform: rotateY(0deg) rotateX(10deg); } 100% { transform: rotateY(360deg) rotateX(10deg); } }
-        @keyframes ballPatternSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .neon-trail { position: fixed; pointer-events: none; z-index: 9; width: 12px; height: 12px; border-radius: 50%; background: var(--pitch); box-shadow: 0 0 6px var(--pitch), 0 0 12px var(--pitch), 0 0 24px rgba(0,255,135,0.5); animation: trailFade 0.6s ease-out forwards; }
-        @keyframes trailFade { 0% { opacity: 0.8; transform: scale(1); } 100% { opacity: 0; transform: scale(0.1); } }
-        .ball-flight { position: fixed; pointer-events: none; z-index: 10; animation: parabola var(--flight-dur, 3s) cubic-bezier(0.2, 0.8, 0.3, 1) forwards; }
-        @keyframes parabola { 0% { left: var(--start-x, 5%); top: var(--start-y, 60%); opacity: 0; transform: scale(0.5) rotate(0deg); } 10% { opacity: 1; transform: scale(1) rotate(90deg); } 50% { top: var(--peak-y, 15%); opacity: 1; transform: scale(1.1) rotate(540deg); } 90% { opacity: 1; transform: scale(0.9) rotate(900deg); } 100% { left: var(--end-x, 85%); top: var(--end-y, 55%); opacity: 0; transform: scale(0.3) rotate(1080deg); } }
-        .ball-bounce { position: fixed; pointer-events: none; z-index: 10; animation: bounceX var(--bounce-dur, 6s) linear infinite, bounceY 0.6s ease-in-out infinite alternate; }
-        @keyframes bounceX { 0% { left: -40px; } 100% { left: calc(100% + 40px); } }
-        @keyframes bounceY { 0% { top: var(--bounce-floor, 70%); transform: scaleY(0.8) scaleX(1.2); } 30% { transform: scaleY(1) scaleX(1); } 100% { top: calc(var(--bounce-floor, 70%) - 120px); transform: scaleY(1.1) scaleX(0.9); } }
-        .goal-explosion { position: fixed; pointer-events: none; z-index: 50; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, rgba(0,255,135,0.9) 0%, rgba(0,255,135,0.3) 30%, transparent 70%); animation: explodeGoal 1s ease-out forwards; transform: translate(-50%, -50%); }
-        @keyframes explodeGoal { 0% { transform: translate(-50%, -50%) scale(0); opacity: 1; } 50% { opacity: 0.8; } 100% { transform: translate(-50%, -50%) scale(3); opacity: 0; } }
-        .confetti-piece { position: fixed; pointer-events: none; z-index: 55; width: var(--cw, 8px); height: var(--ch, 14px); background: var(--cc, var(--pitch)); border-radius: 2px; animation: confettiFall var(--cf-dur, 2.5s) ease-out forwards; transform-origin: center; }
-        @keyframes confettiFall { 0% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(1); } 25% { transform: translate(var(--cf-dx1, 30px), var(--cf-dy1, 80px)) rotate(360deg) scale(1); } 50% { transform: translate(var(--cf-dx2, -20px), var(--cf-dy2, 200px)) rotate(720deg) scale(0.8); } 100% { opacity: 0; transform: translate(var(--cf-dx3, 50px), var(--cf-dy3, 500px)) rotate(1440deg) scale(0.2); } }
-        .firework-particle { position: fixed; pointer-events: none; z-index: 52; border-radius: 50%; animation: fireworkBurst var(--fw-dur, 1.2s) ease-out forwards; }
-        @keyframes fireworkBurst { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--fw-tx, 50px), var(--fw-ty, -50px)) scale(0); opacity: 0; } }
-        .sparkle-ring { position: fixed; pointer-events: none; z-index: 51; border: 2px solid var(--pitch); border-radius: 50%; animation: sparkleExpand 0.8s ease-out forwards; transform: translate(-50%, -50%); }
-        @keyframes sparkleExpand { 0% { width: 0; height: 0; opacity: 1; border-width: 4px; } 100% { width: 250px; height: 250px; opacity: 0; border-width: 1px; } }
-        .goal-text-flash { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); z-index: 60; font-family: 'Oswald', sans-serif; font-size: 8rem; font-weight: 700; color: var(--pitch); text-shadow: 0 0 20px var(--pitch), 0 0 40px var(--pitch), 0 0 80px rgba(0,255,135,0.5), 0 0 120px rgba(0,255,135,0.3); pointer-events: none; animation: goalTextPop 1.5s cubic-bezier(0.2, 0.8, 0.2, 1.2) forwards; letter-spacing: 20px; }
-        @keyframes goalTextPop { 0% { transform: translate(-50%, -50%) scale(0) rotate(-10deg); opacity: 0; } 20% { transform: translate(-50%, -50%) scale(1.3) rotate(3deg); opacity: 1; } 40% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; } 70% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(2); opacity: 0; } }
-        .energy-wave { position: fixed; pointer-events: none; z-index: 48; border: 3px solid var(--pitch); border-radius: 50%; animation: waveExpand 1s ease-out forwards; transform: translate(-50%, -50%); }
-        @keyframes waveExpand { 0% { width: 10px; height: 10px; opacity: 1; border-color: var(--pitch); } 50% { border-color: var(--gold); } 100% { width: 400px; height: 400px; opacity: 0; border-color: var(--red); } }
-        .player-kicker-container { position: fixed; pointer-events: none; z-index: 6; animation: kickerWalk 12s infinite ease-in-out; bottom: 12%; left: 5%; }
-        .player-kicker { font-size: 3rem; position: relative; display: inline-block; animation: playerKick 1.5s infinite ease-in-out; filter: drop-shadow(0 0 12px rgba(0,255,135,0.3)); }
-        .kick-ball-enhanced { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffffff 0%, #e8e8e8 30%, #b0b0b0 60%, #707070 85%); box-shadow: inset -3px -3px 6px rgba(0,0,0,0.4), inset 1px 1px 3px rgba(255,255,255,0.6), 0 0 15px rgba(0,255,135,0.8), 0 0 30px rgba(0,255,135,0.4); animation: ballKickedEnhanced 1s cubic-bezier(0.2, 0.8, 0.3, 1) infinite; animation-delay: 0.3s; }
-        .kick-ball-enhanced::before { content: ''; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 50% 20%, rgba(0,0,0,0.6) 3px, transparent 3px), radial-gradient(circle at 25% 50%, rgba(0,0,0,0.5) 2.5px, transparent 2.5px), radial-gradient(circle at 75% 50%, rgba(0,0,0,0.5) 2.5px, transparent 2.5px); animation: kickBallSpin 0.25s linear infinite; }
-        @keyframes kickBallSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes playerKick { 0% { transform: rotate(-5deg) scaleX(1); } 20% { transform: rotate(-20deg) scaleX(1); } 40% { transform: rotate(0deg) scaleX(1); } 60% { transform: rotate(15deg) scaleX(1); } 80% { transform: rotate(5deg) scaleX(1); } 100% { transform: rotate(-5deg) scaleX(1); } }
-        @keyframes ballKickedEnhanced { 0% { right: 25px; top: 15px; opacity: 0; transform: scale(0.6) rotate(0deg); } 10% { opacity: 1; transform: scale(1) rotate(90deg); } 40% { right: 180px; top: -100px; opacity: 1; transform: scale(1.1) rotate(540deg); } 70% { opacity: 0.8; transform: scale(0.9) rotate(900deg); } 100% { right: 380px; top: 40px; opacity: 0; transform: scale(0.3) rotate(1440deg); } }
-        @keyframes kickerWalk { 0% { left: -100px; opacity: 0; } 5% { opacity: 1; } 50% { left: 35%; opacity: 1; } 95% { opacity: 1; } 100% { left: calc(100% + 100px); opacity: 0; } }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .stadium-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            background-image: url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .stadium-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(11, 15, 20, 0.95) 50%, rgba(0, 0, 0, 0.9) 100%);
+        }
+        .spotlight {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: -1;
+            filter: blur(120px);
+            opacity: 0.3;
+        }
+        .spotlight-1 {
+            width: 600px;
+            height: 600px;
+            background: var(--pitch);
+            top: -200px;
+            left: -200px;
+            animation: moveLight1 20s infinite alternate ease-in-out;
+        }
+        .spotlight-2 {
+            width: 500px;
+            height: 500px;
+            background: var(--gold);
+            bottom: -200px;
+            right: -200px;
+            animation: moveLight2 25s infinite alternate ease-in-out;
+        }
+        @keyframes moveLight1 {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(40vw, 40vh); }
+        }
+        @keyframes moveLight2 {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-30vw, -30vh); }
+        }
+        .ball-3d {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10;
+            perspective: 200px;
+        }
+        .ball-3d-inner {
+            width: var(--ball-size, 28px);
+            height: var(--ball-size, 28px);
+            position: relative;
+            transform-style: preserve-3d;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #ffffff 0%, #e8e8e8 30%, #b0b0b0 60%, #707070 85%, #404040 100%);
+            box-shadow: inset -4px -4px 8px rgba(0, 0, 0, 0.4), inset 2px 2px 4px rgba(255, 255, 255, 0.6), 0 0 20px rgba(0, 255, 135, 0.5), 0 0 40px rgba(0, 255, 135, 0.2);
+            animation: ball3dSpin var(--spin-speed, 0.8s) linear infinite;
+        }
+        .ball-3d-inner::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 20%, rgba(0, 0, 0, 0.7) 6px, transparent 6px), radial-gradient(circle at 25% 45%, rgba(0, 0, 0, 0.6) 5px, transparent 5px), radial-gradient(circle at 75% 45%, rgba(0, 0, 0, 0.6) 5px, transparent 5px), radial-gradient(circle at 35% 72%, rgba(0, 0, 0, 0.5) 4px, transparent 4px), radial-gradient(circle at 65% 72%, rgba(0, 0, 0, 0.5) 4px, transparent 4px);
+            animation: ballPatternSpin var(--spin-speed, 0.8s) linear infinite reverse;
+        }
+        .ball-3d-inner::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.7) 0%, transparent 50%);
+        }
+        @keyframes ball3dSpin {
+            0% { transform: rotateY(0deg) rotateX(10deg); }
+            100% { transform: rotateY(360deg) rotateX(10deg); }
+        }
+        @keyframes ballPatternSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .neon-trail {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--pitch);
+            box-shadow: 0 0 6px var(--pitch), 0 0 12px var(--pitch), 0 0 24px rgba(0, 255, 135, 0.5);
+            animation: trailFade 0.6s ease-out forwards;
+        }
+        @keyframes trailFade {
+            0% { opacity: 0.8; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.1); }
+        }
+        .ball-flight {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10;
+            animation: parabola var(--flight-dur, 3s) cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+        }
+        @keyframes parabola {
+            0% { left: var(--start-x, 5%); top: var(--start-y, 60%); opacity: 0; transform: scale(0.5) rotate(0deg); }
+            10% { opacity: 1; transform: scale(1) rotate(90deg); }
+            50% { top: var(--peak-y, 15%); opacity: 1; transform: scale(1.1) rotate(540deg); }
+            90% { opacity: 1; transform: scale(0.9) rotate(900deg); }
+            100% { left: var(--end-x, 85%); top: var(--end-y, 55%); opacity: 0; transform: scale(0.3) rotate(1080deg); }
+        }
+        .ball-bounce {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10;
+            animation: bounceX var(--bounce-dur, 6s) linear infinite, bounceY 0.6s ease-in-out infinite alternate;
+        }
+        @keyframes bounceX {
+            0% { left: -40px; }
+            100% { left: calc(100% + 40px); }
+        }
+        @keyframes bounceY {
+            0% { top: var(--bounce-floor, 70%); transform: scaleY(0.8) scaleX(1.2); }
+            30% { transform: scaleY(1) scaleX(1); }
+            100% { top: calc(var(--bounce-floor, 70%) - 120px); transform: scaleY(1.1) scaleX(0.9); }
+        }
+        .goal-explosion {
+            position: fixed;
+            pointer-events: none;
+            z-index: 50;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 255, 135, 0.9) 0%, rgba(0, 255, 135, 0.3) 30%, transparent 70%);
+            animation: explodeGoal 1s ease-out forwards;
+            transform: translate(-50%, -50%);
+        }
+        @keyframes explodeGoal {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+            50% { opacity: 0.8; }
+            100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+        }
+        .confetti-piece {
+            position: fixed;
+            pointer-events: none;
+            z-index: 55;
+            width: var(--cw, 8px);
+            height: var(--ch, 14px);
+            background: var(--cc, var(--pitch));
+            border-radius: 2px;
+            animation: confettiFall var(--cf-dur, 2.5s) ease-out forwards;
+            transform-origin: center;
+        }
+        @keyframes confettiFall {
+            0% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(1); }
+            25% { transform: translate(var(--cf-dx1, 30px), var(--cf-dy1, 80px)) rotate(360deg) scale(1); }
+            50% { transform: translate(var(--cf-dx2, -20px), var(--cf-dy2, 200px)) rotate(720deg) scale(0.8); }
+            100% { opacity: 0; transform: translate(var(--cf-dx3, 50px), var(--cf-dy3, 500px)) rotate(1440deg) scale(0.2); }
+        }
+        .firework-particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 52;
+            border-radius: 50%;
+            animation: fireworkBurst var(--fw-dur, 1.2s) ease-out forwards;
+        }
+        @keyframes fireworkBurst {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--fw-tx, 50px), var(--fw-ty, -50px)) scale(0); opacity: 0; }
+        }
+        .sparkle-ring {
+            position: fixed;
+            pointer-events: none;
+            z-index: 51;
+            border: 2px solid var(--pitch);
+            border-radius: 50%;
+            animation: sparkleExpand 0.8s ease-out forwards;
+            transform: translate(-50%, -50%);
+        }
+        @keyframes sparkleExpand {
+            0% { width: 0; height: 0; opacity: 1; border-width: 4px; }
+            100% { width: 250px; height: 250px; opacity: 0; border-width: 1px; }
+        }
+        .goal-text-flash {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            z-index: 60;
+            font-family: 'Oswald', sans-serif;
+            font-size: 8rem;
+            font-weight: 700;
+            color: var(--pitch);
+            text-shadow: 0 0 20px var(--pitch), 0 0 40px var(--pitch), 0 0 80px rgba(0, 255, 135, 0.5), 0 0 120px rgba(0, 255, 135, 0.3);
+            pointer-events: none;
+            animation: goalTextPop 1.5s cubic-bezier(0.2, 0.8, 0.2, 1.2) forwards;
+            letter-spacing: 20px;
+        }
+        @keyframes goalTextPop {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(-10deg); opacity: 0; }
+            20% { transform: translate(-50%, -50%) scale(1.3) rotate(3deg); opacity: 1; }
+            40% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+            70% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+        }
+        .energy-wave {
+            position: fixed;
+            pointer-events: none;
+            z-index: 48;
+            border: 3px solid var(--pitch);
+            border-radius: 50%;
+            animation: waveExpand 1s ease-out forwards;
+            transform: translate(-50%, -50%);
+        }
+        @keyframes waveExpand {
+            0% { width: 10px; height: 10px; opacity: 1; border-color: var(--pitch); }
+            50% { border-color: var(--gold); }
+            100% { width: 400px; height: 400px; opacity: 0; border-color: var(--red); }
+        }
+        .player-kicker-container {
+            position: fixed;
+            pointer-events: none;
+            z-index: 6;
+            animation: kickerWalk 12s infinite ease-in-out;
+            bottom: 12%;
+            left: 5%;
+        }
+        .player-kicker {
+            font-size: 3rem;
+            position: relative;
+            display: inline-block;
+            animation: playerKick 1.5s infinite ease-in-out;
+            filter: drop-shadow(0 0 12px rgba(0, 255, 135, 0.3));
+        }
+        .kick-ball-enhanced {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #ffffff 0%, #e8e8e8 30%, #b0b0b0 60%, #707070 85%);
+            box-shadow: inset -3px -3px 6px rgba(0, 0, 0, 0.4), inset 1px 1px 3px rgba(255, 255, 255, 0.6), 0 0 15px rgba(0, 255, 135, 0.8), 0 0 30px rgba(0, 255, 135, 0.4);
+            animation: ballKickedEnhanced 1s cubic-bezier(0.2, 0.8, 0.3, 1) infinite;
+            animation-delay: 0.3s;
+        }
+        .kick-ball-enhanced::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 20%, rgba(0, 0, 0, 0.6) 3px, transparent 3px), radial-gradient(circle at 25% 50%, rgba(0, 0, 0, 0.5) 2.5px, transparent 2.5px), radial-gradient(circle at 75% 50%, rgba(0, 0, 0, 0.5) 2.5px, transparent 2.5px);
+            animation: kickBallSpin 0.25s linear infinite;
+        }
+        @keyframes kickBallSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes playerKick {
+            0% { transform: rotate(-5deg) scaleX(1); }
+            20% { transform: rotate(-20deg) scaleX(1); }
+            40% { transform: rotate(0deg) scaleX(1); }
+            60% { transform: rotate(15deg) scaleX(1); }
+            80% { transform: rotate(5deg) scaleX(1); }
+            100% { transform: rotate(-5deg) scaleX(1); }
+        }
+        @keyframes ballKickedEnhanced {
+            0% { right: 25px; top: 15px; opacity: 0; transform: scale(0.6) rotate(0deg); }
+            10% { opacity: 1; transform: scale(1) rotate(90deg); }
+            40% { right: 180px; top: -100px; opacity: 1; transform: scale(1.1) rotate(540deg); }
+            70% { opacity: 0.8; transform: scale(0.9) rotate(900deg); }
+            100% { right: 380px; top: 40px; opacity: 0; transform: scale(0.3) rotate(1440deg); }
+        }
+        @keyframes kickerWalk {
+            0% { left: -100px; opacity: 0; }
+            5% { opacity: 1; }
+            50% { left: 35%; opacity: 1; }
+            95% { opacity: 1; }
+            100% { left: calc(100% + 100px); opacity: 0; }
+        }
         .kick-dust { position: fixed; pointer-events: none; z-index: 5; }
         .dust-particle { position: absolute; border-radius: 50%; animation: dustFloat 1.2s ease-out forwards; }
-        @keyframes dustFloat { 0% { transform: translate(0, 0) scale(1); opacity: 0.9; } 100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; } }
-        .kick-impact { position: fixed; width: 70px; height: 70px; border: 3px solid var(--pitch); border-radius: 50%; pointer-events: none; z-index: 5; animation: impactExpand 0.7s ease-out forwards; box-shadow: 0 0 20px rgba(0,255,135,0.6); }
-        @keyframes impactExpand { 0% { transform: scale(0.05); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+        @keyframes dustFloat {
+            0% { transform: translate(0, 0) scale(1); opacity: 0.9; }
+            100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+        }
+        .kick-impact {
+            position: fixed;
+            width: 70px;
+            height: 70px;
+            border: 3px solid var(--pitch);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 5;
+            animation: impactExpand 0.7s ease-out forwards;
+            box-shadow: 0 0 20px rgba(0, 255, 135, 0.6);
+        }
+        @keyframes impactExpand {
+            0% { transform: scale(0.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 0; }
+        }
         .kick-particle { position: fixed; pointer-events: none; z-index: 3; animation: particleExpand 1s ease-out forwards; }
-        @keyframes particleExpand { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
-        .goal-flash { position: fixed; inset: 0; background: radial-gradient(circle at center, rgba(0, 255, 135, 0.8), transparent); pointer-events: none; z-index: 2; animation: goalPulse 0.6s ease-out forwards; display: none; }
+        @keyframes particleExpand {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+        .goal-flash {
+            position: fixed; inset: 0; background: radial-gradient(circle at center, rgba(0, 255, 135, 0.8), transparent);
+            pointer-events: none; z-index: 2; animation: goalPulse 0.6s ease-out forwards; display: none;
+        }
         .goal-flash.show { display: block; }
-        @keyframes goalPulse { 0% { transform: scale(0); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
-        .floating-ball { position: fixed; pointer-events: none; z-index: 4; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #ddd, #888); box-shadow: 0 0 8px rgba(0,255,135,0.3); opacity: 0.4; }
-        .floating-ball::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 50% 20%, rgba(0,0,0,0.5) 2px, transparent 2px), radial-gradient(circle at 25% 55%, rgba(0,0,0,0.4) 1.5px, transparent 1.5px), radial-gradient(circle at 75% 55%, rgba(0,0,0,0.4) 1.5px, transparent 1.5px); }
+        @keyframes goalPulse {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+        .floating-ball {
+            position: fixed; pointer-events: none; z-index: 4; border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #fff, #ddd, #888);
+            box-shadow: 0 0 8px rgba(0, 255, 135, 0.3); opacity: 0.4;
+        }
+        .floating-ball::after {
+            content: ''; position: absolute; inset: 0; border-radius: 50%;
+            background: radial-gradient(circle at 50% 20%, rgba(0,0,0,0.5) 2px, transparent 2px),
+                        radial-gradient(circle at 25% 55%, rgba(0,0,0,0.4) 1.5px, transparent 1.5px),
+                        radial-gradient(circle at 75% 55%, rgba(0,0,0,0.4) 1.5px, transparent 1.5px);
+        }
         .hero-scene { position: relative; z-index: 1; text-align: center; padding: 50px 20px 10px; }
-        .hero-text h1 { font-family: 'Oswald', sans-serif; font-size: 3.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #fff; line-height: 1; margin-bottom: 10px; text-shadow: 0 0 20px rgba(0,255,135,0.2); animation: heroGlow 3s infinite alternate; }
-        @keyframes heroGlow { 0% { text-shadow: 0 0 20px rgba(0,255,135,0.2), 0 0 40px rgba(0,255,135,0.1); } 100% { text-shadow: 0 0 40px rgba(0,255,135,0.4), 0 0 60px rgba(0,255,135,0.2); } }
+        .hero-text h1 {
+            font-family: 'Oswald', sans-serif; font-size: 3.8rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 2px; color: #fff; line-height: 1;
+            margin-bottom: 10px; text-shadow: 0 0 20px rgba(0,255,135,0.2);
+            animation: heroGlow 3s infinite alternate;
+        }
+        @keyframes heroGlow {
+            0% { text-shadow: 0 0 20px rgba(0,255,135,0.2), 0 0 40px rgba(0,255,135,0.1); }
+            100% { text-shadow: 0 0 40px rgba(0,255,135,0.4), 0 0 60px rgba(0,255,135,0.2); }
+        }
         .hero-text h1 span { color: var(--pitch); }
         .hero-text p { color: var(--muted); font-size: 1rem; max-width: 500px; margin: 0 auto; font-weight: 500; }
-        .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--gold-dim); border: 1px solid var(--gold); padding: 6px 16px; border-radius: 4px; font-size: 0.75rem; color: var(--gold); font-weight: 800; margin-top: 20px; text-transform: uppercase; letter-spacing: 1px; animation: badgePulse 2s infinite; }
-        @keyframes badgePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px; background: var(--gold-dim);
+            border: 1px solid var(--gold); padding: 6px 16px; border-radius: 4px;
+            font-size: 0.75rem; color: var(--gold); font-weight: 800; margin-top: 20px;
+            text-transform: uppercase; letter-spacing: 1px; animation: badgePulse 2s infinite;
+        }
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
         .content { position: relative; z-index: 1; padding: 0 16px 60px; max-width: 1300px; margin: 0 auto; }
-        .tabs { display: flex; justify-content: center; gap: 0; margin: 30px 0; background: rgba(255,255,255,0.05); border-radius: 8px; padding: 4px; max-width: 450px; margin-left: auto; margin-right: auto; border: 1px solid var(--glass-border); }
-        .tab { flex: 1; padding: 12px; border-radius: 6px; border: none; background: transparent; color: var(--muted); font-family: 'Oswald'; font-size: 1.1rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: 0.3s; }
+        .tabs {
+            display: flex; justify-content: center; gap: 0; margin: 30px 0;
+            background: rgba(255,255,255,0.05); border-radius: 8px; padding: 4px;
+            max-width: 450px; margin-left: auto; margin-right: auto; border: 1px solid var(--glass-border);
+        }
+        .tab {
+            flex: 1; padding: 12px; border-radius: 6px; border: none; background: transparent;
+            color: var(--muted); font-family: 'Oswald'; font-size: 1.1rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: 0.3s;
+        }
         .tab.active { background: var(--pitch); color: #000; box-shadow: 0 4px 15px rgba(0,255,135,0.3); }
         .tab:hover:not(.active) { color: #fff; background: rgba(255,255,255,0.05); }
         .panel { display: none; animation: fadeUp 0.4s ease; }
         .panel.active { display: block; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-        .card { background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 30px; position: relative; box-shadow: 0 15px 50px rgba(0,0,0,0.5); }
-        .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--pitch), transparent); animation: cardGlow 2s infinite; }
+        .card {
+            background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 30px;
+            position: relative; box-shadow: 0 15px 50px rgba(0,0,0,0.5);
+        }
+        .card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--pitch), transparent);
+            animation: cardGlow 2s infinite;
+        }
         @keyframes cardGlow { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-        .bar { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); padding: 16px 20px; border-radius: 8px; margin-bottom: 25px; }
-        .bar label { font-family: 'Oswald'; font-weight: 600; color: var(--pitch); font-size: 0.9rem; white-space: nowrap; text-transform: uppercase; letter-spacing: 1px; }
-        input, select { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 10px 14px; border-radius: 6px; font-family: 'Inter'; font-weight: 600; transition: 0.3s; font-size: 0.9rem; }
-        input:focus, select:focus { border-color: var(--pitch); box-shadow: 0 0 0 3px rgba(0,255,135,0.15); outline: none; background: rgba(255,255,255,0.08); }
+        .bar {
+            display: flex; align-items: center; gap: 15px; flex-wrap: wrap;
+            background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
+            padding: 16px 20px; border-radius: 8px; margin-bottom: 25px;
+        }
+        .bar label {
+            font-family: 'Oswald'; font-weight: 600; color: var(--pitch);
+            font-size: 0.9rem; white-space: nowrap; text-transform: uppercase; letter-spacing: 1px;
+        }
+        input, select {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: #fff; padding: 10px 14px; border-radius: 6px; font-family: 'Inter';
+            font-weight: 600; transition: 0.3s; font-size: 0.9rem;
+        }
+        input:focus, select:focus {
+            border-color: var(--pitch); box-shadow: 0 0 0 3px rgba(0,255,135,0.15);
+            outline: none; background: rgba(255,255,255,0.08);
+        }
         select option { background: #151b23; color: #fff; }
         .spacer { flex: 1; }
-        .btn { padding: 10px 20px; border: none; border-radius: 6px; font-weight: 800; font-size: 0.8rem; cursor: pointer; transition: 0.2s; white-space: nowrap; font-family: 'Inter'; text-transform: uppercase; letter-spacing: 0.5px; color: #000; position: relative; overflow: hidden; }
-        .btn::before { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,0.1); transform: scaleX(0); transform-origin: left; transition: transform 0.3s; }
+        .btn {
+            padding: 10px 20px; border: none; border-radius: 6px; font-weight: 800;
+            font-size: 0.8rem; cursor: pointer; transition: 0.2s; white-space: nowrap;
+            font-family: 'Inter'; text-transform: uppercase; letter-spacing: 0.5px;
+            color: #000; position: relative; overflow: hidden;
+        }
+        .btn::before {
+            content: ''; position: absolute; inset: 0; background: rgba(255,255,255,0.1);
+            transform: scaleX(0); transform-origin: left; transition: transform 0.3s;
+        }
         .btn:hover::before { transform: scaleX(1); }
         .btn-green { background: var(--pitch); box-shadow: 0 4px 10px rgba(0,255,135,0.2); }
         .btn-orange { background: var(--gold); box-shadow: 0 4px 10px rgba(255,196,0,0.2); }
         .btn-red { background: transparent; border: 1px solid var(--red); color: var(--red); }
         .btn:hover { transform: translateY(-2px); filter: brightness(1.15); }
         .btn:active { transform: translateY(0); }
-        .warn { background: rgba(255,196,0,0.1); border: 1px solid rgba(255,196,0,0.3); padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; color: var(--gold); font-size: 0.85rem; display: none; font-weight: 700; text-transform: uppercase; animation: warnShake 0.5s ease-in-out; }
-        @keyframes warnShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+        .warn {
+            background: rgba(255,196,0,0.1); border: 1px solid rgba(255,196,0,0.3);
+            padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; color: var(--gold);
+            font-size: 0.85rem; display: none; font-weight: 700; text-transform: uppercase;
+            animation: warnShake 0.5s ease-in-out;
+        }
+        @keyframes warnShake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
         .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 1080px; }
-        th { background: rgba(0,255,135,0.05); color: var(--pitch); font-family: 'Oswald'; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; padding: 16px 8px; letter-spacing: 1px; border-bottom: 2px solid rgba(0,255,135,0.2); }
+        th {
+            background: rgba(0,255,135,0.05); color: var(--pitch); font-family: 'Oswald';
+            font-weight: 600; text-transform: uppercase; font-size: 0.75rem; padding: 16px 8px;
+            letter-spacing: 1px; border-bottom: 2px solid rgba(0,255,135,0.2);
+        }
         td { padding: 12px 8px; border-bottom: 1px solid rgba(255,255,255,0.03); text-align: center; vertical-align: middle; }
         tr:hover td { background: rgba(0,255,135,0.03); }
         td input, td select { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 8px; font-size: 0.85rem; width: 100%; transition: 0.2s; }
@@ -116,19 +473,48 @@
         .badge-ks { background: rgba(255, 196, 0, 0.15); color: var(--gold); border: 1px solid rgba(255, 196, 0, 0.3); }
         .badge-sr { background: rgba(168, 85, 247, 0.15); color: #a78bfa; border: 1px solid rgba(168, 85, 247, 0.3); }
         .badge-kf { background: rgba(255, 51, 85, 0.15); color: var(--red); border: 1px solid rgba(255, 51, 85, 0.3); }
-        @keyframes pulsePitch { 0% { box-shadow: 0 0 0 0 rgba(0,255,135,0.7); } 70% { box-shadow: 0 0 0 10px rgba(0,255,135,0); } 100% { box-shadow: 0 0 0 0 rgba(0,255,135,0); } }
-        .expl-cell { max-width: 320px; text-align: left; font-size: 0.75rem; background: rgba(0,0,0,0.4); border-radius: 6px; padding: 10px; white-space: pre-line; position: relative; line-height: 1.5; color: var(--muted); border: 1px solid rgba(255,255,255,0.05); }
-        .copy-btn { position: absolute; bottom: 6px; right: 6px; background: rgba(0,255,135,0.1); border: 1px solid rgba(0,255,135,0.3); border-radius: 4px; padding: 3px 8px; font-size: 0.6rem; cursor: pointer; color: var(--pitch); font-weight: 800; transition: 0.2s; text-transform: uppercase; }
+        @keyframes pulsePitch {
+            0% { box-shadow: 0 0 0 0 rgba(0,255,135,0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0,255,135,0); }
+            100% { box-shadow: 0 0 0 0 rgba(0,255,135,0); }
+        }
+        .expl-cell {
+            max-width: 320px; text-align: left; font-size: 0.75rem; background: rgba(0,0,0,0.4);
+            border-radius: 6px; padding: 10px; white-space: pre-line; position: relative;
+            line-height: 1.5; color: var(--muted); border: 1px solid rgba(255,255,255,0.05);
+        }
+        .copy-btn {
+            position: absolute; bottom: 6px; right: 6px; background: rgba(0,255,135,0.1);
+            border: 1px solid rgba(0,255,135,0.3); border-radius: 4px; padding: 3px 8px;
+            font-size: 0.6rem; cursor: pointer; color: var(--pitch); font-weight: 800;
+            transition: 0.2s; text-transform: uppercase;
+        }
         .copy-btn:hover { background: rgba(0,255,135,0.2); }
-        .delete-btn { background: rgba(255,51,85,0.1); border: 1px solid rgba(255,51,85,0.2); color: var(--red); padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 700; transition: 0.2s; font-family: 'Inter'; }
+        .delete-btn {
+            background: rgba(255,51,85,0.1); border: 1px solid rgba(255,51,85,0.2);
+            color: var(--red); padding: 6px 10px; border-radius: 4px; cursor: pointer;
+            font-size: 0.75rem; font-weight: 700; transition: 0.2s; font-family: 'Inter';
+        }
         .delete-btn:hover { background: rgba(255,51,85,0.2); }
-        .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0; padding: 12px; border-radius: 6px; border: 1px dashed rgba(255,255,255,0.1); animation: chipsGlow 2s infinite; }
-        @keyframes chipsGlow { 0%, 100% { border-color: rgba(255,255,255,0.1); } 50% { border-color: rgba(0,255,135,0.3); } }
+        .chips {
+            display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0; padding: 12px;
+            border-radius: 6px; border: 1px dashed rgba(255,255,255,0.1);
+            animation: chipsGlow 2s infinite;
+        }
+        @keyframes chipsGlow { 0%,100% { border-color: rgba(255,255,255,0.1); } 50% { border-color: rgba(0,255,135,0.3); } }
         .chip { background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; color: var(--muted); transition: 0.3s; }
         .chip:hover { transform: translateY(-2px); color: var(--pitch); }
-        .result-box { background: linear-gradient(135deg, rgba(0,255,135,0.05), rgba(0,0,0,0.4)); border: 2px solid rgba(0,255,135,0.3); padding: 24px; border-radius: 8px; margin-top: 24px; position: relative; transition: all 0.5s ease; }
-        .result-box::before { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 4px; background: var(--pitch); border-radius: 4px 0 0 4px; transition: background 0.5s; animation: resultPulse 1.5s infinite; }
-        @keyframes resultPulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+        .result-box {
+            background: linear-gradient(135deg, rgba(0,255,135,0.05), rgba(0,0,0,0.4));
+            border: 2px solid rgba(0,255,135,0.3); padding: 24px; border-radius: 8px;
+            margin-top: 24px; position: relative; transition: all 0.5s ease;
+        }
+        .result-box::before {
+            content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 4px;
+            background: var(--pitch); border-radius: 4px 0 0 4px; transition: background 0.5s;
+            animation: resultPulse 1.5s infinite;
+        }
+        @keyframes resultPulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
         .result-box h3 { color: var(--pitch); font-family: 'Oswald'; font-size: 1.2rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; animation: slideIn 0.4s ease; }
         @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
         .summary-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); font-size: 0.95rem; font-weight: 600; animation: fadeIn 0.5s ease; }
@@ -144,12 +530,25 @@
         .result-draw::before { background: var(--blue); }
         .result-draw h3 { color: var(--blue); }
         .menu-wrap { position: relative; display: inline-block; }
-        .menu-btn { background: rgba(255,196,0,0.1); border: 1px solid rgba(255,196,0,0.3); color: var(--gold); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: 800; transition: 0.2s; font-family: 'Inter'; text-transform: uppercase; }
+        .menu-btn {
+            background: rgba(255,196,0,0.1); border: 1px solid rgba(255,196,0,0.3);
+            color: var(--gold); padding: 8px 14px; border-radius: 6px; cursor: pointer;
+            font-size: 0.75rem; font-weight: 800; transition: 0.2s; font-family: 'Inter'; text-transform: uppercase;
+        }
         .menu-btn:hover { background: rgba(255,196,0,0.2); transform: scale(1.05); }
-        .menu-dropdown { position: absolute; right: 0; top: calc(100% + 8px); background: rgba(15, 23, 32, 0.98); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 8px; padding: 6px; min-width: 180px; display: none; z-index: 20; box-shadow: 0 10px 30px rgba(0,0,0,0.6); animation: dropdownSlide 0.3s ease; }
+        .menu-dropdown {
+            position: absolute; right: 0; top: calc(100% + 8px);
+            background: rgba(15, 23, 32, 0.98); backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); border-radius: 8px; padding: 6px;
+            min-width: 180px; display: none; z-index: 20;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6); animation: dropdownSlide 0.3s ease;
+        }
         @keyframes dropdownSlide { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         .menu-dropdown.show { display: block; }
-        .menu-item { padding: 8px 12px; cursor: pointer; border-radius: 4px; font-size: 0.8rem; font-weight: 600; transition: 0.2s; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+        .menu-item {
+            padding: 8px 12px; cursor: pointer; border-radius: 4px; font-size: 0.8rem;
+            font-weight: 600; transition: 0.2s; color: var(--muted); display: flex; align-items: center; gap: 8px;
+        }
         .menu-item:hover { background: rgba(0,255,135,0.1); color: #fff; transform: translateX(4px); }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .field { display: flex; flex-direction: column; gap: 6px; animation: fieldFadeIn 0.4s ease; }
@@ -157,16 +556,29 @@
         .field label { font-size: 0.7rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'Oswald'; }
         .eff-cell { font-weight: 800; color: var(--pitch); font-family: 'Oswald', monospace; font-size: 1rem; }
         .toast-container { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 999; display: flex; flex-direction: column; gap: 8px; }
-        .toast { padding: 12px 24px; border-radius: 6px; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); border: 1px solid var(--pitch); color: var(--pitch); font-weight: 800; font-size: 0.8rem; box-shadow: 0 0 20px rgba(0,255,135,0.2); animation: toastIn 0.3s ease; text-transform: uppercase; letter-spacing: 1px; }
+        .toast {
+            padding: 12px 24px; border-radius: 6px; background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(10px); border: 1px solid var(--pitch); color: var(--pitch);
+            font-weight: 800; font-size: 0.8rem; box-shadow: 0 0 20px rgba(0,255,135,0.2);
+            animation: toastIn 0.3s ease; text-transform: uppercase; letter-spacing: 1px;
+        }
         @keyframes toastIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         .mobile-cards { display: none; }
-        .footer { text-align: center; padding: 40px 16px; color: rgba(255,255,255,0.2); font-size: 0.75rem; position: relative; z-index: 1; text-transform: uppercase; letter-spacing: 2px; animation: footerPulse 3s infinite; }
-        @keyframes footerPulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+        .footer {
+            text-align: center; padding: 40px 16px; color: rgba(255,255,255,0.2);
+            font-size: 0.75rem; position: relative; z-index: 1; text-transform: uppercase;
+            letter-spacing: 2px; animation: footerPulse 3s infinite;
+        }
+        @keyframes footerPulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
         .footer span { color: var(--pitch); }
         @media(max-width:900px) { .hero-text h1 { font-size: 2.8rem; } }
         @media(max-width:768px) {
             .table-wrap { display: none; } .mobile-cards { display: block; }
-            .mobile-card { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 8px; padding: 20px; margin-bottom: 16px; position: relative; animation: cardSlideIn 0.4s ease; }
+            .mobile-card {
+                background: var(--glass); backdrop-filter: blur(20px);
+                border: 1px solid var(--glass-border); border-radius: 8px; padding: 20px;
+                margin-bottom: 16px; position: relative; animation: cardSlideIn 0.4s ease;
+            }
             @keyframes cardSlideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
             .badge-num { position: absolute; top: -10px; left: 18px; background: var(--pitch); color: #000; font-size: 0.7rem; font-weight: 900; padding: 4px 14px; border-radius: 4px; font-family: 'Oswald'; }
             .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
@@ -180,6 +592,25 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
         ::-webkit-scrollbar-thumb { background: var(--pitch); border-radius: 10px; }
+        .voor-sign-select {
+            width: 50px !important; padding: 8px 4px !important; text-align: center;
+            font-weight: 800; color: var(--pitch); background: rgba(0,0,0,0.5) !important;
+            border: 1px solid rgba(0,255,135,0.3) !important; border-radius: 6px !important;
+            cursor: pointer; font-family: 'Oswald', sans-serif; font-size: 0.85rem !important;
+        }
+        .voor-sign-select option { background: #151b23; color: #fff; font-weight: 700; }
+        .tooltip {
+            position: relative; display: inline-block; cursor: help;
+            border-bottom: 1px dotted var(--pitch); font-size: 0.7rem;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden; width: 200px; background-color: rgba(0,0,0,0.9);
+            color: #fff; text-align: center; border-radius: 6px; padding: 5px;
+            position: absolute; z-index: 1; bottom: 125%; left: 50%;
+            margin-left: -100px; opacity: 0; transition: opacity 0.3s;
+            font-size: 0.65rem; border: 1px solid var(--pitch);
+        }
+        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
     </style>
 </head>
 <body>
@@ -196,7 +627,7 @@
 <section class="hero-scene">
     <div class="hero-text">
         <h1>Premium <span>Bet</span></h1>
-        <p>Mix Parlay & Single Bet — Voor hanya angka dengan Minus Otomatis</p>
+        <p>Mix Parlay & Single Bet — Pilih <span style="color:var(--pitch);">+</span> jika dikasih voor, <span style="color:var(--red);">–</span> jika kasih voor</p>
         <div class="hero-badge"><i class="fa-solid fa-futbol"></i> Official Matchday Calculator</div>
     </div>
 </section>
@@ -220,7 +651,7 @@
             <div id="parlayWarn" class="warn"><i class="fa-solid fa-triangle-exclamation"></i> Minimal 3 tim! Saat ini: <b id="teamCount">0</b></div>
             <div class="table-wrap">
                 <table id="parlayTable">
-                    <thead><tr><th>No</th><th>Tim Anda</th><th>Lawan</th><th>Pasaran</th><th>Voor / Batas</th><th>Skor</th><th>Status</th><th>Odds</th><th>Eff</th><th>Penjelasan</th><th></th></tr></thead>
+                    <thead><tr><th>No</th><th>Tim Anda</th><th>Lawan</th><th>Pasaran</th><th>Voor / Batas <span class="tooltip">ℹ️<span class="tooltiptext">Pilih <b>-</b> jika tim Anda memberi voor<br>Pilih <b>+</b> jika tim Anda menerima voor</span></span></th><th>Skor</th><th>Status</th><th>Odds</th><th>Eff</th><th>Penjelasan</th><th></th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
@@ -262,7 +693,16 @@
             </div>
             <div class="form-grid" style="margin-top:16px;">
                 <div class="field"><label><i class="fa-solid fa-tag"></i> Pasaran</label><select id="singlePasar" onchange="updateSingleForm();hitungSingle();"><option value="HDP">Handicap</option><option value="OU">Over/Under</option><option value="1x2">1x2</option><option value="OE">Odd/Even</option></select></div>
-                <div class="field" id="voorField"><label><i class="fa-solid fa-arrow-down-short-wide"></i> Voor / Batas</label><input type="number" id="singleVoor" step="0.25" value="0.75" min="0" oninput="hitungSingle()"></div>
+                <div class="field" id="voorField">
+                    <label><i class="fa-solid fa-arrow-down-short-wide"></i> Voor / Batas <span class="tooltip">ℹ️<span class="tooltiptext">HDP: Pilih <b>-</b> jika tim Anda memberi voor<br>Pilih <b>+</b> jika tim Anda menerima voor</span></span></label>
+                    <div style="display:flex;gap:6px;" id="voorInputContainer">
+                        <select id="singleVoorSign" class="voor-sign-select" onchange="hitungSingle()">
+                            <option value="-">-</option>
+                            <option value="+">+</option>
+                        </select>
+                        <input type="number" id="singleVoor" step="0.25" value="0.75" min="0" oninput="hitungSingle()" style="flex:1;">
+                    </div>
+                </div>
                 <div class="field" id="opsiField" style="display:none;"><label><i class="fa-solid fa-hand-pointer"></i> Pilihan</label><select id="singleOpsi" onchange="hitungSingle()"></select></div>
             </div>
             <div class="field" style="margin-top:16px;">
@@ -389,7 +829,7 @@ function fmtVoor(v){return v===0?'0':(v>0?`+${v}`:`${v}`);}
 
 function penjelasan(b,st){
     const{t,l,m,v,p,sh,sa,odds}=b;const d=sh-sa,tot=sh+sa;
-    if(m==='HDP'){let txt=`📌 HDP | ${t} vs ${l}\nSkor: ${sh} - ${sa} (Selisih = ${d})\nVoor: ${fmtVoor(v)}\n`;if(Math.abs(v)%0.5===0){const hasil=d+v;txt+=`Perhitungan: ${d} + (${v}) = ${hasil}\n`;if(hasil>0.25)txt+=`✅ ${t} MENANG FULL (${odds})`;else if(eq(hasil,0))txt+=`🔄 SERI (1)`;else txt+=`❌ ${t} KALAH FULL (0)`;}else{const lo=Math.floor(Math.abs(v)*2)/2*(v>0?1:-1);const hi=lo+(v>0?0.5:-0.5);const ev=(vp)=>d+vp>0.25?'W':(eq(d+vp,0.25)?'MS':(eq(d+vp,0)?'V':(eq(d+vp,-0.25)?'KS':'L')));const lbl=(r)=>r==='W'?'MENANG':r==='MS'?'MENANG SETENGAH':r==='V'?'VOID':r==='KS'?'KALAH SETENGAH':'KALAH';txt+=`Voor terbelah: 50% ${fmtVoor(lo)} → ${lbl(ev(lo))}, 50% ${fmtVoor(hi)} → ${lbl(ev(hi))}\n`;const ef=getEff(st,odds);if(st==='mf')txt+=`✅ MENANG FULL → ${odds}`;else if(st==='ms')txt+=`⚡ MENANG SETENGAH → (${odds}-1)/2+1 = ${ef.toFixed(3)}`;else if(st==='ks')txt+=`⚠️ KALAH SETENGAH → 0.5`;else if(st==='sr')txt+=`🔄 SERI → 1`;else txt+=`❌ KALAH FULL → 0`;}return txt;}
+    if(m==='HDP'){let txt=`📌 HDP | ${t} vs ${l}\nSkor: ${sh} - ${sa} (Selisih = ${d})\n`;if(v<0)txt+=`Tim ${t} memberikan voor ${Math.abs(v)}\n`;else if(v>0)txt+=`Tim ${t} menerima voor +${v}\n`;else txt+=`Voor: 0 (tanpa handicap)\n`;if(Math.abs(v)%0.5===0){const hasil=d+v;txt+=`Perhitungan: ${d} + (${v}) = ${hasil}\n`;if(hasil>0.25)txt+=`✅ ${t} MENANG FULL (${odds})`;else if(eq(hasil,0))txt+=`🔄 SERI (1)`;else txt+=`❌ ${t} KALAH FULL (0)`;}else{const lo=Math.floor(Math.abs(v)*2)/2*(v>0?1:-1);const hi=lo+(v>0?0.5:-0.5);const ev=(vp)=>d+vp>0.25?'W':(eq(d+vp,0.25)?'MS':(eq(d+vp,0)?'V':(eq(d+vp,-0.25)?'KS':'L')));const lbl=(r)=>r==='W'?'MENANG':r==='MS'?'MENANG SETENGAH':r==='V'?'VOID':r==='KS'?'KALAH SETENGAH':'KALAH';txt+=`Voor terbelah: 50% ${fmtVoor(lo)} → ${lbl(ev(lo))}, 50% ${fmtVoor(hi)} → ${lbl(ev(hi))}\n`;const ef=getEff(st,odds);if(st==='mf')txt+=`✅ MENANG FULL → ${odds}`;else if(st==='ms')txt+=`⚡ MENANG SETENGAH → (${odds}-1)/2+1 = ${ef.toFixed(3)}`;else if(st==='ks')txt+=`⚠️ KALAH SETENGAH → 0.5`;else if(st==='sr')txt+=`🔄 SERI → 1`;else txt+=`❌ KALAH FULL → 0`;}return txt;}
     if(m==='OU'){const lb=p==='over'?'OVER':'UNDER';let txt=`📌 OU | ${t} vs ${l}\nTaruhan: Menebak total gol lebih ${lb==='OVER'?'banyak (Over)':'sedikit (Under)'} dari ${v}\nTotal Gol: ${tot} (${sh}-${sa})\nBatas: ${v} | Pilih: ${lb}\n`;if(v%0.5===0){if(p==='over'){if(tot>v)txt+=`✅ MENANG FULL (${odds})`;else if(eq(tot,v))txt+=`🔄 SERI (1)`;else txt+=`❌ KALAH FULL (0)`;}else{if(tot<v)txt+=`✅ MENANG FULL (${odds})`;else if(eq(tot,v))txt+=`🔄 SERI (1)`;else txt+=`❌ KALAH FULL (0)`;}}else{const lo=p==='over'?Math.floor(v*2)/2:Math.ceil(v*2)/2;const hi=p==='over'?lo+0.5:lo-0.5;txt+=`Terbelah: ${lb} ${lo} & ${lb} ${hi}\n`;const ef=getEff(st,odds);if(st==='mf')txt+=`✅ MENANG FULL → ${odds}`;else if(st==='ms')txt+=`⚡ MENANG SETENGAH → ${ef.toFixed(3)}`;else if(st==='ks')txt+=`⚠️ KALAH SETENGAH → 0.5`;else if(st==='sr')txt+=`🔄 SERI → 1`;else txt+=`❌ KALAH FULL → 0`;}return txt;}
     if(m==='1x2')return`📌 1x2 | ${t} vs ${l} | Pilih: ${p}\nSkor: ${sh}-${sa}\n${(p==='home'&&d>0)||(p==='away'&&d<0)||(p==='draw'&&d===0)?'✅ MENANG FULL ('+odds+')':'❌ KALAH FULL (0)'}`;
     if(m==='OE')return`📌 OE | ${t} vs ${l} | Pilih: ${p}\nTotal Gol: ${tot}\n${(p==='even'&&tot%2===0)||(p==='odd'&&tot%2===1)?'✅ MENANG FULL ('+odds+')':'❌ KALAH FULL (0)'}`;
@@ -421,16 +861,16 @@ function renderParlayTable(){
     attachTableEvents();
 }
 
-function renderVoorHTML(b,i){if(b.m==='HDP'){return`<input type="number" value="${Math.abs(b.v)}" step="0.25" min="0" data-field="v" class="voor-input" placeholder="0.75">`;}if(b.m==='OU')return`<div style="display:flex;gap:4px;"><input type="number" value="${b.v}" step="0.25" data-field="v" style="width:70px;"><select data-field="p"><option value="over" ${b.p==='over'?'selected':''}>OVER</option><option value="under" ${b.p==='under'?'selected':''}>UNDER</option></select></div>`;if(b.m==='1x2')return`<select data-field="p"><option value="home" ${b.p==='home'?'selected':''}>Home</option><option value="draw" ${b.p==='draw'?'selected':''}>Draw</option><option value="away" ${b.p==='away'?'selected':''}>Away</option></select>`;if(b.m==='OE')return`<select data-field="p"><option value="even" ${b.p==='even'?'selected':''}>Even</option><option value="odd" ${b.p==='odd'?'selected':''}>Odd</option></select>`;}
+function renderVoorHTML(b,i){if(b.m==='HDP'){const currentSign = b.v <= 0 ? '-' : '+';const absV = Math.abs(b.v);return`<div style="display:flex;gap:4px;align-items:center;justify-content:center;"><select data-field="voorSign" class="voor-sign-select"><option value="-" ${currentSign==='-'?'selected':''}>-</option><option value="+" ${currentSign==='+'?'selected':''}>+</option></select><input type="number" value="${absV}" step="0.25" min="0" data-field="v" class="voor-input" placeholder="0.75"></div>`;}if(b.m==='OU')return`<div style="display:flex;gap:4px;"><input type="number" value="${b.v}" step="0.25" data-field="v" style="width:70px;"><select data-field="p"><option value="over" ${b.p==='over'?'selected':''}>OVER</option><option value="under" ${b.p==='under'?'selected':''}>UNDER</option></select></div>`;if(b.m==='1x2')return`<select data-field="p"><option value="home" ${b.p==='home'?'selected':''}>Home</option><option value="draw" ${b.p==='draw'?'selected':''}>Draw</option><option value="away" ${b.p==='away'?'selected':''}>Away</option></select>`;if(b.m==='OE')return`<select data-field="p"><option value="even" ${b.p==='even'?'selected':''}>Even</option><option value="odd" ${b.p==='odd'?'selected':''}>Odd</option></select>`;}
 
-function attachTableEvents(){document.querySelectorAll('#parlayTable tbody tr').forEach(tr=>{const idx=parseInt(tr.dataset.idx);tr.querySelectorAll('input,select').forEach(el=>{el.addEventListener('input',function(){const field=this.dataset.field;if(field==='v'){const val=parseFloat(this.value)||0;parlayData[idx].v=parlayData[idx].m==='HDP'?-Math.abs(val):Math.abs(val);}else if(field==='m'){parlayData[idx].m=this.value;if(this.value==='OU'){parlayData[idx].v=Math.abs(parlayData[idx].v)||2.5;parlayData[idx].p=parlayData[idx].p||'over';}else if(this.value==='HDP'){parlayData[idx].v=-(Math.abs(parlayData[idx].v)||0.75);}renderAllParlay();return;}else if(field==='totalSkor'){const total=parseInt(this.value)||0;parlayData[idx].sh=total;parlayData[idx].sa=0;}else{const val=this.type==='number'?(parseFloat(this.value)||0):this.value;parlayData[idx][field]=val;}updateRow(tr,idx);hitungParlay();});});tr.querySelector('.delete-btn').addEventListener('click',()=>{parlayData.splice(idx,1);renderAllParlay();triggerPlayerKick();triggerKickParticles(window.innerWidth/2, window.innerHeight/2);showToast('Partai dihapus');});});document.querySelectorAll('.copy-btn').forEach(btn=>btn.addEventListener('click',function(e){e.stopPropagation();navigator.clipboard.writeText(this.dataset.penjelasan).then(()=>showToast('Tersalin'));}));}
+function attachTableEvents(){document.querySelectorAll('#parlayTable tbody tr').forEach(tr=>{const idx=parseInt(tr.dataset.idx);tr.querySelectorAll('input,select').forEach(el=>{el.addEventListener('input',function(){const field=this.dataset.field;if(field==='v'||field==='voorSign'){const signEl=tr.querySelector('[data-field="voorSign"]');const vEl=tr.querySelector('[data-field="v"]');const sign=signEl?signEl.value:'-';const absV=parseFloat(vEl?vEl.value:0)||0;parlayData[idx].v=sign==='-'?-Math.abs(absV):Math.abs(absV);}else if(field==='m'){parlayData[idx].m=this.value;if(this.value==='OU'){parlayData[idx].v=Math.abs(parlayData[idx].v)||2.5;parlayData[idx].p=parlayData[idx].p||'over';}else if(this.value==='HDP'){if(parlayData[idx].v>0)parlayData[idx].v=-Math.abs(parlayData[idx].v);else parlayData[idx].v=-Math.abs(parlayData[idx].v)||-0.75;}renderAllParlay();return;}else if(field==='totalSkor'){const total=parseInt(this.value)||0;parlayData[idx].sh=total;parlayData[idx].sa=0;}else{const val=this.type==='number'?(parseFloat(this.value)||0):this.value;parlayData[idx][field]=val;}updateRow(tr,idx);hitungParlay();});});tr.querySelector('.delete-btn').addEventListener('click',()=>{parlayData.splice(idx,1);renderAllParlay();triggerPlayerKick();triggerKickParticles(window.innerWidth/2, window.innerHeight/2);showToast('Partai dihapus');});});document.querySelectorAll('.copy-btn').forEach(btn=>btn.addEventListener('click',function(e){e.stopPropagation();navigator.clipboard.writeText(this.dataset.penjelasan).then(()=>showToast('Tersalin'));}));}
 
 function updateRow(tr,idx){const b=parlayData[idx];const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);const eff=getEff(st,b.odds);tr.querySelector('.status-cell').textContent=`${b.t||'Tim'}: ${STATUS[st]}`;tr.querySelector('.status-cell').className=`badge badge-${st} status-cell`;tr.querySelector('.eff-cell').textContent=eff.toFixed(3);const ec=tr.querySelector('.expl-cell');ec.innerHTML=penjelasan(b,st).replace(/\n/g,'<br>')+`<button class="copy-btn" data-penjelasan="${escapeAttr(penjelasan(b,st))}">Copy</button>`;ec.querySelector('.copy-btn').addEventListener('click',function(e){e.stopPropagation();navigator.clipboard.writeText(this.dataset.penjelasan).then(()=>showToast('Tersalin'));});}
 
 function renderMobileCards(){const cont=$('mobileCards');cont.innerHTML='';parlayData.forEach((b,i)=>{const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);const eff=getEff(st,b.odds);const card=document.createElement('div');card.className='mobile-card';card.setAttribute('data-idx',i);card.innerHTML=`<div class="badge-num">#${i+1}</div><div class="grid-2"><div class="field"><label>Tim Anda</label><input type="text" value="${b.t}" data-field="t"></div><div class="field"><label>Lawan</label><input type="text" value="${b.l}" data-field="l"></div></div><div class="grid-2"><div class="field"><label>Pasaran</label><select data-field="m">${['HDP','OU','1x2','OE'].map(m=>`<option value="${m}" ${b.m===m?'selected':''}>${m}</option>`).join('')}</select></div><div class="field">${renderMobileVoor(b,i)}</div></div><div class="field"><label>Skor</label><div class="skor-row"><div><span style="font-size:0.55rem;color:var(--muted);">Tim</span><input type="number" value="${b.sh}" data-field="sh"></div><span style="font-weight:700;color:var(--pitch);">:</span><div><span style="font-size:0.55rem;color:var(--muted);">Lawan</span><input type="number" value="${b.sa}" data-field="sa"></div></div></div><div class="field"><label>Odds</label><input type="number" value="${b.odds}" step="0.01" data-field="odds" style="width:80px;"></div><div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0;"><span class="badge badge-${st} status-cell">${STATUS[st]}</span><span class="eff-cell">Eff: ${eff.toFixed(3)}</span></div><div class="expl-cell" style="font-size:0.7rem;">${penjelasan(b,st).replace(/\n/g,'<br>')}</div><button class="delete-btn" style="width:100%;margin-top:12px;"><i class="fa-solid fa-xmark"></i> Hapus</button>`;cont.appendChild(card);});attachMobileEvents();}
-function renderMobileVoor(b,i){if(b.m==='HDP')return`<label>Voor (minus)</label><input type="number" value="${Math.abs(b.v)}" step="0.25" min="0" data-field="v" class="voor-input">`;if(b.m==='OU')return`<label>Batas</label><div style="display:flex;gap:4px;"><input type="number" value="${b.v}" step="0.25" data-field="v" style="flex:1;"><select data-field="p"><option value="over" ${b.p==='over'?'selected':''}>OVER</option><option value="under" ${b.p==='under'?'selected':''}>UNDER</option></select></div>`;if(b.m==='1x2')return`<label>Pilihan</label><select data-field="p"><option value="home" ${b.p==='home'?'selected':''}>Home</option><option value="draw" ${b.p==='draw'?'selected':''}>Draw</option><option value="away" ${b.p==='away'?'selected':''}>Away</option></select>`;if(b.m==='OE')return`<label>Pilihan</label><select data-field="p"><option value="even" ${b.p==='even'?'selected':''}>Even</option><option value="odd" ${b.p==='odd'?'selected':''}>Odd</option></select>`;}
-function attachMobileEvents(){document.querySelectorAll('#mobileCards .mobile-card').forEach(card=>{const idx=parseInt(card.dataset.idx);card.querySelectorAll('input,select').forEach(el=>{el.addEventListener('input',function(){const field=this.dataset.field;if(field==='v'){parlayData[idx].v=-(parseFloat(this.value)||0);}else if(field==='m'){parlayData[idx].m=this.value;renderAllParlay();return;}else{const val=this.type==='number'?(parseFloat(this.value)||0):this.value;parlayData[idx][field]=val;}updateMobileCard(card,idx);hitungParlay();});});card.querySelector('.delete-btn').addEventListener('click',()=>{parlayData.splice(idx,1);renderAllParlay();triggerPlayerKick();triggerKickParticles(window.innerWidth/2, window.innerHeight/2);showToast('Partai dihapus');});});}
-function updateMobileCard(card,idx){const b=parlayData[idx];const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);card.querySelector('.status-cell').textContent=STATUS[st];card.querySelector('.status-cell').className=`badge badge-${st} status-cell`;card.querySelector('.expl-cell').innerHTML=penjelasan(b,st).replace(/\n/g,'<br>');}
+function renderMobileVoor(b,i){if(b.m==='HDP'){const currentSign = b.v <= 0 ? '-' : '+';const absV = Math.abs(b.v);return`<label>Voor (pilih +/-)</label><div style="display:flex;gap:4px;"><select data-field="voorSign" class="voor-sign-select"><option value="-" ${currentSign==='-'?'selected':''}>-</option><option value="+" ${currentSign==='+'?'selected':''}>+</option></select><input type="number" value="${absV}" step="0.25" min="0" data-field="v" class="voor-input" style="flex:1;"></div>`;}if(b.m==='OU')return`<label>Batas</label><div style="display:flex;gap:4px;"><input type="number" value="${b.v}" step="0.25" data-field="v" style="flex:1;"><select data-field="p"><option value="over" ${b.p==='over'?'selected':''}>OVER</option><option value="under" ${b.p==='under'?'selected':''}>UNDER</option></select></div>`;if(b.m==='1x2')return`<label>Pilihan</label><select data-field="p"><option value="home" ${b.p==='home'?'selected':''}>Home</option><option value="draw" ${b.p==='draw'?'selected':''}>Draw</option><option value="away" ${b.p==='away'?'selected':''}>Away</option></select>`;if(b.m==='OE')return`<label>Pilihan</label><select data-field="p"><option value="even" ${b.p==='even'?'selected':''}>Even</option><option value="odd" ${b.p==='odd'?'selected':''}>Odd</option></select>`;}
+function attachMobileEvents(){document.querySelectorAll('#mobileCards .mobile-card').forEach(card=>{const idx=parseInt(card.dataset.idx);card.querySelectorAll('input,select').forEach(el=>{el.addEventListener('input',function(){const field=this.dataset.field;if(field==='v'||field==='voorSign'){const signEl=card.querySelector('[data-field="voorSign"]');const vEl=card.querySelector('[data-field="v"]');const sign=signEl?signEl.value:'-';const absV=parseFloat(vEl?vEl.value:0)||0;parlayData[idx].v=sign==='-'?-Math.abs(absV):Math.abs(absV);}else if(field==='m'){parlayData[idx].m=this.value;renderAllParlay();return;}else{const val=this.type==='number'?(parseFloat(this.value)||0):this.value;parlayData[idx][field]=val;}updateMobileCard(card,idx);hitungParlay();});});card.querySelector('.delete-btn').addEventListener('click',()=>{parlayData.splice(idx,1);renderAllParlay();triggerPlayerKick();triggerKickParticles(window.innerWidth/2, window.innerHeight/2);showToast('Partai dihapus');});});}
+function updateMobileCard(card,idx){const b=parlayData[idx];const st=getStatus(b.m,b.sh,b.sa,b.v,b.p);card.querySelector('.status-cell').textContent=STATUS[st];card.querySelector('.status-cell').className=`badge badge-${st} status-cell`;card.querySelector('.expl-cell').innerHTML=penjelasan(b,st).replace(/\n/g,'<br>');const effEl=card.querySelector('.eff-cell');if(effEl)effEl.textContent='Eff: '+getEff(st,b.odds).toFixed(3);}
 
 function hitungParlay(){
     const rBox = $('parlayResultBox'); rBox.className = 'result-box';
@@ -451,6 +891,16 @@ function updateSingleForm(){
     const mk=$('singlePasar').value;
     $('voorField').style.display=(mk==='HDP'||mk==='OU')?'block':'none';
     $('opsiField').style.display=(mk!=='HDP')?'block':'none';
+    const voorSignEl = $('singleVoorSign');
+    if(mk==='HDP'){
+        voorSignEl.style.display='inline-block';
+        $('singleVoor').style.flex='1';
+    }else if(mk==='OU'){
+        voorSignEl.style.display='none';
+        $('singleVoor').style.flex='1';
+    }else{
+        voorSignEl.style.display='none';
+    }
     if(mk==='OU')$('singleOpsi').innerHTML='<option value="over">Over</option><option value="under">Under</option>';
     else if(mk==='1x2')$('singleOpsi').innerHTML='<option value="home">Home</option><option value="draw">Draw</option><option value="away">Away</option>';
     else if(mk==='OE')$('singleOpsi').innerHTML='<option value="even">Even</option><option value="odd">Odd</option>';
@@ -466,7 +916,10 @@ function hitungSingle(){
     const sign=$('singleOddsSign').value; const odds=Math.abs(parseFloat($('singleOdds').value))||0;
     const modal=parseNum($('singleModal').value);
     const tim=$('singleTim').value||'Tim'; const lawan=$('singleLawan').value||'Lawan'; const mk=$('singlePasar').value;
-    let v=(mk==='HDP')?-(parseFloat($('singleVoor').value)||0):(parseFloat($('singleVoor').value)||0);
+    let v;
+    if(mk==='HDP'){const voorSign=$('singleVoorSign')?.value||'-';const absV=parseFloat($('singleVoor').value)||0;v=voorSign==='-'?-Math.abs(absV):Math.abs(absV);}
+    else if(mk==='OU'){v=Math.abs(parseFloat($('singleVoor').value)||0);}
+    else{v=0;}
     const p=$('singleOpsi').value; const sh=parseInt($('singleSkorTim').value)||0;
     const sa=(mk==='OU')?0:(parseInt($('singleSkorLawan').value)||0);
     const st=getStatus(mk,sh,sa,v,p);
@@ -483,8 +936,8 @@ function hitungSingle(){
     window._lastSingle={modal,profit,kembali,netHasil,penj,tim,lawan,mk,v,p,sh,sa,odds,st,sign,hasilText};
 }
 
-function resetSingle(){$('singleModal').value='100.000';$('singleOdds').value='1.00';$('singleTim').value='E-PSV';$('singleLawan').value='MU';$('singlePasar').value='HDP';$('singleVoor').value='0.75';$('singleSkorTim').value='3';$('singleSkorLawan').value='2';updateSingleForm();triggerPlayerKick();triggerKickParticles(window.innerWidth/2, window.innerHeight/2);showToast('Reset berhasil');}
-function copySingle(mode){const d=window._lastSingle;if(!d)return showToast('Hitung dulu!');let txt='';if(mode==='ringkas')txt=`SINGLE BET\n${d.tim} vs ${d.lawan} | ${d.mk}\nStake: Rp ${fmt(d.modal)} | Kembali: Rp ${fmt(d.kembali)}`;else if(mode==='lengkap')txt=`SINGLE BET\nTim: ${d.tim} vs ${d.lawan}\nPasaran: ${d.mk}\nVoor/Batas: ${d.mk==='HDP'||d.mk==='OU'?fmtVoor(d.v):d.p}\nSkor: ${d.sh}:${d.sa}\nOdds: ${d.sign}${d.odds}\nStake: Rp ${fmt(d.modal)}\nProfit Full: Rp ${fmt(d.profit)}\nStatus: ${d.hasilText}\nKembali: Rp ${fmt(d.kembali)}\nHasil Bersih: Rp ${fmt(d.netHasil)}`;else if(mode==='penjelasan')txt=d.penj;else txt=copySingle('lengkap')+'\n\n'+d.penj;navigator.clipboard.writeText(txt).then(()=>showToast('Tersalin!'));closeMenu('singleMenu');}
+function resetSingle(){$('singleModal').value='100.000';$('singleOdds').value='1.00';$('singleOddsSign').value='-';$('singleTim').value='E-PSV';$('singleLawan').value='MU';$('singlePasar').value='HDP';$('singleVoor').value='0.75';$('singleVoorSign').value='-';$('singleSkorTim').value='3';$('singleSkorLawan').value='2';updateSingleForm();triggerPlayerKick();triggerKickParticles(window.innerWidth/2, window.innerHeight/2);showToast('Reset berhasil');}
+function copySingle(mode){const d=window._lastSingle;if(!d)return showToast('Hitung dulu!');let txt='';if(mode==='ringkas')txt=`SINGLE BET\n${d.tim} vs ${d.lawan} | ${d.mk}\nStake: Rp ${fmt(d.modal)} | Kembali: Rp ${fmt(d.kembali)}`;else if(mode==='lengkap')txt=`SINGLE BET\nTim: ${d.tim} vs ${d.lawan}\nPasaran: ${d.mk}\nVoor/Batas: ${d.mk==='HDP'||d.mk==='OU'?fmtVoor(d.v):d.p}\nSkor: ${d.sh}:${d.sa}\nOdds: ${d.sign}${d.odds}\nStake: Rp ${fmt(d.modal)}\nProfit Full: Rp ${fmt(d.profit)}\nStatus: ${d.hasilText}\nKembali: Rp ${fmt(d.kembali)}\nHasil Bersih: Rp ${fmt(d.netHasil)}`;else if(mode==='penjelasan')txt=d.penj;else txt=d.penj+'\n\n'+`SINGLE BET\n${d.tim} vs ${d.lawan} | ${d.mk}\nStake: Rp ${fmt(d.modal)} | Kembali: Rp ${fmt(d.kembali)}`;navigator.clipboard.writeText(txt).then(()=>showToast('Tersalin!'));closeMenu('singleMenu');}
 
 function switchTab(t){$('parlayPanel').classList.toggle('active',t==='parlay');$('singlePanel').classList.toggle('active',t==='single');document.querySelectorAll('.tab').forEach((tb,i)=>tb.classList.toggle('active',i===(t==='parlay'?0:1)));}
 function toggleMenu(id){document.getElementById(id).classList.toggle('show');}
