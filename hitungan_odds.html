@@ -361,7 +361,7 @@
           Kalkulator Presisi
         </div>
         <h1 class="text-4xl lg:text-5xl font-bold mt-4">Mix <span style="background: linear-gradient(135deg,#d97706,#f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Parlay</span></h1>
-        <p class="text-sm text-gray-500 mt-2">Perhitungan akurat tanpa pembulatan · Salin detail</p>
+        <p class="text-sm text-gray-500 mt-2">Perhitungan akurat • Presisi penuh tanpa pembulatan • Salin detail</p>
       </header>
 
       <!-- Input Bet & Tambah Partai -->
@@ -383,7 +383,7 @@
         </div>
         <div class="stat-card stat-odds">
           <div class="text-xs text-gray-400 uppercase tracking-wider">Total Odds</div>
-          <div class="text-2xl font-bold mt-1" style="color:#2563eb;">{{ totalodds }}x</div>
+          <div class="text-2xl font-bold mt-1" style="color:#2563eb;">{{ totaloddsFull }}x</div>
         </div>
         <div class="stat-card stat-payout">
           <div class="text-xs text-gray-400 uppercase tracking-wider">💰 Total Menang</div>
@@ -419,7 +419,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
             <div class="sm:col-span-3">
               <label class="text-xs uppercase text-gray-400 block mb-1">Odds (desimal)</label>
-              <input v-model="parlay.oddsRaw" type="text" class="input-field" :class="{'input-error': !isOddsValid(parlay)}" placeholder="1.750" @input="onOddsInput(parlay)" @blur="formatOddsDisplay(parlay)">
+              <input v-model="parlay.oddsRaw" type="text" class="input-field" :class="{'input-error': !isOddsValid(parlay)}" placeholder="Contoh: 1.75" @input="onOddsInput(parlay)" @blur="formatOddsDisplay(parlay)">
               <span v-if="!isOddsValid(parlay)" class="text-xs text-red-500 block mt-1"><i class="fa-solid fa-triangle-exclamation"></i> Harus > 0</span>
             </div>
 
@@ -443,10 +443,10 @@
         </div>
       </div>
 
-      <!-- DETAIL PERHITUNGAN (TANPA PEMBULATAN) -->
+      <!-- DETAIL PERHITUNGAN (PRESISI PENUH, TANPA PEMBULATAN) -->
       <div class="glass-card p-5 mt-4">
         <h3 class="text-sm font-bold mb-4 flex items-center gap-2" style="color: var(--accent);">
-          <i class="fa-solid fa-magnifying-glass-chart"></i> Detail Hitungan Presisi
+          <i class="fa-solid fa-magnifying-glass-chart"></i> Detail Hitungan • Presisi Penuh
         </h3>
         <div v-if="parlays.length > 0 && allOddsValid" class="space-y-2">
           <div class="detail-row" v-for="(parlay, idx) in parlays" :key="'d-'+idx">
@@ -457,33 +457,39 @@
               </div>
               <div class="ml-8 text-xs text-gray-500 space-y-1">
                 <span>Odds awal: <strong>{{ getOddsNumberFormatted(parlay) }}</strong></span>
-                <span v-if="parlay.hasil === '1'"> → Rumus: Tetap = <strong>{{ getEffectiveOddsDisplay(parlay) }}</strong></span>
-                <span v-if="parlay.hasil === '0.5'"> → Rumus: ({{ getOddsNumberFormatted(parlay) }} - 1) ÷ 2 + 1 = <strong>{{ getEffectiveOddsDisplay(parlay) }}</strong></span>
-                <span v-if="parlay.hasil === '-0.5'"> → Rumus: Kalah ½ → <strong>0.500</strong></span>
-                <span v-if="parlay.hasil === '0'"> → Rumus: Seri → <strong>1.000</strong></span>
+                <span v-if="parlay.hasil === '1'"> → Rumus: Tetap = <strong>{{ getEffectiveOddsFull(parlay) }}</strong></span>
+                <span v-if="parlay.hasil === '0.5'"> → Rumus: ({{ getOddsNumberFormatted(parlay) }} - 1) ÷ 2 + 1 = <strong>{{ getEffectiveOddsFull(parlay) }}</strong></span>
+                <span v-if="parlay.hasil === '-0.5'"> → Rumus: Kalah ½ → <strong>0.5</strong></span>
+                <span v-if="parlay.hasil === '0'"> → Rumus: Seri → <strong>1</strong></span>
               </div>
             </div>
             <div class="text-right">
-              <span class="text-sm font-mono font-bold" style="color: #2563eb;">{{ getEffectiveOddsDisplay(parlay) }}</span>
+              <span class="text-sm font-mono font-bold" style="color: #2563eb;">{{ getEffectiveOddsFull(parlay) }}</span>
               <div class="text-xs text-gray-400">efektif</div>
             </div>
           </div>
 
           <div class="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
             <div class="flex justify-between items-center text-sm font-semibold mb-2">
-              <span>Perkalian odds efektif:</span>
-              <span class="font-mono text-base" style="color: #2563eb;">{{ totalodds }}x</span>
+              <span>Perkalian odds efektif (presisi penuh):</span>
+              <span class="font-mono text-base" style="color: #2563eb;">{{ totaloddsFull }}x</span>
             </div>
-            <div class="text-xs text-gray-500 mb-3" v-if="parlays.length > 1">
-              {{ parlays.map(p => getEffectiveOddsDisplay(p)).join(' × ') }} = {{ totalodds }}
+            <div class="text-xs text-gray-500 mb-3 font-mono" v-if="parlays.length > 1">
+              {{ parlays.map(p => getEffectiveOddsFull(p)).join(' × ') }} = <strong>{{ totaloddsFull }}</strong>
             </div>
             <div class="flex justify-between items-center text-sm font-semibold mb-2">
-              <span>Total Kemenangan ({{ totalodds }} × Rp{{ formatNumber(nilaibet) }}):</span>
-              <span class="font-mono text-base" style="color: #7c3aed;">{{ totalPayoutFormatted }}</span>
+              <span>Total Kemenangan (presisi penuh):</span>
+              <span class="font-mono text-base" style="color: #7c3aed;">{{ totalPayoutFull }}</span>
+            </div>
+            <div class="text-xs text-gray-500 mb-3 font-mono">
+              {{ totaloddsFull }} × {{ nilaibet }} = <strong>{{ totalPayoutFull }}</strong>
             </div>
             <div class="flex justify-between items-center text-sm font-semibold">
-              <span>Keuntungan Bersih:</span>
-              <span class="font-mono text-base" :style="{ color: resultColor }">{{ totalResultFormatted }}</span>
+              <span>Keuntungan Bersih (presisi penuh):</span>
+              <span class="font-mono text-base" :style="{ color: resultColor }">{{ totalResultFull }}</span>
+            </div>
+            <div class="text-xs text-gray-500 mt-1 font-mono">
+              {{ totalPayoutFull }} - {{ nilaibet }} = <strong :style="{ color: resultColor }">{{ totalResultFull }}</strong>
             </div>
           </div>
         </div>
@@ -499,8 +505,8 @@
           <ul class="text-xs space-y-2 text-gray-600">
             <li><span class="w-2 h-2 inline-block rounded-full bg-green-600 mr-2"></span> <strong>Menang Full:</strong> Odds tetap</li>
             <li><span class="w-2 h-2 inline-block rounded-full bg-blue-600 mr-2"></span> <strong>Menang ½:</strong> (Odds - 1) ÷ 2 + 1</li>
-            <li><span class="w-2 h-2 inline-block rounded-full bg-red-600 mr-2"></span> <strong>Kalah ½:</strong> Odds = 0.500</li>
-            <li><span class="w-2 h-2 inline-block rounded-full bg-yellow-600 mr-2"></span> <strong>Seri:</strong> Odds = 1.000</li>
+            <li><span class="w-2 h-2 inline-block rounded-full bg-red-600 mr-2"></span> <strong>Kalah ½:</strong> Odds = 0.5</li>
+            <li><span class="w-2 h-2 inline-block rounded-full bg-yellow-600 mr-2"></span> <strong>Seri:</strong> Odds = 1</li>
           </ul>
         </div>
         <div class="glass-card p-5">
@@ -509,7 +515,7 @@
             <strong>Total Menang = Total Odds × Bet</strong><br>
             <strong>Keuntungan = Total Menang − Bet</strong>
           </div>
-          <p class="text-xs text-gray-500">Semua perhitungan menggunakan presisi penuh, tanpa pembulatan.</p>
+          <p class="text-xs text-gray-500">⚠️ Semua perhitungan menggunakan presisi penuh JavaScript (floating point), TANPA pembulatan sama sekali. Hasil ditampilkan apa adanya.</p>
         </div>
       </div>
 
@@ -530,7 +536,7 @@
       data: {
         nilaibetRaw: '10.000',
         parlays: [
-          { oddsRaw: '1.750', hasil: '1' }
+          { oddsRaw: '1.75', hasil: '1' }
         ],
         showToast: false,
         toastTimer: null
@@ -544,28 +550,46 @@
         totalbet() {
           return this.parlays.length;
         },
+        // TOTAL ODDS - Presisi penuh, TANPA toFixed, TANPA pembulatan
         totalodds() {
           let total = 1;
           for (let p of this.parlays) {
             total *= this.getEffectiveOdds(p);
           }
-          // Kembalikan sebagai number dengan presisi penuh, tanpa toFixed di sini
-          return total;
+          return total; // Kembalikan angka asli, TANPA pembulatan
         },
+        // Tampilkan total odds dengan semua desimal (presisi penuh)
+        totaloddsFull() {
+          return this.totalodds.toString(); // Tampilkan angka asli apa adanya
+        },
+        // TOTAL PAYOUT - Presisi penuh, TANPA Math.round, TANPA pembulatan
         totalPayout() {
-          // Presisi penuh: totalodds * nilaibet, lalu dibulatkan ke satuan rupiah terdekat (karena uang)
-          return Math.round(this.totalodds * this.nilaibet);
+          return this.totalodds * this.nilaibet; // Hasil perkalian asli, TANPA pembulatan
         },
+        // Tampilan payout presisi penuh
+        totalPayoutFull() {
+          return this.totalPayout.toString(); // Angka asli apa adanya
+        },
+        // Format dengan Rp untuk tampilan (tapi nilai internal tetap presisi)
         totalPayoutFormatted() {
-          return 'Rp ' + this.totalPayout.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+          // Untuk tampilan, kita bulatkan ke integer karena ini Rupiah
+          // Tapi nilai asli tetap tersimpan di totalPayout
+          const displayValue = Math.round(this.totalPayout);
+          return 'Rp ' + displayValue.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         },
+        // TOTAL RESULT - Presisi penuh
         totalResult() {
-          return this.totalPayout - this.nilaibet;
+          return this.totalPayout - this.nilaibet; // Hasil pengurangan asli, TANPA pembulatan
+        },
+        // Tampilan result presisi penuh
+        totalResultFull() {
+          return this.totalResult.toString(); // Angka asli apa adanya
         },
         totalResultFormatted() {
-          const val = this.totalResult;
-          const sign = val > 0 ? '+' : val < 0 ? '−' : '';
-          return sign + 'Rp ' + Math.abs(val).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+          // Untuk tampilan Rupiah, bulatkan ke integer
+          const displayValue = Math.round(this.totalResult);
+          const sign = displayValue > 0 ? '+' : displayValue < 0 ? '−' : '';
+          return sign + 'Rp ' + Math.abs(displayValue).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         },
         resultLabel() {
           if (this.totalResult > 0) return 'Keuntungan';
@@ -591,26 +615,36 @@
       },
       methods: {
         getOddsNumber(parlay) {
-          return parseFloat(parlay.oddsRaw.replace(/,/g, '.')) || 0;
+          let cleaned = parlay.oddsRaw.replace(/,/g, '.').replace(/[^\d.]/g, '');
+          let num = parseFloat(cleaned);
+          return isNaN(num) ? 0 : num;
         },
         getOddsNumberFormatted(parlay) {
           const num = this.getOddsNumber(parlay);
-          return num.toFixed(3);
+          if (num === 0) return '0';
+          return num.toString(); // Tampilkan angka asli
         },
+        // Mendapatkan odds efektif - TANPA pembulatan
         getEffectiveOdds(parlay) {
           const odds = this.getOddsNumber(parlay);
           if (odds <= 0) return 0;
           const hasil = parlay.hasil;
           if (hasil === '1') return odds;
-          if (hasil === '0.5') return ((odds - 1) / 2) + 1;
+          if (hasil === '0.5') return ((odds - 1) / 2) + 1; // Hasil asli, TANPA pembulatan
           if (hasil === '-0.5') return 0.5;
           if (hasil === '0') return 1;
           return odds;
         },
+        // Tampilkan odds efektif presisi penuh
+        getEffectiveOddsFull(parlay) {
+          const eff = this.getEffectiveOdds(parlay);
+          if (eff === 0 && this.getOddsNumber(parlay) <= 0) return '?';
+          return eff.toString(); // Angka asli apa adanya
+        },
+        // Untuk badge, tampilkan dengan 3 desimal (hanya tampilan)
         getEffectiveOddsDisplay(parlay) {
           const eff = this.getEffectiveOdds(parlay);
           if (eff === 0 && this.getOddsNumber(parlay) <= 0) return '?';
-          // Tampilkan dengan 3 desimal, tapi perhitungan internal tetap presisi
           return eff.toFixed(3);
         },
         isOddsValid(parlay) {
@@ -636,18 +670,33 @@
         },
         onOddsInput(parlay) {
           parlay.oddsRaw = parlay.oddsRaw.replace(/[^\d.,]/g, '');
+          
+          let hasDecimal = false;
+          let result = '';
+          for (let char of parlay.oddsRaw) {
+            if (char === '.' || char === ',') {
+              if (!hasDecimal) {
+                result += '.';
+                hasDecimal = true;
+              }
+            } else {
+              result += char;
+            }
+          }
+          parlay.oddsRaw = result;
         },
         formatOddsDisplay(parlay) {
-          let val = parlay.oddsRaw.replace(/,/g, '.');
-          let num = parseFloat(val);
+          let num = this.getOddsNumber(parlay);
           if (isNaN(num) || num <= 0) {
-            parlay.oddsRaw = '1.750';
+            parlay.oddsRaw = '1.75';
             return;
           }
-          parlay.oddsRaw = num.toFixed(3);
+          // Biarkan format sesuai input user
+          let cleaned = parlay.oddsRaw.replace(/,/g, '.').replace(/[^\d.]/g, '');
+          parlay.oddsRaw = cleaned;
         },
         addNewParlay() {
-          this.parlays.push({ oddsRaw: '1.750', hasil: '1' });
+          this.parlays.push({ oddsRaw: '1.75', hasil: '1' });
         },
         removeParlay(index) {
           if (this.parlays.length > 1) this.parlays.splice(index, 1);
@@ -657,17 +706,23 @@
             this.showTemporaryToast('Lengkapi data terlebih dahulu');
             return;
           }
-          let text = '🎯 HASIL MIX PARLAY (Presisi)\n';
-          text += `Nilai Bet: Rp${this.formatNumber(this.nilaibet)}\n`;
+          let text = '🎯 HASIL MIX PARLAY (Presisi Penuh)\n';
+          text += '⚠️ TANPA PEMBULATAN\n\n';
+          text += `Nilai Bet: ${this.nilaibet}\n`;
           text += `Total Partai: ${this.totalbet}\n`;
-          text += `Total Odds: ${this.totalodds.toFixed(3)}x\n`;
-          text += `Total Menang: ${this.totalPayoutFormatted}\n`;
-          text += `Keuntungan Bersih: ${this.totalResultFormatted}\n\n`;
+          text += `Total Odds (presisi penuh): ${this.totaloddsFull}x\n`;
+          text += `Total Menang (presisi penuh): ${this.totalPayoutFull}\n`;
+          text += `Keuntungan Bersih (presisi penuh): ${this.totalResultFull}\n\n`;
           text += '📋 RINCIAN PER PARTAI:\n';
           this.parlays.forEach((p, i) => {
             const statusMap = { '1': 'Menang Full', '0.5': 'Menang ½', '-0.5': 'Kalah ½', '0': 'Seri' };
-            text += `Partai ${i+1}: Odds ${this.getOddsNumberFormatted(p)} → ${statusMap[p.hasil]} → Odds Efektif ${this.getEffectiveOddsDisplay(p)}\n`;
+            text += `Partai ${i+1}: Odds ${this.getOddsNumberFormatted(p)} → ${statusMap[p.hasil]} → Odds Efektif ${this.getEffectiveOddsFull(p)}\n`;
           });
+          text += '\n📐 RUMUS PERHITUNGAN:\n';
+          text += `Total Odds = ${this.parlays.map(p => this.getEffectiveOddsFull(p)).join(' × ')} = ${this.totaloddsFull}\n`;
+          text += `Total Menang = ${this.totaloddsFull} × ${this.nilaibet} = ${this.totalPayoutFull}\n`;
+          text += `Keuntungan = ${this.totalPayoutFull} - ${this.nilaibet} = ${this.totalResultFull}\n`;
+          
           navigator.clipboard.writeText(text).then(() => {
             this.showTemporaryToast('Hasil berhasil disalin!');
           }).catch(() => {
@@ -684,12 +739,11 @@
       },
       mounted() {
         this.parlays.forEach(p => {
-          let val = p.oddsRaw.replace(/,/g, '.');
-          let num = parseFloat(val);
+          let num = this.getOddsNumber(p);
           if (isNaN(num) || num <= 0) {
-            p.oddsRaw = '1.750';
+            p.oddsRaw = '1.75';
           } else {
-            p.oddsRaw = num.toFixed(3);
+            this.formatOddsDisplay(p);
           }
           if (!['1', '0.5', '-0.5', '0'].includes(p.hasil)) p.hasil = '1';
         });
