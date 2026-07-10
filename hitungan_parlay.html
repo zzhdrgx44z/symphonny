@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Bet Calculator – Stadion Edition</title>
+    <title>Kalkulator Taruhan Premium – Edisi Stadion</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
@@ -1394,15 +1394,15 @@
     <section class="hero-scene">
         <div class="hero-text">
             <h1>Premium <span>Bet</span></h1>
-            <p>Mix Parlay & Single Bet — Handicap +/- dengan Penjelasan Kontekstual</p>
-            <div class="hero-badge"><i class="fa-solid fa-futbol"></i> Official Matchday Calculator</div>
+            <p>Parlay Campuran & Taruhan Tunggal — Handicap +/- dengan Penjelasan Kontekstual</p>
+            <div class="hero-badge"><i class="fa-solid fa-futbol"></i> Kalkulator Resmi Hari Pertandingan</div>
         </div>
     </section>
 
     <div class="content">
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('parlay')"><i class="fa-solid fa-dice"></i> Mix Parlay</button>
-            <button class="tab" onclick="switchTab('single')"><i class="fa-solid fa-bolt"></i> Single Bet</button>
+            <button class="tab active" onclick="switchTab('parlay')"><i class="fa-solid fa-dice"></i> Parlay Campuran</button>
+            <button class="tab" onclick="switchTab('single')"><i class="fa-solid fa-bolt"></i> Taruhan Tunggal</button>
         </div>
 
         <div id="parlayPanel" class="panel active">
@@ -1451,7 +1451,7 @@
         <div id="singlePanel" class="panel">
             <div class="card">
                 <div class="form-grid">
-                    <div class="field"><label><i class="fa-solid fa-wallet"></i> Modal / Stake (Rp)</label><input type="text" id="singleModal" value="100.000" style="text-align:right;" oninput="hitungSingle()"></div>
+                    <div class="field"><label><i class="fa-solid fa-wallet"></i> Modal Taruhan (Rp)</label><input type="text" id="singleModal" value="100.000" style="text-align:right;" oninput="hitungSingle()"></div>
                     <div class="field"><label><i class="fa-solid fa-percent"></i> Odds (Indo)</label><div style="display:flex;gap:6px;"><select id="singleOddsSign" style="width:64px;" onchange="hitungSingle()"><option value="-">-</option><option value="+">+</option></select><input type="number" id="singleOdds" value="1.00" step="0.01" style="flex:1;" oninput="hitungSingle()"></div></div>
                 </div>
                 <div class="form-grid" style="margin-top:16px;">
@@ -1486,7 +1486,7 @@
                 </div>
                 <div class="result-box" id="singleResultBox">
                     <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <h3><i class="fa-solid fa-chart-line"></i> Hasil Single Bet</h3>
+                        <h3><i class="fa-solid fa-chart-line"></i> Hasil Taruhan Tunggal</h3>
                         <div class="menu-wrap" id="singleMenuWrap">
                             <button class="menu-btn" onclick="toggleMenu('singleMenu')"><i class="fa-solid fa-copy"></i> Salin ▾</button>
                             <div class="menu-dropdown" id="singleMenu">
@@ -1503,7 +1503,7 @@
         </div>
     </div>
 
-    <footer class="footer">Designed for Winners <span>|</span> Bet Stadium 2025</footer>
+    <footer class="footer">Dirancang untuk Pemenang <span>|</span> Bet Stadium 2025</footer>
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
@@ -2084,11 +2084,11 @@
             if (voorSign) voorSign.style.display = (mk === 'HDP') ? 'inline-block' : 'none';
 
             if (mk === 'OU') $('singleOpsi').innerHTML =
-                '<option value="over">Over</option><option value="under">Under</option>';
+                '<option value="over">Lebih</option><option value="under">Kurang</option>';
             else if (mk === '1x2') $('singleOpsi').innerHTML =
-                '<option value="home">Home</option><option value="draw">Draw</option><option value="away">Away</option>';
+                '<option value="home">Tuan Rumah</option><option value="draw">Seri</option><option value="away">Tandang</option>';
             else if (mk === 'OE') $('singleOpsi').innerHTML =
-            '<option value="even">Even</option><option value="odd">Odd</option>';
+            '<option value="even">Genap</option><option value="odd">Ganjil</option>';
 
             $('skorLawanDiv').style.display = mk === 'OU' ? 'none' : '';
             $('skorSeparator').style.display = mk === 'OU' ? 'none' : '';
@@ -2101,56 +2101,107 @@
         function hitungSingle() {
             const rBox = $('singleResultBox');
             rBox.className = 'result-box';
+
             const sign = $('singleOddsSign').value;
             const odds = Math.abs(parseFloat($('singleOdds').value)) || 0;
-            const modal = parseNum($('singleModal').value);
-            const tim = $('singleTim').value || 'Tim';
-            const lawan = $('singleLawan').value || 'Lawan';
+            const modalAwal = parseNum($('singleModal').value);
+            const tim = $('singleTim').value.trim() || 'Tim';
+            const lawan = $('singleLawan').value.trim() || 'Lawan';
             const mk = $('singlePasar').value;
 
             let v;
             if (mk === 'HDP') {
                 const vSign = $('singleVoorSign')?.value || '-';
-                const vAbs = parseFloat($('singleVoor').value) || 0;
+                const vAbs = Math.abs(parseFloat($('singleVoor').value) || 0);
                 v = vSign === '+' ? vAbs : -vAbs;
             } else {
                 v = parseFloat($('singleVoor').value) || 0;
             }
 
             const p = $('singleOpsi').value;
-            const sh = parseInt($('singleSkorTim').value) || 0;
-            const sa = (mk === 'OU') ? 0 : (parseInt($('singleSkorLawan').value) || 0);
+            const sh = parseInt($('singleSkorTim').value, 10) || 0;
+            const sa = mk === 'OU' ? 0 : (parseInt($('singleSkorLawan').value, 10) || 0);
             const st = getStatus(mk, sh, sa, v, p);
-            let profit = 0;
-            if (odds > 0) { if (sign === '-') { profit = modal / odds; } else { profit = modal * odds; } }
-            let kembali = 0;
+
+            // Rumus khusus odds minus sesuai permintaan:
+            // -1.40, modal 100.000 => modal hitung 140.000,
+            // profit Win Full 100.000, total 240.000.
+            const modalHitung = sign === '-' ? modalAwal * odds : modalAwal;
+            const profitFull = sign === '-' ? modalAwal : modalAwal * odds;
+
+            let kemenanganBersih = 0;
+            let totalDidapat = 0;
             let hasilText = '';
-            if (st === 'mf') { kembali = modal + profit;
-                hasilText = 'MENANG FULL';
+            let catatan = '';
+
+            if (st === 'mf') {
+                kemenanganBersih = profitFull;
+                totalDidapat = modalHitung + kemenanganBersih;
+                hasilText = 'MENANG PENUH';
+                catatan = 'Menang penuh, modal hitung dan keuntungan dikembalikan.';
                 rBox.classList.add('result-win');
-                triggerPlayerKick(); const boxRect = rBox.getBoundingClientRect();
-                triggerGoalCelebration(boxRect.left + boxRect.width / 2, boxRect.top + boxRect.height / 2); } else if (st ===
-                'ms') { kembali = modal + (profit / 2);
+                triggerPlayerKick();
+                const boxRect = rBox.getBoundingClientRect();
+                triggerGoalCelebration(boxRect.left + boxRect.width / 2, boxRect.top + boxRect.height / 2);
+            } else if (st === 'ms') {
+                kemenanganBersih = profitFull / 2;
+                totalDidapat = modalHitung + kemenanganBersih;
                 hasilText = 'MENANG SETENGAH';
-                rBox.classList.add('result-win'); } else if (st === 'ks') { kembali = modal / 2;
+                catatan = 'Menang setengah, modal hitung dan setengah keuntungan dikembalikan.';
+                rBox.classList.add('result-win');
+            } else if (st === 'sr') {
+                kemenanganBersih = 0;
+                totalDidapat = modalHitung;
+                hasilText = 'SERI / MODAL KEMBALI';
+                catatan = 'Taruhan seri, modal hitung dikembalikan tanpa keuntungan.';
+                rBox.classList.add('result-draw');
+            } else if (st === 'ks') {
+                kemenanganBersih = -(modalHitung / 2);
+                totalDidapat = modalHitung / 2;
                 hasilText = 'KALAH SETENGAH';
-                rBox.classList.add('result-lose'); } else if (st === 'sr') { kembali = modal;
-                hasilText = 'SERI';
-                rBox.classList.add('result-draw'); } else { kembali = 0;
-                hasilText = 'KALAH FULL';
-                rBox.classList.add('result-lose'); }
-            let netHasil = kembali - modal;
-            let isProfit = netHasil >= 0;
-            const penj = penjelasan({ t: tim, l: lawan, m: mk, v, p, sh, sa, odds }, st);
+                catatan = 'Kalah setengah, setengah modal hitung dikembalikan.';
+                rBox.classList.add('result-lose');
+            } else {
+                kemenanganBersih = -modalHitung;
+                totalDidapat = 0;
+                hasilText = 'KALAH PENUH';
+                catatan = 'Kalah penuh, modal hitung tidak dikembalikan.';
+                rBox.classList.add('result-lose');
+            }
+
+            const oddsTampil = `${sign}${odds.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}`;
+            const jenisBet = 'Waktu Penuh';
+            const statusIndo = STATUS[st];
+            const alasanStatus = mk === 'HDP'
+                ? (st === 'mf'
+                    ? `Setelah voor dihitung, hasil masih menguntungkan ${tim}, jadi taruhan masuk Menang Full.`
+                    : `Setelah voor dihitung, status taruhan menjadi ${statusIndo}.`)
+                : `Setelah pasaran dihitung, status taruhan menjadi ${statusIndo}.`;
+
+            const detailOdds = sign === '-'
+                ? `Karena odds yang dipakai minus (${oddsTampil}), modal yang dihitung menjadi Rp${fmt(modalHitung)} ya bosku. Keuntungan bersihnya Rp${fmt(Math.max(0, kemenanganBersih))}. Total yang Anda dapat plus modal yang dihitung menjadi Rp${fmt(totalDidapat)} ya bosku.`
+                : `Karena odds yang dipakai plus (${oddsTampil}), modal hitung tetap Rp${fmt(modalHitung)}. Keuntungan bersihnya Rp${fmt(Math.max(0, kemenanganBersih))}, sehingga total yang Anda dapat Rp${fmt(totalDidapat)} ya bosku.`;
+
+            const penj = `Bosku, Anda bertaruh pada ${tim} dengan voor ${fmtVoor(v)} di ${jenisBet}. Pertandingan berakhir ${tim} ${sh}-${sa} ${lawan}. ${alasanStatus} ${detailOdds}`;
+
             $('singleResultText').innerHTML = `
-                <div class="summary-item"><span>Modal (Stake)</span><strong>Rp ${fmt(modal)}</strong></div>
-                <div class="summary-item"><span>Potensi Profit (Full)</span><strong>Rp ${fmt(profit)}</strong></div>
-                <div class="summary-item"><span>Status Taruhan</span><strong class="badge badge-${st}">${hasilText}</strong></div>
-                <div class="summary-item"><span>Total Kembali</span><strong style="color:var(--pitch)">Rp ${fmt(kembali)}</strong></div>
-                <div class="summary-item"><span>Hasil Bersih</span><strong style="color:${isProfit?'var(--gold)':'var(--red)'};">${isProfit?'+':'-'} Rp ${fmt(Math.abs(netHasil))}</strong></div>
-                <div class="expl-cell" style="margin-top:10px;">${penj.replace(/\n/g,'<br>')}</div>`;
-            window._lastSingle = { modal, profit, kembali, netHasil, penj, tim, lawan, mk, v, p, sh, sa, odds, st, sign,
-                hasilText };
+                <div class="summary-item"><span>Pasaran</span><strong>${mk}</strong></div>
+                <div class="summary-item"><span>Jenis Taruhan</span><strong>${jenisBet}</strong></div>
+                <div class="summary-item"><span>Status</span><strong class="badge badge-${st}">${hasilText}</strong></div>
+                <div class="summary-item"><span>Odds</span><strong>${oddsTampil}</strong></div>
+                <div class="summary-item"><span>Modal Awal</span><strong>Rp ${fmt(modalAwal)}</strong></div>
+                <div class="summary-item"><span>Modal Hitung</span><strong>Rp ${fmt(modalHitung)}</strong></div>
+                <div class="summary-item"><span>Keuntungan Bersih</span><strong style="color:${kemenanganBersih >= 0 ? 'var(--gold)' : 'var(--red)'};">${kemenanganBersih < 0 ? '- ' : ''}Rp ${fmt(Math.abs(kemenanganBersih))}</strong></div>
+                <div class="summary-item"><span>Total Diterima</span><strong style="color:var(--pitch)">Rp ${fmt(totalDidapat)}</strong></div>
+                <div class="summary-item"><span>Catatan Perhitungan</span><strong style="text-align:right;max-width:60%;">${catatan}</strong></div>
+                <div class="expl-cell" style="margin-top:10px;">${penj.replace(/\n/g, '<br>')}</div>`;
+
+            window._lastSingle = {
+                modal: modalAwal, modalHitung, profit: profitFull, kemenanganBersih,
+                kembali: totalDidapat, netHasil: kemenanganBersih, penj, catatan,
+                tim, lawan, mk, jenisBet, v, p, sh, sa, odds, oddsTampil,
+                st, sign, hasilText
+            };
         }
 
         function resetSingle() {
@@ -2169,15 +2220,35 @@
             showToast('Reset berhasil');
         }
 
-        function copySingle(mode) { const d = window._lastSingle; if (!d) return showToast('Hitung dulu!'); let txt = ''; if (
-                mode === 'ringkas') txt =
-                `SINGLE BET\n${d.tim} vs ${d.lawan} | ${d.mk}\nStake: Rp ${fmt(d.modal)} | Kembali: Rp ${fmt(d.kembali)}`;
-            else if (mode === 'lengkap') txt =
-                `SINGLE BET\nTim: ${d.tim} vs ${d.lawan}\nPasaran: ${d.mk}\nVoor/Batas: ${d.mk==='HDP'||d.mk==='OU'?fmtVoor(d.v):d.p}\nSkor: ${d.sh}:${d.sa}\nOdds: ${d.sign}${d.odds}\nStake: Rp ${fmt(d.modal)}\nProfit Full: Rp ${fmt(d.profit)}\nStatus: ${d.hasilText}\nKembali: Rp ${fmt(d.kembali)}\nHasil Bersih: Rp ${fmt(d.netHasil)}`;
-            else if (mode === 'penjelasan') txt = d.penj;
-            else txt = copySingle('lengkap') + '\n\n' + d.penj;
+        function copySingle(mode) {
+            const d = window._lastSingle;
+            if (!d) return showToast('Hitung dulu!');
+
+            const lengkap = `HASIL TARUHAN TUNGGAL
+Pasaran: ${d.mk}
+Jenis Taruhan: ${d.jenisBet}
+Status: ${d.hasilText}
+Odds: ${d.oddsTampil}
+Modal Awal: Rp${fmt(d.modal)}
+Modal Hitung: Rp${fmt(d.modalHitung)}
+Keuntungan Bersih: ${d.kemenanganBersih < 0 ? '-' : ''}Rp${fmt(Math.abs(d.kemenanganBersih))}
+Total Diterima: Rp${fmt(d.kembali)}
+Catatan Perhitungan: ${d.catatan}`;
+
+            let txt = '';
+            if (mode === 'ringkas') {
+                txt = `TARUHAN TUNGGAL\n${d.tim} vs ${d.lawan}\n${d.hasilText} | ${d.oddsTampil}\nTotal Diterima: Rp${fmt(d.kembali)}`;
+            } else if (mode === 'lengkap') {
+                txt = lengkap;
+            } else if (mode === 'penjelasan') {
+                txt = d.penj;
+            } else {
+                txt = `${lengkap}\n\nPERHITUNGAN\n${d.penj}`;
+            }
+
             navigator.clipboard.writeText(txt).then(() => showToast('Tersalin!'));
-            closeMenu('singleMenu'); }
+            closeMenu('singleMenu');
+        }
 
         function switchTab(t) { $('parlayPanel').classList.toggle('active', t === 'parlay');
             $('singlePanel').classList.toggle('active', t === 'single');
