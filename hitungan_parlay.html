@@ -1522,6 +1522,7 @@
         const $ = id => document.getElementById(id);
         const fmt = n => Math.round(n).toLocaleString('id-ID');
         const parseNum = s => parseInt((s || '').replace(/\D/g, '')) || 0;
+        const escapeHtml = value => String(value ?? '').replace(/[&<>\"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[ch]));
         const eq = (a, b) => Math.abs(a - b) < 0.001;
         const STATUS = { mf: 'Menang Full', ms: 'Menang Setengah', ks: 'Kalah Setengah', sr: 'Seri', kf: 'Kalah Full' };
 
@@ -1756,55 +1757,159 @@
 
         function fmtVoor(v) { if (v === 0) return '0'; return (v > 0 ? `+${v}` : `${v}`); }
 
+        function namaPasaran(m) {
+            return ({ HDP: 'Handicap', OU: 'Over/Under', '1x2': '1X2', OE: 'Ganjil/Genap', BTTS: 'BTTS' })[m] || m;
+        }
+
+        function namaPilihan(m, p) {
+            if (m === 'OU') return p === 'over' ? 'Over' : 'Under';
+            if (m === '1x2') return p === 'home' ? 'Tim Kandang' : p === 'away' ? 'Tim Tandang' : 'Seri';
+            if (m === 'OE') return p === 'odd' ? 'Ganjil' : 'Genap';
+            if (m === 'BTTS') return p === 'yes' ? 'Ya, kedua tim mencetak gol' : 'Tidak, minimal satu tim tidak mencetak gol';
+            return p || '-';
+        }
+
+        function uraikanQuarterLine(v) {
+            const n = Math.round(v * 100) / 100;
+            const abs = Math.abs(n);
+            const frac = Math.round((abs - Math.floor(abs)) * 100);
+            if (frac !== 25 && frac !== 75) return [n];
+            const lower = Math.floor(abs * 2) / 2;
+            const upper = lower + 0.5;
+            const sign = n < 0 ? -1 : 1;
+            return [sign * lower, sign * upper];
+        }
+
+        function hasilSatuLine(nilai) {
+            if (nilai > 0) return 'menang';
+            if (eq(nilai, 0)) return 'push';
+            return 'kalah';
+        }
+
+        function statusKalimat(st) {
+            return ({
+                mf: 'Menang Penuh',
+                ms: 'Menang Setengah',
+                sr: 'Seri / Push (modal bagian tersebut kembali)',
+                ks: 'Kalah Setengah',
+                kf: 'Kalah Penuh'
+            })[st] || STATUS[st];
+        }
+
         function penjelasan(b, st) {
             const { t, l, m, v, p, sh, sa, odds } = b;
-            const d = sh - sa,
-                tot = sh + sa;
+            const d = sh - sa;
+            const tot = sh + sa;
+            const lawan = l || 'lawan';
+            const statusAkhir = statusKalimat(st);
+            let txt = `PASARAN: ${namaPasaran(m)}
+`;
+            txt += `PERTANDINGAN: ${t} vs ${lawan}
+`;
+            txt += `SKOR AKHIR: ${t} ${sh}-${sa} ${lawan}
+`;
+
             if (m === 'HDP') {
-                const voorAbs = Math.abs(v);
-                const voorArah = v < 0 ?
-                    `Kamu <b>kasih voor</b> ${voorAbs} gol ke ${l}` :
-                    (v > 0 ? `Kamu <b>dikasih voor</b> ${voorAbs} gol dari ${l}` : 'Voor 0 (tanpa voor)');
-                let txt =
-                    `📌 HDP | ${t} vs ${l}\nSkor: ${sh} - ${sa} (Selisih = ${d})\nVoor: ${fmtVoor(v)} → ${voorArah.replace(/<b>/g,'').replace(/<\/b>/g,'')}\n`;
-                if (Math.abs(v) % 0.5 === 0) {
-                    const hasil = d + v;
-                    txt += `Perhitungan: ${d} + (${v}) = ${hasil}\n`;
-                    if (hasil > 0.25) txt += `✅ ${t} MENANG FULL (${odds})`;
-                    else if (eq(hasil, 0)) txt += `🔄 SERI (1)`;
-                    else txt += `❌ ${t} KALAH FULL (0)`;
+                const arah = v < 0
+                    ? `${t} memberi voor ${Math.abs(v)} gol kepada ${lawan}`
+                    : v > 0
+                        ? `${t} menerima voor ${Math.abs(v)} gol dari ${lawan}`
+                        : 'Tidak ada voor (handicap 0)';
+                txt += `PILIHAN: ${t} ${fmtVoor(v)}
+`;
+                txt += `ARTI VOOR: ${arah}.
+`;
+                txt += `SELISIH GOL ASLI: ${sh} - ${sa} = ${d}.
+`;
+
+                const lines = uraikanQuarterLine(v);
+                if (lines.length === 2) {
+                    txt += `PEMBAGIAN TARUHAN: handicap ${fmtVoor(v)} dibagi menjadi 50% di ${fmtVoor(lines[0])} dan 50% di ${fmtVoor(lines[1])}.
+`;
+                    lines.forEach((line, idx) => {
+                        const nilai = d + line;
+                        txt += `Bagian ${idx + 1}: ${d} + (${line}) = ${nilai} → ${hasilSatuLine(nilai).toUpperCase()}.
+`;
+                    });
                 } else {
-                    const lo = Math.floor(Math.abs(v) * 2) / 2 * (v > 0 ? 1 : -1);
-                    const hi = lo + (v > 0 ? 0.5 : -0.5);
-                    const ev = (vp) => d + vp > 0.25 ? 'W' : (eq(d + vp, 0.25) ? 'MS' : (eq(d + vp, 0) ? 'V' : (eq(d + vp, -
-                        0.25) ? 'KS' : 'L')));
-                    const lbl = (r) => r === 'W' ? 'MENANG' : r === 'MS' ? 'MENANG SETENGAH' : r === 'V' ? 'VOID' : r ===
-                        'KS' ? 'KALAH SETENGAH' : 'KALAH';
-                    txt +=
-                        `Voor terbelah: 50% ${fmtVoor(lo)} → ${lbl(ev(lo))}, 50% ${fmtVoor(hi)} → ${lbl(ev(hi))}\n`;
-                    const ef = getEff(st, odds);
-                    if (st === 'mf') txt += `✅ MENANG FULL → ${odds}`;
-                    else if (st === 'ms') txt += `⚡ MENANG SETENGAH → (${odds}-1)/2+1 = ${ef.toFixed(3)}`;
-                    else if (st === 'ks') txt += `⚠️ KALAH SETENGAH → 0.5`;
-                    else if (st === 'sr') txt += `🔄 SERI → 1`;
-                    else txt += `❌ KALAH FULL → 0`;
+                    const nilai = d + v;
+                    txt += `PERHITUNGAN: ${d} + (${v}) = ${nilai}.
+`;
+                    txt += nilai > 0
+                        ? `Setelah handicap diterapkan, ${t} masih unggul.
+`
+                        : eq(nilai, 0)
+                            ? `Setelah handicap diterapkan, hasil tepat seimbang sehingga menjadi push.
+`
+                            : `Setelah handicap diterapkan, ${t} tidak lagi unggul.
+`;
                 }
-                return txt;
+                txt += `HASIL PASTI: ${statusAkhir}.
+`;
+            } else if (m === 'OU') {
+                const pilihan = p === 'over' ? 'Over' : 'Under';
+                txt += `PILIHAN: ${pilihan} ${v}.
+`;
+                txt += `TOTAL GOL: ${sh} + ${sa} = ${tot} gol.
+`;
+                const lines = uraikanQuarterLine(v);
+                if (lines.length === 2) {
+                    txt += `PEMBAGIAN TARUHAN: batas ${v} dibagi menjadi 50% pada ${lines[0]} dan 50% pada ${lines[1]}.
+`;
+                    lines.forEach((line, idx) => {
+                        const nilai = p === 'over' ? tot - line : line - tot;
+                        txt += `Bagian ${idx + 1}: ${pilihan} ${line}, perbandingan ${tot} dengan ${line} → ${hasilSatuLine(nilai).toUpperCase()}.
+`;
+                    });
+                } else {
+                    const nilai = p === 'over' ? tot - v : v - tot;
+                    txt += p === 'over'
+                        ? `Karena ${tot} ${tot > v ? 'lebih besar' : eq(tot, v) ? 'sama dengan' : 'lebih kecil'} dari ${v}, pilihan Over ${tot > v ? 'menang' : eq(tot, v) ? 'push' : 'kalah'}.
+`
+                        : `Karena ${tot} ${tot < v ? 'lebih kecil' : eq(tot, v) ? 'sama dengan' : 'lebih besar'} dari ${v}, pilihan Under ${tot < v ? 'menang' : eq(tot, v) ? 'push' : 'kalah'}.
+`;
+                }
+                txt += `HASIL PASTI: ${statusAkhir}.
+`;
+            } else if (m === '1x2') {
+                const kenyataan = d > 0 ? 'tim kandang menang' : d < 0 ? 'tim tandang menang' : 'pertandingan seri';
+                txt += `PILIHAN: ${namaPilihan(m, p)}.
+`;
+                txt += `HASIL PERTANDINGAN: ${kenyataan}.
+`;
+                txt += `Pilihan ${namaPilihan(m, p)} ${st === 'mf' ? 'sesuai' : 'tidak sesuai'} dengan hasil akhir.
+`;
+                txt += `HASIL PASTI: ${statusAkhir}.
+`;
+            } else if (m === 'OE') {
+                const sifat = tot % 2 === 0 ? 'genap' : 'ganjil';
+                txt += `PILIHAN: ${namaPilihan(m, p)}.
+`;
+                txt += `TOTAL GOL: ${tot}, dan angka ${tot} termasuk ${sifat}.
+`;
+                txt += `Pilihan ${namaPilihan(m, p)} ${st === 'mf' ? 'sesuai' : 'tidak sesuai'} dengan total gol.
+`;
+                txt += `HASIL PASTI: ${statusAkhir}.
+`;
+            } else if (m === 'BTTS') {
+                const keduaCetak = sh > 0 && sa > 0;
+                txt += `PILIHAN: ${namaPilihan(m, p)}.
+`;
+                txt += keduaCetak
+                    ? `Kedua tim mencetak gol karena ${t} mencetak ${sh} gol dan ${lawan} mencetak ${sa} gol.
+`
+                    : `BTTS tidak terjadi karena ${sh === 0 && sa === 0 ? 'kedua tim tidak mencetak gol' : sh === 0 ? t + ' tidak mencetak gol' : lawan + ' tidak mencetak gol'}.
+`;
+                txt += `Pilihan Anda ${st === 'mf' ? 'sesuai' : 'tidak sesuai'} dengan kejadian pertandingan.
+`;
+                txt += `HASIL PASTI: ${statusAkhir}.
+`;
             }
-            if (m === 'OU') { const lb = p === 'over' ? 'OVER' : 'UNDER'; let txt =
-                    `📌 OU | ${t} vs ${l}\nTaruhan: Menebak total gol lebih ${lb==='OVER'?'banyak (Over)':'sedikit (Under)'} dari ${v}\nTotal Gol: ${tot} (${sh}-${sa})\nBatas: ${v} | Pilih: ${lb}\n`;
-                if (v % 0.5 === 0) { if (p === 'over') { if (tot > v) txt +=
-                    `✅ MENANG FULL (${odds})`; else if (eq(tot, v)) txt += `🔄 SERI (1)`; else txt +=
-                    `❌ KALAH FULL (0)`; } else { if (tot < v) txt += `✅ MENANG FULL (${odds})`; else if (eq(tot, v)) txt +=
-                        `🔄 SERI (1)`; else txt += `❌ KALAH FULL (0)`; } } else { const lo = p === 'over' ? Math.floor(v * 2) /
-                        2 : Math.ceil(v * 2) / 2; const hi = p === 'over' ? lo + 0.5 : lo - 0.5;
-                    txt += `Terbelah: ${lb} ${lo} & ${lb} ${hi}\n`; const ef = getEff(st, odds); if (st === 'mf') txt +=
-                        `✅ MENANG FULL → ${odds}`; else if (st === 'ms') txt +=
-                        `⚡ MENANG SETENGAH → ${ef.toFixed(3)}`; else if (st === 'ks') txt += `⚠️ KALAH SETENGAH → 0.5`; else if (
-                        st === 'sr') txt += `🔄 SERI → 1`; else txt += `❌ KALAH FULL → 0`; } return txt; }
-            if (m === '1x2') return `📌 1x2 | ${t} vs ${l} | Pilih: ${p}\nSkor: ${sh}-${sa}\n${(p==='home'&&d>0)||(p==='away'&&d<0)||(p==='draw'&&d===0)?'✅ MENANG FULL ('+odds+')':'❌ KALAH FULL (0)'}`;
-            if (m === 'OE') return `📌 OE | ${t} vs ${l} | Pilih: ${p}\nTotal Gol: ${tot}\n${(p==='even'&&tot%2===0)||(p==='odd'&&tot%2===1)?'✅ MENANG FULL ('+odds+')':'❌ KALAH FULL (0)'}`;
-            return '';
+
+            txt += `ODDS PARTAI: ${Number(odds).toFixed(3)}.
+`;
+            txt += `PENGARUH KE PARLAY: faktor efektif partai ini menjadi ${getEff(st, odds).toFixed(3)}.`;
+            return txt;
         }
 
         let parlayData = [
@@ -2034,34 +2139,91 @@
         function hitungParlay() {
             const rBox = $('parlayResultBox');
             rBox.className = 'result-box';
-            if (parlayData.length < 3) { $('parlayResultText').innerHTML =
-                    '<div class="warn" style="display:block;">❌ Minimal 3 tim!</div>'; return; }
+            if (parlayData.length < 3) {
+                $('parlayResultText').innerHTML = '<div class="warn" style="display:block;">❌ Minimal 3 partai untuk menghitung parlay.</div>';
+                return;
+            }
             const modal = parseNum($('modalParlay').value);
-            if (modal <= 0) return;
-            let total = 1,
-                kf = false,
-                halfLose = false,
-                isDraw = false;
-            const rincian = [];
-            parlayData.forEach((b, i) => { const st = getStatus(b.m, b.sh, b.sa, b.v, b.p); const eff = getEff(st, b
-                    .odds); if (st === 'kf') kf = true; if (st === 'ks') halfLose = true; if (st === 'sr') isDraw =
-                    true;
+            if (modal <= 0) {
+                $('parlayResultText').innerHTML = '<div class="warn" style="display:block;">Masukkan modal yang valid.</div>';
+                return;
+            }
+
+            let total = 1;
+            const hitungStatus = { mf: 0, ms: 0, sr: 0, ks: 0, kf: 0 };
+            const detailHtml = [];
+            const detailText = [];
+
+            parlayData.forEach((b, i) => {
+                const st = getStatus(b.m, b.sh, b.sa, b.v, b.p);
+                const eff = getEff(st, b.odds);
+                hitungStatus[st]++;
                 total *= eff;
-                rincian.push(`${i+1}. ${b.t} vs ${b.l} → ${STATUS[st]} (${eff.toFixed(3)})`); });
+                const judul = `PARTAI ${i + 1}: ${b.t} vs ${b.l || 'lawan'}`;
+                const isi = penjelasan(b, st);
+                detailText.push(`${judul}
+${isi}`);
+                detailHtml.push(`
+                    <div style="background:rgba(0,0,0,.32);border:1px solid var(--glass-border);border-radius:8px;padding:14px;margin-bottom:12px;">
+                        <div style="font-weight:800;color:var(--pitch);margin-bottom:8px;">${judul}</div>
+                        <div style="font-size:.82rem;line-height:1.65;color:var(--muted);white-space:pre-line;">${isi}</div>
+                    </div>`);
+            });
+
             total = Math.round(total * 1000) / 1000;
-            let hasil = kf ? -modal : Math.round(total * modal - modal);
-            let menang = hasil > 0;
-            if (kf) rBox.classList.add('result-lose');
-            else if (halfLose || isDraw) rBox.classList.add('result-draw');
-            else if (menang) { rBox.classList.add('result-win');
-                triggerPlayerKick(); const boxRect = rBox.getBoundingClientRect();
-                triggerGoalCelebration(boxRect.left + boxRect.width / 2, boxRect.top + boxRect.height / 2); }
+            const totalKembali = Math.round(modal * total);
+            const labaBersih = totalKembali - modal;
+            const parlayKalah = hitungStatus.kf > 0 || total === 0;
+            const menang = !parlayKalah && labaBersih > 0;
+
+            if (parlayKalah) rBox.classList.add('result-lose');
+            else if (hitungStatus.ks > 0 || hitungStatus.sr > 0) rBox.classList.add('result-draw');
+            else if (menang) {
+                rBox.classList.add('result-win');
+                triggerPlayerKick();
+                const boxRect = rBox.getBoundingClientRect();
+                triggerGoalCelebration(boxRect.left + boxRect.width / 2, boxRect.top + boxRect.height / 2);
+            }
+
+            let kesimpulan;
+            if (parlayKalah) {
+                kesimpulan = `Parlay dinyatakan KALAH karena terdapat ${hitungStatus.kf} partai Kalah Penuh. Satu partai Kalah Penuh membuat seluruh tiket parlay kalah.`;
+            } else {
+                kesimpulan = `Parlay tetap aktif karena tidak ada partai Kalah Penuh. Faktor efektif semua partai dikalikan menjadi ${total.toFixed(3)}.`;
+                if (hitungStatus.ms) kesimpulan += ` Terdapat ${hitungStatus.ms} Menang Setengah, sehingga odds partai terkait berkurang.`;
+                if (hitungStatus.ks) kesimpulan += ` Terdapat ${hitungStatus.ks} Kalah Setengah, sehingga 50% bagian taruhan terkait hilang.`;
+                if (hitungStatus.sr) kesimpulan += ` Terdapat ${hitungStatus.sr} Push, sehingga faktor partai tersebut menjadi 1.000.`;
+            }
+
             $('parlayResultText').innerHTML = `
-                <div style="max-height:120px;overflow-y:auto;background:rgba(0,0,0,0.3);padding:10px;border-radius:6px;margin-bottom:10px;border:1px solid var(--glass-border);">${rincian.map(r=>'<div style="font-size:0.85rem;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);">'+r+'</div>').join('')}</div>
-                <div class="summary-item"><span>Modal</span><strong>Rp ${fmt(modal)}</strong></div>
-                <div class="summary-item"><span>Total Odds</span><strong style="color:var(--pitch);">${total.toFixed(3)}</strong></div>
-                <div class="summary-item"><span>Hasil</span><strong style="color:${menang?'var(--gold)':'var(--red)'};">${menang?'MENANG':'KALAH'} Rp ${fmt(Math.abs(hasil))}</strong></div>`;
-            window._lastParlay = { modal, total, hasil, menang, data: parlayData };
+                <div style="max-height:520px;overflow-y:auto;padding-right:4px;">${detailHtml.join('')}</div>
+                <div style="margin-top:16px;padding:14px;background:rgba(0,255,135,.05);border:1px solid rgba(0,255,135,.2);border-radius:8px;">
+                    <div style="font-weight:900;color:var(--pitch);margin-bottom:8px;">RINGKASAN PARLAY</div>
+                    <div class="summary-item"><span>Total Partai</span><strong>${parlayData.length}</strong></div>
+                    <div class="summary-item"><span>Menang Penuh</span><strong>${hitungStatus.mf}</strong></div>
+                    <div class="summary-item"><span>Menang Setengah</span><strong>${hitungStatus.ms}</strong></div>
+                    <div class="summary-item"><span>Seri / Push</span><strong>${hitungStatus.sr}</strong></div>
+                    <div class="summary-item"><span>Kalah Setengah</span><strong>${hitungStatus.ks}</strong></div>
+                    <div class="summary-item"><span>Kalah Penuh</span><strong>${hitungStatus.kf}</strong></div>
+                    <div class="summary-item"><span>Modal</span><strong>Rp ${fmt(modal)}</strong></div>
+                    <div class="summary-item"><span>Odds Gabungan Efektif</span><strong style="color:var(--pitch);">${total.toFixed(3)}</strong></div>
+                    <div class="summary-item"><span>Total Diterima</span><strong>Rp ${fmt(parlayKalah ? 0 : totalKembali)}</strong></div>
+                    <div class="summary-item"><span>Keuntungan / Kerugian Bersih</span><strong style="color:${labaBersih >= 0 && !parlayKalah ? 'var(--gold)' : 'var(--red)'};">${parlayKalah || labaBersih < 0 ? '-' : '+'}Rp ${fmt(Math.abs(parlayKalah ? modal : labaBersih))}</strong></div>
+                    <div style="margin-top:12px;font-size:.85rem;line-height:1.6;color:var(--muted);"><b>Kesimpulan:</b> ${kesimpulan}</div>
+                </div>`;
+
+            window._lastParlay = {
+                modal,
+                total,
+                totalKembali: parlayKalah ? 0 : totalKembali,
+                labaBersih: parlayKalah ? -modal : labaBersih,
+                menang,
+                parlayKalah,
+                hitungStatus,
+                detailText,
+                data: parlayData,
+                kesimpulan
+            };
         }
 
         function resetParlay() { parlayData = [];
@@ -2071,19 +2233,24 @@
             triggerKickParticles(window.innerWidth / 2, window.innerHeight / 2);
             showToast('Reset berhasil'); }
 
-        function copyParlay(mode) { const d = window._lastParlay; if (!d) return showToast('Hitung dulu!'); let txt = ''; if (
-                mode === 'ringkas') txt =
-                `MIX PARLAY\nModal: Rp ${fmt(d.modal)}\nOdds: ${d.total.toFixed(3)}\nHasil: ${d.menang?'MENANG':'KALAH'} Rp ${fmt(Math.abs(d.hasil))}`;
-            else if (mode === 'lengkap') { txt = `MIX PARLAY\nModal: Rp ${fmt(d.modal)}\n`;
-                d.data.forEach((b, i) => { const st = getStatus(b.m, b.sh, b.sa, b.v, b.p);
-                    txt += `${i+1}. ${b.t} vs ${b.l} → ${STATUS[st]} (${getEff(st,b.odds).toFixed(3)})\n`; });
-                txt += `Odds: ${d.total.toFixed(3)}\nHasil: Rp ${fmt(d.hasil)}`; } else if (mode === 'penjelasan') { txt =
-                'PENJELASAN\n';
-                d.data.forEach((b, i) => { const st = getStatus(b.m, b.sh, b.sa, b.v, b.p);
-                    txt += `\n[${i+1}] ${b.t} vs ${b.l}\n${penjelasan(b,st)}\n`; }); } else { copyParlay('lengkap');
-                copyParlay('penjelasan'); return; }
-            navigator.clipboard.writeText(txt).then(() => showToast('Tersalin!'));
-            closeMenu('parlayMenu'); }
+        function copyParlay(mode) {
+            const d = window._lastParlay;
+            if (!d) return showToast('Hitung dulu!');
+            const status = d.parlayKalah ? 'KALAH' : 'MENANG / MASIH AKTIF';
+            const ringkas = `HASIL PARLAY\nStatus: ${status}\nTotal Partai: ${d.data.length}\nModal: Rp ${fmt(d.modal)}\nOdds Gabungan Efektif: ${d.total.toFixed(3)}\nTotal Diterima: Rp ${fmt(d.totalKembali)}\nKeuntungan / Kerugian Bersih: ${d.labaBersih >= 0 ? '+' : '-'}Rp ${fmt(Math.abs(d.labaBersih))}`;
+            const statistik = `Menang Penuh: ${d.hitungStatus.mf}\nMenang Setengah: ${d.hitungStatus.ms}\nSeri / Push: ${d.hitungStatus.sr}\nKalah Setengah: ${d.hitungStatus.ks}\nKalah Penuh: ${d.hitungStatus.kf}`;
+            const detail = d.detailText.map((x, i) => `\n====================\n${x}\n`).join('');
+            let txt = '';
+            if (mode === 'ringkas') txt = ringkas;
+            else if (mode === 'lengkap') txt = `${ringkas}\n\nRINCIAN STATUS\n${statistik}\n\nKESIMPULAN\n${d.kesimpulan}`;
+            else if (mode === 'penjelasan') txt = `PENJELASAN PARLAY PER PARTAI\n${detail}\nKESIMPULAN\n${d.kesimpulan}`;
+            else txt = `${ringkas}\n\nRINCIAN STATUS\n${statistik}\n${detail}\nKESIMPULAN\n${d.kesimpulan}`;
+
+            const selesai = () => { showToast('Tersalin!'); closeMenu('parlayMenu'); };
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(txt).then(selesai).catch(() => fallbackCopy(txt, selesai));
+            } else fallbackCopy(txt, selesai);
+        }
 
         function updateOddsForm() {
             const format = $('singleOddsFormat')?.value || 'INDO';
@@ -2113,6 +2280,7 @@
             $('skorLawanDiv').style.display = totalOnly ? 'none' : '';
             $('skorSeparator').style.display = totalOnly ? 'none' : '';
             $('skorTimDiv').querySelector('span').textContent = totalOnly ? 'Total Gol' : 'Tim Anda';
+            $('skorLawanDiv').querySelector('span').textContent = 'Lawan';
             updateOddsForm();
             hitungSingle();
         }
@@ -2126,23 +2294,44 @@
         }
 
         function hitungOddsSingle(format, sign, odds, modalAwal) {
-            let modalHitung = modalAwal, profitFull = 0, oddsTampil = '';
+            const nilai = Number.isFinite(odds) ? Math.abs(odds) : 0;
+            let modalHitung = modalAwal;
+            let profitFull = 0;
+            let oddsTampil = '';
+            let valid = modalAwal > 0 && nilai > 0;
+            let pesan = '';
+
             if (format === 'INDO') {
-                oddsTampil = `${sign}${odds.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}`;
-                modalHitung = sign === '-' ? modalAwal * odds : modalAwal;
-                profitFull = sign === '-' ? modalAwal : modalAwal * odds;
+                oddsTampil = `${sign}${nilai.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}`;
+                // Rumus khusus sesuai permintaan pengguna:
+                // odds minus -1.40, modal awal 100.000 -> modal hitung 140.000, profit 100.000.
+                modalHitung = sign === '-' ? modalAwal * nilai : modalAwal;
+                profitFull = sign === '-' ? modalAwal : modalAwal * nilai;
             } else if (format === 'HK') {
-                oddsTampil = odds.toFixed(2);
-                profitFull = modalAwal * odds;
+                oddsTampil = nilai.toFixed(2);
+                profitFull = modalAwal * nilai;
             } else if (format === 'MALAY') {
-                oddsTampil = `${sign}${odds.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}`;
-                profitFull = sign === '-' ? modalAwal / Math.max(odds, 0.01) : modalAwal * odds;
+                oddsTampil = `${sign}${nilai.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}`;
+                profitFull = sign === '-' ? modalAwal / Math.max(nilai, 0.01) : modalAwal * nilai;
             } else {
-                const decimalOdds = Math.max(1, odds);
+                const decimalOdds = nilai;
                 oddsTampil = decimalOdds.toFixed(2);
-                profitFull = modalAwal * (decimalOdds - 1);
+                if (decimalOdds < 1) {
+                    valid = false;
+                    pesan = 'Odds desimal minimal 1.00.';
+                }
+                profitFull = modalAwal * Math.max(0, decimalOdds - 1);
             }
-            return {modalHitung, profitFull, oddsTampil};
+
+            if (modalAwal <= 0) {
+                valid = false;
+                pesan = 'Modal taruhan harus lebih dari Rp0.';
+            } else if (nilai <= 0) {
+                valid = false;
+                pesan = 'Nilai odds harus lebih dari 0.';
+            }
+
+            return { modalHitung, profitFull, oddsTampil, valid, pesan };
         }
 
         function hitungSingle() {
@@ -2167,11 +2356,17 @@
             }
 
             const p = $('singleOpsi').value;
-            const sh = parseInt($('singleSkorTim').value, 10) || 0;
-            const sa = mk === 'OU' ? 0 : (parseInt($('singleSkorLawan').value, 10) || 0);
+            const sh = Math.max(0, parseInt($('singleSkorTim').value, 10) || 0);
+            const sa = mk === 'OU' ? 0 : Math.max(0, parseInt($('singleSkorLawan').value, 10) || 0);
             const st = getStatus(mk, sh, sa, v, p);
 
             const hasilOdds = hitungOddsSingle(oddsFormat, sign, odds, modalAwal);
+            if (!hasilOdds.valid) {
+                rBox.classList.add('result-lose');
+                $('singleResultText').innerHTML = `<div class="warn" style="display:block;margin:0;"><i class="fa-solid fa-triangle-exclamation"></i> ${escapeHtml(hasilOdds.pesan)}</div>`;
+                window._lastSingle = null;
+                return;
+            }
             const modalHitung = hasilOdds.modalHitung;
             const profitFull = hasilOdds.profitFull;
 
@@ -2236,7 +2431,8 @@
 
             const arahVoor = mk === 'HDP' ? (v < 0 ? `${tim} memberi voor ${Math.abs(v)}` : v > 0 ? `${tim} menerima voor ${Math.abs(v)}` : 'tanpa voor') : '';
             const detailPasar = mk === 'BTTS' ? `Pilihan BTTS: ${p === 'yes' ? 'Ya' : 'Tidak'}.` : mk === 'HDP' ? `Posisi ${tim}: ${posisi}; ${arahVoor}.` : `Posisi ${tim}: ${posisi}.`;
-            const penj = `Bosku, Anda bertaruh pada ${tim} di pasaran ${namaPasaran(mk)} untuk ${jenisBet}. ${detailPasar} Pertandingan berakhir ${tim} ${sh}-${sa} ${lawan}. ${alasanStatus} ${detailOdds}`;
+            const skorKalimat = mk === 'OU' ? `Total gol pada ${jenisBet} adalah ${sh}.` : `Pertandingan berakhir ${tim} ${sh}-${sa} ${lawan}.`;
+            const penj = `Bosku, Anda bertaruh pada ${tim} di pasaran ${namaPasaran(mk)} untuk ${jenisBet}. ${detailPasar} ${skorKalimat} ${alasanStatus} ${detailOdds}`;
 
             $('singleResultText').innerHTML = `
                 <div class="summary-item"><span>Pasaran</span><strong>${namaPasaran(mk)}</strong></div>
@@ -2250,7 +2446,7 @@
                 <div class="summary-item"><span>Keuntungan Bersih</span><strong style="color:${kemenanganBersih >= 0 ? 'var(--gold)' : 'var(--red)'};">${kemenanganBersih < 0 ? '- ' : ''}Rp ${fmt(Math.abs(kemenanganBersih))}</strong></div>
                 <div class="summary-item"><span>Total Diterima</span><strong style="color:var(--pitch)">Rp ${fmt(totalDidapat)}</strong></div>
                 <div class="summary-item"><span>Catatan Perhitungan</span><strong style="text-align:right;max-width:60%;">${catatan}</strong></div>
-                <div class="expl-cell" style="margin-top:10px;">${penj.replace(/\n/g, '<br>')}</div>`;
+                <div class="expl-cell" style="margin-top:10px;">${escapeHtml(penj).replace(/\n/g, '<br>')}</div>`;
 
             window._lastSingle = {
                 modal: modalAwal, modalHitung, profit: profitFull, kemenanganBersih,
@@ -2274,10 +2470,33 @@
             $('singleVoorSign').value = '-';
             $('singleSkorTim').value = '3';
             $('singleSkorLawan').value = '2';
+            updateOddsForm();
             updateSingleForm();
+            hitungSingle();
             triggerPlayerKick();
             triggerKickParticles(window.innerWidth / 2, window.innerHeight / 2);
             showToast('Reset berhasil');
+        }
+
+        async function salinTeks(teks) {
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(teks);
+                } else {
+                    const area = document.createElement('textarea');
+                    area.value = teks;
+                    area.style.position = 'fixed';
+                    area.style.opacity = '0';
+                    document.body.appendChild(area);
+                    area.focus();
+                    area.select();
+                    document.execCommand('copy');
+                    area.remove();
+                }
+                showToast('Tersalin!');
+            } catch (error) {
+                showToast('Gagal menyalin');
+            }
         }
 
         function copySingle(mode) {
@@ -2308,7 +2527,7 @@ Catatan Perhitungan: ${d.catatan}`;
                 txt = `${lengkap}\n\nPERHITUNGAN\n${d.penj}`;
             }
 
-            navigator.clipboard.writeText(txt).then(() => showToast('Tersalin!'));
+            salinTeks(txt);
             closeMenu('singleMenu');
         }
 
