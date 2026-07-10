@@ -1452,20 +1452,23 @@
             <div class="card">
                 <div class="form-grid">
                     <div class="field"><label><i class="fa-solid fa-wallet"></i> Modal Taruhan (Rp)</label><input type="text" id="singleModal" value="100.000" style="text-align:right;" oninput="hitungSingle()"></div>
-                    <div class="field"><label><i class="fa-solid fa-percent"></i> Odds (Indo)</label><div style="display:flex;gap:6px;"><select id="singleOddsSign" style="width:64px;" onchange="hitungSingle()"><option value="-">-</option><option value="+">+</option></select><input type="number" id="singleOdds" value="1.00" step="0.01" style="flex:1;" oninput="hitungSingle()"></div></div>
+                    <div class="field"><label><i class="fa-solid fa-percent"></i> Format & Nilai Odds</label><div style="display:flex;gap:6px;flex-wrap:wrap;"><select id="singleOddsFormat" style="min-width:120px;" onchange="updateOddsForm();hitungSingle()"><option value="INDO">Indonesia</option><option value="HK">Hongkong</option><option value="MALAY">Malay</option><option value="DECIMAL">Desimal</option></select><select id="singleOddsSign" style="width:64px;" onchange="hitungSingle()"><option value="-">-</option><option value="+">+</option></select><input type="number" id="singleOdds" value="1.00" step="0.01" min="0" style="flex:1;min-width:110px;" oninput="hitungSingle()"></div></div>
                 </div>
                 <div class="form-grid" style="margin-top:16px;">
                     <div class="field"><label><i class="fa-solid fa-shield-halved"></i> Tim Anda</label><input type="text" id="singleTim" value="E-PSV" oninput="hitungSingle()"></div>
                     <div class="field"><label><i class="fa-solid fa-users"></i> Lawan</label><input type="text" id="singleLawan" value="MU" oninput="hitungSingle()"></div>
+                    <div class="field"><label><i class="fa-solid fa-house-flag"></i> Posisi Tim Pilihan</label><select id="singlePosisi" onchange="hitungSingle()"><option value="HOME">Kandang (Home)</option><option value="AWAY">Tandang (Away)</option></select></div>
                 </div>
                 <div class="form-grid" style="margin-top:16px;">
-                    <div class="field"><label><i class="fa-solid fa-tag"></i> Pasaran</label><select id="singlePasar" onchange="updateSingleForm();hitungSingle();"><option value="HDP">Handicap</option><option value="OU">Over/Under</option><option value="1x2">1x2</option><option value="OE">Odd/Even</option></select></div>
+                    <div class="field"><label><i class="fa-solid fa-tag"></i> Pasaran</label><select id="singlePasar" onchange="updateSingleForm();hitungSingle();"><option value="HDP">Handicap</option><option value="OU">Over/Under</option><option value="1x2">1x2</option><option value="OE">Ganjil/Genap</option><option value="BTTS">Kedua Tim Cetak Gol (BTTS)</option></select></div>
                     
 <div class="field">
 <label><i class="fa-solid fa-clock"></i> Jenis Taruhan</label>
 <select id="singleJenis" onchange="hitungSingle()">
 <option value="FULL_TIME">Full Time</option>
 <option value="HALF_TIME">Half Time</option>
+<option value="BABAK_1">Babak 1</option>
+<option value="BABAK_2">Babak 2</option>
 </select>
 </div>
 <div class="field" id="voorField">
@@ -1475,7 +1478,8 @@
                                 <option value="-">-</option>
                                 <option value="+">+</option>
                             </select>
-                            <input type="number" id="singleVoor" step="0.25" value="0.75" min="0" oninput="hitungSingle()" style="flex:1;">
+                            <input type="number" id="singleVoor" step="0.25" value="0.75" min="0" list="daftarHandicap" oninput="hitungSingle()" style="flex:1;">
+                            <datalist id="daftarHandicap"><option value="0"><option value="0.25"><option value="0.5"><option value="0.75"><option value="1"><option value="1.25"><option value="1.5"><option value="1.75"><option value="2"><option value="2.25"><option value="2.5"><option value="2.75"><option value="3"><option value="3.25"><option value="3.5"><option value="3.75"><option value="4"></datalist>
                         </div>
                     </div>
                     <div class="field" id="opsiField" style="display:none;"><label><i class="fa-solid fa-hand-pointer"></i> Pilihan</label><select id="singleOpsi" onchange="hitungSingle()"></select></div>
@@ -1743,6 +1747,7 @@
             if (mk === '1x2') { if ((p === 'home' && d > 0) || (p === 'away' && d < 0) || (p === 'draw' && d === 0))
             return 'mf'; return 'kf'; }
             if (mk === 'OE') { if ((p === 'even' && t % 2 === 0) || (p === 'odd' && t % 2 === 1)) return 'mf'; return 'kf'; }
+            if (mk === 'BTTS') { const terjadi = sh > 0 && sa > 0; return ((p === 'yes' && terjadi) || (p === 'no' && !terjadi)) ? 'mf' : 'kf'; }
             return 'mf';
         }
 
@@ -2080,6 +2085,15 @@
             navigator.clipboard.writeText(txt).then(() => showToast('Tersalin!'));
             closeMenu('parlayMenu'); }
 
+        function updateOddsForm() {
+            const format = $('singleOddsFormat')?.value || 'INDO';
+            const sign = $('singleOddsSign');
+            if (!sign) return;
+            sign.style.display = (format === 'INDO' || format === 'MALAY') ? 'inline-block' : 'none';
+            if (format === 'HK') sign.value = '+';
+            if (format === 'DECIMAL') sign.value = '+';
+        }
+
         function updateSingleForm() {
             const mk = $('singlePasar').value;
             const voorField = $('voorField');
@@ -2088,28 +2102,54 @@
 
             voorField.style.display = (mk === 'HDP' || mk === 'OU') ? 'block' : 'none';
             opsiField.style.display = (mk !== 'HDP') ? 'block' : 'none';
-
             if (voorSign) voorSign.style.display = (mk === 'HDP') ? 'inline-block' : 'none';
 
-            if (mk === 'OU') $('singleOpsi').innerHTML =
-                '<option value="over">Lebih</option><option value="under">Kurang</option>';
-            else if (mk === '1x2') $('singleOpsi').innerHTML =
-                '<option value="home">Tuan Rumah</option><option value="draw">Seri</option><option value="away">Tandang</option>';
-            else if (mk === 'OE') $('singleOpsi').innerHTML =
-            '<option value="even">Genap</option><option value="odd">Ganjil</option>';
+            if (mk === 'OU') $('singleOpsi').innerHTML = '<option value="over">Lebih (Over)</option><option value="under">Kurang (Under)</option>';
+            else if (mk === '1x2') $('singleOpsi').innerHTML = '<option value="home">Tuan Rumah</option><option value="draw">Seri</option><option value="away">Tandang</option>';
+            else if (mk === 'OE') $('singleOpsi').innerHTML = '<option value="even">Genap</option><option value="odd">Ganjil</option>';
+            else if (mk === 'BTTS') $('singleOpsi').innerHTML = '<option value="yes">Ya, Kedua Tim Cetak Gol</option><option value="no">Tidak</option>';
 
-            $('skorLawanDiv').style.display = mk === 'OU' ? 'none' : '';
-            $('skorSeparator').style.display = mk === 'OU' ? 'none' : '';
-            if (mk === 'OU') $('skorTimDiv').querySelector('span').textContent = 'Total Gol';
-            else $('skorTimDiv').querySelector('span').textContent = 'Tim Anda';
-
+            const totalOnly = mk === 'OU';
+            $('skorLawanDiv').style.display = totalOnly ? 'none' : '';
+            $('skorSeparator').style.display = totalOnly ? 'none' : '';
+            $('skorTimDiv').querySelector('span').textContent = totalOnly ? 'Total Gol' : 'Tim Anda';
+            updateOddsForm();
             hitungSingle();
+        }
+
+        function namaJenisTaruhan(value) {
+            return ({FULL_TIME:'Full Time', HALF_TIME:'Half Time', BABAK_1:'Babak 1', BABAK_2:'Babak 2'})[value] || 'Full Time';
+        }
+
+        function namaPasaran(mk) {
+            return ({HDP:'Handicap', OU:'Over/Under', '1x2':'1X2', OE:'Ganjil/Genap', BTTS:'Kedua Tim Cetak Gol (BTTS)'})[mk] || mk;
+        }
+
+        function hitungOddsSingle(format, sign, odds, modalAwal) {
+            let modalHitung = modalAwal, profitFull = 0, oddsTampil = '';
+            if (format === 'INDO') {
+                oddsTampil = `${sign}${odds.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}`;
+                modalHitung = sign === '-' ? modalAwal * odds : modalAwal;
+                profitFull = sign === '-' ? modalAwal : modalAwal * odds;
+            } else if (format === 'HK') {
+                oddsTampil = odds.toFixed(2);
+                profitFull = modalAwal * odds;
+            } else if (format === 'MALAY') {
+                oddsTampil = `${sign}${odds.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}`;
+                profitFull = sign === '-' ? modalAwal / Math.max(odds, 0.01) : modalAwal * odds;
+            } else {
+                const decimalOdds = Math.max(1, odds);
+                oddsTampil = decimalOdds.toFixed(2);
+                profitFull = modalAwal * (decimalOdds - 1);
+            }
+            return {modalHitung, profitFull, oddsTampil};
         }
 
         function hitungSingle() {
             const rBox = $('singleResultBox');
             rBox.className = 'result-box';
 
+            const oddsFormat = $('singleOddsFormat')?.value || 'INDO';
             const sign = $('singleOddsSign').value;
             const odds = Math.abs(parseFloat($('singleOdds').value)) || 0;
             const modalAwal = parseNum($('singleModal').value);
@@ -2131,11 +2171,9 @@
             const sa = mk === 'OU' ? 0 : (parseInt($('singleSkorLawan').value, 10) || 0);
             const st = getStatus(mk, sh, sa, v, p);
 
-            // Rumus khusus odds minus sesuai permintaan:
-            // -1.40, modal 100.000 => modal hitung 140.000,
-            // profit Win Full 100.000, total 240.000.
-            const modalHitung = sign === '-' ? modalAwal * odds : modalAwal;
-            const profitFull = sign === '-' ? modalAwal : modalAwal * odds;
+            const hasilOdds = hitungOddsSingle(oddsFormat, sign, odds, modalAwal);
+            const modalHitung = hasilOdds.modalHitung;
+            const profitFull = hasilOdds.profitFull;
 
             let kemenanganBersih = 0;
             let totalDidapat = 0;
@@ -2177,9 +2215,11 @@
                 rBox.classList.add('result-lose');
             }
 
-            const oddsTampil = `${sign}${odds.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}`;
+            const oddsTampil = hasilOdds.oddsTampil;
             const jenisPilihan = $('singleJenis') ? $('singleJenis').value : 'FULL_TIME';
-            const jenisBet = jenisPilihan === 'HALF_TIME' ? 'Half Time' : 'Full Time';
+            const jenisBet = namaJenisTaruhan(jenisPilihan);
+            const posisi = $('singlePosisi')?.value === 'AWAY' ? 'Tandang (Away)' : 'Kandang (Home)';
+            const formatOddsNama = ({INDO:'Indonesia', HK:'Hongkong', MALAY:'Malay', DECIMAL:'Desimal'})[oddsFormat];
             const statusIndo = STATUS[st];
             const alasanStatus = mk === 'HDP'
                 ? (st === 'mf'
@@ -2187,15 +2227,22 @@
                     : `Setelah voor dihitung, status taruhan menjadi ${statusIndo}.`)
                 : `Setelah pasaran dihitung, status taruhan menjadi ${statusIndo}.`;
 
-            const detailOdds = sign === '-'
-                ? `Karena odds yang dipakai minus (${oddsTampil}), modal yang dihitung menjadi Rp${fmt(modalHitung)} ya bosku. Keuntungan bersihnya Rp${fmt(Math.max(0, kemenanganBersih))}. Total yang Anda dapat plus modal yang dihitung menjadi Rp${fmt(totalDidapat)} ya bosku.`
-                : `Karena odds yang dipakai plus (${oddsTampil}), modal hitung tetap Rp${fmt(modalHitung)}. Keuntungan bersihnya Rp${fmt(Math.max(0, kemenanganBersih))}, sehingga total yang Anda dapat Rp${fmt(totalDidapat)} ya bosku.`;
+            let detailOdds;
+            if (oddsFormat === 'INDO' && sign === '-') {
+                detailOdds = `Karena format odds Indonesia menggunakan nilai minus (${oddsTampil}), modal hitung menjadi Rp${fmt(modalHitung)}. Keuntungan bersihnya Rp${fmt(Math.max(0, kemenanganBersih))}, sehingga total diterima Rp${fmt(totalDidapat)} ya bosku.`;
+            } else {
+                detailOdds = `Dengan format odds ${formatOddsNama} (${oddsTampil}), modal hitung Rp${fmt(modalHitung)} dan keuntungan bersih Rp${fmt(Math.max(0, kemenanganBersih))}. Total diterima Rp${fmt(totalDidapat)} ya bosku.`;
+            }
 
-            const penj = `Bosku, Anda bertaruh pada ${tim} dengan voor ${fmtVoor(v)} di ${jenisBet}. Pertandingan berakhir ${tim} ${sh}-${sa} ${lawan}. ${alasanStatus} ${detailOdds}`;
+            const arahVoor = mk === 'HDP' ? (v < 0 ? `${tim} memberi voor ${Math.abs(v)}` : v > 0 ? `${tim} menerima voor ${Math.abs(v)}` : 'tanpa voor') : '';
+            const detailPasar = mk === 'BTTS' ? `Pilihan BTTS: ${p === 'yes' ? 'Ya' : 'Tidak'}.` : mk === 'HDP' ? `Posisi ${tim}: ${posisi}; ${arahVoor}.` : `Posisi ${tim}: ${posisi}.`;
+            const penj = `Bosku, Anda bertaruh pada ${tim} di pasaran ${namaPasaran(mk)} untuk ${jenisBet}. ${detailPasar} Pertandingan berakhir ${tim} ${sh}-${sa} ${lawan}. ${alasanStatus} ${detailOdds}`;
 
             $('singleResultText').innerHTML = `
-                <div class="summary-item"><span>Pasaran</span><strong>${mk}</strong></div>
+                <div class="summary-item"><span>Pasaran</span><strong>${namaPasaran(mk)}</strong></div>
                 <div class="summary-item"><span>Jenis Taruhan</span><strong>${jenisBet}</strong></div>
+                <div class="summary-item"><span>Posisi Tim</span><strong>${posisi}</strong></div>
+                <div class="summary-item"><span>Format Odds</span><strong>${formatOddsNama}</strong></div>
                 <div class="summary-item"><span>Status</span><strong class="badge badge-${st}">${hasilText}</strong></div>
                 <div class="summary-item"><span>Odds</span><strong>${oddsTampil}</strong></div>
                 <div class="summary-item"><span>Modal Awal</span><strong>Rp ${fmt(modalAwal)}</strong></div>
@@ -2208,7 +2255,7 @@
             window._lastSingle = {
                 modal: modalAwal, modalHitung, profit: profitFull, kemenanganBersih,
                 kembali: totalDidapat, netHasil: kemenanganBersih, penj, catatan,
-                tim, lawan, mk, jenisBet, v, p, sh, sa, odds, oddsTampil,
+                tim, lawan, mk, jenisBet, posisi, formatOddsNama, oddsFormat, v, p, sh, sa, odds, oddsTampil,
                 st, sign, hasilText
             };
         }
@@ -2216,10 +2263,13 @@
         function resetSingle() {
             $('singleModal').value = '100.000';
             $('singleOdds').value = '1.00';
+            if ($('singleOddsFormat')) $('singleOddsFormat').value = 'INDO';
+            $('singleOddsSign').value = '-';
             $('singleTim').value = 'E-PSV';
             $('singleLawan').value = 'MU';
             $('singlePasar').value = 'HDP';
             if ($('singleJenis')) $('singleJenis').value = 'FULL_TIME';
+            if ($('singlePosisi')) $('singlePosisi').value = 'HOME';
             $('singleVoor').value = '0.75';
             $('singleVoorSign').value = '-';
             $('singleSkorTim').value = '3';
@@ -2235,8 +2285,10 @@
             if (!d) return showToast('Hitung dulu!');
 
             const lengkap = `HASIL TARUHAN TUNGGAL
-Pasaran: ${d.mk}
+Pasaran: ${namaPasaran(d.mk)}
 Jenis Taruhan: ${d.jenisBet}
+Posisi Tim: ${d.posisi}
+Format Odds: ${d.formatOddsNama}
 Status: ${d.hasilText}
 Odds: ${d.oddsTampil}
 Modal Awal: Rp${fmt(d.modal)}
