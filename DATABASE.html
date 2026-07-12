@@ -151,7 +151,7 @@
     .refresh-spinner{width:44px;height:44px;border:3px solid rgba(255,184,58,.13);border-top-color:#ffb52e;border-radius:50%;animation:spin .75s linear infinite;box-shadow:0 0 25px rgba(255,165,20,.12)}
     @keyframes spin{to{transform:rotate(360deg)}}
 
-    .card-header{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:23px 25px;border-bottom:1px solid rgba(255,184,58,.1);background:linear-gradient(90deg,rgba(255,183,58,.025),transparent 40%,rgba(255,146,0,.02))}
+    .card-header{position:relative;z-index:2;display:flex;align-items:center;justify-content:flex-end;gap:20px;padding:23px 25px;border-bottom:1px solid rgba(255,184,58,.1);background:linear-gradient(90deg,rgba(255,183,58,.025),transparent 40%,rgba(255,146,0,.02))}
     .header-title{display:flex;align-items:center;gap:14px;min-width:0}
     .header-title::before{content:"\f07c";font-family:"Font Awesome 6 Free";font-weight:900;width:44px;height:44px;flex:0 0 44px;border-radius:14px;display:grid;place-items:center;color:#2a1603;background:linear-gradient(135deg,#ffe799,#ffb529 55%,#e47700);box-shadow:0 8px 24px rgba(255,136,0,.22)}
     .header-title h1{font-family:'Cinzel',serif;font-size:1.18rem;line-height:1.2;color:#fff0c7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -355,30 +355,11 @@
       </div>
     </nav>
 
-    <section class="hero">
-      <div>
-        <div class="hero-kicker">Premium Data Center</div>
-        <h1>Golden Knowledge Interface</h1>
-        <p>Tampilan baru beresolusi tinggi dengan nuansa hitam-emas. Semua data dan fungsi asli tetap terhubung ke Google Sheet yang sama.</p>
-      </div>
-      <div class="hero-badges">
-        <div class="hero-badge"><small>Status sistem</small><strong><i class="fas fa-circle-check"></i> Terhubung</strong></div>
-        <div class="hero-badge"><small>Mode tampilan</small><strong><i class="fas fa-wand-magic-sparkles"></i> HD Premium</strong></div>
-      </div>
-    </section>
-
     <main class="main">
       <section class="content-card">
         <div class="refresh-overlay" id="refreshOverlay"><div class="refresh-spinner"></div></div>
 
         <div class="card-header">
-          <div class="header-title">
-            <div>
-              <h1 id="pageTitle">BONUS</h1>
-              <p id="pageSubtitle">Data Sheet</p>
-            </div>
-          </div>
-
           <div class="header-actions">
             <div class="search-wrap">
               <i class="fas fa-magnifying-glass"></i>
@@ -489,7 +470,7 @@ function renderSidebarLayout(data){if(!data.length)return'<div class="empty-stat
 
 function initSidebarInteraction(data){const items=document.querySelectorAll('.sidebar-item'),panel=document.getElementById('detailPanel');if(!items.length)return;const k=Object.keys(data[0]);const update=i=>{const r=data[i],t=r[k[0]]||'-';const dp=[];for(let j=1;j<k.length;j++){const v=r[k[j]];if(v)dp.push(v);}const d=dp.join('\n\n')||'-';panel.innerHTML=`<div class="detail-content"><div class="detail-title"><i class="fas fa-bookmark"></i> ${esc(t)}</div><div class="detail-body">${esc(d)}</div><button class="copy-btn detail-copy-btn" data-desc="${esc(d)}"><i class="fas fa-copy"></i> Copy Deskripsi</button></div>`;};items.forEach(item=>{item.addEventListener('click',()=>{items.forEach(i=>i.classList.remove('active'));item.classList.add('active');update(parseInt(item.dataset.index));});});if(items[0]){items[0].classList.add('active');update(0);}}
 
-function renderSheet(sn){currentSheet=sn;const dn={'bonus':'BONUS','PK_anti_audit':'PK ANTI AUDIT','PK_LULUS_SENSOR_AUDIT':'PK LULUS AUDIT','seputar_gantirek':'GANTI REK','seputar_pk':'SEPUTAR PK'};document.getElementById('pageTitle').textContent=dn[sn]||sn.replace(/_/g,' ').toUpperCase();document.getElementById('pageSubtitle').textContent='Data Sheet';document.querySelectorAll('.nav-tab').forEach(el=>el.classList.toggle('active',el.dataset.sheet===sn));document.getElementById('searchInput').value='';const data=allData[sn]||[],c=document.getElementById('tableContainer');if(SIDEBAR_SHEETS.includes(sn)){c.innerHTML=renderSidebarLayout(data);setTimeout(()=>initSidebarInteraction(data),30);}else{c.innerHTML=renderQna(data);}}
+function renderSheet(sn){currentSheet=sn;const dn={'bonus':'BONUS','PK_anti_audit':'PK ANTI AUDIT','PK_LULUS_SENSOR_AUDIT':'PK LULUS AUDIT','seputar_gantirek':'GANTI REK','seputar_pk':'SEPUTAR PK'};const pageTitle=document.getElementById('pageTitle'),pageSubtitle=document.getElementById('pageSubtitle');if(pageTitle)pageTitle.textContent=dn[sn]||sn.replace(/_/g,' ').toUpperCase();if(pageSubtitle)pageSubtitle.textContent='Data Sheet';document.querySelectorAll('.nav-tab').forEach(el=>el.classList.toggle('active',el.dataset.sheet===sn));document.getElementById('searchInput').value='';const data=allData[sn]||[],c=document.getElementById('tableContainer');if(SIDEBAR_SHEETS.includes(sn)){c.innerHTML=renderSidebarLayout(data);setTimeout(()=>initSidebarInteraction(data),30);}else{c.innerHTML=renderQna(data);}}
 
 function handleSearch(){const q=document.getElementById('searchInput').value.toLowerCase(),data=allData[currentSheet]||[];if(!data.length)return;if(SIDEBAR_SHEETS.includes(currentSheet)){const items=document.querySelectorAll('.sidebar-item');let f=-1;items.forEach((item,i)=>{const m=Object.values(data[i]).some(v=>v&&String(v).toLowerCase().includes(q));item.style.display=m?'flex':'none';if(m&&f===-1)f=i;});const a=document.querySelector('.sidebar-item.active');if((!a||a.style.display==='none')&&f!==-1)document.querySelector(`.sidebar-item[data-index="${f}"]`)?.click();}else{document.getElementById('tableContainer').innerHTML=renderQna(data.filter(r=>Object.values(r).some(v=>v&&String(v).toLowerCase().includes(q))));}}
 
