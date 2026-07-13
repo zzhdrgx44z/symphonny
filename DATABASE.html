@@ -171,7 +171,7 @@
     .table-scroll{position:relative;z-index:1;min-height:515px;max-height:calc(100vh - 305px);overflow:auto;scrollbar-width:thin;scrollbar-color:rgba(255,183,58,.24) transparent}
     .table-scroll::-webkit-scrollbar{width:7px;height:7px}.table-scroll::-webkit-scrollbar-track{background:transparent}.table-scroll::-webkit-scrollbar-thumb{background:rgba(255,183,58,.2);border-radius:10px}
 
-    /* Hanya daftar INDEX yang dapat di-scroll. Panel detail dan wadah utama tetap diam. */
+    /* INDEX dan panel detail memiliki area scroll masing-masing. */
     .table-scroll.index-only-scroll{
       height:calc(100vh - 305px);
       min-height:515px;
@@ -193,8 +193,23 @@
     .index-only-scroll .sidebar-list::-webkit-scrollbar{width:6px}
     .index-only-scroll .sidebar-list::-webkit-scrollbar-track{background:transparent}
     .index-only-scroll .sidebar-list::-webkit-scrollbar-thumb{background:rgba(255,183,58,.22);border-radius:10px}
-    .index-only-scroll .detail-col{height:100%;min-height:0;overflow:hidden}
-    .index-only-scroll .detail-content{max-height:100%;overflow:hidden}
+
+    /* Bagian kanan dapat di-scroll sampai tombol Copy Deskripsi. */
+    .index-only-scroll .detail-col{
+      height:100%;
+      min-height:0;
+      overflow-y:auto;
+      overflow-x:hidden;
+      overscroll-behavior:contain;
+      scroll-padding-bottom:20px;
+      scrollbar-gutter:stable;
+      scrollbar-width:thin;
+      scrollbar-color:rgba(255,183,58,.24) transparent;
+    }
+    .index-only-scroll .detail-col::-webkit-scrollbar{width:7px}
+    .index-only-scroll .detail-col::-webkit-scrollbar-track{background:transparent}
+    .index-only-scroll .detail-col::-webkit-scrollbar-thumb{background:rgba(255,183,58,.22);border-radius:10px}
+    .index-only-scroll .detail-content{max-height:none;overflow:visible;padding-bottom:2px}
 
     /* ===== TABLE ===== */
     .qna-table{width:100%;border-collapse:separate;border-spacing:0;font-size:.79rem;min-width:760px}
@@ -247,7 +262,7 @@
     @media(max-width:860px){
       .app-shell{padding:12px 12px 96px}.top-nav{top:8px;grid-template-columns:1fr auto;padding:10px}.nav-tabs{grid-column:1/-1;grid-row:2;width:100%}.nav-tab{flex:1;justify-content:center;padding:9px 12px}.nav-tab span{display:none}.brand-title{font-size:.92rem}
       .hero{padding:23px 20px;flex-direction:column}.hero-badges{max-width:none;width:100%;justify-content:flex-start}.hero-badge{flex:1;min-width:120px}
-      .card-header{align-items:stretch;flex-direction:column;padding:18px}.header-actions{width:100%}.search-wrap{flex:1}.search-wrap input{width:100%}.layout-split{grid-template-columns:1fr}.sidebar-col{max-height:220px;border-right:0;border-bottom:1px solid rgba(255,184,58,.1)}.detail-col{padding:22px}.table-scroll{max-height:none}.table-scroll.index-only-scroll{height:auto;min-height:550px;max-height:none;overflow:hidden}.index-only-scroll .layout-split{height:auto}.index-only-scroll .sidebar-col{height:220px;max-height:220px}.index-only-scroll .detail-col{height:auto;min-height:300px;overflow:hidden}.content-card{min-height:550px}
+      .card-header{align-items:stretch;flex-direction:column;padding:18px}.header-actions{width:100%}.search-wrap{flex:1}.search-wrap input{width:100%}.layout-split{grid-template-columns:1fr}.sidebar-col{max-height:220px;border-right:0;border-bottom:1px solid rgba(255,184,58,.1)}.detail-col{padding:22px}.table-scroll{max-height:none}.table-scroll.index-only-scroll{height:auto;min-height:550px;max-height:none;overflow:hidden}.index-only-scroll .layout-split{height:auto}.index-only-scroll .sidebar-col{height:220px;max-height:220px}.index-only-scroll .detail-col{height:auto;min-height:300px;max-height:none;overflow:visible;scrollbar-gutter:auto}.content-card{min-height:550px}
       #notif-container{right:12px;bottom:90px;left:12px}.toast{min-width:0;max-width:none;width:100%}.road-glow{height:84px}
     }
     @media(max-width:520px){
@@ -496,7 +511,7 @@ function renderQna(data){if(!data.length)return'<div class="empty-state"><i clas
 
 function renderSidebarLayout(data){if(!data.length)return'<div class="empty-state"><i class="fas fa-inbox"></i>Tidak ada data</div>';const k=Object.keys(data[0]);let h=`<div class="layout-split"><div class="sidebar-col"><div class="sidebar-header"><span><i class="fas fa-list" style="font-size:0.55rem;margin-right:8px;"></i> Index</span> <span class="sidebar-count">${data.length}</span></div><div class="sidebar-list">`;data.forEach((r,i)=>{h+=`<div class="sidebar-item" data-index="${i}"><span class="item-num">${String(i+1).padStart(2,'0')}</span> ${esc(r[k[0]]||`Item ${i+1}`)}</div>`;});h+=`</div></div><div class="detail-col" id="detailPanel"><div class="detail-content" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px;color:var(--text-muted);gap:14px;"><i class="fas fa-arrow-left" style="font-size:1.8rem;opacity:0.1;"></i><span style="font-size:0.85rem;">Pilih item dari daftar</span></div></div></div>`;return h;}
 
-function initSidebarInteraction(data){const items=document.querySelectorAll('.sidebar-item'),panel=document.getElementById('detailPanel');if(!items.length)return;const k=Object.keys(data[0]);const update=i=>{const r=data[i],t=r[k[0]]||'-';const dp=[];for(let j=1;j<k.length;j++){const v=r[k[j]];if(v)dp.push(v);}const d=dp.join('\n\n')||'-';panel.innerHTML=`<div class="detail-content"><div class="detail-title"><i class="fas fa-bookmark"></i> ${esc(t)}</div><div class="detail-body">${esc(d)}</div><button class="copy-btn detail-copy-btn" data-desc="${esc(d)}"><i class="fas fa-copy"></i> Copy Deskripsi</button></div>`;};items.forEach(item=>{item.addEventListener('click',()=>{items.forEach(i=>i.classList.remove('active'));item.classList.add('active');update(parseInt(item.dataset.index));});});if(items[0]){items[0].classList.add('active');update(0);}}
+function initSidebarInteraction(data){const items=document.querySelectorAll('.sidebar-item'),panel=document.getElementById('detailPanel');if(!items.length)return;const k=Object.keys(data[0]);const update=i=>{const r=data[i],t=r[k[0]]||'-';const dp=[];for(let j=1;j<k.length;j++){const v=r[k[j]];if(v)dp.push(v);}const d=dp.join('\n\n')||'-';panel.innerHTML=`<div class="detail-content"><div class="detail-title"><i class="fas fa-bookmark"></i> ${esc(t)}</div><div class="detail-body">${esc(d)}</div><button class="copy-btn detail-copy-btn" data-desc="${esc(d)}"><i class="fas fa-copy"></i> Copy Deskripsi</button></div>`;panel.scrollTop=0;};items.forEach(item=>{item.addEventListener('click',()=>{items.forEach(i=>i.classList.remove('active'));item.classList.add('active');update(parseInt(item.dataset.index));});});if(items[0]){items[0].classList.add('active');update(0);}}
 
 function renderSheet(sn){currentSheet=sn;const dn={'bonus':'BONUS','PK_anti_audit':'PK ANTI AUDIT','PK_LULUS_SENSOR_AUDIT':'PK LULUS AUDIT','seputar_gantirek':'GANTI REK','seputar_pk':'SEPUTAR PK'};const pageTitle=document.getElementById('pageTitle'),pageSubtitle=document.getElementById('pageSubtitle');if(pageTitle)pageTitle.textContent=dn[sn]||sn.replace(/_/g,' ').toUpperCase();if(pageSubtitle)pageSubtitle.textContent='Data Sheet';document.querySelectorAll('.nav-tab').forEach(el=>el.classList.toggle('active',el.dataset.sheet===sn));document.getElementById('searchInput').value='';const data=allData[sn]||[],c=document.getElementById('tableContainer'),isSidebar=SIDEBAR_SHEETS.includes(sn);c.classList.toggle('index-only-scroll',isSidebar);if(isSidebar){c.innerHTML=renderSidebarLayout(data);setTimeout(()=>initSidebarInteraction(data),30);}else{c.innerHTML=renderQna(data);}}
 
