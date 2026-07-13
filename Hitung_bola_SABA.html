@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#07140f" />
+  <title>Kalkulator Kemenangan SABA</title>
+  <style>
+    :root{
+      --bg:#04100c;
+      --bg-2:#071a13;
+      --panel:rgba(11,35,26,.88);
+      --panel-2:rgba(15,47,35,.8);
+      --line:rgba(255,255,255,.1);
+      --green:#35f29a;
+      --green-2:#0fc777;
+      --gold:#ffd166;
+      --red:#ff6174;
+      --blue:#65b5ff;
+      --text:#f2fff9;
+      --muted:#9bb8aa;
+      --shadow:0 25px 80px rgba(0,0,0,.45);
+      --radius:22px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      color:var(--text);
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:
+        radial-gradient(circle at 8% 5%, rgba(53,242,154,.16), transparent 28%),
+        radial-gradient(circle at 92% 15%, rgba(255,209,102,.12), transparent 25%),
+        radial-gradient(circle at 50% 100%, rgba(20,119,83,.22), transparent 35%),
+        linear-gradient(145deg,#020806 0%,#071710 46%,#030a07 100%);
+      overflow-x:hidden;
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      opacity:.26;
+      background-image:
+        linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+      background-size:34px 34px;
+      mask-image:linear-gradient(to bottom,black,transparent 85%);
+    }
+
+    .shell{
+      width:min(1180px,calc(100% - 28px));
+      margin:0 auto;
+      padding:28px 0 54px;
+      position:relative;
+      z-index:1;
+    }
+
+    .hero{
+      position:relative;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:30px;
+      padding:32px;
+      background:
+        linear-gradient(135deg,rgba(22,75,54,.78),rgba(5,22,16,.9)),
+        var(--panel);
+      box-shadow:var(--shadow);
+    }
+
+    .hero::after{
+      content:"";
+      position:absolute;
+      width:310px;
+      height:310px;
+      border-radius:50%;
+      right:-130px;
+      top:-150px;
+      background:radial-gradient(circle,rgba(53,242,154,.28),transparent 65%);
+    }
+
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:9px;
+      color:var(--green);
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    .dot{
+      width:9px;
+      height:9px;
+      border-radius:50%;
+      background:var(--green);
+      box-shadow:0 0 16px var(--green);
+      animation:pulse 1.8s infinite;
+    }
+
+    @keyframes pulse{
+      0%,100%{transform:scale(.85);opacity:.65}
+      50%{transform:scale(1.2);opacity:1}
+    }
+
+    h1{
+      margin:12px 0 8px;
+      max-width:760px;
+      font-size:clamp(30px,5vw,56px);
+      line-height:1.02;
+      letter-spacing:-.045em;
+    }
+
+    .hero p{
+      margin:0;
+      max-width:760px;
+      color:var(--muted);
+      line-height:1.7;
+      font-size:15px;
+    }
+
+    .hero-badges{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:22px;
+    }
+
+    .hero-badge{
+      padding:9px 12px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:rgba(255,255,255,.04);
+      color:#dff7eb;
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .tabs{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      margin:20px 0;
+      padding:8px;
+      border:1px solid var(--line);
+      border-radius:20px;
+      background:rgba(3,16,11,.78);
+      backdrop-filter:blur(16px);
+      position:sticky;
+      top:10px;
+      z-index:30;
+      box-shadow:0 12px 35px rgba(0,0,0,.25);
+    }
+
+    .tab-btn{
+      border:0;
+      border-radius:14px;
+      padding:14px 12px;
+      color:var(--muted);
+      background:transparent;
+      cursor:pointer;
+      font-weight:900;
+      transition:.22s ease;
+    }
+
+    .tab-btn:hover{color:var(--text);background:rgba(255,255,255,.04)}
+    .tab-btn.active{
+      color:#052015;
+      background:linear-gradient(135deg,var(--green),#9dffc8);
+      box-shadow:0 8px 24px rgba(53,242,154,.22);
+    }
+
+    .tab-panel{display:none}
+    .tab-panel.active{display:block;animation:fade .24s ease}
+
+    @keyframes fade{
+      from{opacity:0;transform:translateY(7px)}
+      to{opacity:1;transform:none}
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:minmax(0,1.08fr) minmax(320px,.92fr);
+      gap:18px;
+    }
+
+    .card{
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:22px;
+      background:linear-gradient(145deg,rgba(13,43,31,.9),rgba(5,19,14,.92));
+      box-shadow:0 18px 50px rgba(0,0,0,.25);
+      backdrop-filter:blur(16px);
+    }
+
+    .card-title{
+      margin:0 0 6px;
+      font-size:18px;
+      letter-spacing:-.02em;
+    }
+
+    .card-sub{
+      margin:0 0 20px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.6;
+    }
+
+    .form-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px;
+    }
+
+    .field.full{grid-column:1/-1}
+
+    label{
+      display:block;
+      margin-bottom:7px;
+      color:#c8e7d7;
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.02em;
+    }
+
+    input,select{
+      width:100%;
+      height:48px;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:13px;
+      outline:none;
+      color:var(--text);
+      background:rgba(0,0,0,.22);
+      padding:0 14px;
+      font-size:14px;
+      transition:.2s ease;
+    }
+
+    input:focus,select:focus{
+      border-color:var(--green);
+      box-shadow:0 0 0 4px rgba(53,242,154,.1);
+    }
+
+    select option{background:#0a2118}
+
+    .btn{
+      width:100%;
+      min-height:50px;
+      border:0;
+      border-radius:14px;
+      cursor:pointer;
+      font-weight:950;
+      font-size:14px;
+      transition:.2s ease;
+    }
+
+    .btn:active{transform:scale(.985)}
+
+    .btn-primary{
+      color:#052015;
+      background:linear-gradient(135deg,var(--green),#a7ffce);
+      box-shadow:0 12px 28px rgba(53,242,154,.18);
+    }
+
+    .btn-secondary{
+      color:var(--text);
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.055);
+    }
+
+    .actions{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:10px;
+      margin-top:16px;
+    }
+
+    .actions .btn-secondary{padding:0 18px}
+
+    .result-box{
+      height:100%;
+      min-height:330px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      border-radius:18px;
+      padding:24px;
+      background:
+        radial-gradient(circle at 90% 10%,rgba(53,242,154,.14),transparent 32%),
+        rgba(0,0,0,.18);
+      border:1px solid var(--line);
+    }
+
+    .result-kicker{
+      color:var(--muted);
+      font-size:11px;
+      font-weight:950;
+      letter-spacing:.13em;
+      text-transform:uppercase;
+    }
+
+    .result-main{
+      margin:8px 0 2px;
+      font-size:clamp(30px,5vw,48px);
+      font-weight:1000;
+      letter-spacing:-.045em;
+      color:var(--green);
+      overflow-wrap:anywhere;
+    }
+
+    .result-profit{
+      font-size:17px;
+      font-weight:900;
+      color:var(--gold);
+    }
+
+    .result-status{
+      display:inline-flex;
+      align-self:flex-start;
+      margin:16px 0 12px;
+      padding:8px 11px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:950;
+      background:rgba(53,242,154,.1);
+      border:1px solid rgba(53,242,154,.24);
+      color:var(--green);
+    }
+
+    .result-status.danger{
+      background:rgba(255,97,116,.09);
+      border-color:rgba(255,97,116,.24);
+      color:var(--red);
+    }
+
+    .result-status.neutral{
+      background:rgba(101,181,255,.09);
+      border-color:rgba(101,181,255,.24);
+      color:var(--blue);
+    }
+
+    .result-details{
+      display:grid;
+      gap:9px;
+      margin-top:5px;
+    }
+
+    .detail{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      padding:11px 0;
+      border-bottom:1px dashed rgba(255,255,255,.09);
+      font-size:13px;
+    }
+
+    .detail span:first-child{color:var(--muted)}
+    .detail strong{text-align:right}
+
+    .explain{
+      margin-top:14px;
+      padding:13px 14px;
+      border-radius:13px;
+      color:#cce5d8;
+      background:rgba(255,255,255,.035);
+      border:1px solid rgba(255,255,255,.07);
+      font-size:12px;
+      line-height:1.65;
+    }
+
+    .market-box{display:none}
+    .market-box.active{display:grid}
+
+    .score-row{
+      display:grid;
+      grid-template-columns:1fr auto 1fr;
+      gap:12px;
+      align-items:end;
+    }
+
+    .vs{
+      display:grid;
+      place-items:center;
+      height:48px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:950;
+    }
+
+    .parlay-list{
+      display:grid;
+      gap:11px;
+      margin-bottom:14px;
+    }
+
+    .leg{
+      display:grid;
+      grid-template-columns:minmax(120px,1.1fr) minmax(100px,.8fr) minmax(125px,1fr) 40px;
+      gap:9px;
+      align-items:end;
+      padding:13px;
+      border-radius:15px;
+      background:rgba(255,255,255,.035);
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .leg label{font-size:10px;margin-bottom:5px}
+    .leg input,.leg select{height:43px}
+
+    .remove-leg{
+      width:40px;
+      height:43px;
+      border:1px solid rgba(255,97,116,.25);
+      border-radius:11px;
+      background:rgba(255,97,116,.08);
+      color:var(--red);
+      cursor:pointer;
+      font-size:19px;
+    }
+
+    .summary-strip{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      margin-top:16px;
+    }
+
+    .mini{
+      padding:13px;
+      border-radius:13px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.035);
+    }
+
+    .mini span{
+      display:block;
+      color:var(--muted);
+      font-size:10px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      font-weight:900;
+    }
+
+    .mini strong{
+      display:block;
+      margin-top:6px;
+      font-size:16px;
+    }
+
+    .info-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:12px;
+      margin-top:18px;
+    }
+
+    .info-card{
+      padding:17px;
+      border:1px solid var(--line);
+      border-radius:17px;
+      background:rgba(255,255,255,.03);
+    }
+
+    .info-card strong{
+      display:block;
+      margin-bottom:7px;
+      color:var(--gold);
+      font-size:13px;
+    }
+
+    .info-card p{
+      margin:0;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.6;
+    }
+
+    .notice{
+      margin-top:18px;
+      padding:15px 17px;
+      border:1px solid rgba(255,209,102,.18);
+      border-radius:15px;
+      background:rgba(255,209,102,.055);
+      color:#eddcae;
+      font-size:12px;
+      line-height:1.65;
+    }
+
+    .hidden{display:none!important}
+
+    @media(max-width:860px){
+      .grid{grid-template-columns:1fr}
+      .info-grid{grid-template-columns:1fr}
+      .result-box{min-height:260px}
+    }
+
+    @media(max-width:640px){
+      .shell{width:min(100% - 18px,1180px);padding-top:9px}
+      .hero{padding:24px 19px;border-radius:22px}
+      .tabs{top:5px}
+      .tab-btn{padding:12px 7px;font-size:11px}
+      .card{padding:17px;border-radius:18px}
+      .form-grid{grid-template-columns:1fr}
+      .field.full{grid-column:auto}
+      .score-row{grid-template-columns:1fr 32px 1fr}
+      .leg{grid-template-columns:1fr 1fr}
+      .leg .leg-name{grid-column:1/-1}
+      .remove-leg{width:100%;grid-column:1/-1}
+      .summary-strip{grid-template-columns:1fr}
+      .actions{grid-template-columns:1fr}
+      .actions .btn-secondary{min-height:46px}
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="eyebrow"><span class="dot"></span> Kalkulator Taruhan Asia</div>
+      <h1>Kalkulator Kemenangan SABA</h1>
+      <p>
+        Hitung estimasi pembayaran dan keuntungan taruhan tunggal maupun parlay.
+        Mendukung odds Decimal, Hong Kong, Malay, dan Indonesian serta hasil menang/kalah setengah.
+      </p>
+      <div class="hero-badges">
+        <span class="hero-badge">Single Bet</span>
+        <span class="hero-badge">Asian Handicap</span>
+        <span class="hero-badge">Over / Under</span>
+        <span class="hero-badge">Parlay</span>
+      </div>
+    </section>
+
+    <nav class="tabs" aria-label="Menu kalkulator">
+      <button class="tab-btn active" data-tab="quick">Kalkulator Cepat</button>
+      <button class="tab-btn" data-tab="market">Analisis Pasaran</button>
+      <button class="tab-btn" data-tab="parlay">Kalkulator Parlay</button>
+    </nav>
+
+    <section id="quick" class="tab-panel active">
+      <div class="grid">
+        <article class="card">
+          <h2 class="card-title">Taruhan Tunggal</h2>
+          <p class="card-sub">Masukkan modal, jenis odds, nilai odds, dan hasil taruhan.</p>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="quickStake">Modal Taruhan</label>
+              <input id="quickStake" type="number" min="0" step="1000" value="100000" />
+            </div>
+            <div class="field">
+              <label for="quickFormat">Format Odds</label>
+              <select id="quickFormat">
+                <option value="decimal">Decimal</option>
+                <option value="hk">Hong Kong</option>
+                <option value="malay">Malay</option>
+                <option value="indo">Indonesian</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="quickOdds">Nilai Odds</label>
+              <input id="quickOdds" type="number" step="0.01" value="1.90" />
+            </div>
+            <div class="field">
+              <label for="quickResult">Hasil Taruhan</label>
+              <select id="quickResult">
+                <option value="full_win">Menang Penuh</option>
+                <option value="half_win">Menang Setengah</option>
+                <option value="push">Seri / Uang Kembali</option>
+                <option value="half_loss">Kalah Setengah</option>
+                <option value="full_loss">Kalah Penuh</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn btn-primary" id="quickCalc">Hitung Kemenangan</button>
+            <button class="btn btn-secondary" id="quickReset">Reset</button>
+          </div>
+        </article>
+
+        <aside class="card">
+          <div class="result-box">
+            <div class="result-kicker">Total Dibayar</div>
+            <div class="result-main" id="quickPayout">Rp190.000</div>
+            <div class="result-profit" id="quickProfit">Untung Rp90.000</div>
+            <div class="result-status" id="quickStatus">Menang Penuh</div>
+            <div class="result-details">
+              <div class="detail"><span>Odds Decimal</span><strong id="quickDecimal">1,90</strong></div>
+              <div class="detail"><span>Modal</span><strong id="quickStakeOut">Rp100.000</strong></div>
+              <div class="detail"><span>Pengali Hasil</span><strong id="quickFactor">1,90×</strong></div>
+            </div>
+            <div class="explain" id="quickExplain">
+              Menang penuh: pembayaran = modal × odds decimal.
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-card">
+          <strong>Menang Setengah</strong>
+          <p>Setengah modal menang, setengah modal dikembalikan. Faktor pembayaran: (odds + 1) ÷ 2.</p>
+        </div>
+        <div class="info-card">
+          <strong>Kalah Setengah</strong>
+          <p>Setengah modal hilang dan setengah modal dikembalikan. Pembayaran kembali 50% modal.</p>
+        </div>
+        <div class="info-card">
+          <strong>Seri / Push</strong>
+          <p>Modal dikembalikan tanpa keuntungan dan tanpa kerugian.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="market" class="tab-panel">
+      <div class="grid">
+        <article class="card">
+          <h2 class="card-title">Analisis Hasil Pasaran</h2>
+          <p class="card-sub">Pilih pasaran, masukkan skor akhir, line, modal, dan odds.</p>
+
+          <div class="form-grid">
+            <div class="field full">
+              <label for="marketType">Jenis Pasaran</label>
+              <select id="marketType">
+                <option value="handicap">Asian Handicap / Voor</option>
+                <option value="ou">Over / Under</option>
+                <option value="1x2">1X2</option>
+                <option value="btts">BTTS</option>
+                <option value="oddeven">Odd / Even</option>
+              </select>
+            </div>
+
+            <div class="field full">
+              <div class="score-row">
+                <div>
+                  <label for="homeScore">Skor Kandang</label>
+                  <input id="homeScore" type="number" min="0" step="1" value="2" />
+                </div>
+                <div class="vs">VS</div>
+                <div>
+                  <label for="awayScore">Skor Tandang</label>
+                  <input id="awayScore" type="number" min="0" step="1" value="1" />
+                </div>
+              </div>
+            </div>
+
+            <div class="field full market-box active" id="box-handicap">
+              <div class="field">
+                <label for="ahPick">Pilihan Tim</label>
+                <select id="ahPick">
+                  <option value="home">Kandang</option>
+                  <option value="away">Tandang</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="ahLine">Voor Pilihan</label>
+                <input id="ahLine" type="number" step="0.25" value="-0.75" />
+              </div>
+            </div>
+
+            <div class="field full market-box" id="box-ou">
+              <div class="field">
+                <label for="ouPick">Pilihan</label>
+                <select id="ouPick">
+                  <option value="over">Over</option>
+                  <option value="under">Under</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="ouLine">Line Gol</label>
+                <input id="ouLine" type="number" step="0.25" value="2.75" />
+              </div>
+            </div>
+
+            <div class="field full market-box" id="box-1x2">
+              <div class="field full">
+                <label for="oneXtwoPick">Pilihan 1X2</label>
+                <select id="oneXtwoPick">
+                  <option value="home">Home / Kandang</option>
+                  <option value="draw">Draw / Seri</option>
+                  <option value="away">Away / Tandang</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field full market-box" id="box-btts">
+              <div class="field full">
+                <label for="bttsPick">Kedua Tim Cetak Gol?</label>
+                <select id="bttsPick">
+                  <option value="yes">Ya / Yes</option>
+                  <option value="no">Tidak / No</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field full market-box" id="box-oddeven">
+              <div class="field full">
+                <label for="oddEvenPick">Total Gol</label>
+                <select id="oddEvenPick">
+                  <option value="odd">Ganjil / Odd</option>
+                  <option value="even">Genap / Even</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="marketStake">Modal Taruhan</label>
+              <input id="marketStake" type="number" min="0" step="1000" value="100000" />
+            </div>
+            <div class="field">
+              <label for="marketFormat">Format Odds</label>
+              <select id="marketFormat">
+                <option value="decimal">Decimal</option>
+                <option value="hk">Hong Kong</option>
+                <option value="malay">Malay</option>
+                <option value="indo">Indonesian</option>
+              </select>
+            </div>
+            <div class="field full">
+              <label for="marketOdds">Nilai Odds</label>
+              <input id="marketOdds" type="number" step="0.01" value="1.90" />
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn btn-primary" id="marketCalc">Analisis & Hitung</button>
+            <button class="btn btn-secondary" id="marketReset">Reset</button>
+          </div>
+        </article>
+
+        <aside class="card">
+          <div class="result-box">
+            <div class="result-kicker">Hasil Pasaran</div>
+            <div class="result-main" id="marketPayout">Rp190.000</div>
+            <div class="result-profit" id="marketProfit">Untung Rp90.000</div>
+            <div class="result-status" id="marketStatus">Menang Penuh</div>
+            <div class="result-details">
+              <div class="detail"><span>Skor Akhir</span><strong id="marketScoreOut">2 - 1</strong></div>
+              <div class="detail"><span>Pasaran</span><strong id="marketLabel">Kandang -0,75</strong></div>
+              <div class="detail"><span>Odds Decimal</span><strong id="marketDecimal">1,90</strong></div>
+            </div>
+            <div class="explain" id="marketExplain">
+              Kandang -0,75 pada skor 2-1 menghasilkan menang setengah.
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="parlay" class="tab-panel">
+      <div class="grid">
+        <article class="card">
+          <h2 class="card-title">Kalkulator Parlay</h2>
+          <p class="card-sub">Setiap pertandingan dapat memiliki odds dan status hasil yang berbeda.</p>
+
+          <div class="form-grid" style="margin-bottom:14px">
+            <div class="field">
+              <label for="parlayStake">Modal Parlay</label>
+              <input id="parlayStake" type="number" min="0" step="1000" value="100000" />
+            </div>
+            <div class="field">
+              <label for="parlayFormat">Format Odds Semua Leg</label>
+              <select id="parlayFormat">
+                <option value="decimal">Decimal</option>
+                <option value="hk">Hong Kong</option>
+                <option value="malay">Malay</option>
+                <option value="indo">Indonesian</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="parlay-list" id="parlayList"></div>
+
+          <div class="actions">
+            <button class="btn btn-secondary" id="addLeg">+ Tambah Pertandingan</button>
+            <button class="btn btn-primary" id="parlayCalc">Hitung Parlay</button>
+          </div>
+        </article>
+
+        <aside class="card">
+          <div class="result-box">
+            <div class="result-kicker">Total Dibayar Parlay</div>
+            <div class="result-main" id="parlayPayout">Rp649.800</div>
+            <div class="result-profit" id="parlayProfit">Untung Rp549.800</div>
+            <div class="result-status" id="parlayStatus">Parlay Menang</div>
+
+            <div class="summary-strip">
+              <div class="mini">
+                <span>Total Leg</span>
+                <strong id="parlayLegCount">3</strong>
+              </div>
+              <div class="mini">
+                <span>Odds Efektif</span>
+                <strong id="parlayCombined">6,50</strong>
+              </div>
+              <div class="mini">
+                <span>Modal</span>
+                <strong id="parlayStakeOut">Rp100.000</strong>
+              </div>
+            </div>
+
+            <div class="explain" id="parlayExplain">
+              Odds efektif dihitung dari seluruh odds dan status settlement setiap pertandingan.
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <div class="notice">
+        Catatan: kalkulator ini menggunakan rumus settlement taruhan Asia yang umum. Pembulatan,
+        void, pembatalan pertandingan, dead heat, aturan waktu pertandingan, dan kebijakan khusus
+        operator dapat membuat hasil akun berbeda.
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const money = new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      maximumFractionDigits: 0
+    });
+
+    const numberID = new Intl.NumberFormat("id-ID", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 3
+    });
+
+    const resultNames = {
+      full_win: "Menang Penuh",
+      half_win: "Menang Setengah",
+      push: "Seri / Uang Kembali",
+      half_loss: "Kalah Setengah",
+      full_loss: "Kalah Penuh",
+      split: "Hasil Terbagi"
+    };
+
+    const resultFactors = {
+      full_win: odds => odds,
+      half_win: odds => (odds + 1) / 2,
+      push: () => 1,
+      half_loss: () => 0.5,
+      full_loss: () => 0
+    };
+
+    function decimalOdds(format, value){
+      const odds = Number(value);
+      if (!Number.isFinite(odds)) throw new Error("Nilai odds tidak valid.");
+
+      if (format === "decimal"){
+        if (odds <= 1) throw new Error("Odds Decimal harus lebih besar dari 1,00.");
+        return odds;
+      }
+
+      if (format === "hk"){
+        if (odds < 0) throw new Error("Odds Hong Kong tidak boleh negatif.");
+        return 1 + odds;
+      }
+
+      if (format === "malay"){
+        if (odds === 0 || Math.abs(odds) > 1) {
+          throw new Error("Odds Malay umumnya berada di antara -1,00 dan 1,00, selain 0.");
+        }
+        return odds > 0 ? 1 + odds : 1 + (1 / Math.abs(odds));
+      }
+
+      if (format === "indo"){
+        if (odds === 0 || Math.abs(odds) < 1) {
+          throw new Error("Odds Indonesian harus ≥ 1,00 atau ≤ -1,00.");
+        }
+        return odds > 0 ? 1 + odds : 1 + (1 / Math.abs(odds));
+      }
+
+      throw new Error("Format odds tidak dikenali.");
+    }
+
+    function getSettlement(odds, result){
+      const factorFn = resultFactors[result];
+      if (!factorFn) throw new Error("Status hasil tidak valid.");
+      const factor = factorFn(odds);
+      return { factor, result };
+    }
+
+    function calculatePayout(stake, odds, result){
+      const settlement = getSettlement(odds, result);
+      const payout = stake * settlement.factor;
+      return {
+        factor: settlement.factor,
+        payout,
+        profit: payout - stake
+      };
+    }
+
+    function setStatusStyle(element, result){
+      element.classList.remove("danger","neutral");
+      if (result === "full_loss" || result === "half_loss") element.classList.add("danger");
+      if (result === "push" || result === "split") element.classList.add("neutral");
+    }
+
+    function profitText(value){
+      if (Math.abs(value) < 0.0001) return "Impas " + money.format(0);
+      return value > 0 ? "Untung " + money.format(value) : "Rugi " + money.format(Math.abs(value));
+    }
+
+    function errorResult(prefix, message){
+      alert(prefix + ": " + message);
+    }
+
+    // Tabs
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.tab).classList.add("active");
+      });
+    });
+
+    // Kalkulator cepat
+    function calculateQuick(){
+      try{
+        const stake = Number(document.getElementById("quickStake").value);
+        const format = document.getElementById("quickFormat").value;
+        const odds = decimalOdds(format, document.getElementById("quickOdds").value);
+        const result = document.getElementById("quickResult").value;
+
+        if (!Number.isFinite(stake) || stake <= 0) throw new Error("Modal harus lebih besar dari 0.");
+
+        const calc = calculatePayout(stake, odds, result);
+        document.getElementById("quickPayout").textContent = money.format(calc.payout);
+        document.getElementById("quickProfit").textContent = profitText(calc.profit);
+        document.getElementById("quickStatus").textContent = resultNames[result];
+        document.getElementById("quickDecimal").textContent = numberID.format(odds);
+        document.getElementById("quickStakeOut").textContent = money.format(stake);
+        document.getElementById("quickFactor").textContent = numberID.format(calc.factor) + "×";
+        setStatusStyle(document.getElementById("quickStatus"), result);
+
+        const explanations = {
+          full_win: `Menang penuh: ${money.format(stake)} × ${numberID.format(odds)} = ${money.format(calc.payout)}.`,
+          half_win: `Menang setengah: separuh modal menang pada odds ${numberID.format(odds)}, separuh lagi kembali.`,
+          push: `Seri / push: modal ${money.format(stake)} dikembalikan penuh.`,
+          half_loss: `Kalah setengah: 50% modal hilang dan ${money.format(stake / 2)} dikembalikan.`,
+          full_loss: `Kalah penuh: seluruh modal ${money.format(stake)} hilang.`
+        };
+        document.getElementById("quickExplain").textContent = explanations[result];
+      }catch(err){
+        errorResult("Tidak dapat menghitung", err.message);
+      }
+    }
+
+    document.getElementById("quickCalc").addEventListener("click", calculateQuick);
+    document.getElementById("quickReset").addEventListener("click", () => {
+      document.getElementById("quickStake").value = 100000;
+      document.getElementById("quickFormat").value = "decimal";
+      document.getElementById("quickOdds").value = 1.90;
+      document.getElementById("quickResult").value = "full_win";
+      calculateQuick();
+    });
+
+    // Market switcher
+    document.getElementById("marketType").addEventListener("change", e => {
+      document.querySelectorAll(".market-box").forEach(box => box.classList.remove("active"));
+      document.getElementById("box-" + e.target.value).classList.add("active");
+    });
+
+    function isQuarterLine(line){
+      const q = Math.round(line * 4);
+      return Math.abs(q % 2) === 1;
+    }
+
+    function splitAsianLine(line){
+      if (!isQuarterLine(line)) return [line];
+      return [line - 0.25, line + 0.25];
+    }
+
+    function componentOutcome(value, line, pickType){
+      const diff = value - line;
+      const epsilon = 1e-9;
+
+      if (pickType === "over"){
+        if (diff > epsilon) return "win";
+        if (Math.abs(diff) <= epsilon) return "push";
+        return "loss";
+      }
+
+      if (pickType === "under"){
+        if (diff < -epsilon) return "win";
+        if (Math.abs(diff) <= epsilon) return "push";
+        return "loss";
+      }
+
+      throw new Error("Jenis pilihan tidak valid.");
+    }
+
+    function handicapComponent(selectedScore, opponentScore, line){
+      const margin = selectedScore + line - opponentScore;
+      if (margin > 1e-9) return "win";
+      if (Math.abs(margin) <= 1e-9) return "push";
+      return "loss";
+    }
+
+    function combineComponents(components, odds){
+      const componentFactor = outcome => {
+        if (outcome === "win") return odds;
+        if (outcome === "push") return 1;
+        return 0;
+      };
+
+      const factor = components.reduce((sum, outcome) => {
+        return sum + componentFactor(outcome) / components.length;
+      }, 0);
+
+      if (components.every(x => x === "win")) return { result:"full_win", factor };
+      if (components.every(x => x === "push")) return { result:"push", factor };
+      if (components.every(x => x === "loss")) return { result:"full_loss", factor };
+
+      const wins = components.filter(x => x === "win").length;
+      const pushes = components.filter(x => x === "push").length;
+      const losses = components.filter(x => x === "loss").length;
+
+      if (wins && pushes && !losses) return { result:"half_win", factor };
+      if (losses && pushes && !wins) return { result:"half_loss", factor };
+      return { result:"split", factor };
+    }
+
+    function lineText(value){
+      return (value > 0 ? "+" : "") + String(value).replace(".", ",");
+    }
+
+    function analyzeMarket(home, away, odds){
+      const market = document.getElementById("marketType").value;
+
+      if (market === "handicap"){
+        const pick = document.getElementById("ahPick").value;
+        const line = Number(document.getElementById("ahLine").value);
+        if (!Number.isFinite(line)) throw new Error("Nilai voor tidak valid.");
+
+        const selected = pick === "home" ? home : away;
+        const opponent = pick === "home" ? away : home;
+        const lines = splitAsianLine(line);
+        const components = lines.map(l => handicapComponent(selected, opponent, l));
+        const combined = combineComponents(components, odds);
+        const side = pick === "home" ? "Kandang" : "Tandang";
+
+        return {
+          ...combined,
+          label: `${side} ${lineText(line)}`,
+          explanation: `${side} ${lineText(line)} dibagi menjadi ${lines.map(lineText).join(" dan ")}. Hasil bagian: ${components.join(" + ")}.`
+        };
+      }
+
+      if (market === "ou"){
+        const pick = document.getElementById("ouPick").value;
+        const line = Number(document.getElementById("ouLine").value);
+        if (!Number.isFinite(line) || line < 0) throw new Error("Line gol tidak valid.");
+
+        const total = home + away;
+        const lines = splitAsianLine(line);
+        const components = lines.map(l => componentOutcome(total, l, pick));
+        const combined = combineComponents(components, odds);
+        const title = pick === "over" ? "Over" : "Under";
+
+        return {
+          ...combined,
+          label: `${title} ${String(line).replace(".", ",")}`,
+          explanation: `Total gol ${total}. ${title} ${String(line).replace(".", ",")} dibagi menjadi ${lines.map(v => String(v).replace(".", ",")).join(" dan ")}. Hasil bagian: ${components.join(" + ")}.`
+        };
+      }
+
+      if (market === "1x2"){
+        const pick = document.getElementById("oneXtwoPick").value;
+        const actual = home > away ? "home" : home < away ? "away" : "draw";
+        const labels = {home:"Home",draw:"Draw",away:"Away"};
+        const result = pick === actual ? "full_win" : "full_loss";
+        return {
+          result,
+          factor:getSettlement(odds,result).factor,
+          label:`1X2 - ${labels[pick]}`,
+          explanation:`Hasil pertandingan adalah ${labels[actual]}. Pilihan Anda ${labels[pick]}.`
+        };
+      }
+
+      if (market === "btts"){
+        const pick = document.getElementById("bttsPick").value;
+        const actual = home > 0 && away > 0 ? "yes" : "no";
+        const result = pick === actual ? "full_win" : "full_loss";
+        return {
+          result,
+          factor:getSettlement(odds,result).factor,
+          label:`BTTS - ${pick === "yes" ? "Ya" : "Tidak"}`,
+          explanation: actual === "yes"
+            ? "Kedua tim mencetak minimal satu gol."
+            : "Minimal satu tim tidak mencetak gol."
+        };
+      }
+
+      if (market === "oddeven"){
+        const pick = document.getElementById("oddEvenPick").value;
+        const total = home + away;
+        const actual = total % 2 === 0 ? "even" : "odd";
+        const result = pick === actual ? "full_win" : "full_loss";
+        return {
+          result,
+          factor:getSettlement(odds,result).factor,
+          label:`${pick === "odd" ? "Odd / Ganjil" : "Even / Genap"}`,
+          explanation:`Total gol ${total}, sehingga hasilnya ${actual === "odd" ? "ganjil" : "genap"}.`
+        };
+      }
+
+      throw new Error("Pasaran tidak dikenali.");
+    }
+
+    function calculateMarket(){
+      try{
+        const home = Number(document.getElementById("homeScore").value);
+        const away = Number(document.getElementById("awayScore").value);
+        const stake = Number(document.getElementById("marketStake").value);
+        const format = document.getElementById("marketFormat").value;
+        const odds = decimalOdds(format, document.getElementById("marketOdds").value);
+
+        if (![home,away].every(Number.isInteger) || home < 0 || away < 0) {
+          throw new Error("Skor harus berupa angka bulat 0 atau lebih.");
+        }
+        if (!Number.isFinite(stake) || stake <= 0) throw new Error("Modal harus lebih besar dari 0.");
+
+        const analysis = analyzeMarket(home,away,odds);
+        const payout = stake * analysis.factor;
+        const profit = payout - stake;
+
+        document.getElementById("marketPayout").textContent = money.format(payout);
+        document.getElementById("marketProfit").textContent = profitText(profit);
+        document.getElementById("marketStatus").textContent = resultNames[analysis.result] || "Hasil";
+        document.getElementById("marketScoreOut").textContent = `${home} - ${away}`;
+        document.getElementById("marketLabel").textContent = analysis.label;
+        document.getElementById("marketDecimal").textContent = numberID.format(odds);
+        document.getElementById("marketExplain").textContent = analysis.explanation;
+        setStatusStyle(document.getElementById("marketStatus"), analysis.result);
+      }catch(err){
+        errorResult("Tidak dapat menganalisis", err.message);
+      }
+    }
+
+    document.getElementById("marketCalc").addEventListener("click", calculateMarket);
+    document.getElementById("marketReset").addEventListener("click", () => {
+      document.getElementById("marketType").value = "handicap";
+      document.getElementById("marketType").dispatchEvent(new Event("change"));
+      document.getElementById("homeScore").value = 2;
+      document.getElementById("awayScore").value = 1;
+      document.getElementById("ahPick").value = "home";
+      document.getElementById("ahLine").value = -0.75;
+      document.getElementById("marketStake").value = 100000;
+      document.getElementById("marketFormat").value = "decimal";
+      document.getElementById("marketOdds").value = 1.90;
+      calculateMarket();
+    });
+
+    // Parlay
+    const parlayList = document.getElementById("parlayList");
+    let legIndex = 0;
+
+    function createLeg(name="", odds="1.90", result="full_win"){
+      legIndex++;
+      const row = document.createElement("div");
+      row.className = "leg";
+      row.innerHTML = `
+        <div class="leg-name">
+          <label>Nama Pertandingan</label>
+          <input type="text" value="${name || "Pilihan " + legIndex}" />
+        </div>
+        <div>
+          <label>Odds</label>
+          <input class="leg-odds" type="number" step="0.01" value="${odds}" />
+        </div>
+        <div>
+          <label>Hasil</label>
+          <select class="leg-result">
+            <option value="full_win">Menang Penuh</option>
+            <option value="half_win">Menang Setengah</option>
+            <option value="push">Seri / Void</option>
+            <option value="half_loss">Kalah Setengah</option>
+            <option value="full_loss">Kalah Penuh</option>
+          </select>
+        </div>
+        <button class="remove-leg" type="button" title="Hapus pertandingan">×</button>
+      `;
+      row.querySelector(".leg-result").value = result;
+      row.querySelector(".remove-leg").addEventListener("click", () => {
+        if (parlayList.children.length <= 1){
+          alert("Minimal harus ada satu pertandingan.");
+          return;
+        }
+        row.remove();
+        calculateParlay();
+      });
+      parlayList.appendChild(row);
+    }
+
+    function calculateParlay(){
+      try{
+        const stake = Number(document.getElementById("parlayStake").value);
+        const format = document.getElementById("parlayFormat").value;
+        const legs = [...document.querySelectorAll(".leg")];
+
+        if (!Number.isFinite(stake) || stake <= 0) throw new Error("Modal harus lebih besar dari 0.");
+        if (!legs.length) throw new Error("Tambahkan minimal satu pertandingan.");
+
+        let totalFactor = 1;
+        const details = [];
+
+        legs.forEach((leg, index) => {
+          const rawOdds = leg.querySelector(".leg-odds").value;
+          const odds = decimalOdds(format, rawOdds);
+          const result = leg.querySelector(".leg-result").value;
+          const settlement = getSettlement(odds,result);
+          totalFactor *= settlement.factor;
+          details.push(`Leg ${index + 1}: ${numberID.format(settlement.factor)}×`);
+        });
+
+        const payout = stake * totalFactor;
+        const profit = payout - stake;
+        let overall = "full_win";
+        let status = "Parlay Menang";
+
+        if (totalFactor === 0){
+          overall = "full_loss";
+          status = "Parlay Kalah";
+        }else if (Math.abs(totalFactor - 1) < 1e-9){
+          overall = "push";
+          status = "Modal Kembali";
+        }else if (totalFactor < 1){
+          overall = "half_loss";
+          status = "Parlay Rugi Sebagian";
+        }
+
+        document.getElementById("parlayPayout").textContent = money.format(payout);
+        document.getElementById("parlayProfit").textContent = profitText(profit);
+        document.getElementById("parlayStatus").textContent = status;
+        document.getElementById("parlayLegCount").textContent = legs.length;
+        document.getElementById("parlayCombined").textContent = numberID.format(totalFactor);
+        document.getElementById("parlayStakeOut").textContent = money.format(stake);
+        document.getElementById("parlayExplain").textContent = details.join(" • ");
+        setStatusStyle(document.getElementById("parlayStatus"), overall);
+      }catch(err){
+        errorResult("Tidak dapat menghitung parlay", err.message);
+      }
+    }
+
+    document.getElementById("addLeg").addEventListener("click", () => {
+      createLeg();
+      calculateParlay();
+    });
+    document.getElementById("parlayCalc").addEventListener("click", calculateParlay);
+    document.getElementById("parlayList").addEventListener("input", calculateParlay);
+    document.getElementById("parlayList").addEventListener("change", calculateParlay);
+    document.getElementById("parlayStake").addEventListener("input", calculateParlay);
+    document.getElementById("parlayFormat").addEventListener("change", calculateParlay);
+
+    createLeg("Pilihan 1", "1.90", "full_win");
+    createLeg("Pilihan 2", "1.80", "full_win");
+    createLeg("Pilihan 3", "1.90", "full_win");
+
+    calculateQuick();
+    calculateMarket();
+    calculateParlay();
+  </script>
+</body>
+</html>
