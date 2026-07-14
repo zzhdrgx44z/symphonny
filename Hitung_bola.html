@@ -782,7 +782,7 @@ footer{
         <span class="liveball-icon">⚽</span>
         <div>
           <h2>Bola Jalan</h2>
-          <p>Hitung taruhan handicap berdasarkan gol yang terjadi setelah taruhan dipasang.</p>
+          <p>Hitung Handicap, Over/Under, 1X2, Ganjil/Genap, dan BTTS berdasarkan gol yang terjadi setelah taruhan dipasang.</p>
         </div>
       </div>
 
@@ -812,6 +812,17 @@ footer{
             <div class="field"><label>Tim Tandang</label><input id="liveAwayTeam" value="Tim Tandang"></div>
 
             <div class="field">
+              <label>Pasaran Bola Jalan</label>
+              <select id="liveMarket">
+                <option value="HDP">Handicap</option>
+                <option value="OU">Over/Under</option>
+                <option value="1x2">1X2</option>
+                <option value="OE">Ganjil/Genap</option>
+                <option value="BTTS">BTTS</option>
+              </select>
+            </div>
+
+            <div id="livePickTeamField" class="field">
               <label>Tim yang Dipilih</label>
               <select id="livePickTeam">
                 <option value="HOME">Tim Kandang</option>
@@ -819,8 +830,13 @@ footer{
               </select>
             </div>
 
-            <div class="field">
-              <label>Handicap Bola Jalan</label>
+            <div id="liveChoiceField" class="field hidden">
+              <label>Pilihan</label>
+              <select id="liveChoice"></select>
+            </div>
+
+            <div id="liveLineField" class="field">
+              <label id="liveLineLabel">Handicap Bola Jalan</label>
               <div class="inline">
                 <select id="liveLineSign"><option>-</option><option>+</option></select>
                 <input id="liveLine" type="number" value="0" min="0" step=".25">
@@ -867,7 +883,7 @@ footer{
           </div>
           <div class="liveball-note">
             <strong>Contoh:</strong>
-            <p>Mengambil taruhan saat skor 3-0. Jika pertandingan berakhir tetap 3-0, maka hasil bola jalan dihitung 0-0 karena tidak ada gol tambahan setelah taruhan dipasang.</p>
+            <p>Mengambil taruhan saat skor 3-0. Jika pertandingan berakhir tetap 3-0, skor bola jalan adalah 0-0. Skor 0-0 inilah yang dipakai untuk menghitung Handicap, Over/Under, 1X2, Ganjil/Genap, atau BTTS.</p>
           </div>
         </div>
       </div>
@@ -1182,6 +1198,37 @@ function updateLiveOddsFormat(){
   if(format==='EUROPE'&&Number($('liveOdds').value)<1)$('liveOdds').value='1.90';
 }
 
+function updateLiveMarketForm(){
+  const market=$('liveMarket').value;
+  const isHdp=market==='HDP';
+  const hasLine=['HDP','OU'].includes(market);
+
+  $('livePickTeamField').classList.toggle('hidden',!isHdp);
+  $('liveChoiceField').classList.toggle('hidden',isHdp);
+  $('liveLineField').classList.toggle('hidden',!hasLine);
+  $('liveLineSign').classList.toggle('hidden',!isHdp);
+  $('liveLineLabel').textContent=isHdp?'Handicap Bola Jalan':'Batas Over / Under';
+
+  if(market==='OU'){
+    if(Number($('liveLine').value)===0)$('liveLine').value='2.5';
+    $('liveLine').step='.25';
+  }
+
+  const options=market==='OU'
+    ?[['over','Over'],['under','Under']]
+    :market==='1x2'
+      ?[['home','Tim Kandang'],['draw','Seri'],['away','Tim Tandang']]
+      :market==='OE'
+        ?[['even','Genap'],['odd','Ganjil']]
+        :[['yes','Ya — Kedua Tim Cetak Gol'],['no','Tidak — Salah Satu Tidak Cetak Gol']];
+
+  if(!isHdp){
+    const oldValue=$('liveChoice').value;
+    $('liveChoice').innerHTML=options.map(([value,label])=>`<option value="${value}">${label}</option>`).join('');
+    if(options.some(([value])=>value===oldValue))$('liveChoice').value=oldValue;
+  }
+}
+
 function livePreview(){
   const sh=Math.max(0,Number($('liveStartHome').value)||0);
   const sa=Math.max(0,Number($('liveStartAway').value)||0);
@@ -1189,6 +1236,70 @@ function livePreview(){
   const ea=Math.max(0,Number($('liveEndAway').value)||0);
   $('livePreviewStart').textContent=`${sh} - ${sa}`;
   $('livePreviewAdded').textContent=`${Math.max(0,eh-sh)} - ${Math.max(0,ea-sa)}`;
+}
+
+function liveMarketDetails(market,homeTeam,awayTeam,addedHome,addedAway,line,choice,pick){
+  const total=addedHome+addedAway;
+  const scoreText=`${homeTeam} ${addedHome} - ${addedAway} ${awayTeam}`;
+
+  if(market==='HDP'){
+    const pickedName=pick==='HOME'?homeTeam:awayTeam;
+    const opponentName=pick==='HOME'?awayTeam:homeTeam;
+    const pickedGoals=pick==='HOME'?addedHome:addedAway;
+    const opponentGoals=pick==='HOME'?addedAway:addedHome;
+    const calculation=pickedGoals-opponentGoals+line;
+    return {
+      status:resultStatus('HDP',pickedGoals,opponentGoals,line,''),
+      selection:`${pickedName} ${lineText(line)}`,
+      calculationLabel:'Hasil Setelah Handicap',
+      calculationValue:cleanNumber(calculation),
+      explanation:`Pilihan Handicap ${pickedName} ${lineText(line)} melawan ${opponentName}. Perhitungannya: ${pickedGoals} - ${opponentGoals} + (${cleanNumber(line)}) = ${cleanNumber(calculation)}.`
+    };
+  }
+
+  if(market==='OU'){
+    const result=choice==='over'?total-line:line-total;
+    return {
+      status:resultStatus('OU',addedHome,addedAway,line,choice),
+      selection:`${choice==='over'?'Over':'Under'} ${cleanNumber(line)}`,
+      calculationLabel:'Total Gol Bola Jalan',
+      calculationValue:String(total),
+      explanation:`Pilihan ${choice==='over'?'Over':'Under'} ${cleanNumber(line)}. Total gol setelah taruhan dipasang adalah ${total} dari skor ${scoreText}. Selisih perhitungan pasar: ${cleanNumber(result)}.`
+    };
+  }
+
+  if(market==='1x2'){
+    const label=choice==='home'?homeTeam:choice==='away'?awayTeam:'Seri';
+    const actual=addedHome>addedAway?homeTeam:addedAway>addedHome?awayTeam:'Seri';
+    return {
+      status:resultStatus('1x2',addedHome,addedAway,0,choice),
+      selection:label,
+      calculationLabel:'Hasil 1X2 Bola Jalan',
+      calculationValue:actual,
+      explanation:`Pilihan 1X2 adalah ${label}. Skor setelah taruhan dipasang adalah ${scoreText}, sehingga hasil 1X2 bola jalan adalah ${actual}.`
+    };
+  }
+
+  if(market==='OE'){
+    const actual=total%2===0?'Genap':'Ganjil';
+    return {
+      status:resultStatus('OE',addedHome,addedAway,0,choice),
+      selection:choice==='even'?'Genap':'Ganjil',
+      calculationLabel:'Jumlah Gol',
+      calculationValue:`${total} (${actual})`,
+      explanation:`Pilihan ${choice==='even'?'Genap':'Ganjil'}. Total gol setelah taruhan dipasang adalah ${total}, sehingga hasilnya ${actual}.`
+    };
+  }
+
+  const bothScore=addedHome>0&&addedAway>0;
+  const actual=bothScore?'Ya':'Tidak';
+  return {
+    status:resultStatus('BTTS',addedHome,addedAway,0,choice),
+    selection:choice==='yes'?'Ya':'Tidak',
+    calculationLabel:'Kedua Tim Cetak Gol',
+    calculationValue:actual,
+    explanation:`Pilihan BTTS ${choice==='yes'?'Ya':'Tidak'}. Skor setelah taruhan dipasang adalah ${scoreText}. ${bothScore?'Kedua tim sama-sama mencetak gol.':'Tidak kedua tim mencetak gol.'}`
+  };
 }
 
 function calculateLiveBall(){
@@ -1201,12 +1312,16 @@ function calculateLiveBall(){
   const odds=Number($('liveOdds').value)||0;
   const homeTeam=$('liveHomeTeam').value.trim()||'Tim Kandang';
   const awayTeam=$('liveAwayTeam').value.trim()||'Tim Tandang';
+  const market=$('liveMarket').value;
   const pick=$('livePickTeam').value;
+  const choice=$('liveChoice').value;
   const startHome=Math.max(0,Number($('liveStartHome').value)||0);
   const startAway=Math.max(0,Number($('liveStartAway').value)||0);
   const endHome=Math.max(0,Number($('liveEndHome').value)||0);
   const endAway=Math.max(0,Number($('liveEndAway').value)||0);
-  const line=($('liveLineSign').value==='+'?1:-1)*Math.abs(Number($('liveLine').value)||0);
+  const line=market==='HDP'
+    ?($('liveLineSign').value==='+'?1:-1)*Math.abs(Number($('liveLine').value)||0)
+    :Math.abs(Number($('liveLine').value)||0);
 
   livePreview();
 
@@ -1225,13 +1340,8 @@ function calculateLiveBall(){
 
   const addedHome=endHome-startHome;
   const addedAway=endAway-startAway;
-  const pickedName=pick==='HOME'?homeTeam:awayTeam;
-  const opponentName=pick==='HOME'?awayTeam:homeTeam;
-  const pickedGoals=pick==='HOME'?addedHome:addedAway;
-  const opponentGoals=pick==='HOME'?addedAway:addedHome;
-  const liveDiff=pickedGoals-opponentGoals;
-  const handicapResult=liveDiff+line;
-  const status=resultStatus('HDP',pickedGoals,opponentGoals,line,'');
+  const marketResult=liveMarketDetails(market,homeTeam,awayTeam,addedHome,addedAway,line,choice,pick);
+  const status=marketResult.status;
   const stake=oddsResult.stake;
   const fullProfit=oddsResult.profit;
 
@@ -1245,16 +1355,17 @@ function calculateLiveBall(){
   const formatName=ODDS_FORMAT[format]||'Odds Eropa';
   const oddsExplain=oddsFormulaExplanation(format,sign,Math.abs(odds),modal,stake,fullProfit);
   const statusExplain=singleStatusCalculation(status,stake,fullProfit,profit,total);
-  const explanation=`Bosku, berikut penjelasan hasil Bola Jalan.\nTaruhan dipasang saat skor ${homeTeam} ${startHome} - ${startAway} ${awayTeam}.\nSkor akhir pertandingan ${homeTeam} ${endHome} - ${endAway} ${awayTeam}.\nGol yang dihitung setelah taruhan dipasang adalah ${homeTeam} ${addedHome} - ${addedAway} ${awayTeam}.\nPilihan: ${pickedName} ${lineText(line)} melawan ${opponentName}.\nPerhitungan handicap bola jalan: ${pickedGoals} - ${opponentGoals} + (${cleanNumber(line)}) = ${cleanNumber(handicapResult)}.\nHasil taruhan adalah ${statusLower(status)}.\nFormat odds: ${formatName}, odds awal ${oddsResult.display}.\n${oddsExplain}\n${statusExplain}\nKeuntungan bersih: ${profit>=0?'Rp ':'-Rp '}${money(Math.abs(profit))}.`;
+  const explanation=`Bosku, berikut penjelasan hasil Bola Jalan.\nTaruhan dipasang saat skor ${homeTeam} ${startHome} - ${startAway} ${awayTeam}.\nSkor akhir pertandingan ${homeTeam} ${endHome} - ${endAway} ${awayTeam}.\nGol yang dihitung setelah taruhan dipasang adalah ${homeTeam} ${addedHome} - ${addedAway} ${awayTeam}.\nPasaran: ${MARKET[market]}.\n${marketResult.explanation}\nHasil taruhan adalah ${statusLower(status)}.\nFormat odds: ${formatName}, odds awal ${oddsResult.display}.\n${oddsExplain}\n${statusExplain}\nKeuntungan bersih: ${profit>=0?'Rp ':'-Rp '}${money(Math.abs(profit))}.`;
 
   box.classList.add(['mf','ms'].includes(status)?'win':status==='sr'?'draw':'lose');
   box.innerHTML=`<div class="result-head"><h3>Hasil Bola Jalan</h3><button class="btn green small" id="copyLive">Salin</button></div>
     <div class="summary"><span>Status</span><strong class="status ${status}">${STATUS[status]}</strong></div>
+    <div class="summary"><span>Pasaran</span><strong>${MARKET[market]}</strong></div>
     <div class="summary"><span>Skor Saat Pasang</span><strong>${startHome} - ${startAway}</strong></div>
     <div class="summary"><span>Skor Akhir</span><strong>${endHome} - ${endAway}</strong></div>
     <div class="summary"><span>Skor Bola Jalan</span><strong>${addedHome} - ${addedAway}</strong></div>
-    <div class="summary"><span>Pilihan Handicap</span><strong>${esc(pickedName)} ${lineText(line)}</strong></div>
-    <div class="summary"><span>Hasil Setelah Handicap</span><strong>${cleanNumber(handicapResult)}</strong></div>
+    <div class="summary"><span>Pilihan</span><strong>${esc(marketResult.selection)}</strong></div>
+    <div class="summary"><span>${marketResult.calculationLabel}</span><strong>${esc(marketResult.calculationValue)}</strong></div>
     <div class="summary"><span>Odds</span><strong>${oddsResult.display}</strong></div>
     <div class="summary"><span>Modal Hitung</span><strong>Rp ${money(stake)}</strong></div>
     <div class="summary"><span>Keuntungan / Kerugian</span><strong>${profit>=0?'+':'-'}Rp ${money(Math.abs(profit))}</strong></div>
@@ -1265,7 +1376,8 @@ function calculateLiveBall(){
 }
 
 ['liveModal','liveOdds','liveHomeTeam','liveAwayTeam','liveLine','liveStartHome','liveStartAway','liveEndHome','liveEndAway'].forEach(id=>$(id).addEventListener('input',()=>{livePreview();calculateLiveBall()}));
-['liveOddsSign','livePickTeam','liveLineSign'].forEach(id=>$(id).addEventListener('change',calculateLiveBall));
+['liveOddsSign','livePickTeam','liveLineSign','liveChoice'].forEach(id=>$(id).addEventListener('change',calculateLiveBall));
+$('liveMarket').addEventListener('change',()=>{updateLiveMarketForm();calculateLiveBall()});
 $('liveOddsFormat').addEventListener('change',()=>{updateLiveOddsFormat();calculateLiveBall()});
 $('calcLive').onclick=calculateLiveBall;
 $('resetLive').onclick=()=>{
@@ -1275,6 +1387,7 @@ $('resetLive').onclick=()=>{
   $('liveOdds').value='1';
   $('liveHomeTeam').value='Tim Kandang';
   $('liveAwayTeam').value='Tim Tandang';
+  $('liveMarket').value='HDP';
   $('livePickTeam').value='HOME';
   $('liveLineSign').value='-';
   $('liveLine').value='0';
@@ -1283,6 +1396,7 @@ $('resetLive').onclick=()=>{
   $('liveEndHome').value='3';
   $('liveEndAway').value='0';
   updateLiveOddsFormat();
+  updateLiveMarketForm();
   livePreview();
   calculateLiveBall();
   toast('Bola jalan direset');
@@ -1295,7 +1409,7 @@ document.querySelectorAll('.tab').forEach(tab=>tab.onclick=()=>{
 async function copyText(text){try{await navigator.clipboard.writeText(text);toast('Teks tersalin')}catch{const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();toast('Teks tersalin')}}
 function toast(text){const t=document.createElement('div');t.className='toast';t.textContent=text;document.body.appendChild(t);setTimeout(()=>t.remove(),1800)}
 
-renderParlay();updateSingleForm();updateLiveOddsFormat();livePreview();calculateLiveBall();
+renderParlay();updateSingleForm();updateLiveOddsFormat();updateLiveMarketForm();livePreview();calculateLiveBall();
 </script>
 </body>
 </html>
