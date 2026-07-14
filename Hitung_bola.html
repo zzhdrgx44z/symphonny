@@ -121,13 +121,38 @@ function choiceText(m,p){
   const map={over:'Over',under:'Under',home:'Home',draw:'Draw',away:'Away',even:'Genap',odd:'Ganjil',yes:'Ya',no:'Tidak'};
   return m==='HDP'?'-':map[p]||'-';
 }
+function cleanNumber(value,digits=6){
+  return Number(Number(value).toFixed(digits)).toString();
+}
+function statusLower(status){
+  return ({mf:'menang penuh',ms:'menang setengah',sr:'seri / push',ks:'kalah setengah',kf:'kalah penuh'})[status]||'-';
+}
+function effectiveReason(status){
+  if(status==='mf')return 'Odds efektif sama dengan odds awal karena menang penuh.';
+  if(status==='ms')return 'Odds efektif = 1 + ((Odds - 1) x 0.5) karena menang setengah.';
+  if(status==='sr')return 'Odds efektif menjadi 1.00 karena hasil seri/push dan modal dikembalikan.';
+  if(status==='ks')return 'Odds efektif menjadi 0.50 karena kalah setengah.';
+  return 'Odds efektif menjadi 0.00 karena kalah penuh.';
+}
+function matchExplanation(b,status,index){
+  const total=b.home+b.away,diff=b.home-b.away,eff=effectiveOdds(status,b.odds);
+  const score=`${b.team} ${b.home} - ${b.away} ${b.opponent||'Lawan'}`;
+  let opening='';
+  if(b.market==='OU'){
+    opening=`Pilihan ${choiceText(b.market,b.choice)} ${cleanNumber(b.line)}. Total gol pertandingan adalah ${total} dari skor ${score}`;
+  }else if(b.market==='HDP'){
+    opening=`Pilihan Handicap ${b.team} ${lineText(b.line)}. Skor pertandingan adalah ${score}. Hasil setelah handicap: ${cleanNumber(diff)} + (${cleanNumber(b.line)}) = ${cleanNumber(diff+b.line)}`;
+  }else if(b.market==='1x2'){
+    opening=`Pilihan 1X2 ${choiceText(b.market,b.choice)}. Skor pertandingan adalah ${score}`;
+  }else if(b.market==='OE'){
+    opening=`Pilihan ${choiceText(b.market,b.choice)}. Total gol pertandingan adalah ${total} dari skor ${score}`;
+  }else{
+    opening=`Pilihan BTTS ${choiceText(b.market,b.choice)}. Skor pertandingan adalah ${score}`;
+  }
+  return `Match ${index+1}: ${opening}, hasil taruhan adalah ${statusLower(status)}. Odds awal ${cleanNumber(b.odds)}, odds efektif ${cleanNumber(eff,3)}. ${effectiveReason(status)}`;
+}
 function explain(b,status){
-  const diff=b.home-b.away,total=b.home+b.away;
-  let text=`${MARKET[b.market]} | ${b.team} vs ${b.opponent||'Lawan'}\nSkor: ${b.home}-${b.away}\n`;
-  if(b.market==='HDP') text+=`Voor: ${b.team} ${lineText(b.line)}\nHitung: ${diff} + (${b.line}) = ${diff+b.line}`;
-  if(b.market==='OU') text+=`Pilihan: ${choiceText(b.market,b.choice)} ${b.line}\nTotal gol: ${total}`;
-  if(b.market==='1x2'||b.market==='OE'||b.market==='BTTS') text+=`Pilihan: ${choiceText(b.market,b.choice)}\nTotal gol: ${total}`;
-  return `${text}\nHasil: ${STATUS[status]}\nOdds efektif: ${effectiveOdds(status,b.odds).toFixed(3)}`;
+  return matchExplanation(b,status,0).replace(/^Match 1: /,'');
 }
 
 let bets=[
@@ -158,7 +183,7 @@ function renderParlay(){
       <td>${i+1}</td><td><input data-field="team" value="${esc(b.team)}"></td><td><input data-field="opponent" value="${esc(b.opponent)}"></td>
       <td><select data-field="market">${Object.keys(MARKET).map(m=>`<option value="${m}" ${b.market===m?'selected':''}>${MARKET[m]}</option>`).join('')}</select></td>
       <td>${marketInput(b)}</td>
-      <td>${b.market==='OU'?`<input data-field="total" type="number" min="0" value="${b.home+b.away}">`:`<div class="score"><input data-field="home" type="number" min="0" value="${b.home}"><b>:</b><input data-field="away" type="number" min="0" value="${b.away}"></div>`}</td>
+      <td><div class="score"><input data-field="home" type="number" min="0" value="${b.home}"><b>:</b><input data-field="away" type="number" min="0" value="${b.away}"></div></td>
       <td><span class="status ${status}">${STATUS[status]}</span></td><td><input data-field="odds" type="number" min="1" step=".01" value="${b.odds}"></td>
       <td><b>${effectiveOdds(status,b.odds).toFixed(3)}</b></td><td class="explain">${esc(explain(b,status))}</td>
       <td><button class="btn red small" data-action="delete">Hapus</button></td></tr>`;
@@ -191,24 +216,46 @@ function calculateParlay(){
   notice.classList.toggle('hidden',bets.length===0||bets.length>=3);
   notice.textContent=`Minimal 3 partai. Saat ini: ${bets.length}`;
   box.className='result';
-  if(bets.length<3){box.innerHTML='<h3>Hasil Parlay</h3><p>Masukkan minimal 3 partai.</p>';window.lastParlay=null;return}
-  if(modal<=0){box.innerHTML='<h3>Hasil Parlay</h3><p>Modal tidak valid.</p>';window.lastParlay=null;return}
-  const counts={mf:0,ms:0,sr:0,ks:0,kf:0};let factor=1;
-  const details=bets.map((b,i)=>{const s=resultStatus(b.market,b.home,b.away,b.line,b.choice);counts[s]++;factor*=effectiveOdds(s,b.odds);return `PARTAI ${i+1}\n${explain(b,s)}`});
-  factor=Math.round(factor*1000)/1000;
-  const lost=counts.kf>0||factor===0,total=lost?0:Math.round(modal*factor),net=total-modal;
+  if(bets.length<3){box.innerHTML='<h3>Hasil Mix Parlay</h3><p>Masukkan minimal 3 partai.</p>';window.lastParlay=null;return}
+  if(modal<=0){box.innerHTML='<h3>Hasil Mix Parlay</h3><p>Modal tidak valid.</p>';window.lastParlay=null;return}
+
+  const counts={mf:0,ms:0,sr:0,ks:0,kf:0};
+  let factor=1;
+  const effectiveList=[];
+  const details=bets.map((b,i)=>{
+    const status=resultStatus(b.market,b.home,b.away,b.line,b.choice);
+    const effective=effectiveOdds(status,b.odds);
+    counts[status]++;
+    effectiveList.push(effective);
+    factor*=effective;
+    return matchExplanation(b,status,i);
+  });
+
+  const lost=counts.kf>0||factor===0;
+  const payoutExact=lost?0:modal*factor;
+  const profitExact=payoutExact-modal;
+  const total=Math.round(payoutExact);
+  const net=Math.round(profitExact);
+  const factorDisplay=cleanNumber(factor,6);
+  const payoutExactDisplay=cleanNumber(payoutExact,6);
+  const profitExactDisplay=cleanNumber(profitExact,6);
+  const oddsFormula=effectiveList.map(x=>cleanNumber(x,3)).join(' x ');
+
   box.classList.add(lost?'lose':net>0?'win':'draw');
-  const conclusion=lost?'Parlay kalah karena ada partai Kalah Full.':`Parlay aktif dengan odds efektif ${factor.toFixed(3)}.`;
-  box.innerHTML=`<div class="result-head"><h3>Hasil Parlay</h3><button class="btn green small" id="copyParlay">Salin</button></div>
+  const intro=`Bosku, berikut penjelasan hasil Mix Parlay.\nTotal odds dihitung dari odds efektif setiap match: ${oddsFormula} = ${factorDisplay}.\nDengan modal Rp ${money(modal)}, payout/total diterima menjadi Rp ${money(total)} (${payoutExactDisplay}).\nKeuntungan bersih: ${profitExact>=0?'Rp ':'-Rp '}${money(Math.abs(net))} (${profitExactDisplay}).\n\nRincian per match:\n${details.join('\n')}`;
+
+  box.innerHTML=`<div class="result-head"><h3>Hasil Mix Parlay</h3><button class="btn green small" id="copyParlay">Salin</button></div>
     <div class="summary"><span>Total Partai</span><strong>${bets.length}</strong></div>
     <div class="summary"><span>MF / MS / Push / KS / KF</span><strong>${counts.mf} / ${counts.ms} / ${counts.sr} / ${counts.ks} / ${counts.kf}</strong></div>
     <div class="summary"><span>Modal</span><strong>Rp ${money(modal)}</strong></div>
-    <div class="summary"><span>Odds Efektif</span><strong>${factor.toFixed(3)}</strong></div>
+    <div class="summary"><span>Perkalian Odds</span><strong>${oddsFormula}</strong></div>
+    <div class="summary"><span>Total Odds Efektif</span><strong>${factorDisplay}</strong></div>
     <div class="summary"><span>Total Diterima</span><strong>Rp ${money(total)}</strong></div>
-    <div class="summary"><span>Untung / Rugi</span><strong>${net>=0?'+':'-'}Rp ${money(Math.abs(net))}</strong></div>
-    <div class="detail">${conclusion}</div>`;
-  window.lastParlay={modal,factor,total,net,counts,details,conclusion};
-  $('copyParlay').onclick=()=>copyText(`HASIL PARLAY\nModal: Rp${money(modal)}\nOdds efektif: ${factor.toFixed(3)}\nTotal diterima: Rp${money(total)}\nUntung/Rugi: ${net>=0?'+':'-'}Rp${money(Math.abs(net))}\n\n${details.join('\n\n')}\n\n${conclusion}`);
+    <div class="summary"><span>Keuntungan Bersih</span><strong>${net>=0?'+':'-'}Rp ${money(Math.abs(net))}</strong></div>
+    <div class="detail">${esc(intro)}</div>`;
+
+  window.lastParlay={modal,factor,payoutExact,profitExact,total,net,counts,details,intro};
+  $('copyParlay').onclick=()=>copyText(intro);
 }
 
 $('addBet').onclick=()=>{bets.push({team:'Tim',opponent:'Lawan',market:'HDP',line:-.75,choice:'',home:0,away:0,odds:1.9});renderParlay();toast('Partai ditambahkan')};
