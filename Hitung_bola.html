@@ -66,7 +66,7 @@ footer{text-align:center;color:#6e8278;padding:20px}
     <div class="card">
       <div class="form-grid">
         <div class="field"><label>Modal Taruhan</label><input id="singleModal" value="100.000" inputmode="numeric"></div>
-        <div class="field"><label>Format Odds</label><div class="inline"><select id="oddsFormat"><option value="INDO">Indonesia</option><option value="HK">Hongkong</option><option value="MALAY">Malay</option><option value="DECIMAL">Desimal</option></select><select id="oddsSign"><option>-</option><option>+</option></select><input id="singleOdds" type="number" value="1" min="0" step=".01"></div></div>
+        <div class="field"><label>Format Odds</label><div class="inline"><select id="oddsFormat"><option value="INDO">Indonesia</option><option value="HK">Hongkong</option><option value="MALAY">Malay</option><option value="EUROPE">Odds Eropa (Decimal)</option><option value="DECIMAL">Desimal</option></select><select id="oddsSign"><option>-</option><option>+</option></select><input id="singleOdds" type="number" value="1" min="0" step=".01"></div></div>
         <div class="field"><label>Tim Anda</label><input id="singleTeam" value="E-PSV"></div>
         <div class="field"><label>Lawan</label><input id="singleOpponent" value="MU"></div>
         <div class="field"><label>Posisi Tim</label><select id="singlePosition"><option value="HOME">Kandang</option><option value="AWAY">Tandang</option></select></div>
@@ -91,6 +91,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const eq=(a,b)=>Math.abs(a-b)<.001;
 const STATUS={mf:'Menang Full',ms:'Menang Setengah',sr:'Seri / Push',ks:'Kalah Setengah',kf:'Kalah Full'};
 const MARKET={HDP:'Handicap',OU:'Over/Under','1x2':'1X2',OE:'Ganjil/Genap',BTTS:'BTTS'};
+const ODDS_FORMAT={INDO:'Indonesia',HK:'Hongkong',MALAY:'Malay',EUROPE:'Odds Eropa (Decimal)',DECIMAL:'Desimal'};
 
 function resultStatus(market,home,away,line,choice){
   const diff=home-away,total=home+away;
@@ -226,8 +227,12 @@ function updateSingleForm(){
 }
 function updateOddsFormat(){
   const format=$('oddsFormat').value;
-  $('oddsSign').classList.toggle('hidden',!['INDO','MALAY'].includes(format));
-  if(!['INDO','MALAY'].includes(format))$('oddsSign').value='+';
+  const memakaiTanda=['INDO','MALAY'].includes(format);
+  const oddsEropa=['EUROPE','DECIMAL'].includes(format);
+  $('oddsSign').classList.toggle('hidden',!memakaiTanda);
+  if(!memakaiTanda)$('oddsSign').value='+';
+  $('singleOdds').min=oddsEropa?'1':'0';
+  if(oddsEropa&&Number($('singleOdds').value)<1)$('singleOdds').value='1.90';
 }
 function oddsCalculation(format,sign,odds,modal){
   const value=Math.abs(odds);let stake=modal,profit=0,display='';
@@ -236,7 +241,7 @@ function oddsCalculation(format,sign,odds,modal){
   if(format==='INDO'){display=sign+value;stake=sign==='-'?modal*value:modal;profit=sign==='-'?modal:modal*value}
   if(format==='HK'){display=value.toFixed(2);profit=modal*value}
   if(format==='MALAY'){display=sign+value;profit=sign==='-'?modal/value:modal*value}
-  if(format==='DECIMAL'){if(value<1)return{valid:false,message:'Odds desimal minimal 1.00.'};display=value.toFixed(2);profit=modal*(value-1)}
+  if(format==='DECIMAL'||format==='EUROPE'){if(value<1)return{valid:false,message:'Odds Eropa/Desimal minimal 1.00.'};display=value.toFixed(2);profit=modal*(value-1)}
   return{valid:true,stake,profit,display};
 }
 function calculateSingle(){
@@ -255,16 +260,17 @@ function calculateSingle(){
   if(status==='ks'){profit=-stake/2;total=stake/2;note='Kalah setengah.'}
   if(status==='kf'){profit=-stake;total=0;note='Kalah penuh.'}
   box.classList.add(['mf','ms'].includes(status)?'win':status==='sr'?'draw':'lose');
-  const detail=`${team} vs ${opponent}\nPasaran: ${MARKET[market]} (${ $('singlePeriod').value })\nSkor: ${home}-${away}\n${market==='HDP'?`Voor: ${lineText(line)}`:`Pilihan: ${choiceText(market,choice)}${market==='OU'?` ${line}`:''}`}\nHasil: ${STATUS[status]}`;
+  const detail=`${team} vs ${opponent}\nPasaran: ${MARKET[market]} (${ $('singlePeriod').value })\nFormat Odds: ${ODDS_FORMAT[format]}\nSkor: ${home}-${away}\n${market==='HDP'?`Voor: ${lineText(line)}`:`Pilihan: ${choiceText(market,choice)}${market==='OU'?` ${line}`:''}`}\nHasil: ${STATUS[status]}`;
   box.innerHTML=`<div class="result-head"><h3>Hasil Single</h3><button class="btn green small" id="copySingle">Salin</button></div>
     <div class="summary"><span>Status</span><strong class="status ${status}">${STATUS[status]}</strong></div>
+    <div class="summary"><span>Format Odds</span><strong>${ODDS_FORMAT[format]}</strong></div>
     <div class="summary"><span>Odds</span><strong>${oddsResult.display}</strong></div>
     <div class="summary"><span>Modal Awal</span><strong>Rp ${money(modal)}</strong></div>
     <div class="summary"><span>Modal Hitung</span><strong>Rp ${money(stake)}</strong></div>
     <div class="summary"><span>Keuntungan / Kerugian</span><strong>${profit>=0?'+':'-'}Rp ${money(Math.abs(profit))}</strong></div>
     <div class="summary"><span>Total Diterima</span><strong>Rp ${money(total)}</strong></div>
     <div class="detail">${esc(detail)}\n${note}</div>`;
-  window.lastSingle={detail,status,odds:oddsResult.display,modal,stake,profit,total,note};
+  window.lastSingle={detail,status,format:ODDS_FORMAT[format],odds:oddsResult.display,modal,stake,profit,total,note};
   $('copySingle').onclick=()=>copyText(`HASIL SINGLE\n${detail}\nOdds: ${oddsResult.display}\nModal hitung: Rp${money(stake)}\nUntung/Rugi: ${profit>=0?'+':'-'}Rp${money(Math.abs(profit))}\nTotal diterima: Rp${money(total)}\n${note}`);
 }
 
