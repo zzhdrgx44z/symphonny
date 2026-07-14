@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kalkulator Taruhan</title>
+<style>
+:root{
+  --bg:#08110d;--card:rgba(8,18,14,.92);--line:#294337;
+  --green:#00e986;--gold:#ffc83d;--red:#ff5364;--blue:#61a9ff;
+  --purple:#b987ff;--text:#f4fff9;--muted:#9bb0a5
+}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Arial,sans-serif;color:var(--text);background:#07100c}
+body::before{content:"";position:fixed;inset:0;z-index:-2;background:url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1920&q=75') center/cover}
+body::after{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(rgba(0,0,0,.72),rgba(4,13,9,.96))}
+header{text-align:center;padding:42px 16px 18px}h1{margin:0;font-size:clamp(2rem,6vw,3.6rem)}h1 span{color:var(--green)}header p{color:var(--muted);margin:8px 0 0}
+main{max-width:1250px;margin:auto;padding:0 14px 50px}.tabs{display:flex;max-width:460px;margin:20px auto;gap:8px}.tab{flex:1}
+button,input,select{font:inherit}.tab,.btn{border:0;border-radius:8px;padding:11px 15px;font-weight:700;cursor:pointer}.tab{background:#16231d;color:var(--muted)}.tab.active,.btn.green{background:var(--green);color:#001b0e}.btn.gold{background:var(--gold);color:#261d00}.btn.red{background:transparent;color:var(--red);border:1px solid var(--red)}.btn.small{padding:7px 10px;font-size:.8rem}
+.panel{display:none}.panel.active{display:block}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:0 18px 45px rgba(0,0,0,.38)}
+.toolbar,.actions,.inline{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.toolbar{margin-bottom:18px}.toolbar label{font-weight:700;color:var(--green)}.grow{flex:1}
+input,select{background:#101c16;color:var(--text);border:1px solid var(--line);border-radius:7px;padding:10px;min-width:0}input:focus,select:focus{outline:2px solid rgba(0,233,134,.25);border-color:var(--green)}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px}table{border-collapse:collapse;width:100%;min-width:1050px;font-size:.86rem}th,td{padding:10px 7px;border-bottom:1px solid #1d3027;text-align:center;vertical-align:middle}th{color:var(--green);background:#0d1b15;position:sticky;top:0}td input,td select{width:100%;padding:8px}.score{display:flex;align-items:center;justify-content:center;gap:4px}.score input{width:55px}.market-box{display:flex;gap:4px}.market-box input{width:75px}.status{display:inline-block;padding:5px 8px;border-radius:6px;font-size:.72rem;font-weight:800;white-space:nowrap}.mf{color:var(--green);background:rgba(0,233,134,.12)}.ms{color:var(--blue);background:rgba(97,169,255,.12)}.sr{color:var(--purple);background:rgba(185,135,255,.12)}.ks{color:var(--gold);background:rgba(255,200,61,.12)}.kf{color:var(--red);background:rgba(255,83,100,.12)}
+.explain{min-width:260px;text-align:left;white-space:pre-line;color:var(--muted);line-height:1.45;font-size:.77rem}.legend{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.result{margin-top:18px;padding:18px;border:1px solid var(--line);border-left:4px solid var(--green);border-radius:10px;background:#091712}.result.win{border-color:var(--gold)}.result.lose{border-color:var(--red)}.result.draw{border-color:var(--blue)}.result-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.result h3{margin:0;color:var(--green)}.summary{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px dashed #294337}.summary:last-child{border-bottom:0}.summary strong{text-align:right}.detail{margin-top:12px;color:var(--muted);line-height:1.55;white-space:pre-line}.notice{padding:11px;border:1px solid rgba(255,200,61,.4);border-radius:8px;color:var(--gold);background:rgba(255,200,61,.08);margin-bottom:14px}.hidden{display:none!important}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:.78rem;color:var(--muted);font-weight:700}.full{grid-column:1/-1}.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#06120c;border:1px solid var(--green);color:var(--green);padding:10px 18px;border-radius:8px;z-index:99}
+footer{text-align:center;color:#6e8278;padding:20px}
+@media(max-width:700px){.card{padding:14px}.form-grid{grid-template-columns:1fr}.toolbar .grow{display:none}.toolbar>*{flex:1}.toolbar label{flex-basis:100%}.result-head{align-items:flex-start}.summary{font-size:.88rem}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Premium <span>Bet</span></h1>
+  <p>Kalkulator parlay dan taruhan tunggal</p>
+</header>
+
+<main>
+  <div class="tabs">
+    <button class="tab active" data-tab="parlay">Parlay</button>
+    <button class="tab" data-tab="single">Single Bet</button>
+  </div>
+
+  <section id="parlay" class="panel active">
+    <div class="card">
+      <div class="toolbar">
+        <label>Modal Parlay</label>
+        <input id="modalParlay" value="100.000" inputmode="numeric">
+        <span class="grow"></span>
+        <button id="addBet" class="btn green">+ Tambah</button>
+        <button id="resetParlay" class="btn red">Reset</button>
+      </div>
+      <div id="parlayNotice" class="notice hidden"></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>No</th><th>Tim</th><th>Lawan</th><th>Pasaran</th><th>Voor/Pilihan</th><th>Skor</th><th>Status</th><th>Odds</th><th>Efektif</th><th>Penjelasan</th><th>Aksi</th></tr></thead>
+          <tbody id="parlayBody"></tbody>
+        </table>
+      </div>
+      <div class="legend">
+        <span class="status mf">Menang Full</span><span class="status ms">Menang ½</span>
+        <span class="status sr">Push</span><span class="status ks">Kalah ½</span><span class="status kf">Kalah Full</span>
+      </div>
+      <div id="parlayResult" class="result"></div>
+    </div>
+  </section>
+
+  <section id="single" class="panel">
+    <div class="card">
+      <div class="form-grid">
+        <div class="field"><label>Modal Taruhan</label><input id="singleModal" value="100.000" inputmode="numeric"></div>
+        <div class="field"><label>Format Odds</label><div class="inline"><select id="oddsFormat"><option value="INDO">Indonesia</option><option value="HK">Hongkong</option><option value="MALAY">Malay</option><option value="DECIMAL">Desimal</option></select><select id="oddsSign"><option>-</option><option>+</option></select><input id="singleOdds" type="number" value="1" min="0" step=".01"></div></div>
+        <div class="field"><label>Tim Anda</label><input id="singleTeam" value="E-PSV"></div>
+        <div class="field"><label>Lawan</label><input id="singleOpponent" value="MU"></div>
+        <div class="field"><label>Posisi Tim</label><select id="singlePosition"><option value="HOME">Kandang</option><option value="AWAY">Tandang</option></select></div>
+        <div class="field"><label>Jenis Taruhan</label><select id="singlePeriod"><option value="Full Time">Full Time</option><option value="Half Time">Half Time</option><option value="Babak 1">Babak 1</option><option value="Babak 2">Babak 2</option></select></div>
+        <div class="field"><label>Pasaran</label><select id="singleMarket"><option value="HDP">Handicap</option><option value="OU">Over/Under</option><option value="1x2">1X2</option><option value="OE">Ganjil/Genap</option><option value="BTTS">BTTS</option></select></div>
+        <div id="singleLineField" class="field"><label>Voor / Batas</label><div class="inline"><select id="singleLineSign"><option>-</option><option>+</option></select><input id="singleLine" type="number" value=".75" min="0" step=".25"></div></div>
+        <div id="singleChoiceField" class="field hidden"><label>Pilihan</label><select id="singleChoice"></select></div>
+        <div class="field full"><label>Skor</label><div class="inline"><input id="singleHomeScore" type="number" value="3" min="0"><b id="scoreSeparator">:</b><input id="singleAwayScore" type="number" value="2" min="0"></div></div>
+      </div>
+      <div class="actions" style="margin-top:18px"><button id="calcSingle" class="btn gold">Hitung</button><button id="resetSingle" class="btn red">Reset</button></div>
+      <div id="singleResult" class="result"></div>
+    </div>
+  </section>
+</main>
+<footer>Kalkulator Taruhan Sederhana</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+const money=n=>Math.round(n).toLocaleString('id-ID');
+const parseMoney=s=>Number(String(s).replace(/\D/g,''))||0;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const eq=(a,b)=>Math.abs(a-b)<.001;
+const STATUS={mf:'Menang Full',ms:'Menang Setengah',sr:'Seri / Push',ks:'Kalah Setengah',kf:'Kalah Full'};
+const MARKET={HDP:'Handicap',OU:'Over/Under','1x2':'1X2',OE:'Ganjil/Genap',BTTS:'BTTS'};
+
+function resultStatus(market,home,away,line,choice){
+  const diff=home-away,total=home+away;
+  if(market==='HDP'){
+    const r=diff+line;
+    return r>.25?'mf':eq(r,.25)?'ms':eq(r,0)?'sr':eq(r,-.25)?'ks':'kf';
+  }
+  if(market==='OU'){
+    const r=choice==='over'?total-line:line-total;
+    return r>.25?'mf':eq(r,.25)?'ms':eq(r,0)?'sr':eq(r,-.25)?'ks':'kf';
+  }
+  if(market==='1x2') return ((choice==='home'&&diff>0)||(choice==='away'&&diff<0)||(choice==='draw'&&diff===0))?'mf':'kf';
+  if(market==='OE') return ((choice==='even'&&total%2===0)||(choice==='odd'&&total%2===1))?'mf':'kf';
+  if(market==='BTTS'){
+    const yes=home>0&&away>0;
+    return ((choice==='yes'&&yes)||(choice==='no'&&!yes))?'mf':'kf';
+  }
+  return 'kf';
+}
+
+function effectiveOdds(status,odds){
+  return status==='mf'?odds:status==='ms'?(odds-1)/2+1:status==='sr'?1:status==='ks'?.5:0;
+}
+
+function lineText(v){return v>0?`+${v}`:`${v}`}
+function choiceText(m,p){
+  const map={over:'Over',under:'Under',home:'Home',draw:'Draw',away:'Away',even:'Genap',odd:'Ganjil',yes:'Ya',no:'Tidak'};
+  return m==='HDP'?'-':map[p]||'-';
+}
+function explain(b,status){
+  const diff=b.home-b.away,total=b.home+b.away;
+  let text=`${MARKET[b.market]} | ${b.team} vs ${b.opponent||'Lawan'}\nSkor: ${b.home}-${b.away}\n`;
+  if(b.market==='HDP') text+=`Voor: ${b.team} ${lineText(b.line)}\nHitung: ${diff} + (${b.line}) = ${diff+b.line}`;
+  if(b.market==='OU') text+=`Pilihan: ${choiceText(b.market,b.choice)} ${b.line}\nTotal gol: ${total}`;
+  if(b.market==='1x2'||b.market==='OE'||b.market==='BTTS') text+=`Pilihan: ${choiceText(b.market,b.choice)}\nTotal gol: ${total}`;
+  return `${text}\nHasil: ${STATUS[status]}\nOdds efektif: ${effectiveOdds(status,b.odds).toFixed(3)}`;
+}
+
+let bets=[
+  {team:'E-PSV',opponent:'MU',market:'HDP',line:-.75,choice:'',home:3,away:2,odds:2},
+  {team:'Japan',opponent:'Uruguay',market:'HDP',line:-.25,choice:'',home:0,away:0,odds:2},
+  {team:'Over 2.5',opponent:'',market:'OU',line:2.5,choice:'over',home:4,away:0,odds:1.9}
+];
+
+function marketInput(b){
+  if(b.market==='HDP') return `<div class="market-box"><select data-field="sign"><option ${b.line<0?'selected':''}>-</option><option ${b.line>=0?'selected':''}>+</option></select><input data-field="absLine" type="number" min="0" step=".25" value="${Math.abs(b.line)}"></div>`;
+  if(b.market==='OU') return `<div class="market-box"><input data-field="line" type="number" step=".25" value="${b.line}"><select data-field="choice"><option value="over" ${b.choice==='over'?'selected':''}>Over</option><option value="under" ${b.choice==='under'?'selected':''}>Under</option></select></div>`;
+  const options=b.market==='1x2'?[['home','Home'],['draw','Draw'],['away','Away']]:b.market==='OE'?[['even','Genap'],['odd','Ganjil']]:[['yes','Ya'],['no','Tidak']];
+  return `<select data-field="choice">${options.map(x=>`<option value="${x[0]}" ${b.choice===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select>`;
+}
+
+function normalizeMarket(b){
+  if(b.market==='HDP'){b.line=-(Math.abs(b.line)||.75);b.choice=''}
+  if(b.market==='OU'){b.line=Math.abs(b.line)||2.5;b.choice=['over','under'].includes(b.choice)?b.choice:'over'}
+  if(b.market==='1x2') b.choice=['home','draw','away'].includes(b.choice)?b.choice:'home';
+  if(b.market==='OE') b.choice=['even','odd'].includes(b.choice)?b.choice:'even';
+  if(b.market==='BTTS') b.choice=['yes','no'].includes(b.choice)?b.choice:'yes';
+}
+
+function renderParlay(){
+  $('parlayBody').innerHTML=bets.length?bets.map((b,i)=>{
+    const status=resultStatus(b.market,b.home,b.away,b.line,b.choice);
+    return `<tr data-index="${i}">
+      <td>${i+1}</td><td><input data-field="team" value="${esc(b.team)}"></td><td><input data-field="opponent" value="${esc(b.opponent)}"></td>
+      <td><select data-field="market">${Object.keys(MARKET).map(m=>`<option value="${m}" ${b.market===m?'selected':''}>${MARKET[m]}</option>`).join('')}</select></td>
+      <td>${marketInput(b)}</td>
+      <td>${b.market==='OU'?`<input data-field="total" type="number" min="0" value="${b.home+b.away}">`:`<div class="score"><input data-field="home" type="number" min="0" value="${b.home}"><b>:</b><input data-field="away" type="number" min="0" value="${b.away}"></div>`}</td>
+      <td><span class="status ${status}">${STATUS[status]}</span></td><td><input data-field="odds" type="number" min="1" step=".01" value="${b.odds}"></td>
+      <td><b>${effectiveOdds(status,b.odds).toFixed(3)}</b></td><td class="explain">${esc(explain(b,status))}</td>
+      <td><button class="btn red small" data-action="delete">Hapus</button></td></tr>`;
+  }).join(''):'<tr><td colspan="11">Belum ada partai.</td></tr>';
+  calculateParlay();
+}
+
+$('parlayBody').addEventListener('change',updateBet);
+$('parlayBody').addEventListener('click',e=>{
+  const button=e.target.closest('[data-action="delete"]');if(!button)return;
+  bets.splice(Number(button.closest('tr').dataset.index),1);renderParlay();toast('Partai dihapus');
+});
+function updateBet(e){
+  const input=e.target;if(!input.dataset.field)return;
+  const row=input.closest('tr'),b=bets[Number(row.dataset.index)],field=input.dataset.field;
+  if(field==='market'){b.market=input.value;normalizeMarket(b);renderParlay();return}
+  if(field==='sign'||field==='absLine'){
+    const sign=row.querySelector('[data-field="sign"]').value;
+    const value=Math.abs(Number(row.querySelector('[data-field="absLine"]').value)||0);
+    b.line=sign==='+'?value:-value;
+  }else if(field==='total'){b.home=Math.max(0,Number(input.value)||0);b.away=0}
+  else if(['home','away'].includes(field)) b[field]=Math.max(0,Number(input.value)||0);
+  else if(['line','odds'].includes(field)) b[field]=Number(input.value)||0;
+  else b[field]=input.value;
+  renderParlay();
+}
+
+function calculateParlay(){
+  const box=$('parlayResult'),modal=parseMoney($('modalParlay').value),notice=$('parlayNotice');
+  notice.classList.toggle('hidden',bets.length===0||bets.length>=3);
+  notice.textContent=`Minimal 3 partai. Saat ini: ${bets.length}`;
+  box.className='result';
+  if(bets.length<3){box.innerHTML='<h3>Hasil Parlay</h3><p>Masukkan minimal 3 partai.</p>';window.lastParlay=null;return}
+  if(modal<=0){box.innerHTML='<h3>Hasil Parlay</h3><p>Modal tidak valid.</p>';window.lastParlay=null;return}
+  const counts={mf:0,ms:0,sr:0,ks:0,kf:0};let factor=1;
+  const details=bets.map((b,i)=>{const s=resultStatus(b.market,b.home,b.away,b.line,b.choice);counts[s]++;factor*=effectiveOdds(s,b.odds);return `PARTAI ${i+1}\n${explain(b,s)}`});
+  factor=Math.round(factor*1000)/1000;
+  const lost=counts.kf>0||factor===0,total=lost?0:Math.round(modal*factor),net=total-modal;
+  box.classList.add(lost?'lose':net>0?'win':'draw');
+  const conclusion=lost?'Parlay kalah karena ada partai Kalah Full.':`Parlay aktif dengan odds efektif ${factor.toFixed(3)}.`;
+  box.innerHTML=`<div class="result-head"><h3>Hasil Parlay</h3><button class="btn green small" id="copyParlay">Salin</button></div>
+    <div class="summary"><span>Total Partai</span><strong>${bets.length}</strong></div>
+    <div class="summary"><span>MF / MS / Push / KS / KF</span><strong>${counts.mf} / ${counts.ms} / ${counts.sr} / ${counts.ks} / ${counts.kf}</strong></div>
+    <div class="summary"><span>Modal</span><strong>Rp ${money(modal)}</strong></div>
+    <div class="summary"><span>Odds Efektif</span><strong>${factor.toFixed(3)}</strong></div>
+    <div class="summary"><span>Total Diterima</span><strong>Rp ${money(total)}</strong></div>
+    <div class="summary"><span>Untung / Rugi</span><strong>${net>=0?'+':'-'}Rp ${money(Math.abs(net))}</strong></div>
+    <div class="detail">${conclusion}</div>`;
+  window.lastParlay={modal,factor,total,net,counts,details,conclusion};
+  $('copyParlay').onclick=()=>copyText(`HASIL PARLAY\nModal: Rp${money(modal)}\nOdds efektif: ${factor.toFixed(3)}\nTotal diterima: Rp${money(total)}\nUntung/Rugi: ${net>=0?'+':'-'}Rp${money(Math.abs(net))}\n\n${details.join('\n\n')}\n\n${conclusion}`);
+}
+
+$('addBet').onclick=()=>{bets.push({team:'Tim',opponent:'Lawan',market:'HDP',line:-.75,choice:'',home:0,away:0,odds:1.9});renderParlay();toast('Partai ditambahkan')};
+$('resetParlay').onclick=()=>{bets=[];$('modalParlay').value='100.000';renderParlay();toast('Parlay direset')};
+$('modalParlay').addEventListener('input',calculateParlay);
+
+function updateSingleForm(){
+  const m=$('singleMarket').value,line=['HDP','OU'].includes(m);
+  $('singleLineField').classList.toggle('hidden',!line);
+  $('singleChoiceField').classList.toggle('hidden',m==='HDP');
+  $('singleLineSign').classList.toggle('hidden',m!=='HDP');
+  const options=m==='OU'?[['over','Over'],['under','Under']]:m==='1x2'?[['home','Home'],['draw','Draw'],['away','Away']]:m==='OE'?[['even','Genap'],['odd','Ganjil']]:[['yes','Ya'],['no','Tidak']];
+  $('singleChoice').innerHTML=options.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('');
+  const totalOnly=m==='OU';$('singleAwayScore').classList.toggle('hidden',totalOnly);$('scoreSeparator').classList.toggle('hidden',totalOnly);
+  updateOddsFormat();calculateSingle();
+}
+function updateOddsFormat(){
+  const format=$('oddsFormat').value;
+  $('oddsSign').classList.toggle('hidden',!['INDO','MALAY'].includes(format));
+  if(!['INDO','MALAY'].includes(format))$('oddsSign').value='+';
+}
+function oddsCalculation(format,sign,odds,modal){
+  const value=Math.abs(odds);let stake=modal,profit=0,display='';
+  if(modal<=0)return{valid:false,message:'Modal harus lebih dari Rp0.'};
+  if(value<=0)return{valid:false,message:'Odds harus lebih dari 0.'};
+  if(format==='INDO'){display=sign+value;stake=sign==='-'?modal*value:modal;profit=sign==='-'?modal:modal*value}
+  if(format==='HK'){display=value.toFixed(2);profit=modal*value}
+  if(format==='MALAY'){display=sign+value;profit=sign==='-'?modal/value:modal*value}
+  if(format==='DECIMAL'){if(value<1)return{valid:false,message:'Odds desimal minimal 1.00.'};display=value.toFixed(2);profit=modal*(value-1)}
+  return{valid:true,stake,profit,display};
+}
+function calculateSingle(){
+  const box=$('singleResult');box.className='result';
+  const market=$('singleMarket').value,format=$('oddsFormat').value,sign=$('oddsSign').value,odds=Number($('singleOdds').value)||0,modal=parseMoney($('singleModal').value);
+  const team=$('singleTeam').value.trim()||'Tim',opponent=$('singleOpponent').value.trim()||'Lawan';
+  const line=market==='HDP'?($('singleLineSign').value==='+'?1:-1)*Math.abs(Number($('singleLine').value)||0):Number($('singleLine').value)||0;
+  const choice=$('singleChoice').value,home=Math.max(0,Number($('singleHomeScore').value)||0),away=market==='OU'?0:Math.max(0,Number($('singleAwayScore').value)||0);
+  const oddsResult=oddsCalculation(format,sign,odds,modal);
+  if(!oddsResult.valid){box.classList.add('lose');box.innerHTML=`<h3>Hasil Single</h3><p>${oddsResult.message}</p>`;window.lastSingle=null;return}
+  const status=resultStatus(market,home,away,line,choice),stake=oddsResult.stake,fullProfit=oddsResult.profit;
+  let profit,total,note;
+  if(status==='mf'){profit=fullProfit;total=stake+profit;note='Menang penuh.'}
+  if(status==='ms'){profit=fullProfit/2;total=stake+profit;note='Menang setengah.'}
+  if(status==='sr'){profit=0;total=stake;note='Push, modal kembali.'}
+  if(status==='ks'){profit=-stake/2;total=stake/2;note='Kalah setengah.'}
+  if(status==='kf'){profit=-stake;total=0;note='Kalah penuh.'}
+  box.classList.add(['mf','ms'].includes(status)?'win':status==='sr'?'draw':'lose');
+  const detail=`${team} vs ${opponent}\nPasaran: ${MARKET[market]} (${ $('singlePeriod').value })\nSkor: ${home}-${away}\n${market==='HDP'?`Voor: ${lineText(line)}`:`Pilihan: ${choiceText(market,choice)}${market==='OU'?` ${line}`:''}`}\nHasil: ${STATUS[status]}`;
+  box.innerHTML=`<div class="result-head"><h3>Hasil Single</h3><button class="btn green small" id="copySingle">Salin</button></div>
+    <div class="summary"><span>Status</span><strong class="status ${status}">${STATUS[status]}</strong></div>
+    <div class="summary"><span>Odds</span><strong>${oddsResult.display}</strong></div>
+    <div class="summary"><span>Modal Awal</span><strong>Rp ${money(modal)}</strong></div>
+    <div class="summary"><span>Modal Hitung</span><strong>Rp ${money(stake)}</strong></div>
+    <div class="summary"><span>Keuntungan / Kerugian</span><strong>${profit>=0?'+':'-'}Rp ${money(Math.abs(profit))}</strong></div>
+    <div class="summary"><span>Total Diterima</span><strong>Rp ${money(total)}</strong></div>
+    <div class="detail">${esc(detail)}\n${note}</div>`;
+  window.lastSingle={detail,status,odds:oddsResult.display,modal,stake,profit,total,note};
+  $('copySingle').onclick=()=>copyText(`HASIL SINGLE\n${detail}\nOdds: ${oddsResult.display}\nModal hitung: Rp${money(stake)}\nUntung/Rugi: ${profit>=0?'+':'-'}Rp${money(Math.abs(profit))}\nTotal diterima: Rp${money(total)}\n${note}`);
+}
+
+['singleModal','singleOdds','singleTeam','singleOpponent','singlePosition','singlePeriod','singleLine','singleHomeScore','singleAwayScore'].forEach(id=>$(id).addEventListener('input',calculateSingle));
+['oddsSign','singlePosition','singlePeriod','singleLineSign','singleChoice'].forEach(id=>$(id).addEventListener('change',calculateSingle));
+$('singleMarket').addEventListener('change',updateSingleForm);$('oddsFormat').addEventListener('change',()=>{updateOddsFormat();calculateSingle()});$('calcSingle').onclick=calculateSingle;
+$('resetSingle').onclick=()=>{
+  $('singleModal').value='100.000';$('oddsFormat').value='INDO';$('oddsSign').value='-';$('singleOdds').value='1';$('singleTeam').value='E-PSV';$('singleOpponent').value='MU';$('singlePosition').value='HOME';$('singlePeriod').value='Full Time';$('singleMarket').value='HDP';$('singleLineSign').value='-';$('singleLine').value='.75';$('singleHomeScore').value='3';$('singleAwayScore').value='2';updateSingleForm();toast('Single direset');
+};
+
+document.querySelectorAll('.tab').forEach(tab=>tab.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===tab));
+  document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===tab.dataset.tab));
+});
+async function copyText(text){try{await navigator.clipboard.writeText(text);toast('Teks tersalin')}catch{const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();toast('Teks tersalin')}}
+function toast(text){const t=document.createElement('div');t.className='toast';t.textContent=text;document.body.appendChild(t);setTimeout(()=>t.remove(),1800)}
+
+renderParlay();updateSingleForm();
+</script>
+</body>
+</html>
