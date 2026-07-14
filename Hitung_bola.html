@@ -269,7 +269,7 @@ function updateSingleForm(){
   $('singleLineSign').classList.toggle('hidden',m!=='HDP');
   const options=m==='OU'?[['over','Over'],['under','Under']]:m==='1x2'?[['home','Home'],['draw','Draw'],['away','Away']]:m==='OE'?[['even','Genap'],['odd','Ganjil']]:[['yes','Ya'],['no','Tidak']];
   $('singleChoice').innerHTML=options.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('');
-  const totalOnly=m==='OU';$('singleAwayScore').classList.toggle('hidden',totalOnly);$('scoreSeparator').classList.toggle('hidden',totalOnly);
+  $('singleAwayScore').classList.remove('hidden');$('scoreSeparator').classList.remove('hidden');
   updateOddsFormat();calculateSingle();
 }
 function updateOddsFormat(){
@@ -291,34 +291,82 @@ function oddsCalculation(format,sign,odds,modal){
   if(format==='DECIMAL'||format==='EUROPE'){if(value<1)return{valid:false,message:'Odds Eropa/Desimal minimal 1.00.'};display=value.toFixed(2);profit=modal*(value-1)}
   return{valid:true,stake,profit,display};
 }
+function singleSelectionExplanation(market,team,opponent,home,away,line,choice){
+  const total=home+away,diff=home-away;
+  const score=`${team} ${home} - ${away} ${opponent}`;
+  if(market==='OU'){
+    return `Pilihan ${choiceText(market,choice)} ${cleanNumber(line)}. Total gol pertandingan adalah ${total} dari skor ${score}`;
+  }
+  if(market==='HDP'){
+    return `Pilihan Handicap ${team} ${lineText(line)}. Skor pertandingan adalah ${score}. Hasil setelah handicap: ${cleanNumber(diff)} + (${cleanNumber(line)}) = ${cleanNumber(diff+line)}`;
+  }
+  if(market==='1x2') return `Pilihan 1X2 ${choiceText(market,choice)}. Skor pertandingan adalah ${score}`;
+  if(market==='OE') return `Pilihan ${choiceText(market,choice)}. Total gol pertandingan adalah ${total} dari skor ${score}`;
+  return `Pilihan BTTS ${choiceText(market,choice)}. Skor pertandingan adalah ${score}`;
+}
+function oddsFormulaExplanation(format,sign,value,modal,stake,fullProfit){
+  const odds=cleanNumber(value,3);
+  if(format==='INDO'&&sign==='-'){
+    return `Karena memakai odds Indonesia negatif ${sign}${odds}, modal hitung = modal awal x nilai odds = Rp ${money(modal)} x ${odds} = Rp ${money(stake)}. Keuntungan menang penuh adalah Rp ${money(fullProfit)}.`;
+  }
+  if(format==='INDO'){
+    return `Karena memakai odds Indonesia positif +${odds}, modal hitung tetap Rp ${money(stake)}. Keuntungan menang penuh = modal x odds = Rp ${money(modal)} x ${odds} = Rp ${money(fullProfit)}.`;
+  }
+  if(format==='HK'){
+    return `Karena memakai odds Hongkong ${odds}, modal hitung tetap Rp ${money(stake)}. Keuntungan menang penuh = modal x odds = Rp ${money(modal)} x ${odds} = Rp ${money(fullProfit)}.`;
+  }
+  if(format==='MALAY'&&sign==='-'){
+    return `Karena memakai odds Malay negatif ${sign}${odds}, modal hitung tetap Rp ${money(stake)}. Keuntungan menang penuh = modal / nilai odds = Rp ${money(modal)} / ${odds} = Rp ${money(fullProfit)}.`;
+  }
+  if(format==='MALAY'){
+    return `Karena memakai odds Malay positif +${odds}, modal hitung tetap Rp ${money(stake)}. Keuntungan menang penuh = modal x odds = Rp ${money(modal)} x ${odds} = Rp ${money(fullProfit)}.`;
+  }
+  return `Karena memakai ${ODDS_FORMAT[format]} ${Number(value).toFixed(2)}, modal hitung tetap Rp ${money(stake)}. Keuntungan menang penuh = modal x (odds - 1) = Rp ${money(modal)} x (${Number(value).toFixed(2)} - 1) = Rp ${money(fullProfit)}.`;
+}
+function singleStatusCalculation(status,stake,fullProfit,profit,total){
+  if(status==='mf') return `Karena hasilnya menang penuh, keuntungan yang dihitung adalah 100%: Rp ${money(fullProfit)}. Payout/total diterima = modal hitung Rp ${money(stake)} + keuntungan Rp ${money(profit)} = Rp ${money(total)}.`;
+  if(status==='ms') return `Karena hasilnya menang setengah, keuntungan hanya 50% dari keuntungan menang penuh: Rp ${money(fullProfit)} x 0.5 = Rp ${money(profit)}. Payout/total diterima = modal hitung Rp ${money(stake)} + keuntungan Rp ${money(profit)} = Rp ${money(total)}.`;
+  if(status==='sr') return `Karena hasilnya seri/push, tidak ada keuntungan maupun kerugian. Modal hitung Rp ${money(stake)} dikembalikan penuh, sehingga total diterima Rp ${money(total)}.`;
+  if(status==='ks') return `Karena hasilnya kalah setengah, kerugian adalah 50% dari modal hitung: Rp ${money(stake)} x 0.5 = Rp ${money(Math.abs(profit))}. Sisa modal yang kembali adalah Rp ${money(total)}.`;
+  return `Karena hasilnya kalah penuh, seluruh modal hitung Rp ${money(stake)} dinyatakan kalah. Total diterima Rp 0.`;
+}
 function calculateSingle(){
   const box=$('singleResult');box.className='result';
   const market=$('singleMarket').value,format=$('oddsFormat').value,sign=$('oddsSign').value,odds=Number($('singleOdds').value)||0,modal=parseMoney($('singleModal').value);
   const team=$('singleTeam').value.trim()||'Tim',opponent=$('singleOpponent').value.trim()||'Lawan';
   const line=market==='HDP'?($('singleLineSign').value==='+'?1:-1)*Math.abs(Number($('singleLine').value)||0):Number($('singleLine').value)||0;
-  const choice=$('singleChoice').value,home=Math.max(0,Number($('singleHomeScore').value)||0),away=market==='OU'?0:Math.max(0,Number($('singleAwayScore').value)||0);
+  const choice=$('singleChoice').value,home=Math.max(0,Number($('singleHomeScore').value)||0),away=Math.max(0,Number($('singleAwayScore').value)||0);
   const oddsResult=oddsCalculation(format,sign,odds,modal);
-  if(!oddsResult.valid){box.classList.add('lose');box.innerHTML=`<h3>Hasil Single</h3><p>${oddsResult.message}</p>`;window.lastSingle=null;return}
+  if(!oddsResult.valid){box.classList.add('lose');box.innerHTML=`<h3>Hasil Single Bet</h3><p>${oddsResult.message}</p>`;window.lastSingle=null;return}
+
   const status=resultStatus(market,home,away,line,choice),stake=oddsResult.stake,fullProfit=oddsResult.profit;
   let profit,total,note;
   if(status==='mf'){profit=fullProfit;total=stake+profit;note='Menang penuh.'}
   if(status==='ms'){profit=fullProfit/2;total=stake+profit;note='Menang setengah.'}
-  if(status==='sr'){profit=0;total=stake;note='Push, modal kembali.'}
+  if(status==='sr'){profit=0;total=stake;note='Seri/push, modal kembali.'}
   if(status==='ks'){profit=-stake/2;total=stake/2;note='Kalah setengah.'}
   if(status==='kf'){profit=-stake;total=0;note='Kalah penuh.'}
+
+  const selection=singleSelectionExplanation(market,team,opponent,home,away,line,choice);
+  const oddsFormula=oddsFormulaExplanation(format,sign,Math.abs(odds),modal,stake,fullProfit);
+  const resultFormula=singleStatusCalculation(status,stake,fullProfit,profit,total);
+  const netText=profit>=0?`Rp ${money(profit)}`:`-Rp ${money(Math.abs(profit))}`;
+  const explanation=`Bosku, berikut penjelasan hasil Single Bet.\n${selection}, sehingga hasil taruhan adalah ${statusLower(status)}.\nFormat odds yang digunakan adalah ${ODDS_FORMAT[format]} dengan odds awal ${oddsResult.display}.\n${oddsFormula}\n${resultFormula}\nKeuntungan bersih: ${netText}.`;
+
   box.classList.add(['mf','ms'].includes(status)?'win':status==='sr'?'draw':'lose');
-  const detail=`${team} vs ${opponent}\nPasaran: ${MARKET[market]} (${ $('singlePeriod').value })\nFormat Odds: ${ODDS_FORMAT[format]}\nSkor: ${home}-${away}\n${market==='HDP'?`Voor: ${lineText(line)}`:`Pilihan: ${choiceText(market,choice)}${market==='OU'?` ${line}`:''}`}\nHasil: ${STATUS[status]}`;
-  box.innerHTML=`<div class="result-head"><h3>Hasil Single</h3><button class="btn green small" id="copySingle">Salin</button></div>
+  box.innerHTML=`<div class="result-head"><h3>Hasil Single Bet</h3><button class="btn green small" id="copySingle">Salin</button></div>
     <div class="summary"><span>Status</span><strong class="status ${status}">${STATUS[status]}</strong></div>
+    <div class="summary"><span>Pasaran</span><strong>${MARKET[market]} — ${$('singlePeriod').value}</strong></div>
     <div class="summary"><span>Format Odds</span><strong>${ODDS_FORMAT[format]}</strong></div>
-    <div class="summary"><span>Odds</span><strong>${oddsResult.display}</strong></div>
+    <div class="summary"><span>Odds Awal</span><strong>${oddsResult.display}</strong></div>
     <div class="summary"><span>Modal Awal</span><strong>Rp ${money(modal)}</strong></div>
     <div class="summary"><span>Modal Hitung</span><strong>Rp ${money(stake)}</strong></div>
     <div class="summary"><span>Keuntungan / Kerugian</span><strong>${profit>=0?'+':'-'}Rp ${money(Math.abs(profit))}</strong></div>
     <div class="summary"><span>Total Diterima</span><strong>Rp ${money(total)}</strong></div>
-    <div class="detail">${esc(detail)}\n${note}</div>`;
-  window.lastSingle={detail,status,format:ODDS_FORMAT[format],odds:oddsResult.display,modal,stake,profit,total,note};
-  $('copySingle').onclick=()=>copyText(`HASIL SINGLE\n${detail}\nOdds: ${oddsResult.display}\nModal hitung: Rp${money(stake)}\nUntung/Rugi: ${profit>=0?'+':'-'}Rp${money(Math.abs(profit))}\nTotal diterima: Rp${money(total)}\n${note}`);
+    <div class="detail">${esc(explanation)}</div>`;
+
+  window.lastSingle={selection,status,format:ODDS_FORMAT[format],odds:oddsResult.display,modal,stake,fullProfit,profit,total,note,explanation};
+  $('copySingle').onclick=()=>copyText(explanation);
 }
 
 ['singleModal','singleOdds','singleTeam','singleOpponent','singlePosition','singlePeriod','singleLine','singleHomeScore','singleAwayScore'].forEach(id=>$(id).addEventListener('input',calculateSingle));
