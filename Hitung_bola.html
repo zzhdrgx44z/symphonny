@@ -175,7 +175,7 @@ input:focus,select:focus{
   border-radius:20px;
   background:rgba(0,0,0,.12);
 }
-table{border-collapse:collapse;width:100%;min-width:1150px;font-size:.88rem}
+table{border-collapse:collapse;width:100%;min-width:1280px;font-size:.88rem}
 th,td{padding:12px 8px;border-bottom:1px solid rgba(255,255,255,.06);text-align:center;vertical-align:middle}
 th{
   color:var(--green);
@@ -189,8 +189,8 @@ th{
 }
 tr:hover td{background:rgba(255,255,255,.022)}
 td input,td select{width:100%;padding:9px 10px}
-th:nth-child(8),td:nth-child(8){min-width:126px;width:126px}
-td:nth-child(8) input{min-width:100px;text-align:center;font-weight:700}
+th:nth-child(9),td:nth-child(9){min-width:126px;width:126px}
+td:nth-child(9) input{min-width:100px;text-align:center;font-weight:700}
 .score{display:flex;align-items:center;justify-content:center;gap:5px}.score input{width:60px;text-align:center}
 .market-box{display:flex;gap:4px}.market-box input{width:80px}
 .status{display:inline-block;padding:6px 10px;border-radius:999px;font-size:.72rem;font-weight:800;white-space:nowrap}
@@ -699,6 +699,17 @@ footer{
   .live-actions .btn{width:100%}
 }
 
+
+/* Tulisan Pasaran dibuat lebih terang */
+.market-label,
+th.market-heading{
+  color:#ffffff !important;
+  font-weight:900 !important;
+  letter-spacing:.06em;
+  text-shadow:0 0 10px rgba(44,255,158,.78),0 1px 2px rgba(0,0,0,.85);
+}
+.field .market-label{font-size:.84rem}
+
 </style>
 </head>
 <body>
@@ -745,7 +756,7 @@ footer{
       <div id="parlayNotice" class="notice hidden"></div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>No</th><th>Tim</th><th>Lawan</th><th>Pasaran</th><th>Voor/Pilihan</th><th>Skor</th><th>Status</th><th>Odds</th><th>Efektif</th><th>Penjelasan</th><th>Aksi</th></tr></thead>
+          <thead><tr><th>No</th><th>Tim</th><th>Lawan</th><th class="market-heading">Pasaran</th><th>Jenis Taruhan</th><th>Voor/Pilihan</th><th>Skor</th><th>Status</th><th>Odds</th><th>Efektif</th><th>Penjelasan</th><th>Aksi</th></tr></thead>
           <tbody id="parlayBody"></tbody>
         </table>
       </div>
@@ -766,7 +777,7 @@ footer{
         <div class="field"><label>Lawan</label><input id="singleOpponent" value="MU"></div>
         <div class="field"><label>Posisi Tim</label><select id="singlePosition"><option value="HOME">Kandang</option><option value="AWAY">Tandang</option></select></div>
         <div class="field"><label>Jenis Taruhan</label><select id="singlePeriod"><option value="Full Time">Full Time</option><option value="Half Time">Half Time</option><option value="Babak 1">Babak 1</option><option value="Babak 2">Babak 2</option></select></div>
-        <div class="field"><label>Pasaran</label><select id="singleMarket"><option value="HDP">Handicap</option><option value="OU">Over/Under</option><option value="1x2">1X2</option><option value="OE">Ganjil/Genap</option><option value="BTTS">BTTS</option></select></div>
+        <div class="field"><label class="market-label">Pasaran</label><select id="singleMarket"><option value="HDP">Handicap</option><option value="OU">Over/Under</option><option value="1x2">1X2</option><option value="OE">Ganjil/Genap</option><option value="BTTS">BTTS</option></select></div>
         <div id="singleLineField" class="field"><label>Voor / Batas</label><div class="inline"><select id="singleLineSign"><option>-</option><option>+</option></select><input id="singleLine" type="number" value=".75" min="0" step=".25"></div></div>
         <div id="singleChoiceField" class="field hidden"><label>Pilihan</label><select id="singleChoice"></select></div>
         <div class="field full"><label>Skor</label><div class="inline"><input id="singleHomeScore" type="number" value="3" min="0"><b id="scoreSeparator">:</b><input id="singleAwayScore" type="number" value="2" min="0"></div></div>
@@ -812,7 +823,7 @@ footer{
             <div class="field"><label>Tim Tandang</label><input id="liveAwayTeam" value="Tim Tandang"></div>
 
             <div class="field">
-              <label>Pasaran Bola Jalan</label>
+              <label class="market-label">Pasaran Bola Jalan</label>
               <select id="liveMarket">
                 <option value="HDP">Handicap</option>
                 <option value="OU">Over/Under</option>
@@ -903,6 +914,7 @@ const eq=(a,b)=>Math.abs(a-b)<.001;
 const STATUS={mf:'Menang Full',ms:'Menang Setengah',sr:'Seri / Push',ks:'Kalah Setengah',kf:'Kalah Full'};
 const MARKET={HDP:'Handicap',OU:'Over/Under','1x2':'1X2',OE:'Ganjil/Genap',BTTS:'BTTS'};
 const ODDS_FORMAT={INDO:'Indonesia',HK:'Hongkong',MALAY:'Malay',EUROPE:'Odds Eropa (Decimal)',DECIMAL:'Desimal'};
+const BET_PERIODS=['Full Time','Half Time','Babak 1','Babak 2'];
 
 function resultStatus(market,home,away,line,choice){
   const diff=home-away,total=home+away;
@@ -960,16 +972,16 @@ function matchExplanation(b,status,index){
   }else{
     opening=`Pilihan BTTS ${choiceText(b.market,b.choice)}. Skor pertandingan adalah ${score}`;
   }
-  return `Match ${index+1}: ${opening}, hasil taruhan adalah ${statusLower(status)}. Odds awal ${cleanNumber(b.odds)}, odds efektif ${cleanNumber(eff,3)}. ${effectiveReason(status)}`;
+  return `Match ${index+1}: Jenis taruhan ${b.period||'Full Time'}. ${opening}, hasil taruhan adalah ${statusLower(status)}. Odds awal ${cleanNumber(b.odds)}, odds efektif ${cleanNumber(eff,3)}. ${effectiveReason(status)}`;
 }
 function explain(b,status){
   return matchExplanation(b,status,0).replace(/^Match 1: /,'');
 }
 
 let bets=[
-  {team:'E-PSV',opponent:'MU',market:'HDP',line:-.75,choice:'',home:3,away:2,odds:2},
-  {team:'Japan',opponent:'Uruguay',market:'HDP',line:-.25,choice:'',home:0,away:0,odds:2},
-  {team:'Over 2.5',opponent:'',market:'OU',line:2.5,choice:'over',home:4,away:0,odds:1.9}
+  {team:'E-PSV',opponent:'MU',market:'HDP',period:'Full Time',line:-.75,choice:'',home:3,away:2,odds:2},
+  {team:'Japan',opponent:'Uruguay',market:'HDP',period:'Half Time',line:-.25,choice:'',home:0,away:0,odds:2},
+  {team:'Over 2.5',opponent:'',market:'OU',period:'Full Time',line:2.5,choice:'over',home:4,away:0,odds:1.9}
 ];
 
 function marketInput(b){
@@ -993,12 +1005,13 @@ function renderParlay(){
     return `<tr data-index="${i}">
       <td>${i+1}</td><td><input data-field="team" value="${esc(b.team)}"></td><td><input data-field="opponent" value="${esc(b.opponent)}"></td>
       <td><select data-field="market">${Object.keys(MARKET).map(m=>`<option value="${m}" ${b.market===m?'selected':''}>${MARKET[m]}</option>`).join('')}</select></td>
+      <td><select data-field="period">${BET_PERIODS.map(p=>`<option value="${p}" ${(b.period||'Full Time')===p?'selected':''}>${p}</option>`).join('')}</select></td>
       <td>${marketInput(b)}</td>
       <td><div class="score"><input data-field="home" type="number" min="0" value="${b.home}"><b>:</b><input data-field="away" type="number" min="0" value="${b.away}"></div></td>
       <td><span class="status ${status}">${STATUS[status]}</span></td><td><input data-field="odds" type="number" min="1" step=".01" value="${b.odds}"></td>
       <td><b>${effectiveOdds(status,b.odds).toFixed(3)}</b></td><td class="explain">${esc(explain(b,status))}</td>
       <td><button class="btn red small" data-action="delete">Hapus</button></td></tr>`;
-  }).join(''):'<tr><td colspan="11">Belum ada partai.</td></tr>';
+  }).join(''):'<tr><td colspan="12">Belum ada partai.</td></tr>';
   calculateParlay();
 }
 
@@ -1069,7 +1082,7 @@ function calculateParlay(){
   $('copyParlay').onclick=()=>copyText(intro);
 }
 
-$('addBet').onclick=()=>{bets.push({team:'Tim',opponent:'Lawan',market:'HDP',line:-.75,choice:'',home:0,away:0,odds:1.9});renderParlay();toast('Partai ditambahkan')};
+$('addBet').onclick=()=>{bets.push({team:'Tim',opponent:'Lawan',market:'HDP',period:'Full Time',line:-.75,choice:'',home:0,away:0,odds:1.9});renderParlay();toast('Partai ditambahkan')};
 $('resetParlay').onclick=()=>{bets=[];$('modalParlay').value='100.000';renderParlay();toast('Parlay direset')};
 $('modalParlay').addEventListener('input',calculateParlay);
 
