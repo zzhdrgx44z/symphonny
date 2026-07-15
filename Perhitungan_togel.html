@@ -234,6 +234,29 @@
       padding-bottom: 4px;
       scrollbar-width: thin;
     }
+
+    .full-bet-box {
+      display: none;
+      margin: 0 0 14px;
+      padding: 14px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(25,194,255,.10), rgba(85,119,255,.08));
+      border: 1px solid rgba(25,194,255,.25);
+    }
+    .full-bet-box.show { display: block; }
+    .full-bet-box label { margin-bottom: 7px; }
+    .full-bet-note {
+      margin-top: 9px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+    .full-bet-note strong { color: #bfeeff; }
+    .click-item[disabled] {
+      opacity: .45;
+      cursor: not-allowed;
+      transform: none;
+    }
     .chip {
       flex: 0 0 auto;
       padding: 8px 12px;
@@ -446,6 +469,13 @@
           </div>
 
           <div class="category-chips" id="categoryChips"></div>
+
+          <div class="full-bet-box" id="fullBetBox">
+            <label for="fullMarketSelect"><i class="fas fa-location-dot"></i> Pilih pasaran Full Bet</label>
+            <select id="fullMarketSelect" aria-label="Pilih pasaran Full Bet"></select>
+            <p class="full-bet-note"><strong>Cara baru:</strong> pilih pasarannya satu kali, lalu ketik atau pilih jenis taruhan 2D FULL, 3D FULL, 4D FULL, atau 5D FULL. Daftar tidak lagi berulang per pasaran.</p>
+          </div>
+
           <div class="click-list" id="clickList"></div>
           <p class="limit-note" id="limitNote"></p>
         </div>
@@ -1328,8 +1358,11 @@ return angka.toLocaleString('id-ID');
     const selectedName = document.getElementById("selectedName");
     const selectedGroup = document.getElementById("selectedGroup");
     const betInput = document.getElementById("bet");
+    const fullBetBox = document.getElementById("fullBetBox");
+    const fullMarketSelect = document.getElementById("fullMarketSelect");
     const MAX_RESULTS = 80;
     let selectedIndex = 0;
+    let selectedFullType = "";
 
     function normalizeText(value) {
       return String(value || "")
@@ -1339,6 +1372,55 @@ return angka.toLocaleString('id-ID');
         .replace(/[_-]+/g, " ")
         .replace(/\s+/g, " ")
         .trim();
+    }
+
+    // Full Bet dipisahkan menjadi PASARAN + JENIS TARUHAN.
+    // Data asli tetap dipakai sehingga semua rumus lama tidak berubah.
+    const fullBetData = options
+      .map((opt, index) => {
+        if (opt.group !== "Full Bet") return null;
+
+        const cleanText = String(opt.text || "")
+          .replace(/_/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+        const match = cleanText.match(/^([2345]D)\s+FULL\s*(.*)$/i);
+        if (!match) return null;
+
+        return {
+          index,
+          type: `${match[1].toUpperCase()} FULL`,
+          market: (match[2] || "PASARAN UMUM").trim().toUpperCase()
+        };
+      })
+      .filter(Boolean);
+
+    const fullBetMarkets = [...new Set(fullBetData.map(item => item.market))];
+    const fullBetTypes = ["2D FULL", "3D FULL", "4D FULL", "5D FULL"];
+
+    fullMarketSelect.innerHTML = fullBetMarkets
+      .map(market => `<option value="${market}">${market}</option>`)
+      .join("");
+
+    function findFullBetIndex(market, type) {
+      const found = fullBetData.find(item => item.market === market && item.type === type);
+      return found ? found.index : -1;
+    }
+
+    function chooseFullBet(type) {
+      const market = fullMarketSelect.value;
+      const index = findFullBetIndex(market, type);
+
+      if (index < 0) {
+        resultDiv.textContent = `❌ ${type} tidak tersedia untuk pasaran ${market}.`;
+        resultDiv.classList.add("show");
+        copyBtn.classList.remove("show");
+        return;
+      }
+
+      selectedFullType = type;
+      chooseOption(index);
+      renderList();
     }
 
     // Dropdown tersembunyi tetap digunakan oleh rumus lama.
@@ -1356,6 +1438,13 @@ return angka.toLocaleString('id-ID');
 
     function setCategory(group) {
       categoryFilter.value = group;
+      const isFullBet = group === "Full Bet";
+
+      fullBetBox.classList.toggle("show", isFullBet);
+      search.placeholder = isFullBet
+        ? "Ketik: 2D FULL, 3D FULL, 4D FULL atau 5D FULL"
+        : "Contoh: Hongkong, Toto Macau, Colok Jitu...";
+
       document.querySelectorAll(".chip").forEach(chip => {
         chip.classList.toggle("active", chip.dataset.group === group);
       });
@@ -1406,7 +1495,51 @@ return angka.toLocaleString('id-ID');
         });
     }
 
+    function renderFullBetList() {
+      const query = normalizeText(search.value);
+      const market = fullMarketSelect.value;
+
+      const dimensionMatch = query.match(/\b([2345]d)\b/);
+      const requestedDimension = dimensionMatch ? dimensionMatch[1].toUpperCase() : "";
+
+      const types = fullBetTypes
+        .map(type => ({
+          type,
+          index: findFullBetIndex(market, type)
+        }))
+        .filter(item => {
+          // Kata "FULL" atau "FULL BET" menampilkan seluruh jenis.
+          // Jika pengguna mengetik 2D/3D/4D/5D, tampilkan jenis tersebut saja.
+          if (requestedDimension) return item.type.startsWith(requestedDimension);
+          return true;
+        });
+
+      resultCount.textContent = `${types.length} jenis taruhan`;
+      limitNote.textContent = "";
+
+      if (!types.length) {
+        clickList.innerHTML = '<div class="empty-state"><i class="fas fa-magnifying-glass"></i>Ketik 2D FULL, 3D FULL, 4D FULL, atau 5D FULL.</div>';
+        return;
+      }
+
+      clickList.innerHTML = types.map(item => {
+        const unavailable = item.index < 0;
+        const isSelected = item.index === selectedIndex;
+        return `
+          <button type="button" class="click-item${isSelected ? " selected" : ""}" data-full-type="${item.type}" ${unavailable ? "disabled" : ""}>
+            <span class="item-name">${item.type}</span>
+            <span class="item-group">${unavailable ? "Tidak tersedia" : market}</span>
+          </button>
+        `;
+      }).join("");
+    }
+
     function renderList() {
+      if (categoryFilter.value === "Full Bet") {
+        renderFullBetList();
+        return;
+      }
+
       const filtered = getFilteredOptions();
       const visible = filtered.slice(0, MAX_RESULTS);
       resultCount.textContent = `${filtered.length.toLocaleString("id-ID")} pilihan`;
@@ -1429,10 +1562,36 @@ return angka.toLocaleString('id-ID');
 
     clickList.addEventListener("click", event => {
       const item = event.target.closest(".click-item");
-      if (item) chooseOption(item.dataset.index);
+      if (!item || item.disabled) return;
+
+      if (item.dataset.fullType) {
+        chooseFullBet(item.dataset.fullType);
+      } else {
+        selectedFullType = "";
+        chooseOption(item.dataset.index);
+      }
     });
 
-    search.addEventListener("input", renderList);
+    search.addEventListener("input", () => {
+      const query = normalizeText(search.value);
+
+      // Saat pengguna mengetik kata FULL dari kategori Semua,
+      // langsung masuk ke mode Full Bet yang tidak berulang per pasaran.
+      if (categoryFilter.value === "ALL" && /(^|\s)(2d|3d|4d|5d)?\s*full(\s|$)/.test(query)) {
+        setCategory("Full Bet");
+        return;
+      }
+
+      renderList();
+    });
+
+    fullMarketSelect.addEventListener("change", () => {
+      if (selectedFullType) {
+        const index = findFullBetIndex(fullMarketSelect.value, selectedFullType);
+        if (index >= 0) chooseOption(index, false);
+      }
+      renderList();
+    });
     categoryFilter.addEventListener("change", () => setCategory(categoryFilter.value));
     clearSearch.addEventListener("click", () => {
       search.value = "";
@@ -1459,7 +1618,7 @@ return angka.toLocaleString('id-ID');
     });
 
     chooseOption(0, false);
-    renderList();
+    setCategory("ALL");
 
     // Hitung
     document.getElementById("hitung").onclick = function() {
