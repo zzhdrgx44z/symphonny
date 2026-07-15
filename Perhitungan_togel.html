@@ -6,260 +6,492 @@
   <title>TOGEL LINE - Klik & Hitung</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@700;800&display=swap');
+
     :root {
-      --bg: #0a0e17;
-      --card: #121a2a;
-      --text: #e0f7ff;
-      --accent: #00bfff;
-      --accent-hover: #0099cc;
-      --success: #00cc66;
-      --border: #2a3b5a;
-      --text-light: #8ea0b3;
-      --shadow: 0 10px 30px rgba(0, 40, 80, 0.3);
-      --glow: 0 0 15px rgba(0, 191, 255, 0.4);
-      --transition: all 0.3s ease;
+      --bg: #050914;
+      --panel: rgba(12, 21, 39, 0.94);
+      --panel-soft: rgba(18, 31, 54, 0.82);
+      --input: #0b1426;
+      --text: #f1f7ff;
+      --muted: #90a5bd;
+      --accent: #19c2ff;
+      --accent-2: #5577ff;
+      --success: #16c784;
+      --danger: #ff5d73;
+      --border: rgba(132, 176, 221, 0.20);
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+      --radius: 20px;
+      --transition: 180ms ease;
     }
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
     body {
-      font-family: 'Roboto', sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      line-height: 1.7;
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-image: 
-        radial-gradient(circle at 20% 30%, rgba(0, 191, 255, 0.08), transparent 25%),
-        radial-gradient(circle at 80% 70%, rgba(0, 191, 255, 0.06), transparent 30%);
-      padding: 20px;
-      background-image: url('https://i.postimg.cc/15TPDGwD/unnamed.png');
-      background-size: 700px; 
-    }
-    .container {
-      max-width: 540px;
-      width: 100%;
-      background: var(--card);
-      backdrop-filter: blur(10px);
-      border-radius: 20px;
-      padding: 30px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border);
-      text-align: center;
+      padding: 24px;
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background: #0a0e17;
       position: relative;
-      overflow: hidden;
-      transition: var(--transition);
+      overflow-x: hidden;
+      isolation: isolate;
     }
-    .container::before {
+
+    body::before,
+    body::after {
       content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, transparent, var(--accent), transparent);
-      animation: pulse 2s infinite;
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -2;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 0.6; }
-      50% { opacity: 1; }
+
+    body::before {
+      background-color: #0a0e17;
+      background-image:
+        linear-gradient(rgba(3, 8, 18, 0.55), rgba(3, 8, 18, 0.55)),
+        url('https://i.postimg.cc/15TPDGwD/unnamed.png');
+      background-size: auto, 700px;
+      background-position: center center, 0 0;
+      background-repeat: no-repeat, repeat;
+      animation: bgMove 45s linear infinite;
+      transform: scale(1.08);
     }
+
+    body::after {
+      z-index: -1;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(25, 194, 255, 0.22), transparent 28%),
+        radial-gradient(circle at 82% 24%, rgba(85, 119, 255, 0.18), transparent 24%),
+        radial-gradient(circle at 55% 82%, rgba(25, 194, 255, 0.14), transparent 28%);
+      filter: blur(12px);
+      animation: glowFloat 16s ease-in-out infinite alternate;
+    }
+
+    @keyframes bgMove {
+      0% { background-position: center center, 0 0; }
+      25% { background-position: center center, -80px -40px; }
+      50% { background-position: center center, -160px -90px; }
+      75% { background-position: center center, -80px -140px; }
+      100% { background-position: center center, 0 -180px; }
+    }
+
+    @keyframes glowFloat {
+      0% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.75; }
+      50% { transform: translate3d(18px, -12px, 0) scale(1.04); opacity: 0.95; }
+      100% { transform: translate3d(-16px, 16px, 0) scale(1.08); opacity: 0.8; }
+    }
+
+    button, input, select { font: inherit; }
+    button { border: 0; }
+
+    .app-shell {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+    }
+
+    .hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 18px;
+      padding: 22px 24px;
+      background: linear-gradient(135deg, rgba(15, 31, 57, .94), rgba(8, 17, 34, .96));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .brand { display: flex; align-items: center; gap: 15px; }
+    .brand-icon {
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 10px 30px rgba(25, 194, 255, .28);
+      font-size: 24px;
+    }
+
     h1 {
       font-family: 'Orbitron', sans-serif;
-      font-size: 32px;
+      font-size: clamp(22px, 3vw, 32px);
+      line-height: 1.1;
+      letter-spacing: .5px;
+    }
+
+    .subtitle { color: var(--muted); margin-top: 6px; font-size: 14px; }
+    .hero-badge {
+      flex: 0 0 auto;
+      padding: 9px 13px;
+      border-radius: 999px;
+      color: #bfeeff;
+      background: rgba(25, 194, 255, .11);
+      border: 1px solid rgba(25, 194, 255, .24);
+      font-size: 13px;
       font-weight: 700;
-      color: var(--accent);
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      letter-spacing: -1px;
-      text-shadow: var(--glow);
     }
-    .subtitle {
-      color: var(--text-light);
-      font-size: 15px;
-      margin-bottom: 20px;
-      font-weight: 400;
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(330px, .8fr);
+      gap: 18px;
+      align-items: start;
     }
-    .form-group {
-      margin-bottom: 20px;
-      text-align: left;
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
     }
-    label {
-      display: block;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-light);
-      margin-bottom: 10px;
-      letter-spacing: 0.5px;
+
+    .panel-head {
+      padding: 20px 22px 15px;
+      border-bottom: 1px solid var(--border);
     }
+
+    .step-title { display: flex; align-items: center; gap: 11px; font-size: 18px; }
+    .step-number {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: white;
+      font-weight: 800;
+      font-size: 13px;
+    }
+    .helper { margin-top: 7px; color: var(--muted); font-size: 13px; }
+
+    .picker-body { padding: 18px 22px 22px; }
+    .search-box { position: relative; }
+    .search-box > i {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+
     input, select {
       width: 100%;
-      padding: 14px 18px;
-      background: #0f1728;
-      border: 1px solid var(--border);
-      border-radius: 12px;
+      min-height: 48px;
+      padding: 12px 15px;
       color: var(--text);
-      font-size: 15px;
+      background: var(--input);
+      border: 1px solid var(--border);
+      border-radius: 13px;
       outline: none;
-      transition: var(--transition);
-      font-family: 'Roboto Mono', monospace;
+      transition: border-color var(--transition), box-shadow var(--transition);
     }
     input:focus, select:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.2);
+      box-shadow: 0 0 0 3px rgba(25, 194, 255, .13);
+    }
+    .search-box input { padding-left: 45px; padding-right: 48px; }
+    .clear-search {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+    }
+    .clear-search:hover { color: white; background: rgba(255,255,255,.07); }
+
+    .filter-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .result-count {
+      white-space: nowrap;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
     }
 
-    /* Daftar Klik */
-    .click-list {
-      margin: 20px 0;
-      max-height: 200px;
-      overflow-y: auto;
-      padding: 10px;
-      background: rgba(10, 20, 40, 0.3);
+    .category-chips {
+      display: flex;
+      gap: 8px;
+      margin: 14px 0;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: thin;
+    }
+    .chip {
+      flex: 0 0 auto;
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: #b9c9db;
+      background: rgba(255,255,255,.045);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      text-align: left;
-      font-size: 14px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      transition: var(--transition);
+    }
+    .chip:hover, .chip.active {
+      color: white;
+      border-color: rgba(25,194,255,.55);
+      background: rgba(25,194,255,.14);
+    }
+
+    .click-list {
+      height: 485px;
+      overflow-y: auto;
+      padding: 7px;
+      background: rgba(4, 11, 23, .58);
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(25,194,255,.45) transparent;
     }
     .click-item {
-      padding: 8px 12px;
-      margin: 4px 0;
-      background: #0f1728;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: var(--transition);
-      color: #a0d8ff;
-    }
-    .click-item:hover {
-      background: var(--accent);
-      color: white;
-    }
-    .click-item span {
-      font-size: 12px;
-      color: #8ea0b3;
-    }
-
-    button {
-      background: linear-gradient(45deg, var(--accent), var(--accent-hover));
-      color: white;
-      border: none;
-      padding: 14px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 14px;
+      margin-bottom: 7px;
+      text-align: left;
+      color: var(--text);
+      background: rgba(15, 27, 48, .82);
+      border: 1px solid transparent;
       border-radius: 12px;
       cursor: pointer;
+      transition: transform var(--transition), background var(--transition), border-color var(--transition);
+    }
+    .click-item:last-child { margin-bottom: 0; }
+    .click-item:hover { transform: translateY(-1px); background: #142644; border-color: rgba(25,194,255,.35); }
+    .click-item.selected { background: rgba(25,194,255,.13); border-color: var(--accent); }
+    .item-name { display: block; font-size: 13px; font-weight: 750; line-height: 1.4; }
+    .item-group {
+      padding: 5px 8px;
+      border-radius: 8px;
+      color: #9edfff;
+      background: rgba(25,194,255,.09);
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .35px;
+    }
+    .empty-state { padding: 50px 20px; text-align: center; color: var(--muted); }
+    .empty-state i { display: block; margin-bottom: 10px; font-size: 28px; color: var(--accent); }
+    .limit-note { margin-top: 10px; color: var(--muted); font-size: 11px; text-align: center; }
+
+    .calculator-panel { position: sticky; top: 18px; }
+    .calculator-body { padding: 20px 22px 22px; }
+    #tipe { display: none; }
+
+    .selected-card {
+      min-height: 92px;
+      padding: 16px;
+      margin-bottom: 18px;
+      border-radius: 15px;
+      background: linear-gradient(135deg, rgba(25,194,255,.13), rgba(85,119,255,.10));
+      border: 1px solid rgba(25,194,255,.28);
+    }
+    .selected-label { color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; }
+    .selected-name { margin-top: 7px; font-size: 15px; font-weight: 800; line-height: 1.4; }
+    .selected-group { margin-top: 5px; color: #9edfff; font-size: 12px; }
+
+    .form-group { margin-bottom: 16px; text-align: left; }
+    label { display: block; margin-bottom: 8px; color: #b7c7d8; font-size: 13px; font-weight: 700; }
+    .money-input { position: relative; }
+    .money-prefix {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--accent);
+      font-weight: 800;
+    }
+    .money-input input { padding-left: 45px; font-size: 17px; font-weight: 800; }
+
+    .bet-presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-top: 9px; }
+    .preset-btn {
+      padding: 8px 5px;
+      border-radius: 9px;
+      color: #b9c9db;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 750;
+    }
+    .preset-btn:hover { color: white; border-color: var(--accent); }
+
+    .primary-btn, .copy-btn, .reset-btn {
       width: 100%;
-      font-size: 16px;
-      font-weight: 600;
-      margin-top: 10px;
-      transition: var(--transition);
-      display: flex;
+      min-height: 49px;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      box-shadow: var(--glow);
+      gap: 9px;
+      border-radius: 13px;
+      cursor: pointer;
+      font-weight: 800;
+      transition: transform var(--transition), filter var(--transition);
     }
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0, 191, 255, 0.3), var(--glow);
+    .primary-btn {
+      color: white;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 12px 28px rgba(25,194,255,.22);
     }
+    .primary-btn:hover, .copy-btn:hover, .reset-btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
+
     .result {
-      margin-top: 30px;
-      padding: 22px;
-      background: rgba(10, 20, 40, 0.5);
+      display: none;
+      margin-top: 16px;
+      padding: 17px;
+      max-height: 330px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      color: #d6efff;
+      background: rgba(4, 11, 23, .72);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      font-family: 'Roboto Mono', monospace;
-      white-space: pre-line;
-      font-size: 14px;
-      color: #a0d8ff;
-      text-align: left;
-      min-height: 80px;
-      opacity: 0;
-      height: auto;
-      transition: opacity 0.6s ease, transform 0.4s ease;
-      transform: translateY(10px);
       border-left: 4px solid var(--accent);
+      border-radius: 13px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.65;
     }
-    .result.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    .typing {
-      border-right: 1px solid var(--accent);
-      animation: blink 0.8s step-end infinite;
-    }
-    @keyframes blink {
-      from, to { border-color: transparent; }
-      50% { border-color: var(--accent); }
-    }
+    .result.show { display: block; animation: resultIn .22s ease; }
+    @keyframes resultIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+    .loading-row { display: flex; align-items: center; gap: 9px; color: var(--muted); }
+
+    .action-row { display: grid; grid-template-columns: 1fr auto; gap: 9px; margin-top: 10px; }
     .copy-btn {
       display: none;
-      margin-top: 15px;
-      background: var(--success);
       color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      transition: var(--transition);
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 4px 12px rgba(0, 204, 102, 0.3);
+      background: var(--success);
+      padding: 0 18px;
     }
-    .copy-btn:hover {
-      background: #00b359;
-      transform: translateY(-2px);
+    .copy-btn.show { display: inline-flex; }
+    .reset-btn {
+      width: 49px;
+      color: #c8d5e4;
+      background: rgba(255,255,255,.055);
+      border: 1px solid var(--border);
     }
-    .copy-btn.show {
-      display: inline-flex;
+    .note { margin-top: 14px; color: var(--muted); font-size: 11px; line-height: 1.5; text-align: center; }
+
+    @media (max-width: 840px) {
+      body { padding: 12px; }
+      .hero { padding: 18px; }
+      .hero-badge { display: none; }
+      .workspace { grid-template-columns: 1fr; }
+      .calculator-panel { position: static; }
+      .click-list { height: 390px; }
     }
-    .note {
-      font-size: 13px;
-      color: var(--text-light);
-      margin-top: 25px;
-      line-height: 1.5;
+
+    @media (max-width: 520px) {
+      .brand-icon { width: 45px; height: 45px; border-radius: 13px; }
+      .panel-head, .picker-body, .calculator-body { padding-left: 15px; padding-right: 15px; }
+      .filter-row { grid-template-columns: 1fr; }
+      .result-count { text-align: right; }
+      .click-item { grid-template-columns: 1fr; gap: 7px; }
+      .item-group { width: fit-content; }
+      .bet-presets { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1><i class="fas fa-microchip"></i> TOGEL LINE</h1>
-    <p class="subtitle">Klik & Hitung - Semua Pasaran</p>
+  <main class="app-shell">
+    <header class="hero">
+      <div class="brand">
+        <div class="brand-icon"><i class="fas fa-calculator"></i></div>
+        <div>
+          <h1>TOGEL LINE</h1>
+          <p class="subtitle">Cari tipe taruhan, masukkan nominal, lalu hitung.</p>
+        </div>
+      </div>
+      <div class="hero-badge"><i class="fas fa-bolt"></i> Pilihan Cepat</div>
+    </header>
 
-    <!-- Pencarian -->
-<div class="form-group">
-<label for="search">🔍 Cari Pasaran/Tipe Taruhan</label>
-<input type="text" id="search" placeholder="Contoh: totomacau, hokidraw, hongkong, sydney/colok bebas,colok jitu" />
-</div>
+    <section class="workspace">
+      <section class="panel picker-panel">
+        <div class="panel-head">
+          <h2 class="step-title"><span class="step-number">1</span> Pilih tipe taruhan</h2>
+          <p class="helper">Ketik nama pasaran atau gunakan filter kategori.</p>
+        </div>
 
-<!-- Dropdown Tipe Taruhan -->
-<div class="form-group">
-<label for="tipe">Tipe Taruhan</label>
-<select id="tipe"></select>
-</div>
+        <div class="picker-body">
+          <div class="search-box">
+            <i class="fas fa-magnifying-glass"></i>
+            <input type="search" id="search" autocomplete="off" placeholder="Contoh: Hongkong, Toto Macau, Colok Jitu..." />
+            <button class="clear-search" id="clearSearch" type="button" title="Hapus pencarian"><i class="fas fa-xmark"></i></button>
+          </div>
 
-<!-- Daftar Klik -->
-<div class="form-group">
-<label>🎯 Klik Langsung</label>
-<div class="click-list" id="clickList"></div>
-</div>
+          <div class="filter-row">
+            <select id="categoryFilter" aria-label="Filter kategori"></select>
+            <span class="result-count" id="resultCount">0 pilihan</span>
+          </div>
 
-<div class="form-group">
-<label for="bet">Nominal Bet (Rp)</label>
-<input type="number" id="bet" placeholder="Contoh: 1000" value="1000" />
-</div>
+          <div class="category-chips" id="categoryChips"></div>
+          <div class="click-list" id="clickList"></div>
+          <p class="limit-note" id="limitNote"></p>
+        </div>
+      </section>
 
-<button id="hitung"><i class="fas fa-cube"></i> Hitung</button>
-<div class="result" id="result"></div>
-<button id="copyBtn" class="copy-btn"><i class="fas fa-copy"></i> Salin</button>
-<p class="note">🔒 Klik salah satu tipe taruhan untuk memilih cepat!</p>
-</div>
+      <aside class="panel calculator-panel" id="calculatorPanel">
+        <div class="panel-head">
+          <h2 class="step-title"><span class="step-number">2</span> Hitung nominal</h2>
+          <p class="helper">Pilihan yang diklik akan masuk otomatis.</p>
+        </div>
+
+        <div class="calculator-body">
+          <select id="tipe" aria-hidden="true"></select>
+
+          <div class="selected-card">
+            <div class="selected-label">Tipe terpilih</div>
+            <div class="selected-name" id="selectedName">Belum ada pilihan</div>
+            <div class="selected-group" id="selectedGroup">Pilih salah satu dari daftar</div>
+          </div>
+
+          <div class="form-group">
+            <label for="bet">Nominal Bet</label>
+            <div class="money-input">
+              <span class="money-prefix">Rp</span>
+              <input type="number" id="bet" min="1" step="1" inputmode="numeric" placeholder="1000" value="1000" />
+            </div>
+            <div class="bet-presets">
+              <button class="preset-btn" type="button" data-bet="1000">1.000</button>
+              <button class="preset-btn" type="button" data-bet="5000">5.000</button>
+              <button class="preset-btn" type="button" data-bet="10000">10.000</button>
+              <button class="preset-btn" type="button" data-bet="50000">50.000</button>
+            </div>
+          </div>
+
+          <button id="hitung" class="primary-btn" type="button"><i class="fas fa-calculator"></i> HITUNG SEKARANG</button>
+          <div class="result" id="result"></div>
+
+          <div class="action-row">
+            <button id="copyBtn" class="copy-btn" type="button"><i class="fas fa-copy"></i> Salin Hasil</button>
+            <button id="resetBtn" class="reset-btn" type="button" title="Hapus hasil"><i class="fas fa-rotate-left"></i></button>
+          </div>
+          <p class="note">Pilih tipe yang benar sebelum menghitung. Data rumus asli tetap digunakan.</p>
+        </div>
+      </aside>
+    </section>
+  </main>
 
 <script>
 function format(angka) {
@@ -1088,48 +1320,146 @@ return angka.toLocaleString('id-ID');
     const clickList = document.getElementById("clickList");
     const copyBtn = document.getElementById("copyBtn");
     const resultDiv = document.getElementById("result");
+    const categoryFilter = document.getElementById("categoryFilter");
+    const categoryChips = document.getElementById("categoryChips");
+    const resultCount = document.getElementById("resultCount");
+    const limitNote = document.getElementById("limitNote");
+    const clearSearch = document.getElementById("clearSearch");
+    const selectedName = document.getElementById("selectedName");
+    const selectedGroup = document.getElementById("selectedGroup");
+    const betInput = document.getElementById("bet");
+    const MAX_RESULTS = 80;
+    let selectedIndex = 0;
 
-    // Isi dropdown
-    function populateOptions(filteredOptions = options) {
-      select.innerHTML = "";
-      filteredOptions.forEach(opt => {
-        const option = document.createElement("option");
-        option.value = opt.value;
-        option.textContent = opt.text;
-        select.appendChild(option);
-      });
+    function normalizeText(value) {
+      return String(value || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[_-]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
     }
 
-    // Isi daftar klik
-    function populateClickList(filteredOptions = options) {
-      clickList.innerHTML = "";
-      filteredOptions.forEach(opt => {
-        const div = document.createElement("div");
-        div.className = "click-item";
-        div.innerHTML = `<strong>${opt.text}</strong><br><span>${opt.group}</span>`;
-        div.onclick = () => {
-          select.value = opt.value;
-          // Opsional: fokus ke bet
-          document.getElementById("bet").focus();
-        };
-        clickList.appendChild(div);
-      });
-    }
-
-    // Inisialisasi
-    populateOptions();
-    populateClickList();
-
-    // Pencarian
-    search.addEventListener("input", () => {
-      const query = search.value.toLowerCase();
-      const filtered = options.filter(opt => 
-        opt.text.toLowerCase().includes(query) || 
-        opt.group.toLowerCase().includes(query)
-      );
-      populateOptions(filtered);
-      populateClickList(filtered);
+    // Dropdown tersembunyi tetap digunakan oleh rumus lama.
+    options.forEach((opt, index) => {
+      const option = document.createElement("option");
+      option.value = opt.value;
+      option.textContent = opt.text;
+      option.dataset.index = index;
+      select.appendChild(option);
     });
+
+    const groups = [...new Set(options.map(opt => opt.group))].sort((a, b) => a.localeCompare(b));
+    categoryFilter.innerHTML = '<option value="ALL">Semua kategori</option>' +
+      groups.map(group => `<option value="${group}">${group}</option>`).join("");
+
+    function setCategory(group) {
+      categoryFilter.value = group;
+      document.querySelectorAll(".chip").forEach(chip => {
+        chip.classList.toggle("active", chip.dataset.group === group);
+      });
+      renderList();
+    }
+
+    categoryChips.innerHTML = ["ALL", ...groups].map(group => {
+      const label = group === "ALL" ? "Semua" : group;
+      return `<button type="button" class="chip${group === "ALL" ? " active" : ""}" data-group="${group}">${label}</button>`;
+    }).join("");
+
+    categoryChips.addEventListener("click", event => {
+      const chip = event.target.closest(".chip");
+      if (chip) setCategory(chip.dataset.group);
+    });
+
+    function chooseOption(index, focusBet = true) {
+      selectedIndex = Number(index);
+      const opt = options[selectedIndex];
+      if (!opt) return;
+
+      select.value = opt.value;
+      selectedName.textContent = opt.text;
+      selectedGroup.textContent = opt.group;
+
+      document.querySelectorAll(".click-item").forEach(item => {
+        item.classList.toggle("selected", Number(item.dataset.index) === selectedIndex);
+      });
+
+      if (focusBet) {
+        betInput.focus({ preventScroll: true });
+        if (window.innerWidth <= 840) {
+          document.getElementById("calculatorPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+    }
+
+    function getFilteredOptions() {
+      const query = normalizeText(search.value);
+      const activeGroup = categoryFilter.value;
+
+      return options
+        .map((opt, index) => ({ ...opt, index }))
+        .filter(opt => {
+          const groupMatch = activeGroup === "ALL" || opt.group === activeGroup;
+          const haystack = normalizeText(`${opt.text} ${opt.group} ${opt.value}`);
+          return groupMatch && (!query || haystack.includes(query));
+        });
+    }
+
+    function renderList() {
+      const filtered = getFilteredOptions();
+      const visible = filtered.slice(0, MAX_RESULTS);
+      resultCount.textContent = `${filtered.length.toLocaleString("id-ID")} pilihan`;
+      limitNote.textContent = filtered.length > MAX_RESULTS
+        ? `Menampilkan ${MAX_RESULTS} hasil pertama. Ketik kata yang lebih spesifik untuk mempersempit hasil.`
+        : "";
+
+      if (!visible.length) {
+        clickList.innerHTML = '<div class="empty-state"><i class="fas fa-magnifying-glass"></i>Tidak ada tipe taruhan yang cocok.</div>';
+        return;
+      }
+
+      clickList.innerHTML = visible.map(opt => `
+        <button type="button" class="click-item${opt.index === selectedIndex ? " selected" : ""}" data-index="${opt.index}">
+          <span class="item-name">${opt.text}</span>
+          <span class="item-group">${opt.group}</span>
+        </button>
+      `).join("");
+    }
+
+    clickList.addEventListener("click", event => {
+      const item = event.target.closest(".click-item");
+      if (item) chooseOption(item.dataset.index);
+    });
+
+    search.addEventListener("input", renderList);
+    categoryFilter.addEventListener("change", () => setCategory(categoryFilter.value));
+    clearSearch.addEventListener("click", () => {
+      search.value = "";
+      search.focus();
+      renderList();
+    });
+
+    document.querySelectorAll(".preset-btn").forEach(button => {
+      button.addEventListener("click", () => {
+        betInput.value = button.dataset.bet;
+        betInput.focus();
+      });
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      resultDiv.textContent = "";
+      resultDiv.classList.remove("show");
+      copyBtn.classList.remove("show");
+      delete copyBtn.dataset.hasil;
+    });
+
+    betInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") document.getElementById("hitung").click();
+    });
+
+    chooseOption(0, false);
+    renderList();
 
     // Hitung
     document.getElementById("hitung").onclick = function() {
@@ -1147,9 +1477,9 @@ return angka.toLocaleString('id-ID');
       }
 
       resultDiv.classList.remove("show");
-      resultDiv.innerHTML = '<span class="typing"></span>';
+      resultDiv.innerHTML = '<div class="loading-row"><i class="fas fa-spinner fa-spin"></i> Menghitung...</div>';
+      resultDiv.classList.add("show");
       copyBtn.classList.remove("show");
-      const typingSpan = resultDiv.querySelector('.typing');
 
       setTimeout(() => {
         switch(tipe) {
@@ -2108,32 +2438,39 @@ break;
             hasil = `Tipe taruhan "${tipe}" belum diatur. Hubungi admin.`;
         }
 
-        let i = 0;
-        const timer = setInterval(() => {
-          if (i < hasil.length) {
-            typingSpan.textContent += hasil.charAt(i);
-            i++;
-            resultDiv.scrollTop = resultDiv.scrollHeight;
-          } else {
-            clearInterval(timer);
-            copyBtn.dataset.hasil = hasil;
-            copyBtn.classList.add("show");
-          }
-        }, 20);
-      }, 200);
-
-      resultDiv.classList.add("show");
+        resultDiv.textContent = hasil;
+        resultDiv.classList.add("show");
+        resultDiv.scrollTop = 0;
+        copyBtn.dataset.hasil = hasil;
+        copyBtn.classList.add("show");
+      }, 80);
     };
 
-    // Salin
-    copyBtn.onclick = function() {
-      const hasil = this.dataset.hasil;
-      navigator.clipboard.writeText(hasil).then(() => {
-        this.innerHTML = '<i class="fas fa-check"></i> Tersalin!';
+    // Salin hasil, termasuk fallback untuk hosting non-HTTPS.
+    copyBtn.onclick = async function() {
+      const hasil = this.dataset.hasil || "";
+      if (!hasil) return;
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(hasil);
+        } else {
+          const area = document.createElement("textarea");
+          area.value = hasil;
+          area.style.position = "fixed";
+          area.style.opacity = "0";
+          document.body.appendChild(area);
+          area.select();
+          document.execCommand("copy");
+          area.remove();
+        }
+        this.innerHTML = '<i class="fas fa-check"></i> Tersalin';
         setTimeout(() => {
-          this.innerHTML = '<i class="fas fa-copy"></i> Salin';
-        }, 2000);
-      });
+          this.innerHTML = '<i class="fas fa-copy"></i> Salin Hasil';
+        }, 1700);
+      } catch (error) {
+        this.innerHTML = '<i class="fas fa-triangle-exclamation"></i> Gagal menyalin';
+      }
     };
   </script>
 </body>
