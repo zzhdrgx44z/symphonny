@@ -471,9 +471,14 @@
           <div class="category-chips" id="categoryChips"></div>
 
           <div class="full-bet-box" id="fullBetBox">
-            <label for="fullMarketSelect"><i class="fas fa-location-dot"></i> Pilih pasaran Full Bet</label>
-            <select id="fullMarketSelect" aria-label="Pilih pasaran Full Bet"></select>
-            <p class="full-bet-note"><strong>Cara baru:</strong> pilih pasarannya satu kali, lalu ketik atau pilih jenis taruhan 2D FULL, 3D FULL, 4D FULL, atau 5D FULL. Daftar tidak lagi berulang per pasaran.</p>
+            <label for="fullMarketInput"><i class="fas fa-location-dot"></i> Ketik pasaran Full Bet</label>
+            <div class="search-box full-market-search">
+              <i class="fas fa-map-location-dot"></i>
+              <input type="search" id="fullMarketInput" list="fullMarketList" autocomplete="off" placeholder="Contoh: HONGKONG, SYDNEY, TOTO MACAU 4D..." />
+              <button class="clear-search" id="clearFullMarket" type="button" title="Hapus pasaran"><i class="fas fa-xmark"></i></button>
+            </div>
+            <datalist id="fullMarketList"></datalist>
+            <p class="full-bet-note"><strong>Cara pakai:</strong> ketik nama pasaran, lalu pilih 2D FULL, 3D FULL, 4D FULL, atau 5D FULL. Pencarian utama juga menerima format seperti <strong>4D FULL HONGKONG</strong>.</p>
           </div>
 
           <div class="click-list" id="clickList"></div>
@@ -1359,7 +1364,9 @@ return angka.toLocaleString('id-ID');
     const selectedGroup = document.getElementById("selectedGroup");
     const betInput = document.getElementById("bet");
     const fullBetBox = document.getElementById("fullBetBox");
-    const fullMarketSelect = document.getElementById("fullMarketSelect");
+    const fullMarketInput = document.getElementById("fullMarketInput");
+    const fullMarketList = document.getElementById("fullMarketList");
+    const clearFullMarket = document.getElementById("clearFullMarket");
     const MAX_RESULTS = 80;
     let selectedIndex = 0;
     let selectedFullType = "";
@@ -1398,18 +1405,71 @@ return angka.toLocaleString('id-ID');
     const fullBetMarkets = [...new Set(fullBetData.map(item => item.market))];
     const fullBetTypes = ["2D FULL", "3D FULL", "4D FULL", "5D FULL"];
 
-    fullMarketSelect.innerHTML = fullBetMarkets
-      .map(market => `<option value="${market}">${market}</option>`)
+    fullMarketList.innerHTML = fullBetMarkets
+      .map(market => `<option value="${market}"></option>`)
       .join("");
+
+    if (fullBetMarkets.length) {
+      fullMarketInput.value = fullBetMarkets[0];
+    }
+
+    function getFullMarketMatches(value = fullMarketInput.value) {
+      const query = normalizeText(value);
+      if (!query) return fullBetMarkets.slice();
+
+      return fullBetMarkets.filter(market => normalizeText(market).includes(query));
+    }
+
+    function resolveFullMarket(value = fullMarketInput.value) {
+      const query = normalizeText(value);
+      if (!query) return "";
+
+      const exact = fullBetMarkets.find(market => normalizeText(market) === query);
+      if (exact) return exact;
+
+      const matches = getFullMarketMatches(value);
+      return matches.length === 1 ? matches[0] : "";
+    }
+
+    function getMarketQueryFromMainSearch() {
+      return normalizeText(search.value)
+        .replace(/\b[2345]d\b/g, " ")
+        .replace(/\bfull\b/g, " ")
+        .replace(/\bbet\b/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
 
     function findFullBetIndex(market, type) {
       const found = fullBetData.find(item => item.market === market && item.type === type);
       return found ? found.index : -1;
     }
 
+    function chooseFullMarket(market) {
+      fullMarketInput.value = market;
+
+      if (selectedFullType) {
+        const index = findFullBetIndex(market, selectedFullType);
+        if (index >= 0) chooseOption(index, false);
+      }
+
+      renderList();
+    }
+
     function chooseFullBet(type) {
-      const market = fullMarketSelect.value;
+      const mainMarketQuery = getMarketQueryFromMainSearch();
+      const market = mainMarketQuery
+        ? resolveFullMarket(mainMarketQuery)
+        : resolveFullMarket();
       const index = findFullBetIndex(market, type);
+
+      if (!market) {
+        resultDiv.textContent = "❌ Ketik nama pasaran yang tersedia terlebih dahulu.";
+        resultDiv.classList.add("show");
+        copyBtn.classList.remove("show");
+        fullMarketInput.focus();
+        return;
+      }
 
       if (index < 0) {
         resultDiv.textContent = `❌ ${type} tidak tersedia untuk pasaran ${market}.`;
@@ -1418,6 +1478,7 @@ return angka.toLocaleString('id-ID');
         return;
       }
 
+      fullMarketInput.value = market;
       selectedFullType = type;
       chooseOption(index);
       renderList();
@@ -1442,8 +1503,12 @@ return angka.toLocaleString('id-ID');
 
       fullBetBox.classList.toggle("show", isFullBet);
       search.placeholder = isFullBet
-        ? "Ketik: 2D FULL, 3D FULL, 4D FULL atau 5D FULL"
+        ? "Contoh: 4D FULL HONGKONG atau ketik pasaran di bawah"
         : "Contoh: Hongkong, Toto Macau, Colok Jitu...";
+
+      if (isFullBet && !fullMarketInput.value && fullBetMarkets.length) {
+        fullMarketInput.value = fullBetMarkets[0];
+      }
 
       document.querySelectorAll(".chip").forEach(chip => {
         chip.classList.toggle("active", chip.dataset.group === group);
@@ -1497,19 +1562,44 @@ return angka.toLocaleString('id-ID');
 
     function renderFullBetList() {
       const query = normalizeText(search.value);
-      const market = fullMarketSelect.value;
-
       const dimensionMatch = query.match(/\b([2345]d)\b/);
       const requestedDimension = dimensionMatch ? dimensionMatch[1].toUpperCase() : "";
+      const mainMarketQuery = getMarketQueryFromMainSearch();
+      const marketSource = mainMarketQuery || fullMarketInput.value;
+      const marketMatches = getFullMarketMatches(marketSource);
+      const resolvedMarket = resolveFullMarket(marketSource);
+
+      // Jika nama pasaran belum spesifik, tampilkan pilihan pasaran yang cocok.
+      if (!resolvedMarket) {
+        resultCount.textContent = `${marketMatches.length} pasaran`;
+        limitNote.textContent = marketMatches.length > MAX_RESULTS
+          ? `Menampilkan ${MAX_RESULTS} pasaran pertama. Ketik nama yang lebih lengkap.`
+          : "";
+
+        if (!marketMatches.length) {
+          clickList.innerHTML = '<div class="empty-state"><i class="fas fa-location-dot"></i>Pasaran tidak ditemukan. Periksa kembali nama yang diketik.</div>';
+          return;
+        }
+
+        clickList.innerHTML = marketMatches.slice(0, MAX_RESULTS).map(market => `
+          <button type="button" class="click-item" data-full-market="${market}">
+            <span class="item-name">${market}</span>
+            <span class="item-group">Pilih pasaran</span>
+          </button>
+        `).join("");
+        return;
+      }
+
+      if (normalizeText(fullMarketInput.value) !== normalizeText(resolvedMarket)) {
+        fullMarketInput.value = resolvedMarket;
+      }
 
       const types = fullBetTypes
         .map(type => ({
           type,
-          index: findFullBetIndex(market, type)
+          index: findFullBetIndex(resolvedMarket, type)
         }))
         .filter(item => {
-          // Kata "FULL" atau "FULL BET" menampilkan seluruh jenis.
-          // Jika pengguna mengetik 2D/3D/4D/5D, tampilkan jenis tersebut saja.
           if (requestedDimension) return item.type.startsWith(requestedDimension);
           return true;
         });
@@ -1528,7 +1618,7 @@ return angka.toLocaleString('id-ID');
         return `
           <button type="button" class="click-item${isSelected ? " selected" : ""}" data-full-type="${item.type}" ${unavailable ? "disabled" : ""}>
             <span class="item-name">${item.type}</span>
-            <span class="item-group">${unavailable ? "Tidak tersedia" : market}</span>
+            <span class="item-group">${unavailable ? "Tidak tersedia" : resolvedMarket}</span>
           </button>
         `;
       }).join("");
@@ -1564,7 +1654,9 @@ return angka.toLocaleString('id-ID');
       const item = event.target.closest(".click-item");
       if (!item || item.disabled) return;
 
-      if (item.dataset.fullType) {
+      if (item.dataset.fullMarket) {
+        chooseFullMarket(item.dataset.fullMarket);
+      } else if (item.dataset.fullType) {
         chooseFullBet(item.dataset.fullType);
       } else {
         selectedFullType = "";
@@ -1585,13 +1677,24 @@ return angka.toLocaleString('id-ID');
       renderList();
     });
 
-    fullMarketSelect.addEventListener("change", () => {
-      if (selectedFullType) {
-        const index = findFullBetIndex(fullMarketSelect.value, selectedFullType);
-        if (index >= 0) chooseOption(index, false);
-      }
-      renderList();
+    fullMarketInput.addEventListener("input", () => {
+      if (categoryFilter.value !== "Full Bet") setCategory("Full Bet");
+      else renderList();
     });
+
+    fullMarketInput.addEventListener("change", () => {
+      const market = resolveFullMarket();
+      if (market) chooseFullMarket(market);
+      else renderList();
+    });
+
+    clearFullMarket.addEventListener("click", () => {
+      fullMarketInput.value = "";
+      fullMarketInput.focus();
+      if (categoryFilter.value !== "Full Bet") setCategory("Full Bet");
+      else renderList();
+    });
+
     categoryFilter.addEventListener("change", () => setCategory(categoryFilter.value));
     clearSearch.addEventListener("click", () => {
       search.value = "";
