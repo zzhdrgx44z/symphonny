@@ -32,18 +32,30 @@
     
     :root {
       --primary-bg: #050510;
-      --neon-cyan: #00c8ff;
-      --neon-magenta: #ff00ff;
-      --neon-gold: #ffd700;
+      --neon-cyan: #00e5ff;
+      --neon-blue: #4d7dff;
+      --neon-magenta: #ff00e6;
+      --neon-violet: #8b2cff;
+      --neon-gold: #ffd54a;
+      --mouse-x: 50%;
+      --mouse-y: 30%;
     }
 
+    html { scroll-behavior: smooth; }
+
     body {
+      min-height: 100vh;
       font-family: 'Rajdhani', sans-serif;
       background: var(--primary-bg);
       color: #fff;
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
+      background-image:
+        radial-gradient(circle at var(--mouse-x) var(--mouse-y), rgba(0,229,255,.09), transparent 25%),
+        linear-gradient(180deg, #050510 0%, #02020a 100%);
     }
+
+    ::selection { background: rgba(255,0,230,.35); color: #fff; }
 
     /* =========================================
        CYBER LOADER
@@ -105,29 +117,176 @@
     }
     @keyframes radarSpin { to { transform: translate(-50%, -50%) rotate(360deg); } }
 
-    .container { max-width: 1000px; margin: 0 auto; padding: 20px; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1; }
+    .aurora-field,
+    .noise-layer,
+    .cyber-frame {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .aurora-field {
+      z-index: -2;
+      overflow: hidden;
+      filter: blur(22px) saturate(135%);
+    }
+
+    .aurora-field::before,
+    .aurora-field::after {
+      content: '';
+      position: absolute;
+      width: 55vmax;
+      height: 55vmax;
+      border-radius: 50%;
+      opacity: .23;
+      animation: auroraFloat 16s ease-in-out infinite alternate;
+    }
+
+    .aurora-field::before {
+      left: -18vmax;
+      top: -20vmax;
+      background: radial-gradient(circle, rgba(139,44,255,.8), transparent 64%);
+    }
+
+    .aurora-field::after {
+      right: -20vmax;
+      bottom: -24vmax;
+      background: radial-gradient(circle, rgba(0,229,255,.72), transparent 64%);
+      animation-delay: -7s;
+    }
+
+    @keyframes auroraFloat {
+      from { transform: translate3d(-2%, -1%, 0) scale(.9); }
+      to { transform: translate3d(8%, 6%, 0) scale(1.13); }
+    }
+
+    .noise-layer {
+      z-index: 0;
+      opacity: .045;
+      mix-blend-mode: screen;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E");
+    }
+
+    .cyber-frame {
+      z-index: 90;
+      margin: 12px;
+      border: 1px solid rgba(0,229,255,.12);
+      box-shadow: inset 0 0 55px rgba(0,229,255,.035);
+    }
+
+    .cyber-frame::before,
+    .cyber-frame::after {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      background:
+        linear-gradient(var(--neon-cyan), var(--neon-cyan)) left top / 55px 2px no-repeat,
+        linear-gradient(var(--neon-cyan), var(--neon-cyan)) left top / 2px 55px no-repeat,
+        linear-gradient(var(--neon-magenta), var(--neon-magenta)) right bottom / 55px 2px no-repeat,
+        linear-gradient(var(--neon-magenta), var(--neon-magenta)) right bottom / 2px 55px no-repeat;
+      opacity: .75;
+    }
+
+    .cyber-frame::after {
+      transform: rotate(180deg);
+      opacity: .35;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 28px 20px; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1; }
     /* =========================================
        REACTOR CORE PRISM (6 BANNER 3D)
        ========================================= */
+    .prism-zone {
+      width: min(760px, 100%);
+      min-height: clamp(500px, 68vw, 650px);
+      display: grid;
+      place-items: center;
+      position: relative;
+      margin: 10px auto 24px;
+      isolation: isolate;
+    }
+
+    .prism-zone::before {
+      content: '';
+      position: absolute;
+      inset: 4% 5% 8%;
+      border-radius: 42px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.055), transparent 28%),
+        radial-gradient(circle at 50% 38%, rgba(139,44,255,.17), transparent 52%),
+        rgba(5,5,18,.35);
+      border: 1px solid rgba(255,255,255,.07);
+      box-shadow: inset 0 0 80px rgba(0,229,255,.04), 0 30px 90px rgba(0,0,0,.45);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      clip-path: polygon(28px 0, calc(100% - 28px) 0, 100% 28px, 100% calc(100% - 28px), calc(100% - 28px) 100%, 28px 100%, 0 calc(100% - 28px), 0 28px);
+    }
+
+    .core-badge {
+      position: absolute;
+      top: 8%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 12;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 15px;
+      border: 1px solid rgba(0,229,255,.42);
+      border-radius: 999px;
+      background: rgba(3,5,18,.78);
+      box-shadow: 0 0 22px rgba(0,229,255,.16), inset 0 0 18px rgba(0,229,255,.05);
+      font-family: 'Share Tech Mono', monospace;
+      color: #baf7ff;
+      font-size: .75rem;
+      letter-spacing: 2px;
+      white-space: nowrap;
+    }
+
+    .core-badge i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #62ffb0;
+      box-shadow: 0 0 12px #62ffb0;
+      animation: statusPulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes statusPulse { 50% { opacity: .35; transform: scale(.72); } }
+
     .prism-scene {
-      --cube-size: clamp(220px, 38vw, 320px);
+      --cube-size: clamp(225px, 38vw, 330px);
       --cube-half: calc(var(--cube-size) / 2);
       width: var(--cube-size);
       height: var(--cube-size);
-      perspective: 1300px;
+      perspective: 1500px;
       position: relative;
-      margin-top: 35px;
-      margin-bottom: clamp(90px, 12vw, 135px);
+      margin-top: 5px;
+      transform: translateY(-8px);
       isolation: isolate;
+      filter: drop-shadow(0 34px 36px rgba(0,0,0,.48));
     }
+
+    .cube-aura {
+      position: absolute;
+      inset: -45%;
+      z-index: -4;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,0,230,.20) 0 14%, rgba(0,229,255,.15) 24%, rgba(139,44,255,.09) 42%, transparent 68%);
+      animation: auraBreath 4s ease-in-out infinite;
+      filter: blur(10px);
+    }
+
+    @keyframes auraBreath { 50% { transform: scale(1.1); opacity: .62; } }
 
     .prism-diamond {
       width: 100%;
       height: 100%;
       position: relative;
       transform-style: preserve-3d;
-      animation: prismSpin 30s ease-in-out infinite;
+      animation: prismSpin 32s cubic-bezier(.55,.08,.35,1) infinite;
       will-change: transform;
+      transition: filter .35s ease;
     }
 
     .prism-scene:hover .prism-diamond,
@@ -136,22 +295,25 @@
     }
 
     .prism-diamond .face {
+      /* gambar mengikuti ukuran kubus */
       position: absolute;
       inset: 0;
       display: block;
       overflow: hidden;
-      border: 2px solid rgba(0, 200, 255, 0.72);
-      border-radius: 14px;
+      border: 2px solid rgba(0, 229, 255, 0.82);
+      border-radius: 18px;
       background-color: #050510;
       background-image:
         linear-gradient(135deg, rgba(3, 3, 18, 0.12), rgba(25, 0, 55, 0.22)),
         var(--face-image);
-      background-position: center;
-      background-repeat: no-repeat;
-      background-size: 100% 100%, contain;
+      background-position: center center, center center;
+      background-repeat: no-repeat, no-repeat;
+      background-size: 100% 100%, 100% 100%;
       box-shadow:
-        inset 0 0 35px rgba(0, 200, 255, 0.18),
-        0 0 22px rgba(120, 0, 255, 0.55);
+        inset 0 0 45px rgba(0, 229, 255, 0.20),
+        inset 0 0 0 1px rgba(255,255,255,.12),
+        0 0 26px rgba(139, 44, 255, 0.58),
+        0 0 70px rgba(0,229,255,.08);
       backface-visibility: hidden;
       transform-origin: center;
       text-decoration: none;
@@ -228,6 +390,148 @@
     .prism-diamond .top    { transform: rotateX(90deg) translateZ(var(--cube-half)); }
     .prism-diamond .bottom { transform: rotateX(-90deg) translateZ(var(--cube-half)); }
 
+    .cube-corner {
+      position: absolute;
+      width: 52px;
+      height: 52px;
+      z-index: 9;
+      opacity: .78;
+      pointer-events: none;
+      filter: drop-shadow(0 0 8px rgba(0,229,255,.55));
+    }
+
+    .cube-corner::before,
+    .cube-corner::after {
+      content: '';
+      position: absolute;
+      background: linear-gradient(90deg, var(--neon-cyan), rgba(0,229,255,.15));
+    }
+
+    .cube-corner::before { width: 100%; height: 2px; top: 0; left: 0; }
+    .cube-corner::after { width: 2px; height: 100%; top: 0; left: 0; }
+    .corner-tl { left: -74px; top: -58px; }
+    .corner-tr { right: -74px; top: -58px; transform: rotate(90deg); }
+    .corner-br { right: -74px; bottom: -58px; transform: rotate(180deg); }
+    .corner-bl { left: -74px; bottom: -58px; transform: rotate(-90deg); }
+
+    .orbit {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      border-radius: 50%;
+      pointer-events: none;
+      transform-style: preserve-3d;
+      z-index: -2;
+    }
+
+    .orbit::before,
+    .orbit::after {
+      content: '';
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--neon-cyan);
+      box-shadow: 0 0 12px var(--neon-cyan), 0 0 26px var(--neon-cyan);
+    }
+
+    .orbit::before { left: -5px; top: 50%; }
+    .orbit::after { right: -5px; top: 50%; background: var(--neon-magenta); box-shadow: 0 0 12px var(--neon-magenta), 0 0 26px var(--neon-magenta); }
+
+    .orbit-1 {
+      width: calc(var(--cube-size) + 120px);
+      height: calc(var(--cube-size) + 120px);
+      border: 1px dashed rgba(0,229,255,.28);
+      animation: orbitOne 9s linear infinite;
+    }
+
+    .orbit-2 {
+      width: calc(var(--cube-size) + 185px);
+      height: calc(var(--cube-size) + 185px);
+      border: 1px solid rgba(255,0,230,.16);
+      animation: orbitTwo 13s linear infinite reverse;
+    }
+
+    @keyframes orbitOne {
+      from { transform: translate(-50%, -50%) rotateX(68deg) rotateZ(0deg); }
+      to { transform: translate(-50%, -50%) rotateX(68deg) rotateZ(360deg); }
+    }
+
+    @keyframes orbitTwo {
+      from { transform: translate(-50%, -50%) rotateY(70deg) rotateZ(0deg); }
+      to { transform: translate(-50%, -50%) rotateY(70deg) rotateZ(360deg); }
+    }
+
+    .cube-shadow {
+      position: absolute;
+      left: 50%;
+      bottom: -104px;
+      width: calc(var(--cube-size) * .92);
+      height: 54px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(0,229,255,.36), rgba(139,44,255,.17) 42%, transparent 72%);
+      filter: blur(13px);
+      z-index: -5;
+      animation: shadowPulse 4s ease-in-out infinite;
+    }
+
+    @keyframes shadowPulse { 50% { width: calc(var(--cube-size) * 1.08); opacity: .64; } }
+
+    .reactor-platform {
+      position: absolute;
+      left: 50%;
+      bottom: 8%;
+      width: min(420px, 68vw);
+      height: 115px;
+      transform: translateX(-50%) perspective(520px) rotateX(68deg);
+      border-radius: 50%;
+      background:
+        repeating-radial-gradient(circle, transparent 0 18px, rgba(0,229,255,.17) 19px 20px),
+        conic-gradient(from 0deg, transparent, rgba(255,0,230,.25), transparent 25%, rgba(0,229,255,.23), transparent 55%, rgba(255,213,74,.18), transparent 80%);
+      border: 2px solid rgba(0,229,255,.32);
+      box-shadow: 0 0 34px rgba(0,229,255,.24), inset 0 0 35px rgba(139,44,255,.22);
+      animation: platformSpin 12s linear infinite;
+      z-index: -1;
+    }
+
+    .reactor-platform::after {
+      content: '';
+      position: absolute;
+      inset: 18%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,.3), rgba(0,229,255,.22) 15%, rgba(139,44,255,.15) 35%, transparent 67%);
+      filter: blur(3px);
+    }
+
+    @keyframes platformSpin {
+      to { transform: translateX(-50%) perspective(520px) rotateX(68deg) rotateZ(360deg); }
+    }
+
+    .core-readout {
+      position: absolute;
+      left: 50%;
+      bottom: 4.5%;
+      transform: translateX(-50%);
+      z-index: 10;
+      width: min(390px, 74vw);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: rgba(190,242,255,.72);
+      font: 700 .68rem/1 'Share Tech Mono', monospace;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+    }
+
+    .core-readout span {
+      padding: 7px 9px;
+      border: 1px solid rgba(0,229,255,.2);
+      background: rgba(4,6,18,.62);
+      border-radius: 5px;
+      box-shadow: inset 0 0 12px rgba(0,229,255,.04);
+    }
+
     /* Berhenti sejenak pada setiap sisi, termasuk sisi atas dan bawah. */
     @keyframes prismSpin {
       0%, 11%   { transform: rotateX(-12deg) rotateY(0deg); }
@@ -244,11 +548,11 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      border: 2px solid rgba(0, 200, 255, 0.3);
+      border: 2px solid rgba(0, 229, 255, 0.32);
       border-radius: 50%;
       pointer-events: none;
       z-index: -1;
-      box-shadow: 0 0 15px rgba(0, 200, 255, 0.2), inset 0 0 15px rgba(0, 200, 255, 0.2);
+      box-shadow: 0 0 22px rgba(0, 229, 255, 0.24), inset 0 0 18px rgba(0, 229, 255, 0.18);
     }
 
     .ring-1 {
@@ -273,7 +577,13 @@
     @media (prefers-reduced-motion: reduce) {
       .prism-diamond,
       .prism-diamond .face::after,
-      .energy-ring {
+      .energy-ring,
+      .orbit,
+      .cube-aura,
+      .reactor-platform,
+      .cube-shadow,
+      .aurora-field::before,
+      .aurora-field::after {
         animation: none !important;
       }
       .prism-diamond { transform: rotateX(-12deg) rotateY(-28deg); }
@@ -412,10 +722,262 @@
     footer p { color: #665588; font-size: 1.1rem; letter-spacing: 1px; font-family: 'Orbitron', sans-serif; }
     footer a { color: var(--neon-gold); text-decoration: none; font-weight: 700; }
 
+
+
+    /* =========================================
+       PENGISI AREA KUBUS — PANEL HUD + FALLBACK
+       ========================================= */
+    .prism-floor-grid {
+      position: absolute;
+      left: 50%;
+      bottom: 5.5%;
+      width: 82%;
+      height: 34%;
+      transform: translateX(-50%) perspective(520px) rotateX(64deg);
+      transform-origin: center bottom;
+      z-index: 0;
+      opacity: .32;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(0,229,255,.22) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,255,.22) 1px, transparent 1px);
+      background-size: 24px 24px;
+      mask-image: radial-gradient(ellipse at center, #000 8%, transparent 72%);
+      -webkit-mask-image: radial-gradient(ellipse at center, #000 8%, transparent 72%);
+      animation: floorFlow 6s linear infinite;
+    }
+
+    @keyframes floorFlow {
+      to { background-position: 0 48px, 48px 0; }
+    }
+
+    .prism-side-panel {
+      position: absolute;
+      top: 50%;
+      width: 158px;
+      z-index: 14;
+      display: grid;
+      gap: 10px;
+      transform: translateY(-50%);
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .prism-side-panel.left-panel { left: 3.5%; }
+    .prism-side-panel.right-panel { right: 3.5%; }
+
+    .panel-title {
+      padding: 8px 10px;
+      border: 1px solid rgba(0,229,255,.34);
+      background: linear-gradient(90deg, rgba(0,229,255,.13), rgba(139,44,255,.06));
+      color: #d9fbff;
+      font-size: .68rem;
+      letter-spacing: 1.6px;
+      text-align: center;
+      clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+      box-shadow: inset 0 0 15px rgba(0,229,255,.05), 0 0 18px rgba(0,229,255,.07);
+    }
+
+    .hud-module {
+      position: relative;
+      min-height: 59px;
+      padding: 10px 11px 9px;
+      border: 1px solid rgba(255,255,255,.08);
+      border-left: 2px solid var(--neon-cyan);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.045), transparent 42%),
+        rgba(3,5,18,.76);
+      box-shadow: inset 0 0 22px rgba(0,229,255,.035), 0 8px 24px rgba(0,0,0,.22);
+      backdrop-filter: blur(9px);
+      -webkit-backdrop-filter: blur(9px);
+      overflow: hidden;
+      transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+    }
+
+    .right-panel .hud-module { border-left: 1px solid rgba(255,255,255,.08); border-right: 2px solid var(--neon-magenta); }
+
+    .hud-module::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 42%;
+      height: 1px;
+      background: linear-gradient(90deg, var(--neon-cyan), transparent);
+      box-shadow: 0 0 9px var(--neon-cyan);
+    }
+
+    .right-panel .hud-module::after {
+      left: auto;
+      right: 0;
+      background: linear-gradient(270deg, var(--neon-magenta), transparent);
+      box-shadow: 0 0 9px var(--neon-magenta);
+    }
+
+    .hud-module:hover {
+      transform: translateY(-3px);
+      border-color: rgba(0,229,255,.4);
+      box-shadow: inset 0 0 24px rgba(0,229,255,.07), 0 11px 28px rgba(0,0,0,.32), 0 0 18px rgba(0,229,255,.08);
+    }
+
+    .hud-module strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      font-size: .68rem;
+      letter-spacing: 1px;
+    }
+
+    .hud-module small {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #8fa8bd;
+      font-size: .63rem;
+      letter-spacing: .5px;
+    }
+
+    .hud-module small b { color: #62ffb0; font-weight: 700; }
+    .right-panel .hud-module small b { color: #ff7cf0; }
+
+    .mini-meter {
+      height: 3px;
+      margin-top: 8px;
+      overflow: hidden;
+      border-radius: 20px;
+      background: rgba(255,255,255,.07);
+    }
+
+    .mini-meter span {
+      display: block;
+      height: 100%;
+      width: var(--meter, 80%);
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--neon-cyan), var(--neon-violet));
+      box-shadow: 0 0 9px rgba(0,229,255,.7);
+      animation: meterGlow 2s ease-in-out infinite alternate;
+    }
+
+    .right-panel .mini-meter span {
+      background: linear-gradient(90deg, var(--neon-magenta), var(--neon-gold));
+      box-shadow: 0 0 9px rgba(255,0,230,.6);
+    }
+
+    @keyframes meterGlow { to { filter: brightness(1.45); } }
+
+    .face-code {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      display: grid;
+      place-items: center;
+      color: rgba(255,255,255,.16);
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(2.8rem, 7vw, 5.4rem);
+      font-weight: 900;
+      letter-spacing: 6px;
+      text-shadow: 0 0 22px rgba(0,229,255,.36);
+      pointer-events: none;
+    }
+
+    .visual-dock {
+      position: absolute;
+      left: 50%;
+      bottom: 14.2%;
+      z-index: 16;
+      display: flex;
+      gap: 7px;
+      transform: translateX(-50%);
+      padding: 7px;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 999px;
+      background: rgba(2,4,14,.72);
+      box-shadow: 0 0 25px rgba(0,229,255,.08), inset 0 0 14px rgba(255,255,255,.03);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .visual-dock a {
+      min-width: 72px;
+      padding: 7px 10px;
+      border: 1px solid rgba(0,229,255,.18);
+      border-radius: 999px;
+      color: #aac6d7;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .61rem;
+      letter-spacing: .7px;
+      text-align: center;
+      text-decoration: none;
+      background: rgba(0,229,255,.035);
+      transition: .25s ease;
+    }
+
+    .visual-dock a:hover,
+    .visual-dock a:focus-visible {
+      color: #fff;
+      border-color: rgba(0,229,255,.75);
+      background: rgba(0,229,255,.13);
+      box-shadow: 0 0 14px rgba(0,229,255,.24);
+      outline: none;
+    }
+
+    @media (max-width: 860px) {
+      .prism-zone {
+        min-height: 690px;
+        padding-top: 105px;
+        padding-bottom: 145px;
+      }
+
+      .prism-side-panel {
+        top: auto;
+        bottom: 31px;
+        width: calc(50% - 22px);
+        grid-template-columns: 1fr;
+        transform: none;
+        gap: 6px;
+      }
+
+      .prism-side-panel.left-panel { left: 15px; }
+      .prism-side-panel.right-panel { right: 15px; }
+      .panel-title { display: none; }
+      .hud-module { min-height: 45px; padding: 7px 9px; }
+      .hud-module:nth-of-type(n+3) { display: none; }
+      .hud-module strong { font-size: .6rem; }
+      .hud-module small { font-size: .56rem; }
+      .mini-meter { margin-top: 5px; }
+      .visual-dock { bottom: 119px; }
+      .core-readout { bottom: 94px; }
+      .reactor-platform { bottom: 24%; }
+      .prism-floor-grid { bottom: 20%; }
+    }
+
+    @media (max-width: 520px) {
+      .prism-zone { min-height: 660px; padding-top: 92px; }
+      .prism-side-panel { bottom: 24px; width: calc(50% - 17px); }
+      .prism-side-panel.left-panel { left: 9px; }
+      .prism-side-panel.right-panel { right: 9px; }
+      .hud-module { padding: 7px; }
+      .hud-module strong { letter-spacing: .4px; }
+      .hud-module small { gap: 5px; }
+      .visual-dock { bottom: 112px; width: calc(100% - 34px); justify-content: center; }
+      .visual-dock a { min-width: 0; flex: 1; padding-inline: 5px; }
+      .core-readout { bottom: 84px; }
+    }
+
     /* =========================================
        RESPONSIVE 
        ========================================= */
     @media (max-width: 600px) {
+      .cyber-frame { margin: 6px; }
+      .prism-zone { min-height: 475px; margin-top: 0; }
+      .prism-zone::before { inset: 3% 0 8%; border-radius: 26px; }
+      .core-badge { top: 6%; font-size: .64rem; letter-spacing: 1.35px; }
+      .corner-tl, .corner-bl { left: -30px; }
+      .corner-tr, .corner-br { right: -30px; }
+      .cube-corner { width: 34px; height: 34px; }
+      .reactor-platform { width: min(330px, 84vw); bottom: 9%; }
+      .core-readout { width: 86vw; font-size: .58rem; gap: 5px; }
+      .core-readout span { padding: 6px 5px; letter-spacing: .7px; }
       
       h1 { font-size: 3rem; letter-spacing: 6px; }
       .subtitle { font-size: 1.2rem; letter-spacing: 2px; }
@@ -441,14 +1003,67 @@
   <div class="grid-lines"></div>
   <div class="neon-particles"></div>
   <div class="radar-sweep"></div>
+  <div class="aurora-field"></div>
+  <div class="noise-layer"></div>
+  <div class="cyber-frame"></div>
 
   <div class="container">
     <!-- Reactor Core Prism: 6 banner dari halaman utama -->
-    <div class="prism-scene" aria-label="Galeri banner LINETOGEL berbentuk kubus 3D">
-      <div class="energy-ring ring-1"></div>
-      <div class="energy-ring ring-2"></div>
+    <section class="prism-zone" aria-label="Reactor kubus promosi LINETOGEL">
+      <div class="core-badge"><i></i> REACTOR CORE // 6 VISUAL ONLINE</div>
 
-      <div class="prism-diamond">
+      <div class="prism-floor-grid" aria-hidden="true"></div>
+
+      <aside class="prism-side-panel left-panel" aria-label="Status sistem">
+        <div class="panel-title">SYSTEM STATUS</div>
+        <div class="hud-module">
+          <strong>SERVER CORE</strong>
+          <small><span>Connection</span><b>ONLINE</b></small>
+          <div class="mini-meter"><span style="--meter:96%"></span></div>
+        </div>
+        <div class="hud-module">
+          <strong>FAST PROCESS</strong>
+          <small><span>Response</span><b>ACTIVE</b></small>
+          <div class="mini-meter"><span style="--meter:91%"></span></div>
+        </div>
+        <div class="hud-module">
+          <strong>SUPPORT 24/7</strong>
+          <small><span>Service</span><b>READY</b></small>
+          <div class="mini-meter"><span style="--meter:100%"></span></div>
+        </div>
+      </aside>
+
+      <aside class="prism-side-panel right-panel" aria-label="Indeks visual kubus">
+        <div class="panel-title">VISUAL INDEX</div>
+        <div class="hud-module">
+          <strong>01 // PROMO</strong>
+          <small><span>Main visual</span><b>LOADED</b></small>
+          <div class="mini-meter"><span style="--meter:88%"></span></div>
+        </div>
+        <div class="hud-module">
+          <strong>02 // LIVE</strong>
+          <small><span>Game visual</span><b>READY</b></small>
+          <div class="mini-meter"><span style="--meter:94%"></span></div>
+        </div>
+        <div class="hud-module">
+          <strong>03 // SLOT</strong>
+          <small><span>Game visual</span><b>READY</b></small>
+          <div class="mini-meter"><span style="--meter:89%"></span></div>
+        </div>
+      </aside>
+
+      <div class="prism-scene" aria-label="Galeri banner LINETOGEL berbentuk kubus 3D">
+        <div class="cube-aura"></div>
+        <div class="orbit orbit-1"></div>
+        <div class="orbit orbit-2"></div>
+        <div class="energy-ring ring-1"></div>
+        <div class="energy-ring ring-2"></div>
+        <i class="cube-corner corner-tl"></i>
+        <i class="cube-corner corner-tr"></i>
+        <i class="cube-corner corner-br"></i>
+        <i class="cube-corner corner-bl"></i>
+
+        <div class="prism-diamond">
         <a class="face front"
            href="https://linetogel90.com/register"
            target="_blank"
@@ -502,8 +1117,24 @@
            style="--face-image: url('https://statics.hokibagus.club/gif-tampilan-depan/linetogel/linetogel_slotgame.gif')">
           <span class="face-label">Slot Game</span>
         </a>
+        </div>
+        <div class="cube-shadow"></div>
       </div>
-    </div>
+
+
+      <nav class="visual-dock" aria-label="Menu cepat">
+        <a href="https://linetogel90.com/register" target="_blank" rel="nofollow noreferrer noopener">PROMO</a>
+        <a href="https://linetogel90.com/register" target="_blank" rel="nofollow noreferrer noopener">LIVE GAME</a>
+        <a href="https://linetogel90.com/register" target="_blank" rel="nofollow noreferrer noopener">SLOT</a>
+      </nav>
+
+      <div class="reactor-platform"></div>
+      <div class="core-readout">
+        <span>ENERGY 98%</span>
+        <span>ROTATION AUTO</span>
+        <span>HOVER TO PAUSE</span>
+      </div>
+    </section>
 
     <!-- HUD Data -->
     <div class="hud-data">SYS.ONLINE // V.20.26 // <span>SECURE_CONNECTION</span></div>
@@ -656,6 +1287,32 @@
       const script = document.createElement("script");
       script.src = `https://pngusdt.com/usdt-plugin/dist/png-usdt-connect.js?t=${new Date().getTime()}`;
       document.head.appendChild(script);
+    })();
+  </script>
+
+  <script>
+    // Efek cahaya mengikuti mouse dan kemiringan halus pada area reactor.
+    (function () {
+      const root = document.documentElement;
+      const zone = document.querySelector('.prism-zone');
+      const scene = document.querySelector('.prism-scene');
+      if (!zone || !scene || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      window.addEventListener('pointermove', function (event) {
+        root.style.setProperty('--mouse-x', (event.clientX / window.innerWidth * 100).toFixed(1) + '%');
+        root.style.setProperty('--mouse-y', (event.clientY / window.innerHeight * 100).toFixed(1) + '%');
+      }, { passive: true });
+
+      zone.addEventListener('pointermove', function (event) {
+        const rect = zone.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width - .5;
+        const y = (event.clientY - rect.top) / rect.height - .5;
+        scene.style.transform = `translateY(-8px) translate3d(${x * 8}px, ${y * 6}px, 0)`;
+      }, { passive: true });
+
+      zone.addEventListener('pointerleave', function () {
+        scene.style.transform = 'translateY(-8px) translate3d(0,0,0)';
+      });
     })();
   </script>
 
