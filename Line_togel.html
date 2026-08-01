@@ -882,28 +882,31 @@
       text-decoration:none;
       font-weight:800;
       letter-spacing:.6px;
-      transform:translateZ(0);
-      transition:.22s ease;
       overflow:hidden;
+      transform:none;
+      transition:none;
+      animation:none;
     }
 
-    .market::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      background:linear-gradient(120deg,transparent,rgba(0,229,255,.14),transparent);
-      transform:translateX(-130%);
-      transition:.45s ease;
+    /* Pasaran dibuat statis tanpa kilatan atau pergerakan. */
+    .market::before,
+    .market::after{
+      content:none;
+      display:none;
+      animation:none;
+      transition:none;
+      transform:none;
     }
 
-    .market:hover{
-      color:var(--cyan);
-      border-color:var(--cyan);
-      background:rgba(0,229,255,.1);
-      box-shadow:0 0 22px rgba(0,229,255,.18);
-      transform:translateY(-4px) translateZ(22px);
+    .market:hover,
+    .market:focus-visible{
+      color:#b7c8d5;
+      border-color:rgba(139,44,255,.32);
+      background:rgba(8,5,24,.8);
+      box-shadow:none;
+      transform:none;
+      outline:none;
     }
-    .market:hover::before{transform:translateX(130%)}
 
     .terminal{padding:28px;border-left:4px solid var(--cyan)}
     .terminal-top{
@@ -1378,23 +1381,7 @@
       opacity:1;
       transform:none;
     }
-
-    .market::after{
-      content:"";
-      position:absolute;
-      inset:auto 14px 8px;
-      height:2px;
-      border-radius:99px;
-      background:linear-gradient(90deg,var(--cyan),var(--pink));
-      transform:scaleX(0);
-      transform-origin:left;
-      transition:.28s ease;
-      box-shadow:0 0 8px rgba(0,229,255,.35);
-    }
-
-    .market:hover::after{transform:scaleX(1)}
-
-    .terminal::before{
+.terminal::before{
       content:"";
       position:absolute;
       inset:0;
@@ -1433,6 +1420,168 @@
       .mode-toggle{right:12px;bottom:12px}
       .cube-wrap::before{width:calc(var(--cube-size) + 180px);height:calc(var(--cube-size) + 180px)}
       .cube-wrap::after{width:calc(var(--cube-size) + 210px)}
+    }
+
+
+
+    /* ===== REFINED STABILITY + CUBE CONTROLS ===== */
+    .cube-wrap:focus-visible{
+      outline:2px solid var(--gold);
+      outline-offset:16px;
+      border-radius:24px;
+    }
+
+    .face.image-error{
+      background:
+        radial-gradient(circle at 50% 35%, rgba(0,229,255,.15), transparent 38%),
+        linear-gradient(145deg, #07101c, #15051c);
+    }
+
+    .face.image-error img{display:none}
+
+    .face.image-error::before{
+      inset:0;
+      filter:none;
+      transform:none;
+      opacity:1;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.04), transparent 32%),
+        repeating-linear-gradient(45deg, rgba(0,229,255,.035) 0 8px, transparent 8px 16px);
+    }
+
+    .face.image-error .face-chip{
+      color:#ffe7a1;
+      border-color:rgba(255,213,74,.3);
+    }
+
+    .cube-control-bar{
+      position:absolute;
+      left:50%;
+      bottom:132px;
+      z-index:22;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      transform:translateX(-50%) translateZ(80px);
+      padding:8px;
+      border:1px solid rgba(255,255,255,.09);
+      border-radius:16px;
+      background:rgba(2,5,16,.84);
+      box-shadow:
+        0 14px 32px rgba(0,0,0,.34),
+        0 0 24px rgba(0,229,255,.08),
+        inset 0 0 16px rgba(255,255,255,.025);
+      backdrop-filter:blur(13px);
+      -webkit-backdrop-filter:blur(13px);
+    }
+
+    .cube-control-bar button{
+      width:38px;
+      height:38px;
+      display:grid;
+      place-items:center;
+      border:1px solid rgba(0,229,255,.18);
+      border-radius:10px;
+      color:#c5eaf3;
+      background:rgba(0,229,255,.045);
+      cursor:pointer;
+      font:900 1rem "Orbitron",sans-serif;
+      transition:.2s ease;
+    }
+
+    .cube-control-bar button:hover,
+    .cube-control-bar button:focus-visible{
+      color:#fff;
+      border-color:rgba(0,229,255,.65);
+      background:rgba(0,229,255,.15);
+      box-shadow:0 0 15px rgba(0,229,255,.18);
+      transform:translateY(-2px);
+      outline:none;
+    }
+
+    .cube-control-bar button:active{transform:translateY(1px)}
+
+    .cube-face-status{
+      min-width:126px;
+      padding:0 9px;
+      color:#91aabd;
+      text-align:center;
+      font:800 .68rem/1.15 "Share Tech Mono",monospace;
+      letter-spacing:.8px;
+      text-transform:uppercase;
+    }
+
+    .cube-face-status b{
+      display:block;
+      margin-top:3px;
+      color:var(--gold);
+      font:900 .78rem "Orbitron",sans-serif;
+      text-shadow:0 0 10px rgba(255,213,74,.28);
+    }
+
+    .cube-help{
+      position:absolute;
+      left:50%;
+      top:calc(50% + var(--cube-half) + 29px);
+      z-index:10;
+      transform:translateX(-50%) translateZ(35px);
+      color:rgba(180,215,228,.62);
+      font:700 .69rem "Share Tech Mono",monospace;
+      letter-spacing:1.1px;
+      white-space:nowrap;
+      pointer-events:none;
+    }
+
+    body.low-motion #space{opacity:.5}
+    body.low-motion .cube-help::after{content:" · PERFORMANCE ON";color:var(--gold)}
+
+    @supports not ((backdrop-filter:blur(10px)) or (-webkit-backdrop-filter:blur(10px))){
+      .topbar,
+      .hud-card,
+      .quick-dock,
+      .cube-control-bar,
+      .tag-float,
+      .mode-toggle{
+        background:rgba(3,6,18,.96);
+      }
+    }
+
+    @media (max-width:980px){
+      .cube-control-bar{bottom:176px}
+      .cube-help{top:calc(43% + var(--cube-half) + 28px)}
+    }
+
+    @media (max-width:720px){
+      .cube-control-bar{
+        bottom:151px;
+        gap:5px;
+        padding:6px;
+        width:calc(100% - 34px);
+        justify-content:center;
+      }
+
+      .cube-control-bar button{
+        width:34px;
+        height:34px;
+        flex:0 0 34px;
+        font-size:.86rem;
+      }
+
+      .cube-face-status{
+        min-width:104px;
+        font-size:.59rem;
+        padding-inline:4px;
+      }
+
+      .cube-face-status b{font-size:.66rem}
+      .cube-help{top:calc(37% + var(--cube-half) + 26px);font-size:.58rem}
+    }
+
+    @media (max-width:440px){
+      .cube-control-bar button[data-cube-action="up"],
+      .cube-control-bar button[data-cube-action="down"]{display:none}
+      .cube-control-bar{bottom:145px}
+      .cube-face-status{min-width:112px}
     }
 
 
@@ -1543,6 +1692,378 @@
       .hero-scene{transform:none!important}
       .card3d{transform:none!important}
     }
+  
+    /* =========================================================
+       CLEAN HERO LAYOUT — MERAPIKAN AREA KUBUS
+       ========================================================= */
+    :root{
+      --cube-size:clamp(250px,30vw,325px);
+    }
+
+    .hero-scene{
+      min-height:780px;
+      padding:0 24px 26px;
+    }
+
+    .badge{
+      top:22px;
+      z-index:40;
+    }
+
+    .hero-title{
+      top:82px;
+      z-index:24;
+      padding-inline:120px;
+    }
+
+    .hero-title h1{
+      font-size:clamp(3rem,6.1vw,5.15rem);
+      letter-spacing:clamp(5px,1vw,10px);
+    }
+
+    .hero-title p:last-child{
+      margin-top:10px;
+      font-size:clamp(.95rem,1.8vw,1.35rem);
+      letter-spacing:2.5px;
+    }
+
+    /* Logo kecil dipindahkan ke sudut, tidak menutupi judul. */
+    .holo-logo{
+      left:auto;
+      right:28px;
+      top:25px;
+      width:58px;
+      height:58px;
+      transform:translateZ(70px);
+      animation:holoLogoFloatClean 4s ease-in-out infinite;
+    }
+
+    .holo-logo::before,
+    .holo-logo::after{
+      border-radius:16px;
+      font-size:1.05rem;
+    }
+
+    @keyframes holoLogoFloatClean{
+      50%{transform:translateY(-5px) translateZ(78px) rotateY(10deg)}
+    }
+
+    .reactor{
+      inset:225px 24px 24px;
+      display:grid;
+      grid-template-columns:190px minmax(340px,1fr) 190px;
+      grid-template-rows:minmax(365px,1fr) auto auto;
+      column-gap:22px;
+      row-gap:10px;
+      align-items:center;
+      perspective:1600px;
+    }
+
+    /* Elemen dekorasi yang sebelumnya menabrak panel disembunyikan. */
+    .floating-tags{display:none}
+
+    .beam-ring{
+      left:50%;
+      top:43%;
+      width:calc(var(--cube-size) + 220px);
+      height:calc(var(--cube-size) + 220px);
+    }
+
+    .hud{
+      position:relative;
+      top:auto;
+      left:auto;
+      right:auto;
+      width:100%;
+      transform:none!important;
+      grid-row:1;
+      align-self:center;
+      gap:9px;
+      z-index:18;
+    }
+
+    .hud.left{grid-column:1}
+    .hud.right{grid-column:3}
+
+    .hud-title{
+      padding:9px 10px;
+      border-radius:8px;
+      font-size:.82rem;
+      background:rgba(3,8,22,.86);
+      backdrop-filter:blur(12px);
+    }
+
+    .hud-card{
+      min-height:75px;
+      padding:11px 12px;
+      border-radius:9px;
+      background:rgba(3,8,22,.82);
+    }
+
+    .hud-card:hover{
+      transform:translateY(-3px);
+    }
+
+    .hud-card strong{
+      font-size:.78rem;
+      letter-spacing:.55px;
+    }
+
+    .hud-card small{
+      margin-top:6px;
+      font-size:.71rem;
+    }
+
+    .cube-wrap{
+      position:relative;
+      left:auto;
+      top:auto;
+      grid-column:2;
+      grid-row:1;
+      justify-self:center;
+      align-self:center;
+      transform:translateZ(90px);
+      filter:drop-shadow(0 28px 30px rgba(0,0,0,.44));
+      z-index:14;
+    }
+
+    .cube-help{
+      position:relative;
+      left:auto;
+      top:auto;
+      grid-column:2;
+      grid-row:2;
+      justify-self:center;
+      transform:none;
+      margin-top:-3px;
+      z-index:20;
+    }
+
+    .cube-control-bar{
+      position:relative;
+      left:auto;
+      bottom:auto;
+      grid-column:2;
+      grid-row:3;
+      justify-self:center;
+      transform:none;
+      margin:0;
+      z-index:25;
+    }
+
+    .quick-dock{
+      display:none;
+    }
+
+    .readout{
+      display:none;
+    }
+
+    .platform{
+      bottom:80px;
+      width:min(430px,58vw);
+      opacity:.72;
+    }
+
+    .floor{
+      bottom:10px;
+      width:68%;
+      height:34%;
+      opacity:.24;
+    }
+
+    .face span{
+      left:10px;
+      bottom:10px;
+      padding:7px 11px;
+      font-size:.74rem;
+    }
+
+    .face .face-chip{
+      top:10px;
+      right:10px;
+      padding:5px 8px;
+      font-size:.6rem;
+    }
+
+    .cube-control-bar{
+      padding:7px;
+      gap:6px;
+      border-radius:14px;
+    }
+
+    .cube-control-bar button{
+      width:36px;
+      height:36px;
+      border-radius:9px;
+      font-size:.9rem;
+    }
+
+    .cube-face-status{
+      min-width:118px;
+    }
+
+    @media (max-width:1080px){
+      :root{--cube-size:clamp(245px,29vw,300px)}
+
+      .hero-scene{
+        min-height:760px;
+      }
+
+      .hero-title{
+        padding-inline:80px;
+      }
+
+      .reactor{
+        inset:218px 16px 20px;
+        grid-template-columns:170px minmax(310px,1fr) 170px;
+        grid-template-rows:minmax(345px,1fr) auto auto;
+        column-gap:14px;
+      }
+
+      .hud-card{
+        min-height:72px;
+        padding:10px;
+      }
+
+      .hud-card strong{font-size:.73rem}
+      .hud-card small{font-size:.67rem}
+    }
+
+    @media (max-width:820px){
+      :root{--cube-size:min(68vw,285px)}
+
+      .hero-scene{
+        min-height:1030px;
+        padding-inline:12px;
+      }
+
+      .badge{
+        top:18px;
+        font-size:.72rem;
+        letter-spacing:1.15px;
+      }
+
+      .holo-logo{display:none}
+
+      .hero-title{
+        top:70px;
+        padding-inline:12px;
+      }
+
+      .hero-title h1{
+        font-size:clamp(2.35rem,10vw,3.5rem);
+        letter-spacing:4px;
+      }
+
+      .hero-title p:last-child{
+        font-size:.88rem;
+        letter-spacing:1.5px;
+      }
+
+      .reactor{
+        inset:190px 10px 18px;
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        grid-template-rows:390px auto auto auto;
+        gap:10px;
+      }
+
+      .cube-wrap{
+        grid-column:1 / -1;
+        grid-row:1;
+      }
+
+      .cube-help{
+        grid-column:1 / -1;
+        grid-row:2;
+      }
+
+      .cube-control-bar{
+        grid-column:1 / -1;
+        grid-row:3;
+        width:auto;
+        max-width:calc(100% - 12px);
+      }
+
+      .hud{
+        grid-row:4;
+        width:100%;
+        align-self:start;
+      }
+
+      .hud.left{grid-column:1}
+      .hud.right{grid-column:2}
+
+      .hud-title{font-size:.68rem}
+      .hud-card{min-height:65px}
+      .hud-card:nth-of-type(n+3){display:none}
+      .hud-card strong{font-size:.67rem}
+      .hud-card small{font-size:.61rem}
+
+      .platform{
+        bottom:300px;
+        width:86vw;
+      }
+
+      .floor{
+        bottom:225px;
+        width:92%;
+      }
+    }
+
+    @media (max-width:520px){
+      .hero-scene{
+        min-height:960px;
+      }
+
+      .reactor{
+        inset:178px 8px 14px;
+        grid-template-rows:350px auto auto auto;
+      }
+
+      .cube-control-bar button[data-cube-action="up"],
+      .cube-control-bar button[data-cube-action="down"]{
+        display:none;
+      }
+
+      .cube-control-bar button{
+        width:33px;
+        height:33px;
+        flex:0 0 33px;
+      }
+
+      .cube-face-status{
+        min-width:104px;
+      }
+
+      .cube-help{
+        font-size:.55rem;
+        letter-spacing:.7px;
+      }
+
+      .platform{bottom:285px}
+      .floor{bottom:215px}
+    }
+
+  
+    /* Pengaman: semua animasi di bagian Pasaran dinonaktifkan. */
+    #pasaran,
+    #pasaran *,
+    #pasaran *::before,
+    #pasaran *::after{
+      animation:none !important;
+      transition:none !important;
+      scroll-behavior:auto !important;
+    }
+
+    #pasaran .market,
+    #pasaran .market:hover,
+    #pasaran .market:focus-visible{
+      transform:none !important;
+      box-shadow:none !important;
+    }
+
   </style>
 </head>
 
@@ -1619,7 +2140,7 @@
             </div>
           </aside>
 
-          <div class="cube-wrap" id="cubeWrap" aria-label="Kubus promosi 3D. Geser untuk memutar.">
+          <div class="cube-wrap" id="cubeWrap" tabindex="0" aria-label="Kubus promosi 3D. Geser atau gunakan tombol panah untuk memutar.">
             <div class="cube-aura"></div>
             <div class="orbit one"></div>
             <div class="orbit two"></div>
@@ -1630,7 +2151,7 @@
                  target="_blank"
                  rel="nofollow noreferrer noopener"
                  style="--image:url('https://cdn.areabermain.club/assets/cdn/az6/2026/07/21/20260721/381efc67f9c8693d9580f733b433bcde/slider-1-linetogel-2.png')">
-                <img src="https://cdn.areabermain.club/assets/cdn/az6/2026/07/21/20260721/381efc67f9c8693d9580f733b433bcde/slider-1-linetogel-2.png" alt="Promo Utama" loading="eager" decoding="async">
+                <img src="https://cdn.areabermain.club/assets/cdn/az6/2026/07/21/20260721/381efc67f9c8693d9580f733b433bcde/slider-1-linetogel-2.png" alt="Promo Utama" loading="eager" decoding="async" fetchpriority="high">
                 <span>Promo Utama</span><em class="face-chip">ONLINE</em>
               </a>
 
@@ -1639,7 +2160,7 @@
                  target="_blank"
                  rel="nofollow noreferrer noopener"
                  style="--image:url('https://cdn.areabermain.club/assets/cdn/az6/2026/07/09/20260709/299ae10fc871edc8cabfacb95593ff55/slidder-1-linetogel.png')">
-                <img src="https://cdn.areabermain.club/assets/cdn/az6/2026/07/09/20260709/299ae10fc871edc8cabfacb95593ff55/slidder-1-linetogel.png" alt="Promo 2" loading="eager" decoding="async">
+                <img src="https://cdn.areabermain.club/assets/cdn/az6/2026/07/09/20260709/299ae10fc871edc8cabfacb95593ff55/slidder-1-linetogel.png" alt="Promo 2" loading="lazy" decoding="async">
                 <span>Promo 2</span><em class="face-chip">ACTIVE</em>
               </a>
 
@@ -1648,7 +2169,7 @@
                  target="_blank"
                  rel="nofollow noreferrer noopener"
                  style="--image:url('https://cdn.areabermain.club/assets/cdn/az6/2026/07/09/20260709/c4a939d15cb4d3e1dc99f0f12f8a106c/slidder-2-linetogel.jpg')">
-                <img src="https://cdn.areabermain.club/assets/cdn/az6/2026/07/09/20260709/c4a939d15cb4d3e1dc99f0f12f8a106c/slidder-2-linetogel.jpg" alt="Promo 3" loading="eager" decoding="async">
+                <img src="https://cdn.areabermain.club/assets/cdn/az6/2026/07/09/20260709/c4a939d15cb4d3e1dc99f0f12f8a106c/slidder-2-linetogel.jpg" alt="Promo 3" loading="lazy" decoding="async">
                 <span>Promo 3</span><em class="face-chip">READY</em>
               </a>
 
@@ -1657,7 +2178,7 @@
                  target="_blank"
                  rel="nofollow noreferrer noopener"
                  style="--image:url('https://cdn.areabermain.club/assets/cdn/az4/2026/04/17/20260417/4dbac83f162b74b0d2c2e407a629a659/linetogel-gif-tampilan-depan.gif')">
-                <img src="https://cdn.areabermain.club/assets/cdn/az4/2026/04/17/20260417/4dbac83f162b74b0d2c2e407a629a659/linetogel-gif-tampilan-depan.gif" alt="Tampilan Depan" loading="eager" decoding="async">
+                <img src="https://cdn.areabermain.club/assets/cdn/az4/2026/04/17/20260417/4dbac83f162b74b0d2c2e407a629a659/linetogel-gif-tampilan-depan.gif" alt="Tampilan Depan" loading="lazy" decoding="async">
                 <span>Tampilan Depan</span><em class="face-chip">LIVE</em>
               </a>
 
@@ -1666,7 +2187,7 @@
                  target="_blank"
                  rel="nofollow noreferrer noopener"
                  style="--image:url('https://statics.hokibagus.club/gif-tampilan-depan/linetogel/linetogel_livegame.gif')">
-                <img src="https://statics.hokibagus.club/gif-tampilan-depan/linetogel/linetogel_livegame.gif" alt="Live Game" loading="eager" decoding="async">
+                <img src="https://statics.hokibagus.club/gif-tampilan-depan/linetogel/linetogel_livegame.gif" alt="Live Game" loading="lazy" decoding="async">
                 <span>Live Game</span><em class="face-chip">ONLINE</em>
               </a>
 
@@ -1675,11 +2196,12 @@
                  target="_blank"
                  rel="nofollow noreferrer noopener"
                  style="--image:url('https://statics.hokibagus.club/gif-tampilan-depan/linetogel/linetogel_slotgame.gif')">
-                <img src="https://statics.hokibagus.club/gif-tampilan-depan/linetogel/linetogel_slotgame.gif" alt="Slot Game" loading="eager" decoding="async">
+                <img src="https://statics.hokibagus.club/gif-tampilan-depan/linetogel/linetogel_slotgame.gif" alt="Slot Game" loading="lazy" decoding="async">
                 <span>Slot Game</span><em class="face-chip">READY</em>
               </a>
             </div>
           </div>
+          <div class="cube-help" aria-hidden="true">DRAG · ARROW KEYS · BUTTON CONTROL</div>
 
           <aside class="hud right" aria-label="Indeks visual">
             <div class="hud-title">VISUAL INDEX</div>
@@ -1701,6 +2223,15 @@
           </aside>
 
           <div class="platform"></div>
+
+          <div class="cube-control-bar" aria-label="Kontrol rotasi kubus">
+            <button type="button" data-cube-action="left" aria-label="Putar kubus ke kiri">←</button>
+            <button type="button" data-cube-action="up" aria-label="Putar kubus ke atas">↑</button>
+            <div class="cube-face-status" aria-live="polite">SISI AKTIF<b id="activeFace">PROMO UTAMA</b></div>
+            <button type="button" data-cube-action="down" aria-label="Putar kubus ke bawah">↓</button>
+            <button type="button" data-cube-action="right" aria-label="Putar kubus ke kanan">→</button>
+            <button type="button" data-cube-action="pause" id="cubePause" aria-label="Jeda rotasi otomatis" aria-pressed="false">Ⅱ</button>
+          </div>
 
           <div class="quick-dock" aria-label="Menu cepat kubus">
             <a href="https://linetogel74.com/register" target="_blank" rel="nofollow noreferrer noopener">PROMO</a>
@@ -1825,7 +2356,7 @@
         </div>
       </section>
 
-      <section class="section reveal" id="pasaran">
+      <section class="section" id="pasaran">
         <div class="section-heading">
           <small>MARKET DIRECTORY</small>
           <h2>25 Pasaran</h2>
@@ -1933,17 +2464,38 @@
       let lastY = 0;
       let lastTime = performance.now();
       let resumeAt = 0;
+      let cubePaused = false;
+      const activeFace = document.getElementById("activeFace");
+      const cubePause = document.getElementById("cubePause");
+
+      const updateActiveFace = () => {
+        if (!activeFace) return;
+
+        let name = "";
+        if (rotX <= -55) {
+          name = "LIVE GAME";
+        } else if (rotX >= 55) {
+          name = "SLOT GAME";
+        } else {
+          const index = ((Math.round(-rotY / 90) % 4) + 4) % 4;
+          name = ["PROMO UTAMA", "PROMO 2", "PROMO 3", "TAMPILAN DEPAN"][index];
+        }
+        activeFace.textContent = name;
+      };
 
       const renderCube = () => {
         cube.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+        updateActiveFace();
       };
 
       const loop = (time) => {
         const delta = Math.min(32, time - lastTime || 16.67);
         lastTime = time;
 
-        if (!reduceMotion && document.visibilityState === "visible") {
-          if (!dragging) {
+        const performanceMode = document.body.classList.contains("low-motion");
+
+        if (!reduceMotion && !performanceMode && document.visibilityState === "visible") {
+          if (!dragging && !cubePaused) {
             if (time > resumeAt) velY += (.075 - velY) * .018;
             rotX += velX * delta;
             rotY += velY * delta;
@@ -2009,6 +2561,65 @@
           }
         }, true);
 
+        const rotateBy = (x, y) => {
+          cubePaused = true;
+          rotX = Math.max(-88, Math.min(88, rotX + x));
+          rotY += y;
+          velX = 0;
+          velY = 0;
+          renderCube();
+          if (cubePause) {
+            cubePause.setAttribute("aria-pressed", "true");
+            cubePause.textContent = "▶";
+            cubePause.setAttribute("aria-label", "Lanjutkan rotasi otomatis");
+          }
+        };
+
+        document.querySelectorAll("[data-cube-action]").forEach((button) => {
+          button.addEventListener("click", () => {
+            const action = button.dataset.cubeAction;
+            if (action === "left") rotateBy(0, -90);
+            if (action === "right") rotateBy(0, 90);
+            if (action === "up") rotateBy(-90, 0);
+            if (action === "down") rotateBy(90, 0);
+            if (action === "pause") {
+              cubePaused = !cubePaused;
+              button.setAttribute("aria-pressed", String(cubePaused));
+              button.textContent = cubePaused ? "▶" : "Ⅱ";
+              button.setAttribute(
+                "aria-label",
+                cubePaused ? "Lanjutkan rotasi otomatis" : "Jeda rotasi otomatis"
+              );
+              if (!cubePaused) {
+                resumeAt = performance.now();
+                velY = .075;
+              }
+            }
+          });
+        });
+
+        cubeWrap.addEventListener("keydown", (event) => {
+          const actions = {
+            ArrowLeft: [0, -90],
+            ArrowRight: [0, 90],
+            ArrowUp: [-90, 0],
+            ArrowDown: [90, 0]
+          };
+          if (!actions[event.key]) return;
+          event.preventDefault();
+          rotateBy(...actions[event.key]);
+        });
+
+        // Fallback ketika gambar eksternal gagal dimuat.
+        cube.querySelectorAll(".face img").forEach((image) => {
+          image.addEventListener("error", () => {
+            const face = image.closest(".face");
+            face?.classList.add("image-error");
+            const chip = face?.querySelector(".face-chip");
+            if (chip) chip.textContent = "IMAGE ERROR";
+          });
+        });
+
         requestAnimationFrame(loop);
       }
 
@@ -2062,25 +2673,54 @@
         }));
       };
 
-      const drawStars = () => {
+      let starFrame = 0;
+      let lastStarTime = 0;
+
+      const drawStars = (time = 0, staticOnly = false) => {
+        const performanceMode = document.body.classList.contains("low-motion");
+
+        // Batasi animasi partikel sekitar 30 FPS.
+        if (!staticOnly && time - lastStarTime < 32) {
+          starFrame = requestAnimationFrame(drawStars);
+          return;
+        }
+        lastStarTime = time;
+
         ctx.clearRect(0, 0, width, height);
         for (const star of stars) {
-          star.y += star.z * .12;
-          star.x += star.z * .025;
-          if (star.y > height + 4) star.y = -4;
-          if (star.x > width + 4) star.x = -4;
+          if (!staticOnly && !performanceMode) {
+            star.y += star.z * .12;
+            star.x += star.z * .025;
+            if (star.y > height + 4) star.y = -4;
+            if (star.x > width + 4) star.x = -4;
+          }
 
           ctx.beginPath();
           ctx.fillStyle = `rgba(165,225,255,${star.a})`;
           ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
           ctx.fill();
         }
-        if (!reduceMotion) requestAnimationFrame(drawStars);
+
+        if (!reduceMotion && !performanceMode && !staticOnly) {
+          starFrame = requestAnimationFrame(drawStars);
+        }
+      };
+
+      const startStars = () => {
+        cancelAnimationFrame(starFrame);
+        if (reduceMotion || document.body.classList.contains("low-motion")) {
+          drawStars(0, true);
+        } else {
+          starFrame = requestAnimationFrame(drawStars);
+        }
       };
 
       resize();
-      addEventListener("resize", resize, { passive:true });
-      drawStars();
+      addEventListener("resize", () => {
+        resize();
+        startStars();
+      }, { passive:true });
+      startStars();
 
       // Reveal section saat masuk viewport.
       const revealItems = document.querySelectorAll(".reveal");
@@ -2108,6 +2748,25 @@
             "aria-label",
             enabled ? "Nonaktifkan mode performa" : "Aktifkan mode performa"
           );
+
+          cancelAnimationFrame(starFrame);
+          startStars();
+
+          if (enabled) {
+            cubePaused = true;
+            velX = 0;
+            velY = 0;
+            renderCube();
+          } else {
+            cubePaused = false;
+            resumeAt = performance.now();
+            velY = .075;
+          }
+
+          if (cubePause) {
+            cubePause.setAttribute("aria-pressed", String(cubePaused));
+            cubePause.textContent = cubePaused ? "▶" : "Ⅱ";
+          }
         });
       }
     })();
