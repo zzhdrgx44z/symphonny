@@ -5079,6 +5079,26 @@ body{font-synthesis:none}
 </head>
 
 <body>
+
+<script>
+(function(){
+  function finishLoading(){
+    var loader=document.getElementById('loader');
+    if(loader){
+      loader.classList.add('hide');
+      loader.style.opacity='0';
+      loader.style.visibility='hidden';
+      loader.style.pointerEvents='none';
+    }
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(finishLoading, 1200);
+  });
+  window.addEventListener('load', finishLoading, {once:true});
+  setTimeout(finishLoading, 3500);
+})();
+</script>
+
   <div class="loader" id="loader">
     <div class="loader-box">
       <div class="loader-ring"><div class="loader-core"><i class="fa-solid fa-layer-group"></i></div></div>
@@ -5460,7 +5480,9 @@ setInterval(updateClock,1000);
 
 function initCanvas(){
   const canvas = document.getElementById("spaceCanvas");
+  if(!canvas || !canvas.getContext) return;
   const ctx = canvas.getContext("2d", { alpha:true });
+  if(!ctx) return;
   let w=0,h=0,dpr=1,stars=[],nebula=[],comets=[];
 
   function makeStar(){
@@ -5616,10 +5638,8 @@ function triggerSceneBoost(){
   setTimeout(()=>premiumScene.classList.remove("scan-boost"),1800);
 }
 
-buildCategories();
-buildCards();
-applyFilters();
-initCanvas();
+try{buildCategories();buildCards();applyFilters();}catch(err){console.warn("Portal UI init:",err);}
+try{initCanvas();}catch(err){console.warn("Canvas init:",err);}
 
 addEventListener("load",()=>{
   setTimeout(()=>document.getElementById("loader").classList.add("hide"),800);
