@@ -161,9 +161,107 @@ body::before{background:
 @media(max-width:1180px){.overview-grid{grid-template-columns:1fr 1fr}.overview-card.big{grid-column:1/-1}}
 @media(max-width:760px){.luxury-marquee{grid-template-columns:1fr;gap:12px;padding:14px}.marquee-window{width:100%}.overview-grid{grid-template-columns:1fr}.overview-card.big{grid-column:auto}.overview-stat strong{font-size:2.05rem}}
 
+
+
+/* ===== PREMIUM SCROLL UPGRADE ===== */
+html{
+  scroll-behavior:smooth;
+  scroll-padding-top:112px;
+  scrollbar-gutter:stable;
+}
+body{
+  overflow-x:hidden;
+  overscroll-behavior-y:none;
+  -webkit-overflow-scrolling:touch;
+}
+/* Elegant global scrollbar */
+*{
+  scrollbar-width:thin;
+  scrollbar-color:rgba(255,201,95,.55) rgba(5,10,20,.72);
+}
+*::-webkit-scrollbar{width:10px;height:8px}
+*::-webkit-scrollbar-track{
+  background:linear-gradient(180deg,rgba(4,8,16,.95),rgba(7,13,24,.92));
+  border-left:1px solid rgba(120,170,255,.07);
+}
+*::-webkit-scrollbar-thumb{
+  border:2px solid rgba(4,8,16,.92);
+  border-radius:999px;
+  background:linear-gradient(180deg,#ffd87a 0%,#8a64ff 48%,#31cfff 100%);
+  box-shadow:0 0 16px rgba(49,207,255,.18),0 0 12px rgba(255,201,95,.16);
+}
+*::-webkit-scrollbar-thumb:hover{
+  background:linear-gradient(180deg,#fff0aa 0%,#ac72ff 48%,#72e5ff 100%);
+}
+*::-webkit-scrollbar-corner{background:#040812}
+
+/* Better horizontal category scrolling */
+.categories{
+  scroll-behavior:smooth;
+  scroll-snap-type:x proximity;
+  overscroll-behavior-x:contain;
+  padding-bottom:2px;
+}
+.cat{scroll-snap-align:start;flex:0 0 auto}
+.categories::-webkit-scrollbar{height:4px}
+.categories::-webkit-scrollbar-track{background:transparent}
+.categories::-webkit-scrollbar-thumb{border:0;background:rgba(255,201,95,.34)}
+
+/* Prevent sticky bars from visually colliding */
+.top-wrap{padding-bottom:10px}
+.toolbar{top:94px;scroll-margin-top:112px}
+#top,#modules,.casino-strip,.luxury-marquee,.overview-grid{scroll-margin-top:118px}
+
+/* Subtle reading progress bar */
+.scroll-progress{
+  position:fixed;left:0;top:0;z-index:9998;width:100%;height:3px;
+  pointer-events:none;background:rgba(255,255,255,.02);
+}
+.scroll-progress > span{
+  display:block;width:0;height:100%;
+  background:linear-gradient(90deg,#ffc95f,#a94cff,#31cfff);
+  box-shadow:0 0 14px rgba(49,207,255,.45),0 0 10px rgba(255,201,95,.35);
+  transition:width .08s linear;
+}
+
+/* Floating back-to-top button */
+.scroll-top-btn{
+  position:fixed;right:18px;bottom:88px;z-index:900;
+  width:44px;height:44px;border-radius:14px;
+  display:grid;place-items:center;
+  border:1px solid rgba(255,201,95,.28);
+  color:#ffe3a0;background:linear-gradient(145deg,rgba(12,20,34,.92),rgba(5,10,18,.94));
+  box-shadow:0 14px 34px rgba(0,0,0,.34),0 0 22px rgba(255,201,95,.08);
+  backdrop-filter:blur(16px);
+  cursor:pointer;opacity:0;visibility:hidden;transform:translateY(10px) scale(.94);
+  transition:.24s ease;
+}
+.scroll-top-btn.show{opacity:1;visibility:visible;transform:none}
+.scroll-top-btn:hover{transform:translateY(-3px);border-color:rgba(49,207,255,.46);color:#bdefff;box-shadow:0 18px 38px rgba(0,0,0,.38),0 0 24px rgba(49,207,255,.13)}
+
+/* Smooth momentum & safer mobile sticky behavior */
+@media(max-width:930px){
+  html{scroll-padding-top:92px}
+  .toolbar{top:78px}
+  #top,#modules,.casino-strip,.luxury-marquee,.overview-grid{scroll-margin-top:96px}
+}
+@media(max-width:650px){
+  *::-webkit-scrollbar{width:6px;height:4px}
+  html{scroll-padding-top:82px}
+  .toolbar{top:73px;border-radius:16px}
+  #top,#modules,.casino-strip,.luxury-marquee,.overview-grid{scroll-margin-top:88px}
+  .scroll-top-btn{right:12px;bottom:82px;width:42px;height:42px;border-radius:13px}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .marquee-track,.scan-line,.floating-chip,.loader-core,.loader-core::before{animation:none!important}
+}
+
 </style>
 </head>
 <body>
+<div class="scroll-progress" aria-hidden="true"><span id="scrollProgressBar"></span></div>
+<button class="scroll-top-btn" id="scrollTopBtn" aria-label="Kembali ke atas"><i class="fa-solid fa-arrow-up"></i></button>
 <div class="ambient-casino" aria-hidden="true"><span class="suit s1">♠</span><span class="suit s2">♦</span><span class="suit s3">♣</span><span class="suit s4">♥</span></div>
 <canvas id="stars"></canvas>
 <div class="loader" id="loader"><div class="loader-core"><i class="fa-solid fa-crown"></i></div></div>
@@ -487,6 +585,39 @@ buildCats();buildCards();apply();addEventListener('load',()=>setTimeout(()=>docu
   search.addEventListener('search', () => addActivity('Pencarian', search.value || 'Direset', 'fa-magnifying-glass'));
 })();
 </script>
+
+
+
+/* ===== SCROLL UX ===== */
+(() => {
+  const bar = document.getElementById('scrollProgressBar');
+  const topBtn = document.getElementById('scrollTopBtn');
+  let ticking = false;
+  const updateScrollUI = () => {
+    const doc = document.documentElement;
+    const max = Math.max(1, doc.scrollHeight - doc.clientHeight);
+    const progress = Math.min(100, Math.max(0, (doc.scrollTop / max) * 100));
+    if(bar) bar.style.width = progress + '%';
+    if(topBtn) topBtn.classList.toggle('show', doc.scrollTop > 520);
+    ticking = false;
+  };
+  addEventListener('scroll', () => {
+    if(!ticking){ requestAnimationFrame(updateScrollUI); ticking = true; }
+  }, {passive:true});
+  addEventListener('resize', updateScrollUI, {passive:true});
+  topBtn?.addEventListener('click', () => window.scrollTo({top:0,behavior:'smooth'}));
+
+  // Mouse wheel on category row scrolls sideways naturally.
+  const cats = document.querySelector('.categories');
+  cats?.addEventListener('wheel', e => {
+    if(Math.abs(e.deltaY) > Math.abs(e.deltaX)){
+      e.preventDefault();
+      cats.scrollBy({left:e.deltaY * .9, behavior:'smooth'});
+    }
+  }, {passive:false});
+
+  updateScrollUI();
+})();
 
 </body>
 </html>
