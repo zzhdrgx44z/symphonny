@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Script Dashboard</title>
+<style>
+:root{
+  --bg:#070b12;
+  --panel:#0e1622;
+  --panel2:#111d2d;
+  --line:#26354b;
+  --text:#eef4ff;
+  --muted:#8fa1bb;
+  --accent:#54efb3;
+  --accent2:#5b9cff;
+  --danger:#ff647d;
+  --warn:#ffc857;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,Segoe UI,Arial,sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 10% 0%,rgba(91,156,255,.14),transparent 28%),
+    radial-gradient(circle at 90% 10%,rgba(84,239,179,.10),transparent 24%),
+    var(--bg);
+  min-height:100vh;
+}
+.shell{display:grid;grid-template-columns:290px 1fr;min-height:100vh}
+.sidebar{
+  background:rgba(10,16,26,.95);
+  border-right:1px solid var(--line);
+  padding:16px;
+  position:sticky;top:0;height:100vh;overflow:hidden;
+}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.logo{
+  width:42px;height:42px;border-radius:13px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:grid;place-items:center;font-size:22px;color:#06100c;font-weight:900;
+}
+.brand h1{font-size:16px;margin:0}
+.brand p{font-size:11px;color:var(--muted);margin:3px 0 0}
+.btn{
+  border:1px solid var(--line);
+  background:#17243a;
+  color:var(--text);
+  border-radius:11px;
+  padding:10px 12px;
+  font-weight:800;
+  font-size:12px;
+  cursor:pointer;
+}
+.btn:hover{filter:brightness(1.08)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#06120d}
+.btn.danger{background:rgba(255,100,125,.12);border-color:rgba(255,100,125,.35);color:#ff8195}
+.btn.full{width:100%}
+.script-list{margin-top:12px;display:flex;flex-direction:column;gap:8px;overflow:auto;height:calc(100vh - 145px);padding-right:2px}
+.script-item{
+  border:1px solid var(--line);background:#101a29;border-radius:12px;padding:11px;cursor:pointer
+}
+.script-item.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px rgba(84,239,179,.14)}
+.script-name{font-weight:900;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.script-meta{font-size:10px;color:var(--muted);margin-top:5px;display:flex;justify-content:space-between;gap:8px}
+.badge{font-size:9px;font-weight:900;padding:3px 7px;border-radius:999px}
+.badge.on{background:rgba(84,239,179,.12);color:var(--accent)}
+.badge.off{background:rgba(255,100,125,.12);color:#ff8da0}
+
+.main{padding:22px;overflow:auto}
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px}
+.topbar h2{margin:0;font-size:24px}
+.topbar p{margin:5px 0 0;color:var(--muted);font-size:12px}
+.status-pill{border:1px solid var(--line);border-radius:999px;padding:8px 11px;color:var(--accent);font-size:11px;font-weight:800}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.stat{border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,.01));border-radius:15px;padding:14px}
+.stat .label{font-size:11px;color:var(--muted);font-weight:700}
+.stat .value{font-size:24px;font-weight:900;margin-top:5px}
+
+.panel{border:1px solid var(--line);background:rgba(14,22,34,.95);border-radius:17px;padding:16px}
+.grid{display:grid;grid-template-columns:1fr 190px;gap:12px}
+label{display:block;font-size:11px;color:var(--muted);font-weight:800;margin-bottom:6px}
+input,textarea{
+  width:100%;
+  border:1px solid var(--line);
+  background:#080d15;
+  color:var(--text);
+  border-radius:11px;
+  padding:11px 12px;
+  outline:none;
+}
+input:focus,textarea:focus{border-color:var(--accent2)}
+textarea{font-family:Consolas,Monaco,monospace;line-height:1.5;resize:vertical}
+#match{height:78px}
+#code{height:390px}
+.toggle-wrap{
+  height:42px;display:flex;align-items:center;gap:8px;
+  border:1px solid var(--line);background:#0a111b;border-radius:11px;padding:0 10px
+}
+.toggle-wrap input{width:auto}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.status{
+  margin-top:12px;border:1px solid var(--line);background:#08101a;border-radius:11px;
+  padding:10px 12px;font-size:11px;color:var(--muted);white-space:pre-wrap
+}
+.tip{margin-top:12px;font-size:11px;color:var(--muted);line-height:1.6}
+
+@media(max-width:900px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}
+  .script-list{height:auto;max-height:220px}
+  .cards{grid-template-columns:1fr}
+  .grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">🐒</div>
+      <div>
+        <h1>Auto Script Dashboard</h1>
+        <p>Kelola semua script dari satu tempat</p>
+      </div>
+    </div>
+
+    <button id="newBtn" class="btn primary full">+ Tambah Script</button>
+    <div id="scriptList" class="script-list"></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h2>Dashboard Script</h2>
+        <p>Auto-save aktif. Data disimpan lokal di browser.</p>
+      </div>
+      <div class="status-pill">● SYSTEM READY</div>
+    </div>
+
+    <div class="cards">
+      <div class="stat">
+        <div class="label">TOTAL SCRIPT</div>
+        <div id="statTotal" class="value">0</div>
+      </div>
+      <div class="stat">
+        <div class="label">SCRIPT AKTIF</div>
+        <div id="statActive" class="value">0</div>
+      </div>
+      <div class="stat">
+        <div class="label">TERAKHIR DIUBAH</div>
+        <div id="statUpdated" class="value" style="font-size:16px">-</div>
+      </div>
+    </div>
+
+    <section class="panel">
+      <div class="grid">
+        <div>
+          <label>Nama Script</label>
+          <input id="name" placeholder="Contoh: Auto Refresh">
+        </div>
+        <div>
+          <label>Status Script</label>
+          <div class="toggle-wrap">
+            <input type="checkbox" id="enabled">
+            <span>Aktif otomatis</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+      <label>URL Match</label>
+      <textarea id="match" placeholder="Contoh:&#10;*://example.com/*"></textarea>
+
+      <div style="height:12px"></div>
+      <label>Kode JavaScript</label>
+      <textarea id="code" spellcheck="false" placeholder="// Tempel kode JavaScript di sini..."></textarea>
+
+      <div class="actions">
+        <button id="saveBtn" class="btn primary">💾 Simpan</button>
+        <button id="copyBtn" class="btn">📋 Copy</button>
+        <button id="downloadBtn" class="btn">⬇ Export .user.js</button>
+        <button id="duplicateBtn" class="btn">⧉ Duplikat</button>
+        <button id="deleteBtn" class="btn danger">🗑 Hapus</button>
+      </div>
+
+      <div id="status" class="status">Siap.</div>
+
+      <div class="tip">
+        Dashboard ini menyimpan semua script di browser. Tombol <b>Export .user.js</b>
+        akan membuat file userscript Tampermonkey dari script yang sedang dipilih.
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const KEY='AUTO_SCRIPT_DASHBOARD_HTML_V1';
+let scripts=[];
+let currentId=null;
+let timer=null;
+
+const $=id=>document.getElementById(id);
+
+function uid(){
+  return 's_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+}
+function escapeHtml(s){
+  return String(s??'').replace(/[&<>"']/g,c=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+  }[c]));
+}
+function nowText(ts){
+  if(!ts) return '-';
+  return new Date(ts).toLocaleString('id-ID');
+}
+function persist(){
+  localStorage.setItem(KEY,JSON.stringify(scripts));
+}
+function load(){
+  try{scripts=JSON.parse(localStorage.getItem(KEY)||'[]')}catch{scripts=[]}
+  if(!scripts.length){
+    scripts=[{
+      id:uid(),
+      name:'Script Baru',
+      enabled:true,
+      match:'*://*/*',
+      code:'',
+      updatedAt:Date.now()
+    }];
+    persist();
+  }
+  currentId=scripts[0].id;
+  render();
+}
+function current(){
+  return scripts.find(x=>x.id===currentId);
+}
+function setStatus(msg){
+  $('status').textContent=msg;
+}
+function renderList(){
+  const box=$('scriptList');
+  box.innerHTML='';
+  scripts.forEach(item=>{
+    const el=document.createElement('div');
+    el.className='script-item'+(item.id===currentId?' active':'');
+    el.innerHTML=`
+      <div class="script-name">${escapeHtml(item.name||'Tanpa Nama')}</div>
+      <div class="script-meta">
+        <span>${new Date(item.updatedAt||Date.now()).toLocaleDateString('id-ID')}</span>
+        <span class="badge ${item.enabled?'on':'off'}">${item.enabled?'ON':'OFF'}</span>
+      </div>`;
+    el.onclick=()=>{
+      saveCurrent(false);
+      currentId=item.id;
+      render();
+    };
+    box.appendChild(el);
+  });
+}
+function renderStats(){
+  $('statTotal').textContent=scripts.length;
+  $('statActive').textContent=scripts.filter(x=>x.enabled).length;
+  const last=scripts.reduce((a,b)=>(b.updatedAt||0)>(a||0)?b.updatedAt:a,0);
+  $('statUpdated').textContent=last?nowText(last):'-';
+}
+function fillForm(){
+  const item=current();
+  if(!item)return;
+  $('name').value=item.name||'';
+  $('enabled').checked=!!item.enabled;
+  $('match').value=item.match||'*://*/*';
+  $('code').value=item.code||'';
+}
+function render(){
+  renderList();
+  renderStats();
+  fillForm();
+}
+function saveCurrent(show=true){
+  const item=current();
+  if(!item)return;
+  item.name=$('name').value.trim()||'Script Baru';
+  item.enabled=$('enabled').checked;
+  item.match=$('match').value.trim()||'*://*/*';
+  item.code=$('code').value;
+  item.updatedAt=Date.now();
+  persist();
+  renderList();
+  renderStats();
+  if(show)setStatus('Script berhasil disimpan.');
+}
+function autoSave(){
+  clearTimeout(timer);
+  timer=setTimeout(()=>{
+    saveCurrent(false);
+    setStatus('Auto-save: perubahan tersimpan.');
+  },450);
+}
+function addScript(){
+  saveCurrent(false);
+  const item={
+    id:uid(),name:'Script Baru',enabled:true,match:'*://*/*',code:'',updatedAt:Date.now()
+  };
+  scripts.unshift(item);
+  currentId=item.id;
+  persist();
+  render();
+  setStatus('Script baru dibuat.');
+}
+function deleteScript(){
+  const item=current();
+  if(!item)return;
+  if(!confirm(`Hapus "${item.name}"?`))return;
+  scripts=scripts.filter(x=>x.id!==item.id);
+  if(!scripts.length){
+    scripts.push({id:uid(),name:'Script Baru',enabled:true,match:'*://*/*',code:'',updatedAt:Date.now()});
+  }
+  currentId=scripts[0].id;
+  persist();
+  render();
+  setStatus('Script dihapus.');
+}
+function duplicateScript(){
+  saveCurrent(false);
+  const item=current();
+  if(!item)return;
+  const copy={...item,id:uid(),name:item.name+' Copy',updatedAt:Date.now()};
+  scripts.unshift(copy);
+  currentId=copy.id;
+  persist();
+  render();
+  setStatus('Script berhasil diduplikat.');
+}
+function buildUserscript(){
+  saveCurrent(false);
+  const item=current();
+  const matchLines=(item.match||'*://*/*').split('\n').map(x=>x.trim()).filter(Boolean);
+  const matches=matchLines.map(x=>'// @match        '+x).join('\n');
+  return `// ==UserScript==
+// @name         ${item.name}
+// @namespace    auto.script.dashboard
+// @version      1.0.0
+// @description  Generated from Auto Script Dashboard
+${matches}
+// @grant        none
+// ==/UserScript==
+
+(function(){
+  'use strict';
+
+${item.code.split('\n').map(x=>'  '+x).join('\n')}
+})();`;
+}
+async function copyScript(){
+  const text=buildUserscript();
+  try{
+    await navigator.clipboard.writeText(text);
+    setStatus('Userscript berhasil dicopy.');
+  }catch{
+    $('code').select();
+    document.execCommand('copy');
+    setStatus('Kode berhasil dicopy.');
+  }
+}
+function downloadScript(){
+  const item=current();
+  const text=buildUserscript();
+  const blob=new Blob([text],{type:'application/javascript;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=(item.name||'script').replace(/[^\w\-]+/g,'_')+'.user.js';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  setStatus('File .user.js berhasil dibuat.');
+}
+
+$('newBtn').onclick=addScript;
+$('saveBtn').onclick=()=>saveCurrent(true);
+$('deleteBtn').onclick=deleteScript;
+$('duplicateBtn').onclick=duplicateScript;
+$('copyBtn').onclick=copyScript;
+$('downloadBtn').onclick=downloadScript;
+
+['name','match','code'].forEach(id=>$(id).addEventListener('input',autoSave));
+$('enabled').addEventListener('change',()=>saveCurrent(false));
+
+load();
+</script>
+</body>
+</html>
