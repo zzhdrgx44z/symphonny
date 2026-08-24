@@ -306,7 +306,6 @@ body::after{opacity:.17;mix-blend-mode:screen}
   .panel{background:linear-gradient(145deg,rgba(7,14,25,.94),rgba(3,8,16,.92))}
 }
 
-.ai-fab{position:fixed;right:22px;bottom:92px;z-index:880;height:54px;padding:0 18px;border:1px solid #55dfff;border-radius:18px;display:flex;align-items:center;gap:9px;color:#fff;background:linear-gradient(135deg,#178fce,#7132d8);cursor:pointer}.ai-panel{position:fixed;right:22px;bottom:158px;z-index:890;width:min(410px,calc(100vw - 28px));height:min(610px,calc(100vh - 190px));display:flex;flex-direction:column;border:1px solid #4ad3ff52;border-radius:24px;overflow:hidden;background:#06101ffc;box-shadow:0 28px 90px #000a;opacity:0;visibility:hidden;transform:translateY(18px);transition:.25s}.ai-panel.open{opacity:1;visibility:visible;transform:none}.ai-head{height:68px;padding:0 14px;display:flex;align-items:center;gap:9px;border-bottom:1px solid #73afff26}.ai-head strong{flex:1}.ai-head button{padding:9px;border:0;border-radius:9px;color:#9ee8ff;background:#ffffff0a}.ai-messages{flex:1;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:12px}.ai-msg{max-width:86%;padding:12px 14px;border-radius:16px;font-size:.72rem;line-height:1.6}.ai-msg.bot{align-self:flex-start;background:#2b85c41a}.ai-msg.user{align-self:flex-end;background:linear-gradient(135deg,#2a96d8b3,#773ec9b3)}.ai-suggestions{padding:0 13px 10px;display:flex;gap:7px;overflow:auto}.ai-suggestions button{padding:8px;border:1px solid #49c5ff33;border-radius:20px;color:#9fdcf2;background:#2483b412}.ai-compose{padding:12px;display:flex;gap:9px}.ai-compose input{flex:1;min-width:0;padding:0 14px;border:1px solid #5ab7ff33;border-radius:13px;color:#fff;background:#ffffff09}.ai-compose button{width:46px;border:0;border-radius:13px;background:#66dfff}@media(max-width:650px){.ai-panel{right:7px;bottom:145px;width:calc(100vw - 14px);height:calc(100vh - 164px)}}
 </style>
 </head>
 <body>
@@ -324,7 +323,7 @@ body::after{opacity:.17;mix-blend-mode:screen}
     <button class="nav-btn" data-scroll="modules"><i class="fa-solid fa-grip"></i><span>MODULES</span></button>
     <button class="nav-btn"><i class="fa-solid fa-chart-simple"></i><span>STATISTICS</span></button>
     <button class="nav-btn"><i class="fa-solid fa-bolt"></i><span>ACTIVITY</span></button>
-    <button class="nav-btn ai-nav-btn" id="aiNavBtn"><i class="fa-solid fa-robot"></i><span>AI ASSISTANT</span></button>
+    <button class="nav-btn" id="aiGenerateBtn"><i class="fa-solid fa-wand-magic-sparkles"></i><span>AI GENERATE</span></button>
   </div>
   <div class="top-actions"><button class="pill-btn" id="vipBtn"><i class="fa-solid fa-shield-halved"></i> VIP ACCESS</button><button class="pill-btn purple" id="randomBtn"><i class="fa-solid fa-shuffle"></i> RANDOM</button></div>
 </nav></div>
@@ -352,8 +351,6 @@ body::after{opacity:.17;mix-blend-mode:screen}
     <div class="action-body" id="actionBody"></div>
   </div>
 </div>
-<button class="ai-fab" id="aiFab"><i class="fa-solid fa-robot"></i><b>AI</b></button>
-<aside class="ai-panel" id="aiPanel"><div class="ai-head"><strong>SYMPHONNY AI</strong><button id="aiClear">HAPUS</button><button id="aiClose">✕</button></div><div class="ai-messages" id="aiMessages"></div><div class="ai-suggestions" id="aiSuggestions"><button data-prompt="Tampilkan semua modul">Semua modul</button><button data-prompt="Cari modul game">Cari game</button><button data-prompt="Berapa total modul?">Total modul</button></div><form class="ai-compose" id="aiForm"><input id="aiInput" placeholder="Tulis perintah untuk AI..."><button>➤</button></form></aside>
 
 <footer class="bottom"><div class="dock shell"><div class="dock-left"><div class="dock-pill green"><i class="fa-solid fa-circle-check"></i><div><strong>SYSTEM ONLINE</strong><small>Semua Sistem Berjalan Normal</small></div></div><div class="dock-pill gold"><i class="fa-solid fa-crown"></i><div><strong>VIP ACCESS</strong><small>Level Akses Premium</small></div></div><div class="dock-pill purple"><i class="fa-solid fa-lock"></i><div><strong>ENCRYPTED</strong><small>Secure Connection</small></div></div></div><div class="clock"><small>LIVE TIME</small><strong id="time">--:--:--</strong></div></div></footer>
 <script>
@@ -613,7 +610,7 @@ buildCats();buildCards();apply();addEventListener('load',()=>setTimeout(()=>docu
 </script>
 
 <script>
-(()=>{const p=aiPanel,i=aiInput,m=aiMessages;const add=(t,r='bot')=>{let d=document.createElement('div');d.className='ai-msg '+r;d.textContent=t;m.appendChild(d);m.scrollTop=m.scrollHeight};add('Halo! Saya SYMPHONNY AI. Coba: “cari generator password”.');const toggle=()=>p.classList.toggle('open');aiFab.onclick=toggle;aiNavBtn.onclick=toggle;aiClose.onclick=toggle;aiClear.onclick=()=>{m.innerHTML='';add('Percakapan dibersihkan.')};const find=q=>MODULES.filter(x=>[x.t,x.d,x.cat,...x.tags].join(' ').toLowerCase().includes(q));const send=t=>{t=t.trim();if(!t)return;add(t,'user');i.value='';setTimeout(()=>{let q=t.toLowerCase(),a,z=q.match(/(?:buka|akses|cari|tampilkan) (?:modul )?(.+)/),h=z?find(z[1]):[];if(q.includes('total')||q.includes('berapa'))a='Dashboard memiliki '+MODULES.length+' modul aktif.';else if(q.includes('semua modul')){state.q='';search.value='';apply();a='Semua modul ditampilkan.'}else if(z&&/buka|akses/.test(q)&&h.length===1){window.open(h[0].u,'_blank','noopener');a='Membuka '+h[0].t+'.'}else if(z){state.q=z[1];search.value=z[1];apply();a=h.length?'Ditemukan: '+h.slice(0,8).map(x=>x.t).join(', '):'Modul tidak ditemukan.'}else a='Coba: “cari modul game”, “buka generator password”, atau “total modul”.';add(a)},300)};aiForm.onsubmit=e=>{e.preventDefault();send(i.value)};aiSuggestions.onclick=e=>{let b=e.target.closest('[data-prompt]');if(b)send(b.dataset.prompt)}})();
+document.getElementById('aiGenerateBtn').addEventListener('click',()=>window.open('https://aigenerate.infinityfreeapp.com/','_blank','noopener,noreferrer'));
 </script>
 </body>
 </html>
