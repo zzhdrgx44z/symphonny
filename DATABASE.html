@@ -519,11 +519,40 @@ async function handleRefresh(){if(isRefreshing)return;isRefreshing=true;const bt
 
 function esc(s){if(!s)return'';return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]||m);}
 
+/*
+ * Kolom BONUS dibaca berdasarkan nama header, bukan hanya urutan kolom.
+ * Jika sheet lama belum memiliki header, kolom A dipakai sebagai judul dan
+ * kolom B dipakai sebagai memobonus agar data lama tetap dapat ditampilkan.
+ */
+function normalizeColumnName(value){return String(value??'').trim().toLowerCase().replace(/[\s_-]+/g,'');}
+
+function findColumnKey(row,names,fallbackIndex){
+  const keys=Object.keys(row||{}),wanted=names.map(normalizeColumnName);
+  return keys.find(key=>wanted.includes(normalizeColumnName(key)))||keys[fallbackIndex]||null;
+}
+
+function getSidebarFields(row,sheetName){
+  const keys=Object.keys(row||{});
+  if(sheetName==='bonus'){
+    const titleKey=findColumnKey(row,['judulbonus','nama bonus','bonus','judul','title'],0);
+    const memoKey=findColumnKey(row,['memobonus','memo bonus','memo_bonus'],1);
+    return {
+      title:titleKey?row[titleKey]:'',
+      detail:memoKey&&memoKey!==titleKey?row[memoKey]:''
+    };
+  }
+
+  return {
+    title:keys[0]?row[keys[0]]:'',
+    detail:keys.slice(1).map(key=>row[key]).filter(value=>value!==null&&value!==undefined&&value!=='').join('\n\n')
+  };
+}
+
 function renderQna(data){if(!data.length)return'<div class="empty-state"><i class="fas fa-inbox"></i>Tidak ada data</div>';const k=Object.keys(data[0]),cA=k[0],cB=k[1],cC=k[2]||null,oC=COPY_COL3.includes(currentSheet),tableClass=currentSheet==='seputar_pk'?'qna-table seputar-pk-table':'qna-table';let h=`<table class="${tableClass}"><thead><tr><th>${esc(cA)}</th>${cC?`<th>${esc(cB)}</th><th>${esc(cC)}</th>`:`<th>${esc(cB)}</th>`}<th style="width:100px;">Aksi</th></tr></thead><tbody>`;data.forEach((r,i)=>{const v1=r[k[0]]||'',v2=r[k[1]]||'',v3=cC?(r[k[2]]||''):'';let ct=oC?(v3||v2||v1):[v1,v2,v3].filter(Boolean).join(' — ');h+=`<tr class="row-anim" style="animation-delay:${i*0.01}s"><td>${esc(v1)}</td>${cC?`<td>${esc(v2)}</td><td>${esc(v3)}</td>`:`<td>${esc(v2)}</td>`}<td class="col-action"><button class="copy-btn" data-text="${esc(ct)}"><i class="fas fa-copy"></i> Salin</button></td></tr>`;});h+='</tbody></table>';return h;}
 
-function renderSidebarLayout(data){if(!data.length)return'<div class="empty-state"><i class="fas fa-inbox"></i>Tidak ada data</div>';const k=Object.keys(data[0]);let h=`<div class="layout-split"><div class="sidebar-col"><div class="sidebar-header"><span><i class="fas fa-list" style="font-size:0.55rem;margin-right:8px;"></i> Index</span> <span class="sidebar-count">${data.length}</span></div><div class="sidebar-list">`;data.forEach((r,i)=>{h+=`<div class="sidebar-item" data-index="${i}"><span class="item-num">${String(i+1).padStart(2,'0')}</span> ${esc(r[k[0]]||`Item ${i+1}`)}</div>`;});h+=`</div></div><div class="detail-col" id="detailPanel"><div class="detail-content" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px;color:var(--text-muted);gap:14px;"><i class="fas fa-arrow-left" style="font-size:1.8rem;opacity:0.1;"></i><span style="font-size:0.85rem;">Pilih item dari daftar</span></div></div></div>`;return h;}
+function renderSidebarLayout(data){if(!data.length)return'<div class="empty-state"><i class="fas fa-inbox"></i>Tidak ada data</div>';let h=`<div class="layout-split"><div class="sidebar-col"><div class="sidebar-header"><span><i class="fas fa-list" style="font-size:0.55rem;margin-right:8px;"></i> Index</span> <span class="sidebar-count">${data.length}</span></div><div class="sidebar-list">`;data.forEach((r,i)=>{const fields=getSidebarFields(r,currentSheet);h+=`<div class="sidebar-item" data-index="${i}"><span class="item-num">${String(i+1).padStart(2,'0')}</span> ${esc(fields.title||`Item ${i+1}`)}</div>`;});h+=`</div></div><div class="detail-col" id="detailPanel"><div class="detail-content" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px;color:var(--text-muted);gap:14px;"><i class="fas fa-arrow-left" style="font-size:1.8rem;opacity:0.1;"></i><span style="font-size:0.85rem;">Pilih item dari daftar</span></div></div></div>`;return h;}
 
-function initSidebarInteraction(data){const items=document.querySelectorAll('.sidebar-item'),panel=document.getElementById('detailPanel');if(!items.length)return;const k=Object.keys(data[0]);const update=i=>{const r=data[i],t=r[k[0]]||'-';const dp=[];for(let j=1;j<k.length;j++){const v=r[k[j]];if(v)dp.push(v);}const d=dp.join('\n\n')||'-';panel.innerHTML=`<div class="detail-content"><div class="detail-title"><i class="fas fa-bookmark"></i> ${esc(t)}</div><div class="detail-body">${esc(d)}</div><button class="copy-btn detail-copy-btn" data-desc="${esc(d)}"><i class="fas fa-copy"></i> Copy Deskripsi</button></div>`;panel.scrollTop=0;};items.forEach(item=>{item.addEventListener('click',()=>{items.forEach(i=>i.classList.remove('active'));item.classList.add('active');update(parseInt(item.dataset.index));});});if(items[0]){items[0].classList.add('active');update(0);}}
+function initSidebarInteraction(data){const items=document.querySelectorAll('.sidebar-item'),panel=document.getElementById('detailPanel');if(!items.length)return;const update=i=>{const fields=getSidebarFields(data[i],currentSheet),t=fields.title||'-',d=fields.detail||'-';panel.innerHTML=`<div class="detail-content"><div class="detail-title"><i class="fas fa-bookmark"></i> ${esc(t)}</div><div class="detail-body">${esc(d)}</div><button class="copy-btn detail-copy-btn" data-desc="${esc(d)}"><i class="fas fa-copy"></i> Copy Memo Bonus</button></div>`;panel.scrollTop=0;};items.forEach(item=>{item.addEventListener('click',()=>{items.forEach(i=>i.classList.remove('active'));item.classList.add('active');update(parseInt(item.dataset.index));});});if(items[0]){items[0].classList.add('active');update(0);}}
 
 function renderSheet(sn){currentSheet=sn;const dn={'bonus':'BONUS','PK_anti_audit':'PK ANTI AUDIT','PK_LULUS_SENSOR_AUDIT':'PK LULUS AUDIT','seputar_gantirek':'GANTI REK','seputar_pk':'SEPUTAR PK'};const pageTitle=document.getElementById('pageTitle'),pageSubtitle=document.getElementById('pageSubtitle');if(pageTitle)pageTitle.textContent=dn[sn]||sn.replace(/_/g,' ').toUpperCase();if(pageSubtitle)pageSubtitle.textContent='Data Sheet';document.querySelectorAll('.nav-tab').forEach(el=>el.classList.toggle('active',el.dataset.sheet===sn));document.getElementById('searchInput').value='';const data=allData[sn]||[],c=document.getElementById('tableContainer'),isSidebar=SIDEBAR_SHEETS.includes(sn);c.classList.toggle('index-only-scroll',isSidebar);if(isSidebar){c.innerHTML=renderSidebarLayout(data);setTimeout(()=>initSidebarInteraction(data),30);}else{c.innerHTML=renderQna(data);}}
 
