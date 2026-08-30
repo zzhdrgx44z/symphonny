@@ -228,11 +228,18 @@
     .memo-sheet .sheet-corner,
     .memo-sheet .sheet-heading{position:sticky;top:0;z-index:6;height:43px;background:rgba(18,14,9,.98);backdrop-filter:blur(16px);border-right:1px solid rgba(255,184,58,.13);border-bottom:1px solid rgba(255,184,58,.2)}
     .memo-sheet .sheet-corner{width:58px;min-width:58px;text-align:center;color:#806f58;font-family:'JetBrains Mono',monospace;font-size:.6rem}
-    .memo-sheet .sheet-heading{padding:0 18px;text-align:left;color:#ffcc68;font-family:'JetBrains Mono',monospace;font-size:.67rem;letter-spacing:.08em;text-transform:none;font-weight:800}
+    .memo-sheet .sheet-heading{padding:0 18px;text-align:left;color:#ffcc68;font-family:'JetBrains Mono',monospace;font-size:.67rem;letter-spacing:.08em;text-transform:uppercase;font-weight:800}
+    .memo-sheet .bonus-heading{width:34%}
+    .memo-sheet .memo-heading{width:66%}
     .memo-sheet .sheet-row-number{width:58px;padding:14px 8px;text-align:center;vertical-align:top;color:#7f6f59;background:rgba(14,11,8,.88);border-right:1px solid rgba(255,184,58,.1);border-bottom:1px solid rgba(255,184,58,.07);font-family:'JetBrains Mono',monospace;font-size:.61rem;user-select:none}
-    .memo-sheet .memo-cell{position:relative;padding:15px 60px 15px 18px;vertical-align:top;color:#d8c6ac;line-height:1.75;white-space:pre-wrap;word-break:break-word;background:rgba(255,255,255,.004);border-bottom:1px solid rgba(255,184,58,.07);transition:.2s ease}
+    .memo-sheet .bonus-cell,
+    .memo-sheet .memo-cell{position:relative;padding:15px 18px;vertical-align:top;color:#d8c6ac;line-height:1.75;white-space:pre-wrap;word-break:break-word;background:rgba(255,255,255,.004);border-right:1px solid rgba(255,184,58,.08);border-bottom:1px solid rgba(255,184,58,.07);transition:.2s ease}
+    .memo-sheet .memo-cell{padding-right:60px;border-right:0}
+    .memo-sheet .bonus-cell{color:#ffde95;font-weight:700}
+    .memo-sheet tbody tr:nth-child(even) .bonus-cell,
     .memo-sheet tbody tr:nth-child(even) .memo-cell{background:rgba(255,181,44,.012)}
     .memo-sheet tbody tr:hover .sheet-row-number{color:#ffc55a;background:rgba(255,177,42,.07)}
+    .memo-sheet tbody tr:hover .bonus-cell,
     .memo-sheet tbody tr:hover .memo-cell{color:#fff1d3;background:linear-gradient(90deg,rgba(255,177,42,.085),rgba(255,177,42,.02))}
     .memo-copy-btn{position:absolute;top:10px;right:12px;width:34px;height:34px;border:1px solid rgba(255,183,58,.17);border-radius:10px;background:rgba(255,169,28,.075);color:#ffc75b;display:grid;place-items:center;cursor:pointer;transition:.22s ease}
     .memo-copy-btn:hover{color:#261502;background:linear-gradient(135deg,#ffe190,#ffaf25 58%,#e87900);transform:translateY(-2px);box-shadow:0 8px 22px rgba(255,130,0,.22)}
@@ -410,7 +417,7 @@
       </div>
 
       <div class="nav-tabs" id="navTabs">
-        <button class="nav-tab active" data-sheet="bonus"><i class="fas fa-table-cells"></i><span>MEMOBONUS</span></button>
+        <button class="nav-tab active" data-sheet="bonus"><i class="fas fa-table-cells"></i><span>BONUS</span></button>
         <button class="nav-tab" data-sheet="PK_anti_audit"><i class="fas fa-shield-halved"></i><span>PK ANTI</span></button>
         <button class="nav-tab" data-sheet="PK_LULUS_SENSOR_AUDIT"><i class="fas fa-clipboard-check"></i><span>PK LULUS</span></button>
         <button class="nav-tab" data-sheet="seputar_gantirek"><i class="fas fa-right-left"></i><span>GANTI REK</span></button>
@@ -551,7 +558,7 @@ function esc(s){if(!s)return'';return String(s).replace(/[&<>"']/g,m=>({'&':'&am
 
 /*
  * Kolom BONUS dibaca berdasarkan nama header, bukan hanya urutan kolom.
- * Jika sheet lama belum memiliki header, kolom A dipakai sebagai judul dan
+ * Jika sheet lama belum memiliki header, kolom A dipakai sebagai BONUS dan
  * kolom B dipakai sebagai memobonus agar data lama tetap dapat ditampilkan.
  */
 function normalizeColumnName(value){return String(value??'').trim().toLowerCase().replace(/[\s_-]+/g,'');}
@@ -563,13 +570,24 @@ function findColumnKey(row,names,fallbackIndex){
 
 function normalizeBonusRows(rows){
   return rows.map(row=>{
-    const memoKey=findColumnKey(row,['memobonus','memo bonus','memo_bonus'],1)||Object.keys(row)[0];
-    return {memobonus:memoKey?row[memoKey]:''};
-  }).filter(row=>row.memobonus!==null&&row.memobonus!==undefined&&String(row.memobonus).trim()!=='');
+    const keys=Object.keys(row||{});
+    const bonusKey=findColumnKey(row,['bonus','judulbonus','nama bonus','judul','title'],0);
+    let memoKey=findColumnKey(row,['memobonus','memo bonus','memo_bonus'],1);
+    if(memoKey===bonusKey)memoKey=keys.find(key=>key!==bonusKey)||null;
+    return {
+      BONUS:bonusKey?row[bonusKey]:'',
+      MEMOBONUS:memoKey?row[memoKey]:''
+    };
+  }).filter(row=>[row.BONUS,row.MEMOBONUS].some(value=>value!==null&&value!==undefined&&String(value).trim()!==''));
+}
+
+function getBonusValue(row){
+  const bonusKey=findColumnKey(row,['bonus','judulbonus','nama bonus','judul','title'],0);
+  return bonusKey?row[bonusKey]:'';
 }
 
 function getMemoBonusValue(row){
-  const memoKey=findColumnKey(row,['memobonus','memo bonus','memo_bonus'],0);
+  const memoKey=findColumnKey(row,['memobonus','memo bonus','memo_bonus'],1);
   return memoKey?row[memoKey]:'';
 }
 
@@ -593,11 +611,12 @@ function getSidebarFields(row,sheetName){
 function renderQna(data){if(!data.length)return'<div class="empty-state"><i class="fas fa-inbox"></i>Tidak ada data</div>';const k=Object.keys(data[0]),cA=k[0],cB=k[1],cC=k[2]||null,oC=COPY_COL3.includes(currentSheet),tableClass=currentSheet==='seputar_pk'?'qna-table seputar-pk-table':'qna-table';let h=`<table class="${tableClass}"><thead><tr><th>${esc(cA)}</th>${cC?`<th>${esc(cB)}</th><th>${esc(cC)}</th>`:`<th>${esc(cB)}</th>`}<th style="width:100px;">Aksi</th></tr></thead><tbody>`;data.forEach((r,i)=>{const v1=r[k[0]]||'',v2=r[k[1]]||'',v3=cC?(r[k[2]]||''):'';let ct=oC?(v3||v2||v1):[v1,v2,v3].filter(Boolean).join(' — ');h+=`<tr class="row-anim" style="animation-delay:${i*0.01}s"><td>${esc(v1)}</td>${cC?`<td>${esc(v2)}</td><td>${esc(v3)}</td>`:`<td>${esc(v2)}</td>`}<td class="col-action"><button class="copy-btn" data-text="${esc(ct)}"><i class="fas fa-copy"></i> Salin</button></td></tr>`;});h+='</tbody></table>';return h;}
 
 function renderMemoBonusSheet(data){
-  if(!data.length)return'<div class="memo-sheet-empty"><i class="fas fa-table-cells" style="display:block;margin-bottom:12px;font-size:1.6rem;"></i>Tidak ada data memobonus</div>';
-  let h='<table class="memo-sheet"><thead><tr><th class="sheet-corner">#</th><th class="sheet-heading">memobonus</th></tr></thead><tbody>';
+  if(!data.length)return'<div class="memo-sheet-empty"><i class="fas fa-table-cells" style="display:block;margin-bottom:12px;font-size:1.6rem;"></i>Tidak ada data bonus</div>';
+  let h='<table class="memo-sheet"><thead><tr><th class="sheet-corner">#</th><th class="sheet-heading bonus-heading">BONUS</th><th class="sheet-heading memo-heading">MEMOBONUS</th></tr></thead><tbody>';
   data.forEach((row,index)=>{
+    const bonus=getBonusValue(row);
     const memo=getMemoBonusValue(row);
-    h+=`<tr class="row-anim" style="animation-delay:${index*0.01}s"><td class="sheet-row-number">${index+1}</td><td class="memo-cell">${esc(memo)}<button class="copy-btn memo-copy-btn" data-text="${esc(memo)}" title="Salin memobonus" aria-label="Salin memobonus baris ${index+1}"><i class="fas fa-copy"></i></button></td></tr>`;
+    h+=`<tr class="row-anim" style="animation-delay:${index*0.01}s"><td class="sheet-row-number">${index+1}</td><td class="bonus-cell">${esc(bonus)}</td><td class="memo-cell">${esc(memo)}${memo?`<button class="copy-btn memo-copy-btn" data-text="${esc(memo)}" title="Salin MEMOBONUS" aria-label="Salin MEMOBONUS baris ${index+1}"><i class="fas fa-copy"></i></button>`:''}</td></tr>`;
   });
   return h+'</tbody></table>';
 }
@@ -606,9 +625,9 @@ function renderSidebarLayout(data){if(!data.length)return'<div class="empty-stat
 
 function initSidebarInteraction(data){const items=document.querySelectorAll('.sidebar-item'),panel=document.getElementById('detailPanel');if(!items.length)return;const update=i=>{const fields=getSidebarFields(data[i],currentSheet),t=fields.title||'-',d=fields.detail||'-';panel.innerHTML=`<div class="detail-content"><div class="detail-title"><i class="fas fa-bookmark"></i> ${esc(t)}</div><div class="detail-body">${esc(d)}</div><button class="copy-btn detail-copy-btn" data-desc="${esc(d)}"><i class="fas fa-copy"></i> Copy Memo Bonus</button></div>`;panel.scrollTop=0;};items.forEach(item=>{item.addEventListener('click',()=>{items.forEach(i=>i.classList.remove('active'));item.classList.add('active');update(parseInt(item.dataset.index));});});if(items[0]){items[0].classList.add('active');update(0);}}
 
-function renderSheet(sn){currentSheet=sn;const dn={'bonus':'MEMOBONUS','PK_anti_audit':'PK ANTI AUDIT','PK_LULUS_SENSOR_AUDIT':'PK LULUS AUDIT','seputar_gantirek':'GANTI REK','seputar_pk':'SEPUTAR PK'};const pageTitle=document.getElementById('pageTitle'),pageSubtitle=document.getElementById('pageSubtitle'),searchInput=document.getElementById('searchInput');if(pageTitle)pageTitle.textContent=dn[sn]||sn.replace(/_/g,' ').toUpperCase();if(pageSubtitle)pageSubtitle.textContent='Data Sheet';document.querySelectorAll('.nav-tab').forEach(el=>el.classList.toggle('active',el.dataset.sheet===sn));searchInput.value='';searchInput.placeholder=sn==='bonus'?'Cari memobonus...':'Cari data...';const data=allData[sn]||[],c=document.getElementById('tableContainer'),isMemoBonus=sn==='bonus',isSidebar=SIDEBAR_SHEETS.includes(sn);c.classList.toggle('memo-sheet-scroll',isMemoBonus);c.classList.toggle('index-only-scroll',isSidebar);if(isMemoBonus){c.innerHTML=renderMemoBonusSheet(data);}else if(isSidebar){c.innerHTML=renderSidebarLayout(data);setTimeout(()=>initSidebarInteraction(data),30);}else{c.innerHTML=renderQna(data);}}
+function renderSheet(sn){currentSheet=sn;const dn={'bonus':'BONUS','PK_anti_audit':'PK ANTI AUDIT','PK_LULUS_SENSOR_AUDIT':'PK LULUS AUDIT','seputar_gantirek':'GANTI REK','seputar_pk':'SEPUTAR PK'};const pageTitle=document.getElementById('pageTitle'),pageSubtitle=document.getElementById('pageSubtitle'),searchInput=document.getElementById('searchInput');if(pageTitle)pageTitle.textContent=dn[sn]||sn.replace(/_/g,' ').toUpperCase();if(pageSubtitle)pageSubtitle.textContent='Data Sheet';document.querySelectorAll('.nav-tab').forEach(el=>el.classList.toggle('active',el.dataset.sheet===sn));searchInput.value='';searchInput.placeholder=sn==='bonus'?'Cari BONUS atau MEMOBONUS...':'Cari data...';const data=allData[sn]||[],c=document.getElementById('tableContainer'),isMemoBonus=sn==='bonus',isSidebar=SIDEBAR_SHEETS.includes(sn);c.classList.toggle('memo-sheet-scroll',isMemoBonus);c.classList.toggle('index-only-scroll',isSidebar);if(isMemoBonus){c.innerHTML=renderMemoBonusSheet(data);}else if(isSidebar){c.innerHTML=renderSidebarLayout(data);setTimeout(()=>initSidebarInteraction(data),30);}else{c.innerHTML=renderQna(data);}}
 
-function handleSearch(){const q=document.getElementById('searchInput').value.toLowerCase(),data=allData[currentSheet]||[];if(!data.length)return;if(currentSheet==='bonus'){document.getElementById('tableContainer').innerHTML=renderMemoBonusSheet(data.filter(row=>String(getMemoBonusValue(row)||'').toLowerCase().includes(q)));}else if(SIDEBAR_SHEETS.includes(currentSheet)){const items=document.querySelectorAll('.sidebar-item');let f=-1;items.forEach((item,i)=>{const m=Object.values(data[i]).some(v=>v&&String(v).toLowerCase().includes(q));item.style.display=m?'flex':'none';if(m&&f===-1)f=i;});const a=document.querySelector('.sidebar-item.active');if((!a||a.style.display==='none')&&f!==-1)document.querySelector(`.sidebar-item[data-index="${f}"]`)?.click();}else{document.getElementById('tableContainer').innerHTML=renderQna(data.filter(r=>Object.values(r).some(v=>v&&String(v).toLowerCase().includes(q))));}}
+function handleSearch(){const q=document.getElementById('searchInput').value.toLowerCase(),data=allData[currentSheet]||[];if(!data.length)return;if(currentSheet==='bonus'){document.getElementById('tableContainer').innerHTML=renderMemoBonusSheet(data.filter(row=>[getBonusValue(row),getMemoBonusValue(row)].some(value=>String(value||'').toLowerCase().includes(q))));}else if(SIDEBAR_SHEETS.includes(currentSheet)){const items=document.querySelectorAll('.sidebar-item');let f=-1;items.forEach((item,i)=>{const m=Object.values(data[i]).some(v=>v&&String(v).toLowerCase().includes(q));item.style.display=m?'flex':'none';if(m&&f===-1)f=i;});const a=document.querySelector('.sidebar-item.active');if((!a||a.style.display==='none')&&f!==-1)document.querySelector(`.sidebar-item[data-index="${f}"]`)?.click();}else{document.getElementById('tableContainer').innerHTML=renderQna(data.filter(r=>Object.values(r).some(v=>v&&String(v).toLowerCase().includes(q))));}}
 
 async function copyText(text){try{await navigator.clipboard.writeText(text);return true;}catch{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');return true;}catch{return false;}finally{document.body.removeChild(ta);}}}
 
