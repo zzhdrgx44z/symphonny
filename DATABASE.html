@@ -291,7 +291,11 @@
     .sensitive-value{font-family:'JetBrains Mono',monospace;letter-spacing:.08em;color:#ffe0a0}
     .reveal-btn{flex:0 0 auto;border:1px solid rgba(255,183,58,.18);background:rgba(255,174,35,.08);color:#ffc65d;border-radius:9px;padding:6px 8px;cursor:pointer;line-height:1;transition:.2s ease}
     .reveal-btn:hover{background:rgba(255,174,35,.17);transform:translateY(-1px)}
+    .login-copy-btn{flex:0 0 auto;border:1px solid rgba(75,195,255,.2);background:rgba(75,195,255,.07);color:#73d3ff;border-radius:9px;padding:6px 8px;cursor:pointer;line-height:1;transition:.2s ease}
+    .login-copy-btn:hover{background:rgba(75,195,255,.16);transform:translateY(-1px)}
+    .login-cell-actions{display:flex;align-items:center;gap:5px;flex:0 0 auto}
     .login-row-number{display:inline-grid;place-items:center;min-width:28px;height:28px;padding:0 7px;border-radius:9px;background:rgba(255,177,43,.08);border:1px solid rgba(255,184,58,.12);color:#ffc65d;font:600 .62rem 'JetBrains Mono',monospace}
+    .login-copy-all{white-space:nowrap}
     .mobile-sheet-hint{display:none;padding:10px 14px;border-bottom:1px solid rgba(255,184,58,.09);background:rgba(255,178,42,.035);color:#9d876c;font-size:.66rem;line-height:1.5}
 
     @media(max-width:700px){
@@ -315,8 +319,12 @@
       .qna-table.datalogin-table td:last-child{border-bottom:0}
       .qna-table.datalogin-table td::before{content:attr(data-label);color:#a88c65;font-size:.57rem;line-height:1.35;text-transform:uppercase;letter-spacing:.08em;font-weight:800;word-break:break-word}
       .qna-table.datalogin-table .login-cell{align-items:flex-start;justify-content:space-between;gap:6px}
-      .qna-table.datalogin-table .reveal-btn{padding:7px 8px}
+      .qna-table.datalogin-table .reveal-btn,.qna-table.datalogin-table .login-copy-btn{padding:7px 8px}
+      .qna-table.datalogin-table .login-cell-actions{gap:4px}
       .qna-table.datalogin-table .login-row-cell{display:flex;align-items:center;justify-content:space-between}
+      .qna-table.datalogin-table td[data-label="Aksi"]{display:flex;align-items:center;justify-content:space-between}
+      .qna-table.datalogin-table td[data-label="Aksi"]::before{content:'Aksi'}
+      .qna-table.datalogin-table .login-copy-all{padding:8px 12px}
       .qna-table.datalogin-table .login-row-cell::before{content:'Data';}
     }
 
@@ -583,29 +591,32 @@ function renderDataLogin(data){
   data.forEach(row=>Object.keys(row).forEach(k=>{if(!keys.includes(k))keys.push(k);}));
   if(!keys.length)return'<div class="empty-state"><i class="fas fa-user-lock"></i>Tidak ada kolom pada sheet datalogin</div>';
 
-  let h='<div class="mobile-sheet-hint"><i class="fas fa-mobile-screen-button" style="margin-right:6px"></i>Mode mobile aktif — setiap baris Data Login ditampilkan sebagai kartu.</div>';
+  let h='<div class="mobile-sheet-hint"><i class="fas fa-mobile-screen-button" style="margin-right:6px"></i>Mode mobile aktif — tekan ikon Copy untuk menyalin satu field, atau Copy Semua untuk satu baris.</div>';
   h+='<table class="qna-table datalogin-table"><thead><tr><th style="width:70px">No.</th>';
   keys.forEach(k=>h+=`<th>${esc(k)}</th>`);
-  h+='</tr></thead><tbody>';
+  h+='<th style="width:130px">Aksi</th></tr></thead><tbody>';
 
   data.forEach((row,i)=>{
     h+=`<tr class="row-anim" style="animation-delay:${Math.min(i,30)*0.015}s">`;
     h+=`<td class="login-row-cell" data-label="No."><span class="login-row-number">${String(i+1).padStart(2,'0')}</span></td>`;
     keys.forEach(k=>{
       const raw=row[k]??'';
+      const rawText=String(raw);
       const sensitive=SENSITIVE_COL_RE.test(k);
-      if(sensitive && String(raw)!==''){
-        h+=`<td data-label="${esc(k)}"><div class="login-cell"><span class="login-value sensitive-value" data-raw="${esc(raw)}" data-hidden="1">${esc(maskSensitive(raw))}</span><button type="button" class="reveal-btn" aria-label="Tampilkan ${esc(k)}" title="Tampilkan / sembunyikan"><i class="fas fa-eye"></i></button></div></td>`;
+      const copyBtn=rawText!==''?`<button type="button" class="copy-btn login-copy-btn" data-text="${esc(rawText)}" aria-label="Copy ${esc(k)}" title="Copy ${esc(k)}"><i class="fas fa-copy"></i></button>`:'';
+      if(sensitive && rawText!==''){
+        h+=`<td data-label="${esc(k)}"><div class="login-cell"><span class="login-value sensitive-value" data-raw="${esc(rawText)}" data-hidden="1">${esc(maskSensitive(rawText))}</span><span class="login-cell-actions"><button type="button" class="reveal-btn" aria-label="Tampilkan ${esc(k)}" title="Tampilkan / sembunyikan"><i class="fas fa-eye"></i></button>${copyBtn}</span></div></td>`;
       }else{
-        h+=`<td data-label="${esc(k)}"><div class="login-cell"><span class="login-value">${esc(raw||'-')}</span></div></td>`;
+        h+=`<td data-label="${esc(k)}"><div class="login-cell"><span class="login-value">${esc(rawText||'-')}</span><span class="login-cell-actions">${copyBtn}</span></div></td>`;
       }
     });
+    const rowCopy=keys.map(k=>`${k}: ${row[k]??''}`).join(' | ');
+    h+=`<td data-label="Aksi" class="col-action"><button type="button" class="copy-btn login-copy-all" data-text="${esc(rowCopy)}"><i class="fas fa-copy"></i> Copy Semua</button></td>`;
     h+='</tr>';
   });
   h+='</tbody></table>';
   return h;
 }
-
 
 
 function renderSidebarLayout(data){if(!data.length)return'<div class="empty-state"><i class="fas fa-inbox"></i>Tidak ada data</div>';const k=Object.keys(data[0]);let h=`<div class="layout-split"><div class="sidebar-col"><div class="sidebar-header"><span><i class="fas fa-list" style="font-size:0.55rem;margin-right:8px;"></i> Index</span> <span class="sidebar-count">${data.length}</span></div><div class="sidebar-list">`;data.forEach((r,i)=>{h+=`<div class="sidebar-item" data-index="${i}"><span class="item-num">${String(i+1).padStart(2,'0')}</span> ${esc(r[k[0]]||`Item ${i+1}`)}</div>`;});h+=`</div></div><div class="detail-col" id="detailPanel"><div class="detail-content" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px;color:var(--text-muted);gap:14px;"><i class="fas fa-arrow-left" style="font-size:1.8rem;opacity:0.1;"></i><span style="font-size:0.85rem;">Pilih item dari daftar</span></div></div></div>`;return h;}
