@@ -572,6 +572,21 @@
       .sidebar-item{flex-basis:84vw}
     }
 
+
+    /* ===== DATA LOGIN MOBILE-FIRST FINAL ===== */
+    @media (max-width: 768px){
+      .nav-tabs{display:flex!important;overflow-x:auto!important;overscroll-behavior-x:contain;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;gap:7px;padding-bottom:6px}
+      .nav-tab{flex:0 0 auto!important;min-width:max-content;scroll-snap-align:center;min-height:44px}
+      .nav-tab[data-sheet="datalogin"]{order:-1}
+      #tableContainer.mobile-card-scroll{overflow:visible!important;padding:0 2px 80px}
+      .qna-table.datalogin-table{display:block!important;width:100%!important;min-width:0!important}
+      .qna-table.datalogin-table tbody{display:grid!important;grid-template-columns:1fr!important;gap:10px!important}
+      .qna-table.datalogin-table tr{width:100%!important;max-width:100%!important}
+      .qna-table.datalogin-table td{width:100%!important;max-width:100%!important;overflow-wrap:anywhere}
+      .login-copy-btn,.reveal-btn{touch-action:manipulation}
+      .login-copy-all{width:100%;justify-content:center}
+    }
+
   </style>
   <!-- Background cinematic sunset + city + cars has been mixed with the original Google Sheet interface. -->
 </head>
@@ -603,12 +618,12 @@
       </div>
 
       <div class="nav-tabs" id="navTabs">
-        <button class="nav-tab active" data-sheet="bonus"><i class="fas fa-gem"></i><span>BONUS</span></button>
+        <button class="nav-tab active" data-sheet="datalogin"><i class="fas fa-user-lock"></i><span>DATA LOGIN</span></button>
+        <button class="nav-tab" data-sheet="bonus"><i class="fas fa-gem"></i><span>BONUS</span></button>
         <button class="nav-tab" data-sheet="PK_anti_audit"><i class="fas fa-shield-halved"></i><span>PK ANTI</span></button>
         <button class="nav-tab" data-sheet="PK_LULUS_SENSOR_AUDIT"><i class="fas fa-clipboard-check"></i><span>PK LULUS</span></button>
         <button class="nav-tab" data-sheet="seputar_gantirek"><i class="fas fa-right-left"></i><span>GANTI REK</span></button>
         <button class="nav-tab" data-sheet="seputar_pk"><i class="fas fa-file-lines"></i><span>SEPUTAR PK</span></button>
-        <button class="nav-tab" data-sheet="datalogin"><i class="fas fa-user-lock"></i><span>DATA LOGIN</span></button>
       </div>
 
       <div class="nav-right">
@@ -716,13 +731,37 @@
   <script>
 /* ── Data Logic ── */
 const SID='19AodSFSw4shpSZVZ4I-_sD91eU1HPITMeg4cwLiEV1c';
-const SHEETS=['bonus','PK_anti_audit','PK_LULUS_SENSOR_AUDIT','seputar_gantirek','seputar_pk','datalogin'];
+const SHEETS=['datalogin','bonus','PK_anti_audit','PK_LULUS_SENSOR_AUDIT','seputar_gantirek','seputar_pk'];
 const COPY_COL3=['PK_LULUS_SENSOR_AUDIT','seputar_gantirek','seputar_pk'];
 const SIDEBAR_SHEETS=['bonus','PK_anti_audit'];
 const SENSITIVE_COL_RE=/(password|pass(word)?|pin|token|secret|api.?key|private.?key|otp|kode.?akses)/i;
-let allData={},currentSheet='bonus',isRefreshing=false;
+let allData={},currentSheet='datalogin',isRefreshing=false;
 
-async function fetchSheet(sn){try{const r=await fetch(`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sn)}`);const t=await r.text();const j=JSON.parse(t.substring(47,t.length-2));if(!j.table?.rows)return[];const c=j.table.cols||[],h=c.map(col=>col.label||`col_${col.id}`);return j.table.rows.map(row=>{const o={};row.c?.forEach((cell,idx)=>{o[h[idx]||`col_${idx}`]=cell?cell.v:null;});return o;});}catch(e){return[];}}
+async function fetchSheet(sn){
+  try{
+    const url=`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sn)}&_=${Date.now()}`;
+    const r=await fetch(url,{cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const t=await r.text();
+    const start=t.indexOf('{'), end=t.lastIndexOf('}');
+    if(start<0||end<0) throw new Error('Respons sheet tidak valid');
+    const j=JSON.parse(t.slice(start,end+1));
+    if(!j.table?.rows)return[];
+    const c=j.table.cols||[];
+    const h=c.map((col,idx)=>String(col.label||col.id||`Kolom ${idx+1}`).trim());
+    return j.table.rows.map(row=>{
+      const o={};
+      h.forEach((name,idx)=>{
+        const cell=row.c?.[idx];
+        o[name]=cell?.f ?? cell?.v ?? '';
+      });
+      return o;
+    }).filter(row=>Object.values(row).some(v=>String(v??'').trim()!==''));
+  }catch(e){
+    console.error('Gagal membaca sheet',sn,e);
+    return[];
+  }
+}
 
 async function loadAllSheets(silent){if(!silent){let p=0;const step=100/SHEETS.length;const lb=document.getElementById('loaderBar'),ls=document.getElementById('load-status');for(const n of SHEETS){ls.innerText=`Sinkronisasi ${n.replace(/_/g,' ')}...`;allData[n]=await fetchSheet(n);p+=step;lb.style.width=`${Math.min(p,100)}%`;await new Promise(r=>setTimeout(r,30));}ls.innerText='Selesai';lb.style.width='100%';setTimeout(()=>{document.getElementById('loader').classList.add('hidden');renderSheet(currentSheet);},400);}else{for(const n of SHEETS)allData[n]=await fetchSheet(n);renderSheet(currentSheet);}}
 
@@ -808,8 +847,10 @@ function renderSheet(sn){
   };
   const pageTitle=document.getElementById('pageTitle'),pageSubtitle=document.getElementById('pageSubtitle');
   if(pageTitle)pageTitle.textContent=dn[sn]||sn.replace(/_/g,' ').toUpperCase();
-  if(pageSubtitle)pageSubtitle.textContent='Data Sheet';
+  if(pageSubtitle)pageSubtitle.textContent=sn==='datalogin'?'Sheet datalogin • Mobile View':'Data Sheet';
   document.querySelectorAll('.nav-tab').forEach(el=>el.classList.toggle('active',el.dataset.sheet===sn));
+  const activeTab=document.querySelector(`.nav-tab[data-sheet="${sn}"]`);
+  if(activeTab && window.innerWidth<=768) setTimeout(()=>activeTab.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'}),20);
   document.getElementById('searchInput').value='';
   const data=allData[sn]||[],c=document.getElementById('tableContainer'),isSidebar=SIDEBAR_SHEETS.includes(sn);
   c.classList.toggle('index-only-scroll',isSidebar);
