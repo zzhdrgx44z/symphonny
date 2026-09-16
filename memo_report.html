@@ -185,7 +185,7 @@
     <section class="workspace">
       <div class="toolbar">
         <div class="search"><i class="fa-solid fa-magnifying-glass"></i><input id="searchInput" type="search" placeholder="Cari memo pada kategori aktif..." autocomplete="off"></div>
-        <a class="sheet-link" href="https://docs.google.com/spreadsheets/d/1cnPK05diQu0kFvIgd416j1f5bmZ9gIn1uP2Jg5gf1-0/edit?gid=1555392714#gid=1555392714" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Google Sheet</a>
+        <a class="sheet-link" href="https://docs.google.com/spreadsheets/d/1cnPK05diQu0kFvIgd416j1f5bmZ9gIn1uP2Jg5gf1-0/edit?gid=1199955570#gid=1199955570" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Google Sheet</a>
       </div>
       <div class="error-banner" id="errorBanner"></div>
       <div class="section-head">
@@ -200,7 +200,7 @@
 
   <script>
     const SHEET_ID = '1cnPK05diQu0kFvIgd416j1f5bmZ9gIn1uP2Jg5gf1-0';
-    const SHEET_GID = '1555392714';
+    const SHEET_GID = '1199955570';
     const TARGET_COLUMNS = [
       { key:'ALL REPORT LINE', icon:'fa-chart-line' },
       { key:'MEMO BONUS', icon:'fa-gift' },
@@ -308,16 +308,23 @@
       return {output, found:header.score};
     }
 
-    async function fetchSheet(){
-      const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${SHEET_GID}&tqx=out:json&_=${Date.now()}`;
-      const response = await fetch(url, {cache:'no-store'});
-      if(!response.ok) throw new Error(`Google Sheet HTTP ${response.status}`);
-      const text = await response.text();
-      const start = text.indexOf('{');
-      const end = text.lastIndexOf('}');
-      if(start < 0 || end < 0) throw new Error('Respons Google Sheet tidak valid.');
-      const payload = JSON.parse(text.slice(start, end + 1));
-      return gvizToMatrix(payload);
+    function fetchSheetFromAppsScript(){
+      return new Promise((resolve,reject) => {
+        if(!(window.google && google.script && google.script.run)){
+          reject(new Error('HTML harus dijalankan sebagai Google Apps Script Web App.'));
+          return;
+        }
+        google.script.run
+          .withSuccessHandler(result => {
+            if(!result || result.ok !== true){
+              reject(new Error(result?.message || 'Google Sheet belum bisa dibaca.'));
+              return;
+            }
+            resolve(result);
+          })
+          .withFailureHandler(err => reject(new Error(String(err?.message || err))))
+          .getReportData();
+      });
     }
 
     function renderTabs(){
@@ -360,7 +367,7 @@
 
     function showError(message){
       const banner = $('#errorBanner');
-      banner.innerHTML = `<strong>Data belum bisa dibaca.</strong><br>${esc(message)}<br>Pastikan Google Sheet dapat diakses sebagai Viewer / Anyone with the link. Dashboard ini tidak menampilkan kolom selain 6 kolom yang ditentukan.`;
+      banner.innerHTML = `<strong>Data belum bisa dibaca.</strong><br>${esc(message)}<br>Dashboard ini harus dijalankan melalui Google Apps Script Web App. Pastikan Code.gs sudah dipasang, diberi izin akses Sheet, lalu deployment Web App sudah diperbarui.`;
       banner.classList.add('show');
       $('#statStatus').textContent = 'Gagal sinkron';
     }
@@ -369,25 +376,31 @@
       setLoading(true);
       $('#errorBanner').classList.remove('show');
       try{
-        const matrix = await fetchSheet();
-        const {output, found} = extractWantedColumns(matrix);
-        dataByColumn = output;
+        const result = await fetchSheetFromAppsScript();
+        dataByColumn = result.output || Object.fromEntries(TARGET_COLUMNS.map(c => [c.key, []]));
+        detectedHeaderRow = result.headerRow || null;
+
         renderTabs();
         renderActive();
-        updateStats(found);
-        if(found < TARGET_COLUMNS.length){
-          const headerInfo = findHeader(matrix);
-          const missing = TARGET_COLUMNS.filter(c => headerInfo.indexes[normalize(c.key)] === undefined).map(c => c.key);
-          if(missing.length){
-            const banner = $('#errorBanner');
-            banner.innerHTML = `<strong>${missing.length} header belum ditemukan:</strong> ${missing.map(esc).join(', ')}. Header lain tetap dimuat normal.`;
-            banner.classList.add('show');
-          }
+        updateStats(result.found || 0);
+
+        $('#statStatus').textContent =
+          `${result.found || 0}/${TARGET_COLUMNS.length} kolom ditemukan`;
+
+        if(result.missing && result.missing.length){
+          const banner = $('#errorBanner');
+          banner.innerHTML =
+            `<strong>${result.missing.length} header belum ditemukan:</strong> ` +
+            result.missing.map(esc).join(', ') +
+            `. Header lain tetap dimuat normal.`;
+          banner.classList.add('show');
         }
       }catch(err){
         console.error(err);
         dataByColumn = Object.fromEntries(TARGET_COLUMNS.map(c => [c.key, []]));
-        renderTabs(); renderActive(); showError(err.message || 'Terjadi kesalahan saat membaca Google Sheet.');
+        renderTabs();
+        renderActive();
+        showError(err.message || 'Terjadi kesalahan saat membaca Google Sheet.');
       }finally{
         setLoading(false);
       }
