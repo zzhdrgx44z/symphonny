@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#07111f" />
+  <title>LINE Report & Memo Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    *{box-sizing:border-box}
+    :root{
+      --bg:#07111f;
+      --bg-2:#0b1627;
+      --panel:rgba(12,25,44,.84);
+      --panel-2:rgba(15,31,54,.92);
+      --line:rgba(117,196,255,.12);
+      --line-strong:rgba(117,196,255,.26);
+      --text:#f6fbff;
+      --text-2:#c2d5e6;
+      --muted:#7f9bb3;
+      --blue:#55b8ff;
+      --cyan:#62e6ff;
+      --green:#44dfa1;
+      --yellow:#ffc95b;
+      --red:#ff7184;
+      --shadow:0 24px 80px rgba(0,0,0,.36);
+      --radius:22px;
+    }
+    html{scroll-behavior:smooth;background:var(--bg)}
+    body{
+      margin:0;min-height:100vh;color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:
+        radial-gradient(circle at 10% 0%,rgba(66,153,255,.16),transparent 30%),
+        radial-gradient(circle at 92% 15%,rgba(70,232,255,.10),transparent 24%),
+        linear-gradient(160deg,#07111f 0%,#091728 45%,#06101c 100%);
+      -webkit-font-smoothing:antialiased;
+    }
+    body::before{
+      content:"";position:fixed;inset:0;pointer-events:none;opacity:.25;
+      background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+      background-size:36px 36px;mask-image:linear-gradient(to bottom,black,transparent 80%);
+    }
+    button,input{font:inherit}
+    button{cursor:pointer}
+    .app{width:min(1440px,100%);margin:0 auto;padding:18px 18px 60px;position:relative;z-index:1}
+    .topbar{
+      position:sticky;top:12px;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:14px;
+      padding:12px 14px;border:1px solid var(--line-strong);border-radius:20px;background:rgba(7,17,31,.78);
+      backdrop-filter:blur(20px);box-shadow:0 16px 42px rgba(0,0,0,.24);
+    }
+    .brand{display:flex;align-items:center;gap:12px;min-width:0}
+    .brand-logo{
+      width:46px;height:46px;border-radius:15px;display:grid;place-items:center;flex:0 0 auto;font-weight:900;
+      background:linear-gradient(145deg,#69d9ff,#3b83ff);color:#03101c;box-shadow:0 10px 28px rgba(71,163,255,.24);
+    }
+    .brand h1{font-size:1rem;margin:0;font-weight:800;letter-spacing:.01em}
+    .brand p{margin:4px 0 0;font-size:.68rem;color:var(--muted)}
+    .top-actions{display:flex;align-items:center;gap:8px}
+    .status{
+      display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;border:1px solid var(--line);border-radius:12px;
+      background:rgba(255,255,255,.035);color:var(--text-2);font-size:.72rem;font-weight:700;white-space:nowrap;
+    }
+    .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px rgba(68,223,161,.10)}
+    .refresh-btn{
+      height:40px;border:0;border-radius:12px;padding:0 14px;display:flex;align-items:center;gap:8px;font-size:.72rem;font-weight:800;
+      color:#03101c;background:linear-gradient(135deg,#70e4ff,#59a8ff);box-shadow:0 10px 26px rgba(83,176,255,.22);
+    }
+    .refresh-btn.loading i{animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .hero{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(300px,.55fr);gap:16px;margin-top:18px}
+    .hero-main,.hero-side{
+      border:1px solid var(--line);border-radius:var(--radius);background:linear-gradient(145deg,rgba(15,31,54,.88),rgba(8,19,34,.86));box-shadow:var(--shadow);
+    }
+    .hero-main{padding:30px;overflow:hidden;position:relative}
+    .hero-main::after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;right:-80px;top:-90px;background:radial-gradient(circle,rgba(85,184,255,.24),transparent 68%)}
+    .eyebrow{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border-radius:999px;border:1px solid var(--line-strong);background:rgba(85,184,255,.08);font-size:.64rem;font-weight:800;color:#95d8ff;letter-spacing:.08em;text-transform:uppercase}
+    .hero h2{margin:16px 0 10px;font-size:clamp(1.65rem,4vw,2.65rem);line-height:1.06;letter-spacing:-.045em;max-width:720px}
+    .hero-main p{margin:0;color:var(--text-2);font-size:.86rem;line-height:1.75;max-width:760px}
+    .hero-side{padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .stat{padding:16px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.025)}
+    .stat-label{font-size:.62rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+    .stat-value{margin-top:8px;font-size:1.55rem;font-weight:800;letter-spacing:-.03em}
+    .stat-value.small{font-size:.88rem;line-height:1.35;color:#bfe6ff}
+
+    .tabs-wrap{margin-top:16px;border:1px solid var(--line);border-radius:18px;background:rgba(8,19,34,.74);padding:8px;overflow:hidden}
+    .tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:1px}
+    .tabs::-webkit-scrollbar{display:none}
+    .tab{
+      flex:0 0 auto;min-height:44px;border:1px solid transparent;border-radius:12px;padding:9px 13px;display:flex;align-items:center;gap:9px;
+      background:transparent;color:#8ea8bf;font-size:.69rem;font-weight:800;white-space:nowrap;transition:.2s ease;
+    }
+    .tab:hover{color:#dcefff;background:rgba(255,255,255,.035)}
+    .tab.active{color:#07111f;background:linear-gradient(135deg,#72e3ff,#5da6ff);box-shadow:0 8px 22px rgba(81,171,255,.18)}
+    .tab-count{min-width:22px;height:22px;padding:0 6px;border-radius:999px;display:grid;place-items:center;background:rgba(7,17,31,.14);font-size:.62rem}
+
+    .workspace{margin-top:14px;border:1px solid var(--line);border-radius:var(--radius);background:linear-gradient(150deg,rgba(11,25,44,.92),rgba(6,17,31,.88));box-shadow:var(--shadow);overflow:hidden}
+    .toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:16px;border-bottom:1px solid var(--line)}
+    .search{position:relative}
+    .search i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#66839d;font-size:.82rem}
+    .search input{width:100%;height:44px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.035);color:var(--text);outline:none;padding:0 14px 0 40px;font-size:.78rem;transition:.2s}
+    .search input:focus{border-color:rgba(98,230,255,.44);box-shadow:0 0 0 4px rgba(98,230,255,.06)}
+    .search input::placeholder{color:#5f7890}
+    .sheet-link{height:44px;padding:0 14px;border-radius:13px;border:1px solid var(--line);background:rgba(255,255,255,.035);color:#bad8ed;display:flex;align-items:center;gap:8px;text-decoration:none;font-size:.7rem;font-weight:800}
+    .section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:18px 18px 0}
+    .section-head h3{margin:0;font-size:1.05rem}
+    .section-head p{margin:5px 0 0;color:var(--muted);font-size:.7rem}
+    .result-count{flex:0 0 auto;padding:7px 10px;border:1px solid var(--line);border-radius:999px;color:#a9c7dd;font-size:.64rem;font-weight:800}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:16px 18px 20px}
+    .memo-card{position:relative;min-width:0;border:1px solid var(--line);border-radius:17px;background:linear-gradient(145deg,rgba(18,38,64,.78),rgba(8,21,37,.88));padding:16px;transition:.18s ease;overflow:hidden}
+    .memo-card:hover{transform:translateY(-2px);border-color:rgba(98,230,255,.28);box-shadow:0 14px 36px rgba(0,0,0,.20)}
+    .memo-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px}
+    .memo-index{font-size:.63rem;font-weight:800;color:#74bff0;letter-spacing:.08em}
+    .copy-btn{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.035);color:#bcd8ec;display:grid;place-items:center}
+    .copy-btn:hover{background:rgba(98,230,255,.10);color:#8aeaff}
+    .memo-text{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;color:#e7f2fa;font-size:.78rem;line-height:1.68}
+    .empty{grid-column:1/-1;min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#708aa2;padding:40px 20px}
+    .empty i{font-size:2rem;margin-bottom:12px;color:#416783}
+    .empty strong{color:#a9c8df;font-size:.9rem}
+    .empty span{max-width:560px;margin-top:6px;font-size:.72rem;line-height:1.65}
+
+    .loading-screen{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:rgba(4,11,20,.95);backdrop-filter:blur(16px);transition:.3s ease}
+    .loading-screen.hidden{opacity:0;visibility:hidden;pointer-events:none}
+    .loader-box{text-align:center}
+    .loader-ring{width:58px;height:58px;border:4px solid rgba(99,211,255,.12);border-top-color:#66d8ff;border-radius:50%;margin:0 auto 16px;animation:spin .85s linear infinite}
+    .loader-title{font-weight:800;font-size:.9rem}
+    .loader-text{margin-top:7px;color:#6f8ba3;font-size:.7rem}
+    .toast{position:fixed;right:18px;bottom:18px;z-index:120;padding:11px 14px;border:1px solid var(--line-strong);border-radius:12px;background:rgba(9,24,42,.95);color:#dff5ff;font-size:.72rem;font-weight:700;box-shadow:0 16px 40px rgba(0,0,0,.28);transform:translateY(14px);opacity:0;transition:.2s ease;pointer-events:none}
+    .toast.show{transform:translateY(0);opacity:1}
+    .error-banner{display:none;margin:14px 18px 0;padding:12px 14px;border:1px solid rgba(255,113,132,.22);border-radius:13px;background:rgba(255,113,132,.06);color:#ffc0ca;font-size:.7rem;line-height:1.6}
+    .error-banner.show{display:block}
+
+    @media (max-width:900px){
+      .hero{grid-template-columns:1fr}.hero-side{grid-template-columns:repeat(4,1fr)}.grid{grid-template-columns:1fr}
+    }
+    @media (max-width:680px){
+      .app{padding:8px 8px 34px}.topbar{top:6px;border-radius:16px;padding:9px}.brand-logo{width:40px;height:40px;border-radius:12px}.brand h1{font-size:.82rem}.brand p{display:none}.status{display:none}.refresh-btn span{display:none}.refresh-btn{width:40px;padding:0;justify-content:center}.hero{margin-top:10px}.hero-main{padding:21px}.hero-main p{font-size:.77rem}.hero-side{grid-template-columns:1fr 1fr;padding:10px}.stat{padding:13px}.tabs-wrap{margin-top:10px;border-radius:15px}.tab{min-height:42px;padding:8px 11px;font-size:.62rem}.toolbar{grid-template-columns:1fr;padding:12px}.sheet-link{justify-content:center}.section-head{padding:15px 13px 0}.grid{padding:12px 12px 16px}.memo-card{padding:14px}.memo-text{font-size:.74rem}.toast{left:10px;right:10px;bottom:10px;text-align:center}}
+  </style>
+</head>
+<body>
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loader-box">
+      <div class="loader-ring"></div>
+      <div class="loader-title">Mengambil Google Sheet</div>
+      <div class="loader-text" id="loaderText">Membaca report dan memo...</div>
+    </div>
+  </div>
+
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-logo"><i class="fa-solid fa-layer-group"></i></div>
+        <div>
+          <h1>LINE REPORT CENTER</h1>
+          <p>Google Sheet Memo Dashboard</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <div class="status"><span class="dot"></span><span id="clock">00:00:00</span></div>
+        <button class="refresh-btn" id="refreshBtn" type="button"><i class="fa-solid fa-rotate"></i><span>Refresh</span></button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="hero-main">
+        <div class="eyebrow"><i class="fa-solid fa-bolt"></i> Live Sheet View</div>
+        <h2>Report & Memo dalam satu dashboard yang lebih rapi.</h2>
+        <p>Dashboard ini hanya membaca enam kolom yang dipilih dari Google Sheet. Data kosong otomatis dilewati, setiap memo dapat dicari dan disalin dengan satu klik.</p>
+      </div>
+      <div class="hero-side">
+        <div class="stat"><div class="stat-label">Kategori</div><div class="stat-value" id="statCategories">6</div></div>
+        <div class="stat"><div class="stat-label">Total Data</div><div class="stat-value" id="statTotal">0</div></div>
+        <div class="stat"><div class="stat-label">Header Row</div><div class="stat-value" id="statHeader">-</div></div>
+        <div class="stat"><div class="stat-label">Status</div><div class="stat-value small" id="statStatus">Memuat...</div></div>
+      </div>
+    </section>
+
+    <section class="tabs-wrap">
+      <div class="tabs" id="tabs"></div>
+    </section>
+
+    <section class="workspace">
+      <div class="toolbar">
+        <div class="search"><i class="fa-solid fa-magnifying-glass"></i><input id="searchInput" type="search" placeholder="Cari memo pada kategori aktif..." autocomplete="off"></div>
+        <a class="sheet-link" href="https://docs.google.com/spreadsheets/d/1cnPK05diQu0kFvIgd416j1f5bmZ9gIn1uP2Jg5gf1-0/edit?gid=1555392714#gid=1555392714" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Google Sheet</a>
+      </div>
+      <div class="error-banner" id="errorBanner"></div>
+      <div class="section-head">
+        <div><h3 id="sectionTitle">ALL REPORT LINE</h3><p id="sectionSubtitle">Data dari Google Sheet</p></div>
+        <div class="result-count" id="resultCount">0 data</div>
+      </div>
+      <div class="grid" id="memoGrid"></div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const SHEET_ID = '1cnPK05diQu0kFvIgd416j1f5bmZ9gIn1uP2Jg5gf1-0';
+    const SHEET_GID = '1555392714';
+    const TARGET_COLUMNS = [
+      { key:'ALL REPORT LINE', icon:'fa-chart-line' },
+      { key:'MEMO BONUS', icon:'fa-gift' },
+      { key:'MEMO INFORMASI BANK', icon:'fa-building-columns' },
+      { key:'MEMO KENDALA PERMAINAN', icon:'fa-gamepad' },
+      { key:'MEMO KENDALA SISTEM', icon:'fa-triangle-exclamation' },
+      { key:'MEMO KETERLAMBATAN RESULT DAN SUDAH SELESAI RESULT', icon:'fa-clock-rotate-left' }
+    ];
+
+    let dataByColumn = Object.fromEntries(TARGET_COLUMNS.map(c => [c.key, []]));
+    let activeKey = TARGET_COLUMNS[0].key;
+    let detectedHeaderRow = null;
+
+    const $ = sel => document.querySelector(sel);
+    const normalize = value => String(value ?? '')
+      .replace(/\u00A0/g,' ')
+      .replace(/[\r\n\t]+/g,' ')
+      .replace(/\s+/g,' ')
+      .trim()
+      .toUpperCase();
+
+    function esc(value){
+      return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    }
+
+    function updateClock(){
+      $('#clock').textContent = new Date().toLocaleTimeString('en-GB');
+    }
+    setInterval(updateClock, 1000); updateClock();
+
+    function showToast(message){
+      const el = $('#toast');
+      el.textContent = message;
+      el.classList.add('show');
+      clearTimeout(showToast.t);
+      showToast.t = setTimeout(() => el.classList.remove('show'), 1800);
+    }
+
+    async function copyText(text){
+      try{
+        await navigator.clipboard.writeText(text);
+      }catch{
+        const ta=document.createElement('textarea');
+        ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px';
+        document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+      }
+      showToast('Memo berhasil disalin');
+    }
+
+    function setLoading(on, text='Membaca report dan memo...'){
+      $('#loaderText').textContent = text;
+      $('#loadingScreen').classList.toggle('hidden', !on);
+      $('#refreshBtn').classList.toggle('loading', on);
+      $('#refreshBtn').disabled = on;
+    }
+
+    function gvizToMatrix(payload){
+      const cols = payload?.table?.cols || [];
+      const rows = payload?.table?.rows || [];
+      const labels = cols.map((c,i) => c?.label ?? c?.id ?? `Kolom ${i+1}`);
+      const matrix = [labels];
+      rows.forEach(row => {
+        const arr = cols.map((_,i) => {
+          const cell = row?.c?.[i];
+          return cell?.f ?? cell?.v ?? '';
+        });
+        matrix.push(arr);
+      });
+      return matrix;
+    }
+
+    function findHeader(matrix){
+      const targets = TARGET_COLUMNS.map(c => normalize(c.key));
+      let best = { row:-1, score:0, indexes:{} };
+      const maxRows = Math.min(matrix.length, 30);
+      for(let r=0;r<maxRows;r++){
+        const normalizedRow = (matrix[r] || []).map(normalize);
+        const indexes = {};
+        let score = 0;
+        targets.forEach(target => {
+          const idx = normalizedRow.findIndex(v => v === target);
+          if(idx >= 0){ indexes[target] = idx; score++; }
+        });
+        if(score > best.score) best = {row:r, score, indexes};
+      }
+      return best;
+    }
+
+    function extractWantedColumns(matrix){
+      const header = findHeader(matrix);
+      if(header.score === 0){
+        throw new Error('Header target tidak ditemukan pada 30 baris pertama sheet.');
+      }
+      detectedHeaderRow = header.row + 1;
+      const output = Object.fromEntries(TARGET_COLUMNS.map(c => [c.key, []]));
+      TARGET_COLUMNS.forEach(col => {
+        const idx = header.indexes[normalize(col.key)];
+        if(idx === undefined) return;
+        for(let r=header.row + 1; r<matrix.length; r++){
+          const value = matrix[r]?.[idx];
+          const text = String(value ?? '').trim();
+          if(text) output[col.key].push(text);
+        }
+      });
+      return {output, found:header.score};
+    }
+
+    async function fetchSheet(){
+      const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${SHEET_GID}&tqx=out:json&_=${Date.now()}`;
+      const response = await fetch(url, {cache:'no-store'});
+      if(!response.ok) throw new Error(`Google Sheet HTTP ${response.status}`);
+      const text = await response.text();
+      const start = text.indexOf('{');
+      const end = text.lastIndexOf('}');
+      if(start < 0 || end < 0) throw new Error('Respons Google Sheet tidak valid.');
+      const payload = JSON.parse(text.slice(start, end + 1));
+      return gvizToMatrix(payload);
+    }
+
+    function renderTabs(){
+      $('#tabs').innerHTML = TARGET_COLUMNS.map(col => {
+        const count = dataByColumn[col.key]?.length || 0;
+        return `<button class="tab ${col.key===activeKey?'active':''}" type="button" data-key="${esc(col.key)}"><i class="fa-solid ${col.icon}"></i><span>${esc(col.key)}</span><span class="tab-count">${count}</span></button>`;
+      }).join('');
+    }
+
+    function renderActive(){
+      const q = normalize($('#searchInput').value);
+      const source = dataByColumn[activeKey] || [];
+      const filtered = q ? source.filter(v => normalize(v).includes(q)) : source;
+      $('#sectionTitle').textContent = activeKey;
+      $('#sectionSubtitle').textContent = 'Hanya isi non-kosong dari kolom terpilih';
+      $('#resultCount').textContent = `${filtered.length} data`;
+
+      if(!filtered.length){
+        $('#memoGrid').innerHTML = `<div class="empty"><i class="fa-regular fa-folder-open"></i><strong>Tidak ada data</strong><span>${q ? 'Tidak ada memo yang cocok dengan pencarian.' : 'Kolom ini kosong atau header-nya belum ditemukan pada Google Sheet.'}</span></div>`;
+        return;
+      }
+
+      $('#memoGrid').innerHTML = filtered.map((value,index) => `
+        <article class="memo-card">
+          <div class="memo-top">
+            <span class="memo-index">#${String(index+1).padStart(3,'0')}</span>
+            <button class="copy-btn" type="button" data-copy="${esc(value)}" title="Salin memo"><i class="fa-regular fa-copy"></i></button>
+          </div>
+          <div class="memo-text">${esc(value)}</div>
+        </article>
+      `).join('');
+    }
+
+    function updateStats(found){
+      const total = Object.values(dataByColumn).reduce((sum,arr) => sum + arr.length, 0);
+      $('#statTotal').textContent = total;
+      $('#statHeader').textContent = detectedHeaderRow || '-';
+      $('#statStatus').textContent = `${found}/${TARGET_COLUMNS.length} kolom ditemukan`;
+    }
+
+    function showError(message){
+      const banner = $('#errorBanner');
+      banner.innerHTML = `<strong>Data belum bisa dibaca.</strong><br>${esc(message)}<br>Pastikan Google Sheet dapat diakses sebagai Viewer / Anyone with the link. Dashboard ini tidak menampilkan kolom selain 6 kolom yang ditentukan.`;
+      banner.classList.add('show');
+      $('#statStatus').textContent = 'Gagal sinkron';
+    }
+
+    async function loadData(){
+      setLoading(true);
+      $('#errorBanner').classList.remove('show');
+      try{
+        const matrix = await fetchSheet();
+        const {output, found} = extractWantedColumns(matrix);
+        dataByColumn = output;
+        renderTabs();
+        renderActive();
+        updateStats(found);
+        if(found < TARGET_COLUMNS.length){
+          const headerInfo = findHeader(matrix);
+          const missing = TARGET_COLUMNS.filter(c => headerInfo.indexes[normalize(c.key)] === undefined).map(c => c.key);
+          if(missing.length){
+            const banner = $('#errorBanner');
+            banner.innerHTML = `<strong>${missing.length} header belum ditemukan:</strong> ${missing.map(esc).join(', ')}. Header lain tetap dimuat normal.`;
+            banner.classList.add('show');
+          }
+        }
+      }catch(err){
+        console.error(err);
+        dataByColumn = Object.fromEntries(TARGET_COLUMNS.map(c => [c.key, []]));
+        renderTabs(); renderActive(); showError(err.message || 'Terjadi kesalahan saat membaca Google Sheet.');
+      }finally{
+        setLoading(false);
+      }
+    }
+
+    $('#tabs').addEventListener('click', e => {
+      const btn = e.target.closest('.tab');
+      if(!btn) return;
+      activeKey = btn.dataset.key;
+      $('#searchInput').value='';
+      renderTabs(); renderActive();
+      btn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+    });
+
+    $('#searchInput').addEventListener('input', renderActive);
+    $('#refreshBtn').addEventListener('click', loadData);
+    $('#memoGrid').addEventListener('click', e => {
+      const btn = e.target.closest('[data-copy]');
+      if(btn) copyText(btn.dataset.copy || '');
+    });
+
+    loadData();
+  </script>
+</body>
+</html>
