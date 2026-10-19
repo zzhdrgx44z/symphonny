@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#141332">
-<meta name="description" content="Obsidian Nocturne V13 — dashboard pasaran lebar dengan alarm melodis, notifikasi WIB, dan riwayat angka asli.">
-<title>OBSIDIAN NOCTURNE V13 — Crystal Bell • Google Sheet Auto Sync</title>
+<meta name="description" content="Obsidian Nocturne V14 — dashboard pasaran lebar dengan alarm melodis, notifikasi WIB, dan riwayat angka asli.">
+<title>OBSIDIAN NOCTURNE V14 • DEPLOYMENT TERBARU — Crystal Bell • Google Sheet Auto Sync</title>
 <style>
 :root{color-scheme:light;--ink:#1b1739;--indigo:#251658;--violet:#6446e9;--pink:#ff558f;--orange:#ff9b51;--yellow:#ffd66e;--mint:#57dfc6;--cream:#fcf8ef;--white:#fffefa;--muted:#817b8d;--stroke:#e8e3ec;--shadow:0 15px 42px rgba(46,31,92,.09)}
 *{box-sizing:border-box}
@@ -252,7 +252,7 @@ body{
 
 
 /* =========================================
-   OBSIDIAN NOCTURNE V13 • NEW SYNC — MIDNIGHT AURORA
+   OBSIDIAN NOCTURNE V14 • DEPLOYMENT TERBARU • NEW SYNC — MIDNIGHT AURORA
    Premium wide cinematic restyle
    ========================================= */
 :root{color-scheme:dark;--ink:#f7f7fc;--cream:#070c16;--white:#101b2b;--muted:#9aadc6;--stroke:rgba(182,212,245,.13);--shadow:0 22px 65px rgba(0,0,0,.24)}
@@ -309,6 +309,17 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-1;ba
 .gs-connected-strip small{font-size:11px;color:#a2cfca}
 .gs-connected-strip a{font-size:11px;color:#9aeed1;font-weight:800;text-decoration:underline}
 .gs-live-dot{width:11px;height:11px;flex:0 0 11px;background:#65eac0;box-shadow:0 0 0 5px rgba(101,234,192,.12);border-radius:50%;animation:pulse 2s ease-in-out infinite}
+
+/* STATUS GOOGLE SHEET V14 */
+.feed-v14-preview{padding:15px 16px;margin:14px 0;background:linear-gradient(120deg,rgba(29,40,77,.96),rgba(49,39,100,.94));border-radius:18px;border:1px solid rgba(139,168,238,.25);color:#ecf7ff;box-shadow:0 10px 24px rgba(9,22,56,.18)}
+.feed-v14-title{font-size:11px;letter-spacing:.1em;font-weight:900;color:#a0e7d8;margin:0 0 10px}
+.feed-v14-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #ffffff1c;font-size:12px}
+.feed-v14-row:last-child{border-bottom:0}.feed-v14-row b{font-weight:850}.feed-v14-row span{color:#ffdfac;letter-spacing:.02em;font-variant-numeric:tabular-nums;text-align:right}
+.feed-v14-empty{font-size:11px;color:#bfcce6;line-height:1.6}
+.feed-v14-guide{font-size:11px;line-height:1.7;background:#fff6df;color:#655224;border:1px solid #efdaa0;border-radius:13px;padding:12px 14px;margin:12px 0}
+.feedline.feed-v14-error{color:#ffb4bc!important;border:1px solid #ed738077;background:#4b1f3b!important;padding:12px;border-radius:12px}
+@media(max-width:600px){.feed-v14-row{flex-wrap:wrap}.feed-v14-row span{text-align:left;width:100%}}
+
 </style>
 </head>
 <body>
@@ -363,13 +374,13 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-1;ba
       <section class="side-card"><h3>◷ NEXT ON STAGE</h3><p>5 pasaran terdekat berdasarkan waktu result WIB.</p><div class="nextlist" id="nextList"></div></section>
       <section class="side-card manual-card"><h3>✦ INPUT RESULT</h3><p>Simpan nomor hasil yang diterima. Hasil baru akan memunculkan pop-up dan alarm, bukan angka buatan.</p><form id="resultForm" class="formgrid"><label class="formlabel" for="resultMarket">PASARAN</label><select id="resultMarket" class="select" required></select><label class="formlabel">PRIZE 1 / 2 / 3</label><div class="digits"><input id="p1" class="input" inputmode="numeric" pattern="[0-9]{1,6}" maxlength="6" required placeholder="PRIZE 1" aria-label="Prize 1"><input id="p2" class="input" inputmode="numeric" pattern="[0-9]{1,6}" maxlength="6" placeholder="PRIZE 2" aria-label="Prize 2"><input id="p3" class="input" inputmode="numeric" pattern="[0-9]{1,6}" maxlength="6" placeholder="PRIZE 3" aria-label="Prize 3"></div><button type="submit" class="btn pink full">✦ SIMPAN & NOTIF RESULT</button><span id="formStatus" class="formstatus" aria-live="polite"></span></form><div class="notice">Hasil yang belum diterima <b>tidak akan dibuat acak</b>. Alarm jadwal ≠ konfirmasi angka resmi.</div></section></aside></div>
     <div class="below" id="riwayat"><section class="sectionpanel"><div class="heading"><h2>◷ Result <em>Vault</em></h2><button class="btn soft" id="exportCsv">⬇ Unduh CSV</button></div><div class="historylist" id="historyList"></div><div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn soft" id="clearHistory">Hapus Riwayat</button></div></section><section class="sectionpanel"><div class="heading"><h2>♫ Alert <em>Spotlight</em></h2><button class="btn soft" id="clearEvents">Bersihkan</button></div><div id="eventList" class="listlog"></div></section></div>
-    <div class="below" id="dataFeed"><section class="sectionpanel"><h2 class="bottom-title">✧ Google Sheet Result • POST RESULT WLA</h2><p style="font-size:12px;line-height:1.7;color:#b8d3e0;margin:0">Sumber dipilih: <a href="https://docs.google.com/spreadsheets/d/10sBZbE-o_eNpFj5z5WvSuTJhS93KP4jEZxc4YdqUkgU/edit?usp=drivesdk" target="_blank" rel="noopener noreferrer" style="color:#8df0de;text-decoration:underline">DOCS SEPUTAR LINE TOGEL</a> — tab <b>POST RESULT WLA</b>. Hanya hasil berstatus <b>DONE</b> yang dibaca. Karena dokumen tidak dipublikasikan, jalankan penghubung Google Apps Script (file Code.gs disediakan), deploy sebagai Web App, lalu tempel URL <code>/exec</code> di bawah. URL Apps Script memakai JSONP agar bisa bekerja juga ketika HTML dibuka sebagai file.</p><div class="gs-connected-strip"><span class="gs-live-dot"></span><span><b>GOOGLE SHEETS AUTO SYNC</b><small>POST RESULT WLA · periksa tiap 30 detik · cek status koneksi di bawah</small></span><a href="https://script.google.com/macros/s/AKfycbx5_gtOfrT1pUt8uvX7SQOmWJRIC3DDQ_OVWniUWcitELyE6LdzkdgBrhPH6Ybqjydw/exec" target="_blank" rel="noopener noreferrer">Lihat endpoint ↗</a></div><div class="feedsettings"><input type="url" id="feedUrl" class="input" placeholder="Tempel URL Apps Script .../exec (atau JSON HTTPS)" aria-label="Alamat URL sumber JSON"><button class="btn pink" id="saveFeed">Simpan Sumber</button></div><div style="margin-top:12px;display:flex;align-items:center;flex-wrap:wrap;gap:9px"><label style="display:inline-flex;gap:8px;align-items:center;font-size:12px;font-weight:800"><input type="checkbox" id="enableFeed"> Auto cek hasil Google Sheet setiap 30 detik</label><button class="btn soft" id="testFeed">Cek Sekarang</button></div><div id="feedState" class="feedline">URL Google Apps Script terpasang · Auto Sync setiap 30 detik · memeriksa koneksi…</div><div class="feedhint">✅ URL Apps Script dari pengguna sudah disimpan sebagai default dan pemeriksaan otomatis diaktifkan setiap 30 detik. Klik <b>Cek Sekarang</b> untuk memeriksa koneksi. Jika gagal, pastikan deployment Web app mengizinkan akses dan mengembalikan JSONP sesuai Code.gs. <b>Keamanan:</b> siapa pun yang mengetahui URL /exec dapat membaca data hasil yang disediakan endpoint. Data tab lain tidak perlu dibagikan.</div></section><section class="sectionpanel"><h2 class="bottom-title">⌘ Cara Mengaktifkan</h2><div class="notice">1. Buka HTML di Chrome atau Edge, lalu klik <b>Aktifkan / Tes Alarm</b>.<br>2. Izinkan notifikasi desktop melalui tombol di bagian atas bila dibutuhkan.<br>3. Biarkan tab tetap terbuka untuk alarm jadwal.<br>4. Untuk alarm <b>angka result</b>, masukkan nomor asli atau sambungkan sumber JSON.</div><div id="permissionNote" class="infobar">Izin notifikasi belum diperiksa.</div><div class="infobar">Seluruh jam menggunakan zona waktu Asia/Jakarta (WIB). HOKIDRAW 00:00 memiliki jam tutup 23:50 hari sebelumnya. Penyimpanan menggunakan browser lokal.</div></section></div>
+    <div class="below" id="dataFeed"><section class="sectionpanel"><h2 class="bottom-title">✧ Google Sheet Result • POST RESULT WLA</h2><p style="font-size:12px;line-height:1.7;color:#b8d3e0;margin:0">Sumber dipilih: <a href="https://docs.google.com/spreadsheets/d/10sBZbE-o_eNpFj5z5WvSuTJhS93KP4jEZxc4YdqUkgU/edit?usp=drivesdk" target="_blank" rel="noopener noreferrer" style="color:#8df0de;text-decoration:underline">DOCS SEPUTAR LINE TOGEL</a> — tab <b>POST RESULT WLA</b>. Hanya hasil berstatus <b>DONE</b> yang dibaca. Karena dokumen tidak dipublikasikan, jalankan penghubung Google Apps Script (file Code.gs disediakan), deploy sebagai Web App, lalu tempel URL <code>/exec</code> di bawah. URL Apps Script memakai JSONP agar bisa bekerja juga ketika HTML dibuka sebagai file.</p><div class="gs-connected-strip"><span class="gs-live-dot"></span><span><b>GOOGLE SHEETS AUTO SYNC</b><small>POST RESULT WLA · periksa tiap 30 detik · cek status koneksi di bawah</small></span><a href="https://script.google.com/macros/s/AKfycbxEKoqsvpoUREIE9Nf-JCoBcIfX7yni-yak9tSBcLaSz8NgSSEFDjkJLnc-Yurxmyk/exec" target="_blank" rel="noopener noreferrer">Lihat endpoint ↗</a></div><div class="feedsettings"><input type="url" id="feedUrl" class="input" placeholder="Tempel URL Apps Script .../exec (atau JSON HTTPS)" aria-label="Alamat URL sumber JSON"><button class="btn pink" id="saveFeed">Simpan Sumber</button></div><div style="margin-top:12px;display:flex;align-items:center;flex-wrap:wrap;gap:9px"><label style="display:inline-flex;gap:8px;align-items:center;font-size:12px;font-weight:800"><input type="checkbox" id="enableFeed"> Auto cek hasil Google Sheet setiap 30 detik</label><button class="btn soft" id="testFeed">Cek Sekarang</button></div><div id="feedState" class="feedline">URL Google Apps Script terpasang · Auto Sync setiap 30 detik · memeriksa koneksi…</div><div id="feedPreviewV14" class="feed-v14-preview" aria-live="polite"><div class="feed-v14-empty">Result akan ditampilkan di sini setelah data Google Sheet berhasil dibaca.</div></div><div id="bridgeGuideV14" class="feed-v14-guide">Jika gagal, buka URL Apps Script langsung. Untuk respons otomatis dari HTML, Web App wajib mendukung <b>?callback=</b> (JSONP). Gunakan kode Code.gs V14 dan lakukan redeploy <b>New version</b>.</div><div class="feedhint">✅ Deployment Apps Script terbaru telah dipasang sebagai default dan pemeriksaan otomatis diaktifkan setiap 30 detik. Klik <b>Cek Sekarang</b> untuk memeriksa koneksi. Jika gagal, periksa apakah deployment sudah memakai Code.gs V14 dan izin Web app sudah sesuai; untuk memperbarui gunakan Deploy > Manage deployments > Edit > New version, dan pastikan menggunakan Code.gs V14 (JSONP). <b>Keamanan:</b> siapa pun yang mengetahui URL /exec dapat membaca data hasil yang disediakan endpoint. Data tab lain tidak perlu dibagikan.</div></section><section class="sectionpanel"><h2 class="bottom-title">⌘ Cara Mengaktifkan</h2><div class="notice">1. Buka HTML di Chrome atau Edge, lalu klik <b>Aktifkan / Tes Alarm</b>.<br>2. Izinkan notifikasi desktop melalui tombol di bagian atas bila dibutuhkan.<br>3. Biarkan tab tetap terbuka untuk alarm jadwal.<br>4. Untuk alarm <b>angka result</b>, masukkan nomor asli atau sambungkan sumber JSON.</div><div id="permissionNote" class="infobar">Izin notifikasi belum diperiksa.</div><div class="infobar">Seluruh jam menggunakan zona waktu Asia/Jakarta (WIB). HOKIDRAW 00:00 memiliki jam tutup 23:50 hari sebelumnya. Penyimpanan menggunakan browser lokal.</div></section></div>
   </main>
 </div>
 <div class="toastbox" id="toasts" aria-live="polite"></div>
 <div class="modalbg" id="resultModal" hidden><div class="popup" role="dialog" aria-modal="true" aria-labelledby="popupTitle"><h2 id="popupTitle">✦ NOMOR RESULT BARU ✦</h2><div id="popupMarket" class="popname"></div><div id="popupNumber" class="popnum"></div><div id="popupMore" class="poptail"></div><button id="closePopup" class="closepop">OK, TUTUP</button></div></div>
 <script>
-/* OBSIDIAN NOCTURNE V13 | Sumber result Google Sheet: POST RESULT WLA.
+/* OBSIDIAN NOCTURNE V14 • DEPLOYMENT TERBARU | Sumber result Google Sheet: POST RESULT WLA.
    URL deployment tersedia dalam DEFAULT_GOOGLE_SHEET_URL.
    Chrome/Edge: klik Aktifkan & Tes Nada sekali untuk mengaktifkan suara.
    Alarm jadwal aktif ketika halaman terbuka; hasil baru memerlukan respons Apps Script yang benar.
@@ -377,9 +388,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-1;ba
 'use strict';
 const MARKETS=[{"name":"TOTO MACAU PAGI","close":"00:00","result":"00:15","group":"Pasaran Utama"},{"name":"KENTUCKY MIDDAY","close":"00:05","result":"00:20","group":"Pasaran Utama"},{"name":"FLORIDA MIDDAY","close":"00:20","result":"00:30","group":"Pasaran Utama"},{"name":"HUAHIN 0100","close":"00:45","result":"01:00","group":"Pasaran Utama"},{"name":"BANGKOK 0130","close":"01:15","result":"01:30","group":"Pasaran Utama"},{"name":"NEW YORK MIDDAY","close":"01:15","result":"01:25","group":"Pasaran Utama"},{"name":"NORTH CAROLINA DAY","close":"01:45","result":"02:00","group":"Pasaran Utama"},{"name":"BRUNEI 02","close":"02:30","result":"02:45","group":"Pasaran Utama"},{"name":"OREGON03","close":"02:50","result":"03:00","group":"Pasaran Utama"},{"name":"OREGON06","close":"05:50","result":"06:00","group":"Pasaran Utama"},{"name":"CALIFORNIA","close":"08:25","result":"08:30","group":"Pasaran Utama"},{"name":"FLORIDA EVENING","close":"08:35","result":"08:45","group":"Pasaran Utama"},{"name":"OREGON09","close":"08:50","result":"09:00","group":"Pasaran Utama"},{"name":"BANGKOK 0930","close":"09:15","result":"09:30","group":"Pasaran Utama"},{"name":"NEW YORK EVENING","close":"09:25","result":"09:35","group":"Pasaran Utama"},{"name":"KENTUCKY EVENING","close":"09:45","result":"10:00","group":"Pasaran Utama"},{"name":"CAROLINA EVENING","close":"10:17","result":"10:22","group":"Pasaran Utama"},{"name":"TOTOCAMBODIA","close":"10:45","result":"11:00","group":"Pasaran Utama"},{"name":"CHELSEA 11","close":"11:00","result":"11:15","group":"Pasaran Utama"},{"name":"OREGON12","close":"11:50","result":"12:00","group":"Pasaran Utama"},{"name":"BULLSEYE","close":"12:00","result":"12:15","group":"Pasaran Utama"},{"name":"POIPET12","close":"12:15","result":"12:30","group":"Pasaran Utama"},{"name":"TOTO MACAU SIANG","close":"13:00","result":"13:15","group":"Pasaran Utama"},{"name":"SYDNEY","close":"13:49","result":"13:58","group":"Pasaran Utama"},{"name":"JAKARTA 1400","close":"13:55","result":"14:10","group":"Pasaran Utama"},{"name":"BRUNEI 14","close":"14:30","result":"14:45","group":"Pasaran Utama"},{"name":"CHELSEA 15","close":"15:00","result":"15:15","group":"Pasaran Utama"},{"name":"TOTO MACAU 5D SORE","close":"15:15","result":"15:30","group":"Pasaran Utama"},{"name":"POIPET15","close":"15:15","result":"15:30","group":"Pasaran Utama"},{"name":"TOTOMALI1530","close":"15:15","result":"15:30","group":"Pasaran Utama"},{"name":"TOTO MACAU SORE","close":"16:00","result":"16:15","group":"Pasaran Utama"},{"name":"HUAHIN 1630","close":"16:15","result":"16:30","group":"Pasaran Utama"},{"name":"KINGKONG 4D SORE","close":"17:00","result":"17:15","group":"Pasaran Utama"},{"name":"SINGAPORE 4D","close":"17:30","result":"17:45","group":"Pasaran Utama"},{"name":"SINGAPORE TOTO","close":"17:30","result":"17:45","group":"Pasaran Utama"},{"name":"MAGNUM4D","close":"18:10","result":"18:25","group":"Pasaran Utama"},{"name":"CHELSEA19","close":"19:00","result":"19:15","group":"Pasaran Utama"},{"name":"TOTO MACAU MALAM I","close":"19:00","result":"19:15","group":"Pasaran Utama"},{"name":"POIPET19","close":"19:30","result":"19:45","group":"Pasaran Utama"},{"name":"PCSO","close":"19:50","result":"20:10","group":"Pasaran Utama"},{"name":"TOTOMALI2030","close":"20:15","result":"20:30","group":"Pasaran Utama"},{"name":"HUAHIN 2100","close":"20:45","result":"21:00","group":"Pasaran Utama"},{"name":"CHELSEA21","close":"21:00","result":"21:15","group":"Pasaran Utama"},{"name":"TOTOMACAU 5D MALAM","close":"21:15","result":"21:30","group":"Pasaran Utama"},{"name":"NEVADA","close":"21:15","result":"21:30","group":"Pasaran Utama"},{"name":"BRUNEI 21","close":"21:30","result":"21:45","group":"Pasaran Utama"},{"name":"TOTOMACAU MALAM II","close":"22:00","result":"22:15","group":"Pasaran Utama"},{"name":"POIPET22","close":"22:30","result":"22:45","group":"Pasaran Utama"},{"name":"HONGKONG","close":"22:59","result":"23:15","group":"Pasaran Utama"},{"name":"TOTO MACAU MALAM III","close":"23:00","result":"23:15","group":"Pasaran Utama"},{"name":"TOTOMALI2330","close":"23:15","result":"23:30","group":"Pasaran Utama"},{"name":"JAKARTA 2330","close":"23:25","result":"23:40","group":"Pasaran Utama"},{"name":"KINGKONG 4D MALAM","close":"23:30","result":"23:45","group":"Pasaran Utama"},{"name":"HOKIDRAW 00:00","close":"23:50","result":"00:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 01:00","close":"00:50","result":"01:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 02:00","close":"01:50","result":"02:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 03:00","close":"02:50","result":"03:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 04:00","close":"03:50","result":"04:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 05:00","close":"04:50","result":"05:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 06:00","close":"05:50","result":"06:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 07:00","close":"06:50","result":"07:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 08:00","close":"07:50","result":"08:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 09:00","close":"08:50","result":"09:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 10:00","close":"09:50","result":"10:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 11:00","close":"10:50","result":"11:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 12:00","close":"11:50","result":"12:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 13:00","close":"12:50","result":"13:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 14:00","close":"13:50","result":"14:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 15:00","close":"14:50","result":"15:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 16:00","close":"15:50","result":"16:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 17:00","close":"16:50","result":"17:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 18:00","close":"17:50","result":"18:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 19:00","close":"18:50","result":"19:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 20:00","close":"19:50","result":"20:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 21:00","close":"20:50","result":"21:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 22:00","close":"21:50","result":"22:00","group":"HOKIDRAW"},{"name":"HOKIDRAW 23:00","close":"22:50","result":"23:00","group":"HOKIDRAW"}];
 const $=id=>document.getElementById(id);
-const STORE='obsidian-popstar-v9';
+const STORE='obsidian-popstar-v9'; // mempertahankan riwayat versi sebelumnya
 // Google Apps Script deployment yang diberikan pengguna.
-const DEFAULT_GOOGLE_SHEET_URL='https://script.google.com/macros/s/AKfycbx5_gtOfrT1pUt8uvX7SQOmWJRIC3DDQ_OVWniUWcitELyE6LdzkdgBrhPH6Ybqjydw/exec';
+const DEFAULT_GOOGLE_SHEET_URL='https://script.google.com/macros/s/AKfycbxEKoqsvpoUREIE9Nf-JCoBcIfX7yni-yak9tSBcLaSz8NgSSEFDjkJLnc-Yurxmyk/exec';
 const initial={alerts:true,closing:true,sound:true,volume:42,melody:'bell',muted:[],results:[],events:[],seen:[],feedUrl:DEFAULT_GOOGLE_SHEET_URL,feedEnabled:true};
 function load(){
  try{
@@ -409,6 +420,22 @@ function load(){
   if(!state.crystalClarityV13){
    state.volume=Math.min(42, Math.max(0, Number(state.volume) || 42));
    state.crystalClarityV13=true;
+   try{localStorage.setItem(STORE,JSON.stringify(state))}catch(e){}
+  }
+  // Sinkronisasi V14. Hanya URL resmi yang diminta, tidak menghapus history.
+  if(!state.bridgeV14Migration){
+   state.feedUrl=DEFAULT_GOOGLE_SHEET_URL;
+   state.feedEnabled=true;
+   state.bridgeV14Migration=true;
+   try{localStorage.setItem(STORE,JSON.stringify(state))}catch(e){}
+  }
+  // Deployment terbaru dikirim pengguna pada 20 Oktober 2026.
+  // Migrasi satu kali: hanya mengganti endpoint tanpa menghapus hasil, preferensi,
+  // atau riwayat yang disimpan pada browser.
+  if(!state.bridgeV14UpdatedExec20261020){
+   state.feedUrl=DEFAULT_GOOGLE_SHEET_URL;
+   state.feedEnabled=true;
+   state.bridgeV14UpdatedExec20261020=true;
    try{localStorage.setItem(STORE,JSON.stringify(state))}catch(e){}
   }
   return state;
@@ -528,44 +555,91 @@ function updatePermission(){let s=!('Notification'in window)?'Notifikasi desktop
 function popupResult(item){$('popupMarket').textContent=item.pasaran;$('popupNumber').textContent=item.prize1;$('popupMore').textContent=`${item.date} · `+[item.prize2&&`PRIZE 2: ${item.prize2}`,item.prize3&&`PRIZE 3: ${item.prize3}`].filter(Boolean).join('  • ');$('resultModal').hidden=false;clearTimeout(popupTimer);popupTimer=setTimeout(()=>{$('resultModal').hidden=true},11000)}
 function cleanDigits(x){const s=String(x??'').trim();return /^\d{1,6}$/.test(s)?s:null}
 function saveResult(x,{notifyUser=true}={}){const m=marketMap.get(norm(x.pasaran||x.market||''));if(!m)return false;const n1=cleanDigits(x.prize1),n2=(x.prize2===undefined||x.prize2===null||x.prize2==='')?'':cleanDigits(x.prize2),n3=(x.prize3===undefined||x.prize3===null||x.prize3==='')?'':cleanDigits(x.prize3);if(!n1||n2===null||n3===null)return false;const date=String(x.date||x.tanggal||wibNow().date).slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(date))return false;const index=prefs.results.findIndex(r=>r.pasaran===m.name&&r.date===date);if(index!==-1){const old=prefs.results[index];if(old.prize1===n1&&old.prize2===n2&&old.prize3===n3)return false;prefs.results.splice(index,1)}const result={pasaran:m.name,date,prize1:n1,prize2:n2,prize3:n3,source:x.source||'Manual'};prefs.results.unshift(result);prefs.results=prefs.results.slice(0,500);persist();renderHistory();renderMarkets();updateStats(wibNow());if(notifyUser&&date===wibNow().date){if(!isMuted(m.name)){notify('✦ RESULT BARU — '+m.name,'PRIZE 1: '+n1+(n2?' | PRIZE 2: '+n2:'')+(n3?' | PRIZE 3: '+n3:''),'result',true);popupResult(result)}else recordEvent('Result disimpan (dibisukan)',`${m.name}: ${n1}`,'result')}return true}
-function parseFeed(json){const a=Array.isArray(json)?json:Array.isArray(json?.results)?json.results:(json&&typeof json==='object')?[json]:[];return a.slice(0,400).map(x=>{if(!x||typeof x!=='object')return null;const prizes=x.prizes&&typeof x.prizes==='object'?x.prizes:{};return {pasaran:x.pasaran||x.market||x.name,date:x.date||x.tanggal||x.draw_date||wibNow().date,prize1:x.prize1??x.prize_1??x.number??x.nomor??x.result??prizes.first??prizes[1],prize2:x.prize2??x.prize_2??prizes.second??prizes[2],prize3:x.prize3??x.prize_3??prizes.third??prizes[3],source:'JSON feed'}}).filter(Boolean)}
+function parseFeed(json){
+ const arr=Array.isArray(json)?json:Array.isArray(json?.results)?json.results:
+    Array.isArray(json?.data)?json.data:Array.isArray(json?.items)?json.items:
+    (json&&typeof json==='object'&&(json.pasaran||json.market||json.name))?[json]:[];
+ return arr.slice(0,300).map(x=>{
+  if(!x||typeof x!=='object')return null;
+  const prizes=x.prizes&&typeof x.prizes==='object'?x.prizes:{};
+  return {pasaran:x.pasaran||x.market||x.name,
+    date:x.date||x.tanggal||x.draw_date||json?.date||wibNow().date,
+    prize1:x.prize1??x.prize_1??x.number??x.nomor??x.result??prizes.first??prizes[1],
+    prize2:x.prize2??x.prize_2??prizes.second??prizes[2],
+    prize3:x.prize3??x.prize_3??prizes.third??prizes[3],
+    source:x.source||'Google Sheet / POST RESULT WLA'};
+ }).filter(Boolean)
+}
 function validUrl(value){try{const x=new URL(value);return x.protocol==='https:'||(x.protocol==='http:'&&['localhost','127.0.0.1'].includes(x.hostname))}catch{return false}}
 function isGoogleBridge(url){try{const u=new URL(url);return u.protocol==='https:' && (u.hostname==='script.google.com'||u.hostname==='script.googleusercontent.com') && /\/macros\/s\/[^/]+\/exec/.test(u.pathname)}catch{return false}}
 function loadBridgeJsonp(url){
  return new Promise((resolve,reject)=>{
-  const cb='__obsBridgeCb_'+Date.now()+'_'+Math.floor(Math.random()*1e7),script=document.createElement('script');
-  let done=false;
-  const timer=setTimeout(()=>finish(new Error('Batas waktu Google Apps Script terlewati (15 detik).')),15000);
-  function finish(err,data){if(done)return;done=true;clearTimeout(timer);script.remove();delete window[cb];err?reject(err):resolve(data)}
+  const cb='__obsBridgeCb_'+Date.now()+'_'+Math.floor(Math.random()*1e7);
+  const script=document.createElement('script');let done=false, loaded=false;
+  const timer=setTimeout(()=>finish(new Error('TIMEOUT: Google Apps Script tidak merespons JSONP dalam 18 detik. Periksa akses Web App dan deployment.')),18000);
+  function finish(err,data){if(done)return;done=true;clearTimeout(timer);script.remove();try{delete window[cb]}catch{};err?reject(err):resolve(data)}
   window[cb]=value=>finish(null,value);
-  script.onerror=()=>finish(new Error('URL Apps Script tidak dapat dimuat. Periksa URL /exec dan izin deployment.'));
+  script.onerror=()=>finish(new Error('GAGAL MUAT: Web App tidak dapat dijalankan sebagai JavaScript. Periksa izin Anyone, URL /exec, dan deployment.'));
+  script.onload=()=>{loaded=true;setTimeout(()=>{if(!done)finish(new Error('FORMAT TIDAK COCOK: URL /exec tidak memanggil callback JSONP. Perbarui Code.gs V14 dan Deploy > Manage deployments > Edit > New version.'))},350)};
   const u=new URL(url);u.searchParams.set('callback',cb);u.searchParams.set('_',Date.now());
   script.src=u.href;script.async=true;document.head.appendChild(script);
  });
 }
 let firstGoogleSync=true;
+let lastBridgeDebug='Belum ada respons.';
+function feedPreview(data,skipped,payload){
+ const box=$('feedPreviewV14');if(!box)return;
+ box.replaceChildren();
+ const header=document.createElement('div');header.className='feed-v14-title';
+ header.textContent='HASIL TERDETEKSI ('+data.length+') · '+String(payload?.date||'tanggal dari item')+' WIB';box.append(header);
+ for(const item of data.slice(0,8)){
+  const line=document.createElement('div');line.className='feed-v14-row';
+  const left=document.createElement('b');left.textContent=item.pasaran||'Tanpa nama';
+  const right=document.createElement('span');right.textContent=[item.prize1,item.prize2,item.prize3].filter(Boolean).join(' / ')+'  ·  '+item.date;
+  line.append(left,right);box.append(line);
+ }
+ if(!data.length){const t=document.createElement('div');t.className='feed-v14-empty';t.textContent='Endpoint terhubung, tetapi tidak mengirim angka hasil DONE. Pastikan kolom K= DONE dan kolom G berisi angka.';box.append(t)}
+ if(skipped){const t=document.createElement('div');t.className='feed-v14-empty';t.textContent=skipped+' entri ditolak (nama tidak ada di 77 pasaran, tanggal, atau format angka tidak cocok).';box.append(t)}
+}
+function setFeedMsg(message,bad=false){const node=$('feedState');node.textContent=message;node.classList.toggle('feed-v14-error',bad)}
 async function pollFeed(manual=false){
  if(feedBusy||!validUrl(prefs.feedUrl)||(!manual&&!prefs.feedEnabled))return;
- feedBusy=true;$('feedState').textContent='Memeriksa Google Sheet / JSON…';
+ feedBusy=true;setFeedMsg('⟳ Menghubungi Google Apps Script dan membaca POST RESULT WLA…');
  try{
   let payload;
   if(isGoogleBridge(prefs.feedUrl)) payload=await loadBridgeJsonp(prefs.feedUrl);
   else{
-   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);
+   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),14000);
    try{const resp=await fetch(prefs.feedUrl,{signal:controller.signal,cache:'no-store',credentials:'omit',headers:{Accept:'application/json'}});if(!resp.ok)throw new Error('HTTP '+resp.status);payload=await resp.json()}
    finally{clearTimeout(timer)}
   }
-  if(payload && payload.ok===false)throw new Error(String(payload.error||'Sumber menolak permintaan'));
-  const data=parseFeed(payload);let added=0;
-  // When the bridge is first connected, import existing results silently:
-  // only new subsequent changes should ring an alarm. Manual check is also silent for historical results.
-  const quiet=firstGoogleSync && isGoogleBridge(prefs.feedUrl);
-  for(const item of data){if(saveResult(item,{notifyUser:!quiet && added===0}))added++}
+  if(payload && payload.ok===false)throw new Error('ERROR DARI GS: '+String(payload.error||'Sumber menolak permintaan'));
+  if(!Array.isArray(payload)&&!Array.isArray(payload?.results)&&!Array.isArray(payload?.data)&&!Array.isArray(payload?.items))throw new Error('FORMAT SALAH: Endpoint tidak mengembalikan array results. Pasang Code.gs V14.');
+  const data=parseFeed(payload),sheetDate=String(payload?.date||'');
+  let added=0,skipped=0; const quiet=firstGoogleSync && isGoogleBridge(prefs.feedUrl);
+  for(const item of data){
+   const goodName=marketMap.has(norm(item.pasaran||''));
+   const goodPrize=cleanDigits(item.prize1);
+   const goodDate=/^\d{4}-\d{2}-\d{2}$/.test(String(item.date||''));
+   if(!goodName||!goodPrize||!goodDate){skipped++;continue}
+   if(saveResult(item,{notifyUser:!quiet && added===0}))added++;
+  }
+  feedPreview(data,skipped,payload);
   if(isGoogleBridge(prefs.feedUrl))firstGoogleSync=false;
-  const name=isGoogleBridge(prefs.feedUrl)?'Google Sheet POST RESULT WLA':'JSON';
-  $('feedState').textContent=`✓ ${name} tersambung · ${data.length} hasil DONE · ${added} baru · ${wibNow().clock} WIB`;
-  if(manual)toast('Sumber berhasil diperiksa',`${data.length} hasil valid, ${added} data baru (${quiet?'sinkronisasi awal tanpa alarm':'pembaruan'}).`)
- }catch(e){$('feedState').textContent='Belum tersambung: '+String(e.message).slice(0,150);if(manual)toast('Koneksi belum berhasil',String(e.message).slice(0,125))}
+  const source=isGoogleBridge(prefs.feedUrl)?'POST RESULT WLA':'JSON';
+  const detail=''+(payload?.done??data.length)+' DONE · '+data.length+' dikirim · '+added+' disimpan baru · '+skipped+' ditolak';
+  lastBridgeDebug=source+' | '+detail+' | tanggal '+(sheetDate||'?')+' | v'+(payload?.version||'?');
+  setFeedMsg('✓ TERHUBUNG '+source+' · '+detail+' · '+wibNow().clock+' WIB');
+  if(manual)toast('Sinkronisasi Google Sheet',detail+(quiet?' · data lama diimpor tanpa bunyi':''));
+  if(payload?.version!==14&&isGoogleBridge(prefs.feedUrl)){
+   const note=$('bridgeGuideV14');if(note)note.textContent='Endpoint menjawab tetapi belum mengirim versi 14. Perbarui deployment GS agar tanggal, status dan hasil dapat didiagnosis.';
+  }
+ }catch(e){
+  const msg=String(e?.message||e).slice(0,350);
+  lastBridgeDebug=msg;
+  setFeedMsg('✕ BELUM TERSAMBUNG — '+msg,true);
+  if(manual)toast('Gagal sinkronisasi',msg.slice(0,135));
+ }
  finally{feedBusy=false}
 }
 function setPoller(){if(feedTimer){clearInterval(feedTimer);feedTimer=null}if(prefs.feedEnabled&&validUrl(prefs.feedUrl)){pollFeed();feedTimer=setInterval(()=>{if(!document.hidden)pollFeed()},30000)}}
