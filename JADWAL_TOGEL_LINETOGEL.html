@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#292052">
-<meta name="description" content="OBSIDIAN Aurora Bloom V33 — nada dering marimba bergaya iPhone ketika jam result tiba tetapi nomor belum diterima, lengkap dengan 77 pasaran, SHIO, Prize, dan sinkronisasi Google Sheet.">
-<title>OBSIDIAN AURORA BLOOM V33 — iPhone-Style Ringtone</title>
+<meta name="description" content="OBSIDIAN Aurora Bloom V35 — nada dering marimba bergaya iPhone ketika jam result tiba tetapi nomor belum diterima, lengkap dengan 77 pasaran, SHIO, Prize, dan sinkronisasi Google Sheet.">
+<title>OBSIDIAN AURORA BLOOM V35 — iPhone-Style Ringtone</title>
 <style>
 :root{color-scheme:light;--ink:#1b1739;--indigo:#251658;--violet:#6446e9;--pink:#ff558f;--orange:#ff9b51;--yellow:#ffd66e;--mint:#57dfc6;--cream:#fcf8ef;--white:#fffefa;--muted:#817b8d;--stroke:#e8e3ec;--shadow:0 15px 42px rgba(46,31,92,.09)}
 *{box-sizing:border-box}
@@ -1257,8 +1257,12 @@ const allUpcoming=(now=wibNow())=>{let k=sortedByResult.findIndex(m=>toSec(m.res
 function safeTxt(parent,text){parent.textContent=String(text??'');return parent}
 function el(tag,css='',content=''){const n=document.createElement(tag);if(css)n.className=css;if(content!==undefined)n.textContent=String(content);return n}
 function popupSafeText(value){
- return String(value??'').replace(/Google\s*Sheet\s*\/\s*POST\s*RESULT\s*WLA/gi,'Sinkronisasi Result')
-  .replace(/POST\s*RESULT\s*WLA/gi,'Sumber Result');
+ // Label sumber internal tidak ditampilkan pada pop-up atau riwayat notifikasi.
+ return String(value??'')
+  .replace(/Google\s*Sheet\s*\/\s*POST\s*RESULT\s*WLA/gi,'')
+  .replace(/POST\s*RESULT\s*WLA/gi,'')
+  .replace(/Sinkronisasi\s+Result/gi,'')
+  .trim();
 }
 function toast(title,message='',style=''){
  title=popupSafeText(title);message=popupSafeText(message);
@@ -1783,7 +1787,7 @@ function feedPreview(data,skipped,payload){
 function setFeedMsg(message,bad=false){const node=$('feedState');node.textContent=message;node.classList.toggle('feed-v14-error',bad)}
 async function pollFeed(manual=false){
  if(feedBusy||!validUrl(prefs.feedUrl)||(!manual&&!prefs.feedEnabled))return;
- feedBusy=true;setFeedMsg('⟳ Menghubungi Google Apps Script dan membaca POST RESULT WLA…');
+ feedBusy=true;setFeedMsg('⟳ Menghubungi sumber result otomatis…');
  try{
   let payload;
   if(isGoogleBridge(prefs.feedUrl)) payload=await loadBridgeJsonp(prefs.feedUrl);
@@ -1809,11 +1813,11 @@ async function pollFeed(manual=false){
   }
   feedPreview(data.filter(item=>String(item.date||'').slice(0,10)===wibNow().date),skipped,payload);
   if(isGoogleBridge(prefs.feedUrl))firstGoogleSync=false;
-  const source=isGoogleBridge(prefs.feedUrl)?'POST RESULT WLA':'JSON';
+  const source=isGoogleBridge(prefs.feedUrl)?'RESULT OTOMATIS':'JSON';
   const detail=''+(payload?.done??data.length)+' DONE · '+data.length+' dikirim · '+added+' disimpan baru · '+skipped+' ditolak';
   lastBridgeDebug=source+' | '+detail+' | tanggal '+(sheetDate||'?')+' | v'+(payload?.version||'?');
-  setFeedMsg('✓ TERHUBUNG '+source+' · '+detail+' · '+wibNow().clock+' WIB');
-  if(manual)toast('Sinkronisasi Result',detail+(quiet?' · data lama diimpor tanpa bunyi':''));
+  setFeedMsg('✓ TERHUBUNG · '+detail+' · '+wibNow().clock+' WIB');
+  // Tidak tampilkan toast sinkronisasi yang berhasil; status tetap ada di panel sumber result.
   if(payload?.version!==14&&isGoogleBridge(prefs.feedUrl)){
    const note=$('bridgeGuideV14');if(note)note.textContent='Endpoint menjawab tetapi belum mengirim versi 14. Perbarui deployment GS agar tanggal, status dan hasil dapat didiagnosis.';
   }
