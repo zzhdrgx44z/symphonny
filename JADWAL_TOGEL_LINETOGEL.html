@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#292052">
-<meta name="description" content="OBSIDIAN Aurora Bloom V31 — nada dering marimba bergaya iPhone ketika jam result tiba tetapi nomor belum diterima, lengkap dengan 77 pasaran, SHIO, Prize, dan sinkronisasi Google Sheet.">
-<title>OBSIDIAN AURORA BLOOM V31 — iPhone-Style Ringtone</title>
+<meta name="description" content="OBSIDIAN Aurora Bloom V32 — nada dering marimba bergaya iPhone ketika jam result tiba tetapi nomor belum diterima, lengkap dengan 77 pasaran, SHIO, Prize, dan sinkronisasi Google Sheet.">
+<title>OBSIDIAN AURORA BLOOM V32 — iPhone-Style Ringtone</title>
 <style>
 :root{color-scheme:light;--ink:#1b1739;--indigo:#251658;--violet:#6446e9;--pink:#ff558f;--orange:#ff9b51;--yellow:#ffd66e;--mint:#57dfc6;--cream:#fcf8ef;--white:#fffefa;--muted:#817b8d;--stroke:#e8e3ec;--shadow:0 15px 42px rgba(46,31,92,.09)}
 *{box-sizing:border-box}
@@ -1200,26 +1200,47 @@ const humanDuration=n=>{const h=Math.floor(n/3600),m=Math.floor(n%3600/60),s=Mat
 const norm=s=>String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
 const marketMap=new Map(MARKETS.map(m=>[norm(m.name),m]));
 const isMuted=name=>prefs.muted.includes(name);
-// V31: reset otomatis setiap pergantian hari WIB. Hanya data result hari aktif
-// yang disimpan; hasil tanggal lama dari feed tidak diimpor kembali.
-let activeResultDate=wibNow().date;
-function resetDailyResults(now=wibNow()){
- if(now.date===activeResultDate)return;
+// V32: reset tepat di pergantian tanggal WIB. Tidak menyentuh Google Sheet.
+// Jalur terpisah: timer menuju 00:00, pengecekan setiap tick, dan saat tab fokus kembali.
+let activeResultDate=String(prefs.resultDay||wibNow().date);
+let midnightResetTimer=null;
+function resetDailyResults(now=wibNow(),silent=false){
+ const switchedDay=activeResultDate!==now.date;
+ const hasOldResults=prefs.results.some(r=>r.date!==now.date);
+ if(!switchedDay&&!hasOldResults)return false;
  activeResultDate=now.date;
+ prefs.resultDay=now.date;
+ // Simpan hanya hasil dengan tanggal WIB hari ini (kalau ada yang masuk tepat pada 00:00).
  prefs.results=prefs.results.filter(r=>r.date===now.date);
- prefs.seen=prefs.seen.filter(k=>k.startsWith(now.date+'|'));
- persist();
- renderHistory();renderMarkets(now);updateStats(now);renderLatePanel(now);
- toast('Reset result otomatis','Hari baru WIB: daftar result dikosongkan dan pemantauan dimulai kembali.');
-}
-function resetOldResultsAtStartup(){
- const today=wibNow().date;
- if(prefs.results.some(r=>r.date!==today)){
-  prefs.results=prefs.results.filter(r=>r.date===today);
-  persist();
+ prefs.seen=prefs.seen.filter(k=>typeof k==='string'&&k.startsWith(now.date+'|'));
+ prefs.lateLast=Object.fromEntries(Object.entries(prefs.lateLast||{}).filter(([k])=>k.startsWith(now.date+'|')));
+ if(!silent){
+  clearSpamJobs();stopLateSpamJobs();
+  const modal=$('resultModal');if(modal)modal.hidden=true;
+  if(popupTimer)clearTimeout(popupTimer);
+  lastLateSecond=-1;
  }
+ persist();
+ if(!silent){
+  renderHistory();renderMarkets(now);updateStats(now);renderLatePanel(now);
+  if(switchedDay)toast('♻ Reset result otomatis','00:00 WIB · hasil hari sebelumnya telah dibersihkan. Pemantauan hari baru berjalan.');
+ }
+ return true;
 }
-resetOldResultsAtStartup();
+function scheduleMidnightReset(){
+ if(midnightResetTimer)clearTimeout(midnightResetTimer);
+ const now=wibNow(),[year,month,day]=now.date.split('-').map(Number);
+ // Indonesia barat selalu UTC+07:00, sehingga jadwal tidak bergantung timezone perangkat.
+ const nextMidnight=Date.UTC(year,month-1,day+1)-7*60*60*1000;
+ const ms=Math.max(50,Math.min(2147483647,nextMidnight-Date.now()+120));
+ midnightResetTimer=setTimeout(()=>{
+  const changed=resetDailyResults(wibNow());
+  scheduleMidnightReset();
+  if(changed&&prefs.feedEnabled&&validUrl(prefs.feedUrl))pollFeed();
+ },ms);
+}
+// Migrasi data V31: hasil lama juga dibersihkan saat membuka file pada hari baru.
+resetDailyResults(wibNow(),true);
 const resultFor=(name,date)=>prefs.results.find(x=>x.pasaran===name&&x.date===date);
 const until=(target,now)=> (toSec(target)-now.sec+86400)%86400;
 function statusFor(m,now){const r=resultFor(m.name,now.date);if(r)return 'saved';const t=toSec(m.result),c=toSec(m.close);const crosses=c>t; if(!crosses){if(now.sec<c)return 'upcoming';if(now.sec>=t)return 'due';if(now.sec>=c)return 'waiting';return 'upcoming'} // HOKIDRAW 00:00 case: close previous day
@@ -1340,7 +1361,7 @@ function renderMarkets(now=wibNow()){
 }
 function renderNext(now){const upcoming=allUpcoming(now),m=upcoming[0];$('countdown').textContent=humanDuration(m.delta);$('nextMarket').textContent=m.name;$('nextAt').textContent=m.result+' WIB • '+m.group;const list=$('nextList');list.replaceChildren();const f=document.createDocumentFragment();for(const item of upcoming.slice(0,5)){const row=el('div','nextrow'),left=el('div'),name=el('b','',item.name),sub=el('small','',item.group);left.append(name,sub);row.append(left,el('strong','',item.result+' WIB'));f.append(row)}list.append(f)}
 function updateStats(now){let soon=0,waiting=0;for(const m of MARKETS){if(until(m.result,now)<=3600)soon++;if(statusFor(m,now)==='waiting')waiting++}$('countSoon').textContent=soon;$('countWait').textContent=waiting;$('countAll').textContent=MARKETS.length;$('sideCount').textContent=MARKETS.length;$('countSaved').textContent=prefs.results.filter(r=>r.date===now.date).length}
-function renderHistory(){const list=$('historyList');list.replaceChildren();if(!prefs.results.length){list.append(el('div','empty','Belum ada hasil nyata yang disimpan.'));return}const f=document.createDocumentFragment();for(const item of prefs.results.slice(0,80)){const row=el('div','resultrow'),left=el('div');left.append(el('b','',item.pasaran),el('p','',`${item.date} · ${item.source||'Manual'}`));const right=el('div','resultdigits',availablePrizes(item).length===1?'Result : '+item.prize1:item.prize1);const extras=availablePrizes(item).filter(x=>x.index!==1).map(x=>`P${x.index}: ${x.value}`).join(' / ');if(extras)right.append(el('small','',extras));right.append(el('div','history-shio','SHIO: '+(shioFromPrize1(item.prize1)||'—')));row.append(left,right);f.append(row)}list.append(f)}
+function renderHistory(){const list=$('historyList');list.replaceChildren();if(!prefs.results.length){list.append(el('div','empty','Belum ada hasil hari ini. Otomatis reset setiap 00:00 WIB.'));return}const f=document.createDocumentFragment();for(const item of prefs.results.slice(0,80)){const row=el('div','resultrow'),left=el('div');left.append(el('b','',item.pasaran),el('p','',`${item.date} · ${item.source||'Manual'}`));const right=el('div','resultdigits',availablePrizes(item).length===1?'Result : '+item.prize1:item.prize1);const extras=availablePrizes(item).filter(x=>x.index!==1).map(x=>`P${x.index}: ${x.value}`).join(' / ');if(extras)right.append(el('small','',extras));right.append(el('div','history-shio','SHIO: '+(shioFromPrize1(item.prize1)||'—')));row.append(left,right);f.append(row)}list.append(f)}
 function renderEvents(){const list=$('eventList');list.replaceChildren();if(!prefs.events.length){list.append(el('div','empty','Belum ada notifikasi hari ini.'));return}const f=document.createDocumentFragment();for(const entry of prefs.events.slice(0,60)){const row=el('div','logrow'),icon=el('span','logicon',entry.kind==='result'?'✦':entry.kind==='close'?'⏰':'🔔'),body=el('div');body.append(el('b','',entry.title),el('p','',entry.message),el('time','',entry.date));row.append(icon,body);f.append(row)}list.append(f)}
 let notificationUnreadCount=0;
 function refreshNotificationHub(){
@@ -1682,7 +1703,7 @@ function popupResult(item){$('popupMarket').textContent=item.pasaran;const oneRe
  if(oneResult)numberDisplay.append(el('span','popup-result-label','Result :'),el('span','popup-result-number',item.prize1));
  else numberDisplay.textContent=item.prize1;const shioName=shioFromPrize1(item.prize1);const shioEl=$('popupShio');shioEl.hidden=!shioName;shioEl.replaceChildren();if(shioName)shioEl.append(el('span','',availablePrizes(item).length===1?'✧ SHIO':'✧ SHIO PRIZE 1'),document.createTextNode(shioName));$('popupMore').textContent=[item.date,...availablePrizes(item).filter(x=>x.index!==1).map(x=>`PRIZE ${x.index}: ${x.value}`)].join('  • ');$('resultModal').hidden=false;clearTimeout(popupTimer);popupTimer=setTimeout(()=>{$('resultModal').hidden=true},11000)}
 function cleanDigits(x){const s=String(x??'').trim();return /^\d{1,6}$/.test(s)?s:null}
-function saveResult(x,{notifyUser=true}={}){const m=marketMap.get(norm(x.pasaran||x.market||''));if(!m)return false;const n1=cleanDigits(x.prize1),n2=(x.prize2===undefined||x.prize2===null||x.prize2==='')?'':cleanDigits(x.prize2),n3=(x.prize3===undefined||x.prize3===null||x.prize3==='')?'':cleanDigits(x.prize3);if(!n1||n2===null||n3===null)return false;const date=String(x.date||x.tanggal||wibNow().date).slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date!==wibNow().date)return false;const index=prefs.results.findIndex(r=>r.pasaran===m.name&&r.date===date);if(index!==-1){const old=prefs.results[index];if(old.prize1===n1&&old.prize2===n2&&old.prize3===n3)return false;prefs.results.splice(index,1)}const result={pasaran:m.name,date,prize1:n1,prize2:n2,prize3:n3,source:x.source||'Manual'};prefs.results.unshift(result);prefs.results=prefs.results.slice(0,500);persist();pruneLateSpamJobs();renderHistory();renderMarkets();updateStats(wibNow());renderLatePanel();if(notifyUser&&date===wibNow().date){if(!isMuted(m.name)){notify('✦ RESULT BARU — '+m.name,(!n2&&!n3?'Result : '+n1:'PRIZE 1: '+n1+(n2?' | PRIZE 2: '+n2:'')+(n3?' | PRIZE 3: '+n3:''))+' | SHIO: '+shioFromPrize1(n1),'result',true);popupResult(result)}else recordEvent('Result disimpan (dibisukan)',`${m.name}: ${n1}`,'result')}return true}
+function saveResult(x,{notifyUser=true}={}){resetDailyResults(wibNow());const m=marketMap.get(norm(x.pasaran||x.market||''));if(!m)return false;const n1=cleanDigits(x.prize1),n2=(x.prize2===undefined||x.prize2===null||x.prize2==='')?'':cleanDigits(x.prize2),n3=(x.prize3===undefined||x.prize3===null||x.prize3==='')?'':cleanDigits(x.prize3);if(!n1||n2===null||n3===null)return false;const date=String(x.date||x.tanggal||wibNow().date).slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date!==wibNow().date)return false;const index=prefs.results.findIndex(r=>r.pasaran===m.name&&r.date===date);if(index!==-1){const old=prefs.results[index];if(old.prize1===n1&&old.prize2===n2&&old.prize3===n3)return false;prefs.results.splice(index,1)}const result={pasaran:m.name,date,prize1:n1,prize2:n2,prize3:n3,source:x.source||'Manual'};prefs.results.unshift(result);prefs.results=prefs.results.slice(0,500);persist();pruneLateSpamJobs();renderHistory();renderMarkets();updateStats(wibNow());renderLatePanel();if(notifyUser&&date===wibNow().date){if(!isMuted(m.name)){notify('✦ RESULT BARU — '+m.name,(!n2&&!n3?'Result : '+n1:'PRIZE 1: '+n1+(n2?' | PRIZE 2: '+n2:'')+(n3?' | PRIZE 3: '+n3:''))+' | SHIO: '+shioFromPrize1(n1),'result',true);popupResult(result)}else recordEvent('Result disimpan (dibisukan)',`${m.name}: ${n1}`,'result')}return true}
 function parseFeed(json){
  const arr=Array.isArray(json)?json:Array.isArray(json?.results)?json.results:
     Array.isArray(json?.data)?json.data:Array.isArray(json?.items)?json.items:
@@ -1750,9 +1771,10 @@ async function pollFeed(manual=false){
    const goodPrize=cleanDigits(item.prize1);
    const goodDate=/^\d{4}-\d{2}-\d{2}$/.test(String(item.date||''));
    if(!goodName||!goodPrize||!goodDate){skipped++;continue}
-   if(item.date!==wibNow().date)continue; // Jangan impor result hari sebelumnya setelah reset WIB\n   if(saveResult(item,{notifyUser:!quiet && added===0}))added++;
+   if(item.date!==wibNow().date){skipped++;continue} // Result tanggal kemarin tidak boleh kembali setelah reset.
+   if(saveResult(item,{notifyUser:!quiet && added===0}))added++;
   }
-  feedPreview(data,skipped,payload);
+  feedPreview(data.filter(item=>String(item.date||'').slice(0,10)===wibNow().date),skipped,payload);
   if(isGoogleBridge(prefs.feedUrl))firstGoogleSync=false;
   const source=isGoogleBridge(prefs.feedUrl)?'POST RESULT WLA':'JSON';
   const detail=''+(payload?.done??data.length)+' DONE · '+data.length+' dikirim · '+added+' disimpan baru · '+skipped+' ditolak';
@@ -1822,7 +1844,7 @@ function bind(){
  $('exportCsv').addEventListener('click',()=>{const rows=[['Pasaran','Tanggal','Prize 1','Prize 2','Prize 3','SHIO','Sumber'],...prefs.results.map(x=>[x.pasaran,x.date,x.prize1,x.prize2,x.prize3,shioFromPrize1(x.prize1)||'',x.source])];const csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='obsidian-nocturne-v22-result-shio.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),3000)});
  $('saveFeed').addEventListener('click',()=>{const url=$('feedUrl').value.trim();if(url&&!validUrl(url)){toast('URL tidak valid','Gunakan HTTPS atau HTTP localhost.');return}if(prefs.feedUrl!==url)firstGoogleSync=true;prefs.feedUrl=url;prefs.feedEnabled=$('enableFeed').checked&&!!url;persist();setPoller();toast('Sumber disimpan',prefs.feedEnabled?'Auto cek aktif setiap 30 detik.':'Auto cek belum aktif.')});$('enableFeed').addEventListener('change',e=>{prefs.feedEnabled=e.target.checked&&validUrl($('feedUrl').value.trim());if(prefs.feedUrl!==$('feedUrl').value.trim())firstGoogleSync=true;prefs.feedUrl=$('feedUrl').value.trim();persist();setPoller();if(e.target.checked&&!prefs.feedEnabled){e.target.checked=false;toast('Alamat belum valid','Simpan URL HTTPS terlebih dahulu.')}});$('testFeed').addEventListener('click',()=>{const url=$('feedUrl').value.trim();if(!validUrl(url)){toast('URL belum benar','Masukkan URL HTTPS.');return}if(prefs.feedUrl!==url)firstGoogleSync=true;prefs.feedUrl=url;persist();pollFeed(true)});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden){renderMarkets(wibNow());updateStats(wibNow());renderLatePanel();}});
- renderHistory();renderEvents();renderMarkets();tick();renderTimer=setInterval(tick,1000);setPoller();startBackgroundPulse();
+ renderHistory();renderEvents();renderMarkets();tick();scheduleMidnightReset();renderTimer=setInterval(tick,1000);setPoller();startBackgroundPulse();
  $('backgroundEnabled').addEventListener('change',e=>{
    prefs.backgroundEnabled=e.target.checked;persist();updateBackgroundStatus();
    if(!prefs.backgroundEnabled&&document.hidden)clearSpamJobs();
