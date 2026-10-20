@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#292052">
-<meta name="description" content="OBSIDIAN Aurora Bloom V32 — nada dering marimba bergaya iPhone ketika jam result tiba tetapi nomor belum diterima, lengkap dengan 77 pasaran, SHIO, Prize, dan sinkronisasi Google Sheet.">
-<title>OBSIDIAN AURORA BLOOM V32 — iPhone-Style Ringtone</title>
+<meta name="description" content="OBSIDIAN Aurora Bloom V33 — nada dering marimba bergaya iPhone ketika jam result tiba tetapi nomor belum diterima, lengkap dengan 77 pasaran, SHIO, Prize, dan sinkronisasi Google Sheet.">
+<title>OBSIDIAN AURORA BLOOM V33 — iPhone-Style Ringtone</title>
 <style>
 :root{color-scheme:light;--ink:#1b1739;--indigo:#251658;--violet:#6446e9;--pink:#ff558f;--orange:#ff9b51;--yellow:#ffd66e;--mint:#57dfc6;--cream:#fcf8ef;--white:#fffefa;--muted:#817b8d;--stroke:#e8e3ec;--shadow:0 15px 42px rgba(46,31,92,.09)}
 *{box-sizing:border-box}
@@ -1194,12 +1194,17 @@ function persist(){try{localStorage.setItem(STORE,JSON.stringify(prefs))}catch(e
 const wibFmt=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Jakarta',hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
 const padded=n=>String(n).padStart(2,'0');
 function wibNow(){const o=Object.fromEntries(wibFmt.formatToParts(new Date()).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));const hour=+o.hour%24,minute=+o.minute,second=+o.second;return {date:`${o.year}-${o.month}-${o.day}`,hour,minute,second,sec:hour*3600+minute*60+second,clock:`${padded(hour)}:${o.minute}:${o.second}`}}
-const toSec=s=>{const [h,m]=String(s).replace('.',':').split(':').map(Number);return h*3600+m*60};
+const secCache=new Map();
+const toSec=s=>{const key=String(s);if(secCache.has(key))return secCache.get(key);const [h,m]=key.replace('.',':').split(':').map(Number),v=h*3600+m*60;secCache.set(key,v);return v};
 const simpleTime=s=>s.replace('.',':');
 const humanDuration=n=>{const h=Math.floor(n/3600),m=Math.floor(n%3600/60),s=Math.floor(n%60);return `${padded(h)}:${padded(m)}:${padded(s)}`};
 const norm=s=>String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
 const marketMap=new Map(MARKETS.map(m=>[norm(m.name),m]));
 const isMuted=name=>prefs.muted.includes(name);
+// V33: O(1) read path for result cards and alarms; original prefs.results remains the source of truth.
+const resultIndex=new Map();
+function rebuildResultIndex(){resultIndex.clear();for(const item of prefs.results){resultIndex.set(item.date+'|'+item.pasaran,item)}}
+rebuildResultIndex();
 // V32: reset tepat di pergantian tanggal WIB. Tidak menyentuh Google Sheet.
 // Jalur terpisah: timer menuju 00:00, pengecekan setiap tick, dan saat tab fokus kembali.
 let activeResultDate=String(prefs.resultDay||wibNow().date);
@@ -1212,6 +1217,7 @@ function resetDailyResults(now=wibNow(),silent=false){
  prefs.resultDay=now.date;
  // Simpan hanya hasil dengan tanggal WIB hari ini (kalau ada yang masuk tepat pada 00:00).
  prefs.results=prefs.results.filter(r=>r.date===now.date);
+ rebuildResultIndex();
  prefs.seen=prefs.seen.filter(k=>typeof k==='string'&&k.startsWith(now.date+'|'));
  prefs.lateLast=Object.fromEntries(Object.entries(prefs.lateLast||{}).filter(([k])=>k.startsWith(now.date+'|')));
  if(!silent){
@@ -1241,15 +1247,21 @@ function scheduleMidnightReset(){
 }
 // Migrasi data V31: hasil lama juga dibersihkan saat membuka file pada hari baru.
 resetDailyResults(wibNow(),true);
-const resultFor=(name,date)=>prefs.results.find(x=>x.pasaran===name&&x.date===date);
+const resultFor=(name,date)=>resultIndex.get(date+'|'+name);
 const until=(target,now)=> (toSec(target)-now.sec+86400)%86400;
 function statusFor(m,now){const r=resultFor(m.name,now.date);if(r)return 'saved';const t=toSec(m.result),c=toSec(m.close);const crosses=c>t; if(!crosses){if(now.sec<c)return 'upcoming';if(now.sec>=t)return 'due';if(now.sec>=c)return 'waiting';return 'upcoming'} // HOKIDRAW 00:00 case: close previous day
 if(now.sec<t)return 'waiting';return 'due'}
 let filter='all',search='',group='all',lastScheduler=null,lastDrawSecond=-1,ctx=null,soundNodes=[],feedTimer=null,feedBusy=false,popupTimer=null;
-const allUpcoming=(now=wibNow())=>[...MARKETS].map(m=>({...m,delta:until(m.result,now)})).sort((a,b)=>a.delta-b.delta||a.name.localeCompare(b.name));
+const sortedByResult=[...MARKETS].sort((a,b)=>toSec(a.result)-toSec(b.result)||a.name.localeCompare(b.name));
+const allUpcoming=(now=wibNow())=>{let k=sortedByResult.findIndex(m=>toSec(m.result)>=now.sec);if(k<0)k=0;return sortedByResult.slice(k).concat(sortedByResult.slice(0,k)).map(m=>({...m,delta:until(m.result,now)}))};
 function safeTxt(parent,text){parent.textContent=String(text??'');return parent}
 function el(tag,css='',content=''){const n=document.createElement(tag);if(css)n.className=css;if(content!==undefined)n.textContent=String(content);return n}
+function popupSafeText(value){
+ return String(value??'').replace(/Google\s*Sheet\s*\/\s*POST\s*RESULT\s*WLA/gi,'Sinkronisasi Result')
+  .replace(/POST\s*RESULT\s*WLA/gi,'Sumber Result');
+}
 function toast(title,message='',style=''){
+ title=popupSafeText(title);message=popupSafeText(message);
  const box=el('div','toast'+(style?' '+style:''));
  box.setAttribute('role','status');
  const close=el('button','toast-dismiss','×');close.type='button';close.setAttribute('aria-label','Tutup notifikasi');close.addEventListener('click',()=>box.remove());
@@ -1329,7 +1341,7 @@ function renderMarkets(now=wibNow()){
                    el('strong','',shioName||'—'));
 
 
-  const foot=el('div','completed-card-bottom'),source=el('div','completed-source',s.source||'Input Manual'),copy=el('button','completed-copy','⧉ Salin');
+  const foot=el('div','completed-card-bottom'),source=el('div','completed-source',popupSafeText(s.source||'Input Manual')),copy=el('button','completed-copy','⧉ Salin');
   copy.type='button';copy.title='Salin nomor result';copy.addEventListener('click',()=>copyCompletedResult(s));
   foot.append(source,copy);card.append(top,meta);if(label)card.append(label);card.append(prizes,shioBadge,foot);finished.append(card)
  }
@@ -1359,26 +1371,38 @@ function renderMarkets(now=wibNow()){
  }
  grid.append(f)
 }
-function renderNext(now){const upcoming=allUpcoming(now),m=upcoming[0];$('countdown').textContent=humanDuration(m.delta);$('nextMarket').textContent=m.name;$('nextAt').textContent=m.result+' WIB • '+m.group;const list=$('nextList');list.replaceChildren();const f=document.createDocumentFragment();for(const item of upcoming.slice(0,5)){const row=el('div','nextrow'),left=el('div'),name=el('b','',item.name),sub=el('small','',item.group);left.append(name,sub);row.append(left,el('strong','',item.result+' WIB'));f.append(row)}list.append(f)}
+let lastUpcomingSignature='';
+function renderNext(now){
+ const upcoming=allUpcoming(now),m=upcoming[0];
+ $('countdown').textContent=humanDuration(m.delta);
+ const nextFive=upcoming.slice(0,5),signature=nextFive.map(x=>x.name+'@'+x.result).join('|');
+ if(signature===lastUpcomingSignature)return;
+ lastUpcomingSignature=signature;
+ $('nextMarket').textContent=m.name;$('nextAt').textContent=m.result+' WIB • '+m.group;
+ const list=$('nextList'),f=document.createDocumentFragment();
+ for(const item of nextFive){const row=el('div','nextrow'),left=el('div'),name=el('b','',item.name),sub=el('small','',item.group);left.append(name,sub);row.append(left,el('strong','',item.result+' WIB'));f.append(row)}
+ list.replaceChildren(f);
+}
 function updateStats(now){let soon=0,waiting=0;for(const m of MARKETS){if(until(m.result,now)<=3600)soon++;if(statusFor(m,now)==='waiting')waiting++}$('countSoon').textContent=soon;$('countWait').textContent=waiting;$('countAll').textContent=MARKETS.length;$('sideCount').textContent=MARKETS.length;$('countSaved').textContent=prefs.results.filter(r=>r.date===now.date).length}
 function renderHistory(){const list=$('historyList');list.replaceChildren();if(!prefs.results.length){list.append(el('div','empty','Belum ada hasil hari ini. Otomatis reset setiap 00:00 WIB.'));return}const f=document.createDocumentFragment();for(const item of prefs.results.slice(0,80)){const row=el('div','resultrow'),left=el('div');left.append(el('b','',item.pasaran),el('p','',`${item.date} · ${item.source||'Manual'}`));const right=el('div','resultdigits',availablePrizes(item).length===1?'Result : '+item.prize1:item.prize1);const extras=availablePrizes(item).filter(x=>x.index!==1).map(x=>`P${x.index}: ${x.value}`).join(' / ');if(extras)right.append(el('small','',extras));right.append(el('div','history-shio','SHIO: '+(shioFromPrize1(item.prize1)||'—')));row.append(left,right);f.append(row)}list.append(f)}
-function renderEvents(){const list=$('eventList');list.replaceChildren();if(!prefs.events.length){list.append(el('div','empty','Belum ada notifikasi hari ini.'));return}const f=document.createDocumentFragment();for(const entry of prefs.events.slice(0,60)){const row=el('div','logrow'),icon=el('span','logicon',entry.kind==='result'?'✦':entry.kind==='close'?'⏰':'🔔'),body=el('div');body.append(el('b','',entry.title),el('p','',entry.message),el('time','',entry.date));row.append(icon,body);f.append(row)}list.append(f)}
+function renderEvents(){const list=$('eventList');list.replaceChildren();if(!prefs.events.length){list.append(el('div','empty','Belum ada notifikasi hari ini.'));return}const f=document.createDocumentFragment();for(const entry of prefs.events.slice(0,60)){const row=el('div','logrow'),icon=el('span','logicon',entry.kind==='result'?'✦':entry.kind==='close'?'⏰':'🔔'),body=el('div');body.append(el('b','',popupSafeText(entry.title)),el('p','',popupSafeText(entry.message)),el('time','',entry.date));row.append(icon,body);f.append(row)}list.append(f)}
 let notificationUnreadCount=0;
 function refreshNotificationHub(){
  const drawer=$('notificationDrawer'),recent=$('notificationRecent'),counter=$('notificationUnread');
  if(!drawer||!recent||!counter)return;
  counter.hidden=notificationUnreadCount<1;
  counter.textContent=String(Math.min(notificationUnreadCount,99));
- $('notificationStatusText').textContent=prefs.events.length?prefs.events[0].title+' — '+prefs.events[0].message:'Pop-up muncul saat result baru, jadwal, atau nomor belum masuk.';
+ $('notificationStatusText').textContent=prefs.events.length?popupSafeText(prefs.events[0].title+' — '+prefs.events[0].message):'Pop-up muncul saat result baru, jadwal, atau nomor belum masuk.';
  $('notificationPermission').textContent='Izin desktop: '+(!('Notification' in window)?'tidak tersedia':Notification.permission==='granted'?'diizinkan':Notification.permission==='denied'?'ditolak':'belum diberikan');
  recent.replaceChildren();
  if(!prefs.events.length){recent.append(el('p','notification-empty','Belum ada notifikasi. Klik Tes Notif untuk melihat contohnya.'));return;}
  for(const evt of prefs.events.slice(0,12)){
   const row=el('div','notification-item');const emoji=evt.kind==='result'?'✦':evt.kind==='close'?'⏰':evt.kind==='late'?'⚠️':'🔔';
-  const body=el('div','notification-item-body');body.append(el('b','',evt.title),el('p','',evt.message),el('time','',evt.date));row.append(el('span','notification-item-icon',emoji),body);recent.append(row);
+  const body=el('div','notification-item-body');body.append(el('b','',popupSafeText(evt.title)),el('p','',popupSafeText(evt.message)),el('time','',evt.date));row.append(el('span','notification-item-icon',emoji),body);recent.append(row);
  }
 }
 function recordEvent(title,message,kind='schedule'){
+ title=popupSafeText(title);message=popupSafeText(message);
  prefs.events.unshift({title,message,kind,date:`${wibNow().date} ${wibNow().clock} WIB`});prefs.events=prefs.events.slice(0,160);
  persist();renderEvents();
  if($('notificationDrawer')?.hidden)notificationUnreadCount=Math.min(99,notificationUnreadCount+1);
@@ -1525,7 +1549,7 @@ function playAlarm(kind='result',forced=false){
   }
  });
 }
-function browserNotify(title,message,part=1){if(!('Notification'in window)||Notification.permission!=='granted')return;try{const n=new Notification(title,{body:message,tag:'obsidian-'+norm(title)+'-'+wibNow().date+'-repeat-'+part});n.onclick=()=>{window.focus();n.close()}}catch{}}
+function browserNotify(title,message,part=1){title=popupSafeText(title);message=popupSafeText(message);if(!('Notification'in window)||Notification.permission!=='granted')return;try{const n=new Notification(title,{body:message,tag:'obsidian-'+norm(title)+'-'+wibNow().date+'-repeat-'+part});n.onclick=()=>{window.focus();n.close()}}catch{}}
 // Separate visual desktop notifications from the result history; no fake results are generated.
 const spamJobs=new Map();
 function spamOptions(){return {count:[3,5,10].includes(Number(prefs.spamCount))?Number(prefs.spamCount):3,delay:[4,6,10].includes(Number(prefs.spamDelay))?Number(prefs.spamDelay):6,forKind:prefs.spamFor==='all'?'all':'result'}}
@@ -1576,8 +1600,17 @@ function overdueMarkets(now=wibNow()){
   .filter(m=>m.lateSeconds>=grace*60 && m.lateSeconds<=LATE_MONITOR_WINDOW && !resultFor(m.name,now.date))
   .sort((a,b)=>a.lateSeconds-b.lateSeconds||a.name.localeCompare(b.name));
 }
+let lastLatePanelSignature='';
 function renderLatePanel(now=wibNow()){
- const pending=overdueMarkets(now),list=$('lateList');list.replaceChildren();
+ const pending=overdueMarkets(now),list=$('lateList');
+ const snoozed=Date.now()<Number(prefs.lateSnoozeUntil||0);
+ const status=!prefs.lateEnabled?'○ Pengingat BELUM ADA NOMOR nonaktif':
+   snoozed?'◷ Bell sementara diam selama 30 menit':
+   '● Aktif · '+pending.length+' pasaran belum terbaca · '+(prefs.lateSpamEnabled?'SPAM '+lateSpamSettings().count+'×/'+lateSpamSettings().delay+' dtk':'spam OFF')+' · '+(Number(prefs.lateRepeat)?'siklus '+prefs.lateRepeat+' mnt':'satu siklus');
+ const signature=status+'|'+pending.map(m=>m.name+':'+Math.floor(m.lateSeconds/60)).join('|');
+ if(signature===lastLatePanelSignature)return;
+ lastLatePanelSignature=signature;
+ list.replaceChildren();
  $('lateCount').textContent=pending.length+' PASARAN';
  const f=document.createDocumentFragment();
  if(!pending.length)f.append(el('div','late-empty','Belum ada pasaran yang melewati jadwal result tanpa nomor dalam 60 menit terakhir.'));
@@ -1587,10 +1620,7 @@ function renderLatePanel(now=wibNow()){
  }
  if(pending.length>8)f.append(el('div','late-empty','+'+(pending.length-8)+' pasaran lainnya'));
  list.append(f);
- const snoozed=Date.now()<Number(prefs.lateSnoozeUntil||0);
- $('lateStatus').textContent=!prefs.lateEnabled?'○ Pengingat BELUM ADA NOMOR nonaktif':
-   snoozed?'◷ Bell sementara diam selama 30 menit':
-   '● Aktif · '+pending.length+' pasaran belum terbaca · '+(prefs.lateSpamEnabled?'SPAM '+lateSpamSettings().count+'×/'+lateSpamSettings().delay+' dtk':'spam OFF')+' · '+(Number(prefs.lateRepeat)?'siklus '+prefs.lateRepeat+' mnt':'satu siklus');
+ $('lateStatus').textContent=status;
 }
 // Setiap siklus hanya satu kelompok notifikasi, bukan satu timer per pasaran.
 // Berhenti seketika jika seluruh pasaran dalam kelompok sudah menerima result.
@@ -1701,9 +1731,9 @@ function updatePermission(){let s=!('Notification'in window)?'Notifikasi desktop
 function popupResult(item){$('popupMarket').textContent=item.pasaran;const oneResult=availablePrizes(item).length===1;
  const numberDisplay=$('popupNumber');numberDisplay.replaceChildren();numberDisplay.classList.toggle('single-result-popup',oneResult);
  if(oneResult)numberDisplay.append(el('span','popup-result-label','Result :'),el('span','popup-result-number',item.prize1));
- else numberDisplay.textContent=item.prize1;const shioName=shioFromPrize1(item.prize1);const shioEl=$('popupShio');shioEl.hidden=!shioName;shioEl.replaceChildren();if(shioName)shioEl.append(el('span','',availablePrizes(item).length===1?'✧ SHIO':'✧ SHIO PRIZE 1'),document.createTextNode(shioName));$('popupMore').textContent=[item.date,...availablePrizes(item).filter(x=>x.index!==1).map(x=>`PRIZE ${x.index}: ${x.value}`)].join('  • ');$('resultModal').hidden=false;clearTimeout(popupTimer);popupTimer=setTimeout(()=>{$('resultModal').hidden=true},11000)}
+ else numberDisplay.textContent=item.prize1;const shioName=shioFromPrize1(item.prize1);const shioEl=$('popupShio');shioEl.hidden=!shioName;shioEl.replaceChildren();if(shioName)shioEl.append(el('span','',availablePrizes(item).length===1?'✧ SHIO':'✧ SHIO PRIZE 1'),document.createTextNode(shioName));$('popupMore').textContent=popupSafeText([item.date,...availablePrizes(item).filter(x=>x.index!==1).map(x=>`PRIZE ${x.index}: ${x.value}`)].join('  • '));$('resultModal').hidden=false;clearTimeout(popupTimer);popupTimer=setTimeout(()=>{$('resultModal').hidden=true},11000)}
 function cleanDigits(x){const s=String(x??'').trim();return /^\d{1,6}$/.test(s)?s:null}
-function saveResult(x,{notifyUser=true}={}){resetDailyResults(wibNow());const m=marketMap.get(norm(x.pasaran||x.market||''));if(!m)return false;const n1=cleanDigits(x.prize1),n2=(x.prize2===undefined||x.prize2===null||x.prize2==='')?'':cleanDigits(x.prize2),n3=(x.prize3===undefined||x.prize3===null||x.prize3==='')?'':cleanDigits(x.prize3);if(!n1||n2===null||n3===null)return false;const date=String(x.date||x.tanggal||wibNow().date).slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date!==wibNow().date)return false;const index=prefs.results.findIndex(r=>r.pasaran===m.name&&r.date===date);if(index!==-1){const old=prefs.results[index];if(old.prize1===n1&&old.prize2===n2&&old.prize3===n3)return false;prefs.results.splice(index,1)}const result={pasaran:m.name,date,prize1:n1,prize2:n2,prize3:n3,source:x.source||'Manual'};prefs.results.unshift(result);prefs.results=prefs.results.slice(0,500);persist();pruneLateSpamJobs();renderHistory();renderMarkets();updateStats(wibNow());renderLatePanel();if(notifyUser&&date===wibNow().date){if(!isMuted(m.name)){notify('✦ RESULT BARU — '+m.name,(!n2&&!n3?'Result : '+n1:'PRIZE 1: '+n1+(n2?' | PRIZE 2: '+n2:'')+(n3?' | PRIZE 3: '+n3:''))+' | SHIO: '+shioFromPrize1(n1),'result',true);popupResult(result)}else recordEvent('Result disimpan (dibisukan)',`${m.name}: ${n1}`,'result')}return true}
+function saveResult(x,{notifyUser=true,deferRender=false}={}){resetDailyResults(wibNow());const m=marketMap.get(norm(x.pasaran||x.market||''));if(!m)return false;const n1=cleanDigits(x.prize1),n2=(x.prize2===undefined||x.prize2===null||x.prize2==='')?'':cleanDigits(x.prize2),n3=(x.prize3===undefined||x.prize3===null||x.prize3==='')?'':cleanDigits(x.prize3);if(!n1||n2===null||n3===null)return false;const date=String(x.date||x.tanggal||wibNow().date).slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date!==wibNow().date)return false;const index=prefs.results.findIndex(r=>r.pasaran===m.name&&r.date===date);if(index!==-1){const old=prefs.results[index];if(old.prize1===n1&&old.prize2===n2&&old.prize3===n3)return false;prefs.results.splice(index,1)}const result={pasaran:m.name,date,prize1:n1,prize2:n2,prize3:n3,source:x.source||'Manual'};prefs.results.unshift(result);prefs.results=prefs.results.slice(0,500);resultIndex.set(date+'|'+m.name,result);if(!deferRender){persist();pruneLateSpamJobs();renderHistory();renderMarkets();updateStats(wibNow());renderLatePanel()}if(notifyUser&&date===wibNow().date){if(!isMuted(m.name)){notify('✦ RESULT BARU — '+m.name,(!n2&&!n3?'Result : '+n1:'PRIZE 1: '+n1+(n2?' | PRIZE 2: '+n2:'')+(n3?' | PRIZE 3: '+n3:''))+' | SHIO: '+shioFromPrize1(n1),'result',true);popupResult(result)}else recordEvent('Result disimpan (dibisukan)',`${m.name}: ${n1}`,'result')}return true}
 function parseFeed(json){
  const arr=Array.isArray(json)?json:Array.isArray(json?.results)?json.results:
     Array.isArray(json?.data)?json.data:Array.isArray(json?.items)?json.items:
@@ -1772,7 +1802,10 @@ async function pollFeed(manual=false){
    const goodDate=/^\d{4}-\d{2}-\d{2}$/.test(String(item.date||''));
    if(!goodName||!goodPrize||!goodDate){skipped++;continue}
    if(item.date!==wibNow().date){skipped++;continue} // Result tanggal kemarin tidak boleh kembali setelah reset.
-   if(saveResult(item,{notifyUser:!quiet && added===0}))added++;
+   if(saveResult(item,{notifyUser:!quiet && added===0,deferRender:true}))added++;
+  }
+  if(added){
+   persist();pruneLateSpamJobs();renderHistory();renderMarkets();updateStats(wibNow());renderLatePanel();
   }
   feedPreview(data.filter(item=>String(item.date||'').slice(0,10)===wibNow().date),skipped,payload);
   if(isGoogleBridge(prefs.feedUrl))firstGoogleSync=false;
@@ -1780,7 +1813,7 @@ async function pollFeed(manual=false){
   const detail=''+(payload?.done??data.length)+' DONE · '+data.length+' dikirim · '+added+' disimpan baru · '+skipped+' ditolak';
   lastBridgeDebug=source+' | '+detail+' | tanggal '+(sheetDate||'?')+' | v'+(payload?.version||'?');
   setFeedMsg('✓ TERHUBUNG '+source+' · '+detail+' · '+wibNow().clock+' WIB');
-  if(manual)toast('Sinkronisasi Google Sheet',detail+(quiet?' · data lama diimpor tanpa bunyi':''));
+  if(manual)toast('Sinkronisasi Result',detail+(quiet?' · data lama diimpor tanpa bunyi':''));
   if(payload?.version!==14&&isGoogleBridge(prefs.feedUrl)){
    const note=$('bridgeGuideV14');if(note)note.textContent='Endpoint menjawab tetapi belum mengirim versi 14. Perbarui deployment GS agar tanggal, status dan hasil dapat didiagnosis.';
   }
@@ -1840,7 +1873,7 @@ function bind(){
  $('p1').addEventListener('input',updateShioPreview);
  $('resultForm').addEventListener('submit',e=>{e.preventDefault();audioUnlock();const input={pasaran:$('resultMarket').value,prize1:$('p1').value,prize2:$('p2').value,prize3:$('p3').value,date:wibNow().date,source:'Manual'};if(saveResult(input)){for(const id of ['p1','p2','p3'])$(id).value='';updateShioPreview();$('formStatus').textContent='✓ Result tersimpan';toast('Result disimpan','Notifikasi diproses untuk hasil baru.')}else{$('formStatus').textContent='Periksa angka atau hasil sudah tersimpan.'}});
  $('closePopup').addEventListener('click',()=>{$('resultModal').hidden=true;clearTimeout(popupTimer)});$('resultModal').addEventListener('click',e=>{if(e.target===$('resultModal'))$('closePopup').click()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('resultModal').hidden)$('closePopup').click()});
- $('clearHistory').addEventListener('click',()=>{if(!confirm('Hapus seluruh riwayat nomor result di browser ini?'))return;prefs.results=[];persist();renderHistory();renderMarkets();updateStats(wibNow())});$('clearEvents').addEventListener('click',()=>{prefs.events=[];notificationUnreadCount=0;persist();renderEvents();refreshNotificationHub()});
+ $('clearHistory').addEventListener('click',()=>{if(!confirm('Hapus seluruh riwayat nomor result di browser ini?'))return;prefs.results=[];resultIndex.clear();persist();renderHistory();renderMarkets();updateStats(wibNow())});$('clearEvents').addEventListener('click',()=>{prefs.events=[];notificationUnreadCount=0;persist();renderEvents();refreshNotificationHub()});
  $('exportCsv').addEventListener('click',()=>{const rows=[['Pasaran','Tanggal','Prize 1','Prize 2','Prize 3','SHIO','Sumber'],...prefs.results.map(x=>[x.pasaran,x.date,x.prize1,x.prize2,x.prize3,shioFromPrize1(x.prize1)||'',x.source])];const csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='obsidian-nocturne-v22-result-shio.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),3000)});
  $('saveFeed').addEventListener('click',()=>{const url=$('feedUrl').value.trim();if(url&&!validUrl(url)){toast('URL tidak valid','Gunakan HTTPS atau HTTP localhost.');return}if(prefs.feedUrl!==url)firstGoogleSync=true;prefs.feedUrl=url;prefs.feedEnabled=$('enableFeed').checked&&!!url;persist();setPoller();toast('Sumber disimpan',prefs.feedEnabled?'Auto cek aktif setiap 30 detik.':'Auto cek belum aktif.')});$('enableFeed').addEventListener('change',e=>{prefs.feedEnabled=e.target.checked&&validUrl($('feedUrl').value.trim());if(prefs.feedUrl!==$('feedUrl').value.trim())firstGoogleSync=true;prefs.feedUrl=$('feedUrl').value.trim();persist();setPoller();if(e.target.checked&&!prefs.feedEnabled){e.target.checked=false;toast('Alamat belum valid','Simpan URL HTTPS terlebih dahulu.')}});$('testFeed').addEventListener('click',()=>{const url=$('feedUrl').value.trim();if(!validUrl(url)){toast('URL belum benar','Masukkan URL HTTPS.');return}if(prefs.feedUrl!==url)firstGoogleSync=true;prefs.feedUrl=url;persist();pollFeed(true)});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden){renderMarkets(wibNow());updateStats(wibNow());renderLatePanel();}});
