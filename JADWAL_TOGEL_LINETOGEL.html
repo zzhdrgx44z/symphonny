@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#292052">
-<meta name="description" content="OBSIDIAN Aurora Bloom V40 — nada dering marimba bergaya iPhone ketika jam result tiba tetapi nomor belum diterima, lengkap dengan 77 pasaran, SHIO, Prize, dan sinkronisasi Google Sheet.">
-<title>OBSIDIAN AURORA BLOOM V40 — Notifikasi Latar Aplikasi</title>
+<meta name="description" content="OBSIDIAN Aurora Bloom V42 — nada dering marimba bergaya iPhone ketika jam result tiba tetapi nomor belum diterima, lengkap dengan 77 pasaran, SHIO, Prize, dan sinkronisasi Google Sheet.">
+<title>OBSIDIAN AURORA BLOOM V42 — Turbo Ringan & Opera Auto Update</title>
 <style>
 :root{color-scheme:light;--ink:#1b1739;--indigo:#251658;--violet:#6446e9;--pink:#ff558f;--orange:#ff9b51;--yellow:#ffd66e;--mint:#57dfc6;--cream:#fcf8ef;--white:#fffefa;--muted:#817b8d;--stroke:#e8e3ec;--shadow:0 15px 42px rgba(46,31,92,.09)}
 *{box-sizing:border-box}
@@ -1103,6 +1103,16 @@ body{background:linear-gradient(180deg,#f8f7fd 0%,#f5f4fb 49%,#faf8fc 100%)!impo
 .bg-test-system{background:linear-gradient(110deg,#d9f6f0,#cde0ff)!important;color:#24315b!important;border:1px solid #fff9!important;margin-top:5px}
 @media(max-width:420px){.bg-test-system{font-size:11px;padding:10px 8px}}
 
+
+/* V42 GPU/DOM economy: off-screen cards avoid layout/paint until close to viewport. */
+@supports (content-visibility:auto){
+ .market{content-visibility:auto;contain-intrinsic-size:auto 190px}
+ .completed-card{content-visibility:auto;contain-intrinsic-size:auto 185px}
+}
+/* Respect the device's reduced-motion choice and save battery. */
+@media (prefers-reduced-motion:reduce){
+ .disc,.planet,.hero-star,.live-dot{animation:none!important}
+}
 </style>
 <link rel="manifest" href="./OBSIDIAN_Aurora_V40.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1318,7 +1328,16 @@ const prefs=load();
 function persist(){try{localStorage.setItem(STORE,JSON.stringify(prefs))}catch(e){}}
 const wibFmt=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Jakarta',hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
 const padded=n=>String(n).padStart(2,'0');
-function wibNow(){const o=Object.fromEntries(wibFmt.formatToParts(new Date()).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));const hour=+o.hour%24,minute=+o.minute,second=+o.second;return {date:`${o.year}-${o.month}-${o.day}`,hour,minute,second,sec:hour*3600+minute*60+second,clock:`${padded(hour)}:${o.minute}:${o.second}`}}
+// V42: Cache date formatting within one real second. The data is immutable/read-only.
+let wibCachedEpoch=-1,wibCachedValue=null;
+function wibNow(){
+ const epoch=Math.floor(Date.now()/1000);
+ if(epoch===wibCachedEpoch&&wibCachedValue)return wibCachedValue;
+ const o=Object.fromEntries(wibFmt.formatToParts(new Date()).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+ const hour=+o.hour%24,minute=+o.minute,second=+o.second;
+ wibCachedEpoch=epoch;
+ return wibCachedValue={date:`${o.year}-${o.month}-${o.day}`,hour,minute,second,sec:hour*3600+minute*60+second,clock:`${padded(hour)}:${o.minute}:${o.second}`};
+}
 const secCache=new Map();
 const toSec=s=>{const key=String(s);if(secCache.has(key))return secCache.get(key);const [h,m]=key.replace('.',':').split(':').map(Number),v=h*3600+m*60;secCache.set(key,v);return v};
 const simpleTime=s=>s.replace('.',':');
@@ -1379,6 +1398,15 @@ function statusFor(m,now){const r=resultFor(m.name,now.date);if(r)return 'saved'
 if(now.sec<t)return 'waiting';return 'due'}
 let filter='all',search='',group='all',lastScheduler=null,lastDrawSecond=-1,ctx=null,soundNodes=[],feedTimer=null,feedBusy=false,popupTimer=null;
 const sortedByResult=[...MARKETS].sort((a,b)=>toSec(a.result)-toSec(b.result)||a.name.localeCompare(b.name));
+// V42: A full 77-card render is necessary only at a close/result threshold,
+// when a draw enters the one-hour filter, at midnight, or when data is edited.
+const fullRenderMinutes=new Set([0]);
+for(const m of MARKETS){
+ const resultMinute=Math.floor(toSec(m.result)/60);
+ fullRenderMinutes.add(resultMinute);
+ fullRenderMinutes.add(Math.floor(toSec(m.close)/60));
+ fullRenderMinutes.add((resultMinute+1440-60)%1440);
+}
 // V38: a binary search + bounded iteration avoids allocating 77 new objects each second.
 const allUpcoming=(now=wibNow(),limit=MARKETS.length)=>{
  let lo=0,hi=sortedByResult.length;
@@ -1505,7 +1533,10 @@ function renderMarkets(now=wibNow()){
   if(late)card.classList.add('late-missing');
   const st=el('span','smallstate '+m.state,m.state==='saved'?'◆ ADA HASIL':m.state==='waiting'?'⏳ MENUNGGU':m.state==='due'?'🔔 BELUM ADA NOMOR':'◷ BELUM TUTUP');top.append(nam,st);
   const clocks=el('div','marketclock'),close=el('div','timemini'),res=el('div','timemini result');close.append(el('small','','JAM TUTUP'),el('b','',simpleTime(m.close)));res.append(el('small','','JAM RESULT'),el('b','',simpleTime(m.result)));clocks.append(close,res);
-  const foot=el('div','marketfoot'),hint=el('div','marketleft');if(m.saved){hint.append(el('span','numshown',m.saved.prize1))}else if(m.delta===0){hint.textContent='Jadwal result sekarang'}else if(m.state==='due'&&now.sec>=toSec(m.result)){hint.textContent='Lewat '+Math.floor((now.sec-toSec(m.result))/60)+' menit · nomor belum masuk'}else{hint.textContent='Result dalam '+humanDuration(m.delta)};
+  const foot=el('div','marketfoot'),hint=el('div','marketleft');
+  // V42: Reuse DOM and market references on each lightweight countdown update.
+  card._marketRef=marketMap.get(norm(m.name));card._hintNode=hint;
+  if(m.saved){hint.append(el('span','numshown',m.saved.prize1))}else if(m.delta===0){hint.textContent='Jadwal result sekarang'}else if(m.state==='due'&&now.sec>=toSec(m.result)){hint.textContent='Lewat '+Math.floor((now.sec-toSec(m.result))/60)+' menit · nomor belum masuk'}else{hint.textContent='Result dalam '+humanDuration(m.delta)};
   const buttons=el('div','marketactions'),bell=el('button','roundbtn'+(isMuted(m.name)?' muted':''),isMuted(m.name)?'🔕':'🔔'),input=el('button','roundbtn','＋ Input');bell.title=isMuted(m.name)?'Aktifkan alarm pasaran':'Bisukan pasaran';bell.setAttribute('aria-label',bell.title);
   bell.addEventListener('click',()=>{prefs.muted=isMuted(m.name)?prefs.muted.filter(x=>x!==m.name):[...prefs.muted,m.name];persist();renderMarkets();toast('Pengaturan pasaran',`${m.name}: ${isMuted(m.name)?'alarm dibisukan':'alarm aktif'}`)});
   input.addEventListener('click',()=>{$('resultMarket').value=m.name;document.querySelector('.manual-card').scrollIntoView({behavior:'smooth',block:'center'});$('p1').focus()});buttons.append(bell,input);foot.append(hint,buttons);card.append(top,clocks,foot);f.append(card)
@@ -1519,9 +1550,9 @@ function refreshMarketCountdowns(now=wibNow()){
  for(let i=0;i<cards.length;i++){
   const card=cards[i], name=card.dataset?.marketName;
   if(!name)continue;
-  const m=marketMap.get(norm(name));if(!m)continue;
+  const m=card._marketRef||marketMap.get(norm(name));if(!m)continue;
   const state=statusFor(m,now), delta=until(m.result,now);
-  const hint=card.querySelector('.marketleft');if(!hint)continue;
+  const hint=card._hintNode||card.querySelector('.marketleft');if(!hint)continue;
   let message;
   if(delta===0)message='Jadwal result sekarang';
   else if(state==='due'&&now.sec>=toSec(m.result))message='Lewat '+Math.floor((now.sec-toSec(m.result))/60)+' menit · nomor belum masuk';
@@ -1803,9 +1834,14 @@ const lateBootTime=Date.now();
 let feedAttemptFinished=false,lastLateSecond=-1;
 function overdueMarkets(now=wibNow()){
  const grace=[0,1,3,5,10].includes(Number(prefs.lateGrace))?Number(prefs.lateGrace):0;
- return MARKETS.map(m=>({...m,lateSeconds:now.sec-toSec(m.result)}))
-  .filter(m=>m.lateSeconds>=grace*60 && m.lateSeconds<=LATE_MONITOR_WINDOW && !resultFor(m.name,now.date))
-  .sort((a,b)=>a.lateSeconds-b.lateSeconds||a.name.localeCompare(b.name));
+ // V42: No 77-object spread/map pipeline on each alarm check.
+ const pending=[];
+ for(const m of MARKETS){
+  const lateSeconds=now.sec-toSec(m.result);
+  if(lateSeconds>=grace*60&&lateSeconds<=LATE_MONITOR_WINDOW&&!resultFor(m.name,now.date))
+   pending.push({name:m.name,result:m.result,lateSeconds});
+ }
+ return pending.sort((a,b)=>a.lateSeconds-b.lateSeconds||a.name.localeCompare(b.name));
 }
 let lastLatePanelSignature='';
 function renderLatePanel(now=wibNow()){
@@ -2010,19 +2046,20 @@ async function pollFeed(manual=false){
   if(payload && payload.ok===false)throw new Error('ERROR DARI GS: '+String(payload.error||'Sumber menolak permintaan'));
   if(!Array.isArray(payload)&&!Array.isArray(payload?.results)&&!Array.isArray(payload?.data)&&!Array.isArray(payload?.items))throw new Error('FORMAT SALAH: Endpoint tidak mengembalikan array results. Pasang Code.gs V14.');
   const data=parseFeed(payload),sheetDate=String(payload?.date||'');
+  const today=wibNow().date;
   let added=0,skipped=0; const quiet=firstGoogleSync && isGoogleBridge(prefs.feedUrl);
   for(const item of data){
    const goodName=marketMap.has(norm(item.pasaran||''));
    const goodPrize=cleanDigits(item.prize1);
    const goodDate=/^\d{4}-\d{2}-\d{2}$/.test(String(item.date||''));
    if(!goodName||!goodPrize||!goodDate){skipped++;continue}
-   if(item.date!==wibNow().date){skipped++;continue} // Result tanggal kemarin tidak boleh kembali setelah reset.
+   if(item.date!==today){skipped++;continue} // Result tanggal kemarin tidak boleh kembali setelah reset.
    if(saveResult(item,{notifyUser:!quiet && added===0,deferRender:true}))added++;
   }
   if(added){
    persist();pruneLateSpamJobs();renderHistory();renderMarkets();updateStats(wibNow());renderLatePanel();
   }
-  feedPreview(data.filter(item=>String(item.date||'').slice(0,10)===wibNow().date),skipped,payload);
+  feedPreview(data.filter(item=>String(item.date||'').slice(0,10)===today),skipped,payload);
   if(isGoogleBridge(prefs.feedUrl))firstGoogleSync=false;
   const source=isGoogleBridge(prefs.feedUrl)?'RESULT OTOMATIS':'JSON';
   const detail=''+(payload?.done??data.length)+' DONE · '+data.length+' dikirim · '+added+' disimpan baru · '+skipped+' ditolak';
@@ -2050,9 +2087,12 @@ function tick(){
  }
  if(now.sec===lastDrawSecond)return;
  if(!document.hidden){
-  // All market close/result schedules use whole minutes; full redraw only when needed.
-  if(lastDrawSecond<0||Math.floor(now.sec/60)!==Math.floor(lastDrawSecond/60)||now.sec<lastDrawSecond){
-   if(filter!=='saved'||lastDrawSecond<0)renderMarkets(now);
+  const minuteChanged=lastDrawSecond<0||Math.floor(now.sec/60)!==Math.floor(lastDrawSecond/60)||now.sec<lastDrawSecond;
+  if(minuteChanged){
+   // V42: Preserve same exact state transitions, avoiding redraw in quiet minutes.
+   if(lastDrawSecond<0||fullRenderMinutes.has(Math.floor(now.sec/60))){
+    if(filter!=='saved'||lastDrawSecond<0)renderMarkets(now);
+   }else refreshMarketCountdowns(now);
    updateStats(now);
   }else if(Math.floor(now.sec/10)!==Math.floor(lastDrawSecond/10)){
    refreshMarketCountdowns(now);
@@ -2233,6 +2273,75 @@ setTimeout(()=>toast('🔔 Notifikasi siap','Klik Tes Notif untuk mencoba; untuk
     apply();
     button.addEventListener('click',()=>{isMini=!isMini;rememberWrite(key,isMini);apply()});
   }
+})();
+</script>
+
+<style>
+#obsidian-update-toast{position:fixed;right:18px;bottom:18px;z-index:2147483646;max-width:min(380px,calc(100vw - 36px));padding:15px 17px;border-radius:17px;background:#241a53;color:#fff;box-shadow:0 15px 45px #20154666;border:1px solid #ffffff30;font:600 13px/1.5 system-ui,sans-serif}
+#obsidian-update-toast button{border:0;border-radius:10px;background:#b6ffdc;color:#163d33;font-weight:800;padding:9px 12px;margin:10px 9px 0 0;cursor:pointer}
+#obsidian-update-toast button:last-child{background:#ffffff20;color:white}
+</style>
+<script>
+/* V42: same-URL hosted deployment updater, compatible with Opera Chromium, Chrome, Edge.
+   Not a remote code loader. Updates only when version.json on the same origin changes.
+   A local file cannot update itself and browser storage is not synchronized across devices. */
+(()=>{
+  'use strict';
+  if(!/^https?:$/.test(location.protocol))return;
+  const CURRENT='42';
+  const VERSION_FILE='./version.json';
+  const CHECK_INTERVAL=60000;
+  let checking=false,offered=false;
+  const isEditing=()=>{
+    const a=document.activeElement;
+    return !!(a&&(/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)||a.isContentEditable));
+  };
+  function offerUpdate(){
+    if(offered)return;
+    offered=true;
+    const panel=document.createElement('aside');
+    panel.id='obsidian-update-toast';
+    panel.setAttribute('role','status');
+    const label=document.createElement('div');
+    label.textContent='✨ Versi dashboard terbaru tersedia. Perbarui agar mengikuti script terbaru.';
+    const apply=document.createElement('button');
+    apply.textContent='Perbarui sekarang';
+    apply.addEventListener('click',()=>location.reload());
+    const later=document.createElement('button');
+    later.textContent='Nanti';
+    later.addEventListener('click',()=>panel.remove());
+    panel.append(label,apply,later);
+    document.body.append(panel);
+  }
+  async function checkVersion(){
+    if(checking||offered)return;
+    checking=true;
+    try{
+      const url=new URL(VERSION_FILE,location.href);
+      url.searchParams.set('_',String(Date.now()));
+      const response=await fetch(url.href,{cache:'no-store',credentials:'same-origin'});
+      if(!response.ok)return;
+      const data=await response.json();
+      if(!data||!/^\d+$/.test(String(data.version)))return;
+      if(Number(data.version)>Number(CURRENT)){
+        if(!document.hidden&&!isEditing())offerUpdate();
+        else window.__obsidianUpdatePending=true;
+      }
+    }catch(_){/* Offline or version file unavailable: keep working. */}
+    finally{checking=false}
+  }
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden){
+      if(window.__obsidianUpdatePending&&!isEditing())offerUpdate();
+      checkVersion();
+    }
+  });
+  document.addEventListener('focusin',()=>{});
+  window.addEventListener('focus',()=>{
+    if(window.__obsidianUpdatePending&&!isEditing())offerUpdate();
+  });
+  setTimeout(checkVersion,5000);
+  setInterval(checkVersion,CHECK_INTERVAL);
 })();
 </script>
 </body>
