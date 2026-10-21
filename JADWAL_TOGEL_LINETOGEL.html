@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#292052">
-<meta name="description" content="OBSIDIAN Aurora Bloom V42 — nada dering marimba bergaya iPhone ketika jam result tiba tetapi nomor belum diterima, lengkap dengan 77 pasaran, SHIO, Prize, dan sinkronisasi Google Sheet.">
-<title>OBSIDIAN AURORA BLOOM V42 — Turbo Ringan & Opera Auto Update</title>
+<meta name="description" content="OBSIDIAN Aurora Bloom V43 — nada dering marimba bergaya iPhone ketika jam result tiba tetapi nomor belum diterima, lengkap dengan 77 pasaran, SHIO, Prize, dan sinkronisasi Google Sheet.">
+<title>OBSIDIAN AURORA BLOOM V43 — Turbo Ringan & Opera Auto Update</title>
 <style>
 :root{color-scheme:light;--ink:#1b1739;--indigo:#251658;--violet:#6446e9;--pink:#ff558f;--orange:#ff9b51;--yellow:#ffd66e;--mint:#57dfc6;--cream:#fcf8ef;--white:#fffefa;--muted:#817b8d;--stroke:#e8e3ec;--shadow:0 15px 42px rgba(46,31,92,.09)}
 *{box-sizing:border-box}
@@ -1114,7 +1114,18 @@ body{background:linear-gradient(180deg,#f8f7fd 0%,#f5f4fb 49%,#faf8fc 100%)!impo
  .disc,.planet,.hero-star,.live-dot{animation:none!important}
 }
 </style>
-<link rel="manifest" href="./OBSIDIAN_Aurora_V40.webmanifest">
+<!-- V43: defer manifest request until after the HTML is painted; local files do not need manifest. -->
+<script>
+if (location.protocol==='https:' || location.hostname==='localhost' || location.hostname==='127.0.0.1') {
+  window.addEventListener('load',()=>{
+    const manifest=document.createElement('link');
+    manifest.rel='manifest';
+    manifest.href='./OBSIDIAN_Aurora_V40.webmanifest';
+    document.head.append(manifest);
+  },{once:true});
+}
+</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%232d2268'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-size='43'%3E%E2%9C%B9%3C/text%3E%3C/svg%3E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
@@ -1122,7 +1133,7 @@ body{background:linear-gradient(180deg,#f8f7fd 0%,#f5f4fb 49%,#faf8fc 100%)!impo
 <div id="ambient"></div><div class="page-decor"></div>
 <div class="shell">
   <aside class="sidebar">
-    <div class="brand"><div class="brand-symbol" aria-hidden="true">✹</div><div><div class="brand-name">OBSIDIAN</div><div class="brand-sub">AURORA • V40</div></div></div>
+    <div class="brand"><div class="brand-symbol" aria-hidden="true">✹</div><div><div class="brand-name">OBSIDIAN</div><div class="brand-sub">AURORA • V43</div></div></div>
     <button class="sidebar-collapse-btn" id="navCollapse" type="button" aria-expanded="true" aria-controls="mainSideNav" title="Kecilkan navigasi kiri">⇤ <span>Minimize menu</span></button>
     <div class="nav-label">LIVE CONTROL</div>
     <nav class="side-nav" id="mainSideNav" aria-label="Navigasi utama">
@@ -2077,7 +2088,21 @@ async function pollFeed(manual=false){
  }
  finally{feedBusy=false;feedAttemptFinished=true}
 }
-function setPoller(){if(feedTimer){clearInterval(feedTimer);feedTimer=null}if(prefs.feedEnabled&&validUrl(prefs.feedUrl)){pollFeed();feedTimer=setInterval(()=>{if(!document.hidden||prefs.backgroundEnabled)pollFeed()},30000)}}
+// Start external requests only AFTER the document load event: the dashboard appears first.
+// Runs promptly after paint, without delaying subsequent 30s checks or manual sync.
+function afterDocumentLoad(task, delay=0){
+ const run=()=>setTimeout(task,delay);
+ if(document.readyState==='complete')run();
+ else window.addEventListener('load',run,{once:true});
+}
+function setPoller(deferFirst=false){
+ if(feedTimer){clearInterval(feedTimer);feedTimer=null}
+ if(prefs.feedEnabled&&validUrl(prefs.feedUrl)){
+  if(deferFirst)afterDocumentLoad(()=>{if(prefs.feedEnabled)pollFeed()},160);
+  else pollFeed();
+  feedTimer=setInterval(()=>{if(!document.hidden||prefs.backgroundEnabled)pollFeed()},30000);
+ }
+}
 let renderTimer;
 function tick(){
  const now=wibNow();resetDailyResults(now);
@@ -2150,7 +2175,7 @@ function bind(){
  $('exportCsv').addEventListener('click',()=>{const rows=[['Pasaran','Tanggal','Prize 1','Prize 2','Prize 3','SHIO','Sumber'],...prefs.results.map(x=>[x.pasaran,x.date,x.prize1,x.prize2,x.prize3,shioFromPrize1(x.prize1)||'',x.source])];const csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='obsidian-nocturne-v22-result-shio.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),3000)});
  $('saveFeed').addEventListener('click',()=>{const url=$('feedUrl').value.trim();if(url&&!validUrl(url)){toast('URL tidak valid','Gunakan HTTPS atau HTTP localhost.');return}if(prefs.feedUrl!==url)firstGoogleSync=true;prefs.feedUrl=url;prefs.feedEnabled=$('enableFeed').checked&&!!url;persist();setPoller();toast('Sumber disimpan',prefs.feedEnabled?'Auto cek aktif setiap 30 detik.':'Auto cek belum aktif.')});$('enableFeed').addEventListener('change',e=>{prefs.feedEnabled=e.target.checked&&validUrl($('feedUrl').value.trim());if(prefs.feedUrl!==$('feedUrl').value.trim())firstGoogleSync=true;prefs.feedUrl=$('feedUrl').value.trim();persist();setPoller();if(e.target.checked&&!prefs.feedEnabled){e.target.checked=false;toast('Alamat belum valid','Simpan URL HTTPS terlebih dahulu.')}});$('testFeed').addEventListener('click',()=>{const url=$('feedUrl').value.trim();if(!validUrl(url)){toast('URL belum benar','Masukkan URL HTTPS.');return}if(prefs.feedUrl!==url)firstGoogleSync=true;prefs.feedUrl=url;persist();pollFeed(true)});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden){renderMarkets(wibNow());updateStats(wibNow());renderLatePanel();}});
- renderHistory();renderEvents();renderMarkets();tick();scheduleMidnightReset();renderTimer=setInterval(tick,1000);setPoller();startBackgroundPulse();
+ renderHistory();renderEvents();renderMarkets();tick();scheduleMidnightReset();renderTimer=setInterval(tick,1000);setPoller(true);startBackgroundPulse();
  $('backgroundEnabled').addEventListener('change',e=>{
    prefs.backgroundEnabled=e.target.checked;persist();updateBackgroundStatus();
    if(!prefs.backgroundEnabled&&document.hidden)clearSpamJobs();
@@ -2169,7 +2194,7 @@ function bind(){
   browserNotify('🔔 TES NOTIFIKASI LATAR BELAKANG','Notifikasi sistem OBSIDIAN siap. Ini hanya tes, bukan hasil result.',1);
   toast('Tes Notifikasi Sistem','Sekarang pindah ke aplikasi lain dan periksa pusat notifikasi HP/Windows.');
  });
- registerBackgroundNotifier();
+ afterDocumentLoad(()=>registerBackgroundNotifier(),250);
  document.addEventListener('visibilitychange',()=>{
    // Jangan hentikan job result jika mode latar aktif.
    if(document.hidden&&!prefs.backgroundEnabled)clearSpamJobs();
@@ -2282,13 +2307,13 @@ setTimeout(()=>toast('🔔 Notifikasi siap','Klik Tes Notif untuk mencoba; untuk
 #obsidian-update-toast button:last-child{background:#ffffff20;color:white}
 </style>
 <script>
-/* V42: same-URL hosted deployment updater, compatible with Opera Chromium, Chrome, Edge.
+/* V43: same-URL hosted deployment updater, compatible with Opera Chromium, Chrome, Edge.
    Not a remote code loader. Updates only when version.json on the same origin changes.
    A local file cannot update itself and browser storage is not synchronized across devices. */
 (()=>{
   'use strict';
   if(!/^https?:$/.test(location.protocol))return;
-  const CURRENT='42';
+  const CURRENT='43';
   const VERSION_FILE='./version.json';
   const CHECK_INTERVAL=60000;
   let checking=false,offered=false;
